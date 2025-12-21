@@ -2,8 +2,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb, Square, RectangleVertical, RectangleHorizontal } from 'lucide-react';
 import { StyleChoice } from './StudioStyleStep';
+import { cn } from '@/lib/utils';
+
+export type AspectRatio = 'square' | 'portrait' | 'landscape';
 
 interface StudioPromptStepProps {
   visualPrompt: string;
@@ -12,6 +15,8 @@ interface StudioPromptStepProps {
   onTextPromptChange: (value: string) => void;
   style: StyleChoice | null;
   hasProduct: boolean;
+  aspectRatio: AspectRatio;
+  onAspectRatioChange: (value: AspectRatio) => void;
 }
 
 const PROMPT_SUGGESTIONS: Record<StyleChoice, string[]> = {
@@ -37,6 +42,12 @@ const PROMPT_SUGGESTIONS: Record<StyleChoice, string[]> = {
   ],
 };
 
+const ASPECT_RATIO_OPTIONS: { value: AspectRatio; label: string; icon: typeof Square; dimensions: string }[] = [
+  { value: 'square', label: 'ריבוע', icon: Square, dimensions: '1:1' },
+  { value: 'portrait', label: 'לאורך', icon: RectangleVertical, dimensions: '9:16' },
+  { value: 'landscape', label: 'לרוחב', icon: RectangleHorizontal, dimensions: '16:9' },
+];
+
 export const StudioPromptStep = ({
   visualPrompt,
   onVisualPromptChange,
@@ -44,6 +55,8 @@ export const StudioPromptStep = ({
   onTextPromptChange,
   style,
   hasProduct,
+  aspectRatio,
+  onAspectRatioChange,
 }: StudioPromptStepProps) => {
   const suggestions = style ? PROMPT_SUGGESTIONS[style] : [];
 
@@ -61,6 +74,34 @@ export const StudioPromptStep = ({
       </div>
 
       <div className="max-w-xl mx-auto space-y-6">
+        {/* Aspect Ratio Selector */}
+        <div>
+          <Label className="font-medium mb-3 block">גודל התמונה</Label>
+          <div className="grid grid-cols-3 gap-3">
+            {ASPECT_RATIO_OPTIONS.map((option) => {
+              const Icon = option.icon;
+              const isSelected = aspectRatio === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => onAspectRatioChange(option.value)}
+                  className={cn(
+                    'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all',
+                    isSelected
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                  )}
+                >
+                  <Icon className={cn('h-8 w-8', isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                  <span className="font-medium text-sm">{option.label}</span>
+                  <span className="text-xs text-muted-foreground">{option.dimensions}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Visual Prompt */}
         <div>
           <Label className="font-medium mb-2 block">תיאור התמונה / הרקע</Label>
