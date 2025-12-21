@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { User } from '@supabase/supabase-js';
-import MediaInventory from '@/components/admin/MediaInventory';
+import MediaDatabaseAdmin from '@/components/admin/MediaDatabaseAdmin';
 import AIBrainAdmin from '@/components/admin/AIBrainAdmin';
 import PromptTemplates from '@/components/admin/PromptTemplates';
 import ClientOverview from '@/components/admin/ClientOverview';
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'media':
-        return <MediaInventory />;
+        return <MediaDatabaseAdmin />;
       case 'brain':
         return <AIBrainAdmin />;
       case 'prompts':
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
       case 'clients':
         return <ClientOverview />;
       default:
-        return <MediaInventory />;
+        return <MediaDatabaseAdmin />;
     }
   };
 
