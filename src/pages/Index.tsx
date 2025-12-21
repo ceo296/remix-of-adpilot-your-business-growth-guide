@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Rocket, ArrowLeft, CheckCircle, Zap, Shield } from 'lucide-react';
+import { Rocket, ArrowLeft, CheckCircle, Zap, Shield, Users, Palette, Newspaper } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
@@ -12,11 +12,14 @@ const Index = () => {
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
               <Rocket className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">AdPilot</span>
+            <div>
+              <span className="text-xl font-bold text-foreground">AdPilot</span>
+              <span className="text-sm text-muted-foreground mr-2">| מגזר חרדי</span>
+            </div>
           </div>
           <Link to="/onboarding">
             <Button variant="default" size="default">
-              התחל עכשיו
+              בנה קמפיין
             </Button>
           </Link>
         </div>
@@ -27,53 +30,103 @@ const Index = () => {
         <div className="max-w-3xl mx-auto text-center animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
             <Zap className="w-4 h-4" />
-            פרסום אוטומטי לעסקים
+            פרסום חכם למגזר החרדי
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-            הגדל את העסק שלך
-            <span className="text-gradient block mt-2">בלי לגעת בדבר</span>
+            בנה קמפיין מושלם
+            <span className="text-gradient block mt-2">בכמה קליקים</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            AdPilot מנהלת את הפרסום שלך באופן אוטומטי לחלוטין. 
-            פשוט ספר לנו על העסק שלך, ואנחנו נדאג לכל השאר.
+            מתכנן מדיה + ארט-דירקטור בפלטפורמה אחת. 
+            בחר קהל, סגנון וערוצי מדיה – ואנחנו נבנה לך את הקמפיין.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/onboarding">
               <Button variant="gradient" size="xl">
-                התחל בחינם
+                התחל לבנות קמפיין
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
             </Link>
             <Link to="/dashboard">
               <Button variant="outline" size="xl">
-                צפה בדמו
+                לוח בקרה
               </Button>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* How It Works */}
       <section className="container mx-auto px-4 py-16">
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-12">
+          איך זה עובד?
+        </h2>
+        <div className="grid md:grid-cols-4 gap-6">
+          {[
+            {
+              step: '1',
+              icon: Users,
+              title: 'בחר קהל',
+              description: 'ליטאי, חסידי, ספרדי – תבחר למי לפנות',
+            },
+            {
+              step: '2',
+              icon: Palette,
+              title: 'הגדר סגנון',
+              description: 'צועק או יוקרתי? בחר את ה-VIBE שלך',
+            },
+            {
+              step: '3',
+              icon: Newspaper,
+              title: 'בחר מדיה',
+              description: 'עיתונות, דיגיטל, רדיו – הכל במקום אחד',
+            },
+            {
+              step: '4',
+              icon: CheckCircle,
+              title: 'קבל בריף',
+              description: 'אנחנו מייצרים את הקמפיין בשבילך',
+            },
+          ].map((item, index) => (
+            <div 
+              key={item.step}
+              className="relative bg-card rounded-xl border border-border p-6 text-center hover:shadow-lg transition-all duration-300 animate-slide-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="absolute -top-3 right-4 w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-sm">
+                {item.step}
+              </div>
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 mt-2">
+                <item.icon className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+              <p className="text-sm text-muted-foreground">{item.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="container mx-auto px-4 py-16 bg-muted/30">
         <div className="grid md:grid-cols-3 gap-6">
           {[
             {
               icon: CheckCircle,
-              title: 'פשוט להפליא',
-              description: 'ללא מונחים מסובכים. רק תוצאות שאתה מבין.',
+              title: 'קטלוג מדיה חכם',
+              description: 'כל העיתונים והאתרים במגזר, מסוננים לפי הקהל שלך.',
             },
             {
               icon: Zap,
-              title: 'אופטימיזציה אוטומטית',
-              description: 'המערכת משפרת את הקמפיינים שלך 24/7.',
+              title: 'סגנונות מוכנים',
+              description: 'בחר VIBE ונעצב לך קריאייטיב מותאם.',
             },
             {
               icon: Shield,
-              title: 'שליטה מלאה',
-              description: 'אתה תמיד יודע מה קורה עם הכסף שלך.',
+              title: 'ליווי מלא',
+              description: 'מהבריף ועד לפרסום – אנחנו מטפלים בהכל.',
             },
           ].map((feature, index) => (
             <div 
@@ -94,15 +147,15 @@ const Index = () => {
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="bg-gradient-primary rounded-2xl p-8 md:p-12 text-center text-primary-foreground">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">מוכן להגדיל את העסק?</h2>
-          <p className="text-lg opacity-90 mb-6">התחל עכשיו וקבל לידים ראשונים תוך 48 שעות</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">מוכן לבנות את הקמפיין הבא?</h2>
+          <p className="text-lg opacity-90 mb-6">תהליך פשוט של 4 שלבים – ואנחנו נעשה את השאר</p>
           <Link to="/onboarding">
             <Button 
               variant="secondary" 
               size="xl"
               className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
             >
-              התחל בחינם
+              בואו נתחיל
               <ArrowLeft className="w-5 h-5 mr-2" />
             </Button>
           </Link>
@@ -112,7 +165,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>© 2024 AdPilot. כל הזכויות שמורות.</p>
+          <p>© 2024 AdPilot - מגזר חרדי. כל הזכויות שמורות.</p>
         </div>
       </footer>
     </div>
