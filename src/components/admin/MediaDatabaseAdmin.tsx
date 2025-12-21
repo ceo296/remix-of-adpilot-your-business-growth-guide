@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
   Plus, Pencil, Trash2, Search, ChevronDown, ChevronRight, 
-  Building2, Newspaper, Package, Ruler, MapPin, DollarSign, Upload, X, Image
+  Building2, Newspaper, Package, Ruler, MapPin, DollarSign, Upload, X, Image,
+  Radio, Globe, MessageSquare, Megaphone, type LucideIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -99,10 +100,12 @@ const MediaDatabaseAdmin = () => {
   const [productDialog, setProductDialog] = useState(false);
   const [specDialog, setSpecDialog] = useState(false);
   const [cityDialog, setCityDialog] = useState(false);
+  const [categoryDialog, setCategoryDialog] = useState(false);
   const [editingOutlet, setEditingOutlet] = useState<Outlet | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingSpec, setEditingSpec] = useState<Spec | null>(null);
   const [editingCity, setEditingCity] = useState<City | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [selectedOutletId, setSelectedOutletId] = useState<string>('');
   const [selectedProductId, setSelectedProductId] = useState<string>('');
@@ -123,6 +126,7 @@ const MediaDatabaseAdmin = () => {
     name: '', name_he: '', dimensions: '', base_price: 0, client_price: 0, is_active: true
   });
   const [cityForm, setCityForm] = useState({ name: '', name_he: '', is_active: true });
+  const [categoryForm, setCategoryForm] = useState({ name: '', name_he: '', sort_order: 0 });
 
   useEffect(() => {
     loadAllData();
@@ -420,8 +424,61 @@ const MediaDatabaseAdmin = () => {
     loadAllData();
   };
 
+  // Category CRUD
+  const openAddCategory = () => {
+    setEditingCategory(null);
+    setCategoryForm({ name: '', name_he: '', sort_order: categories.length });
+    setCategoryDialog(true);
+  };
+
+  const openEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryForm({ name: category.name, name_he: category.name_he, sort_order: category.sort_order });
+    setCategoryDialog(true);
+  };
+
+  const saveCategory = async () => {
+    if (!categoryForm.name || !categoryForm.name_he) { toast.error('נא להזין שם'); return; }
+
+    if (editingCategory) {
+      const { error } = await supabase.from('media_categories').update(categoryForm).eq('id', editingCategory.id);
+      if (error) { toast.error('שגיאה בעדכון'); return; }
+      toast.success('עודכן בהצלחה');
+    } else {
+      const { error } = await supabase.from('media_categories').insert(categoryForm);
+      if (error) { toast.error('שגיאה בהוספה'); return; }
+      toast.success('נוסף בהצלחה');
+    }
+    setCategoryDialog(false);
+    loadAllData();
+  };
+
+  const deleteCategory = async (id: string) => {
+    const categoryOutlets = outlets.filter(o => o.category_id === id);
+    if (categoryOutlets.length > 0) {
+      toast.error('לא ניתן למחוק קטגוריה עם ערוצים. מחק קודם את הערוצים.');
+      return;
+    }
+    if (!confirm('בטוח למחוק?')) return;
+    const { error } = await supabase.from('media_categories').delete().eq('id', id);
+    if (error) { toast.error('שגיאה במחיקה'); return; }
+    toast.success('נמחק');
+    loadAllData();
+  };
+
   const getSectorLabel = (sector: string | null) => {
     return SECTORS.find(s => s.id === sector)?.label || sector || '';
+  };
+
+  // Get category icon based on name
+  const getCategoryIcon = (categoryName: string): LucideIcon => {
+    const name = categoryName.toLowerCase();
+    if (name.includes('עיתונות') || name.includes('print') || name.includes('newspaper')) return Newspaper;
+    if (name.includes('רדיו') || name.includes('radio')) return Radio;
+    if (name.includes('דיגיטל') || name.includes('digital') || name.includes('אתר')) return Globe;
+    if (name.includes('ישיר') || name.includes('direct') || name.includes('whatsapp') || name.includes('email')) return MessageSquare;
+    if (name.includes('רחוב') || name.includes('street') || name.includes('פרסום') || name.includes('outdoor')) return Megaphone;
+    return Building2;
   };
 
   const filteredCategories = categories.filter(cat => {
@@ -444,6 +501,10 @@ const MediaDatabaseAdmin = () => {
           <h1 className="text-2xl font-bold">מאגר מדיה</h1>
           <p className="text-muted-foreground">ניהול היררכי: קטגוריה ← ערוץ ← מוצר ← מפרט</p>
         </div>
+        <Button onClick={openAddCategory}>
+          <Plus className="h-4 w-4 ml-2" />
+          הוסף קטגוריה
+        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -478,18 +539,39 @@ const MediaDatabaseAdmin = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                            <Building2 className="h-5 w-5 text-primary" />
+                            {(() => {
+                              const CategoryIcon = getCategoryIcon(category.name_he || category.name);
+                              return <CategoryIcon className="h-5 w-5 text-primary" />;
+                            })()}
                             <CardTitle className="text-base">{category.name_he}</CardTitle>
                             <Badge variant="secondary">{categoryOutlets.length} ערוצים</Badge>
                           </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => { e.stopPropagation(); openAddOutlet(category.id); }}
-                          >
-                            <Plus className="h-4 w-4 ml-1" />
-                            הוסף ערוץ
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => { e.stopPropagation(); openAddOutlet(category.id); }}
+                            >
+                              <Plus className="h-4 w-4 ml-1" />
+                              הוסף ערוץ
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              onClick={(e) => { e.stopPropagation(); openEditCategory(category); }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-destructive"
+                              onClick={(e) => { e.stopPropagation(); deleteCategory(category.id); }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                     </CollapsibleTrigger>
@@ -1025,6 +1107,38 @@ const MediaDatabaseAdmin = () => {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setCityDialog(false)}>ביטול</Button>
             <Button onClick={saveCity}>{editingCity ? 'עדכון' : 'הוספה'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Dialog */}
+      <Dialog open={categoryDialog} onOpenChange={setCategoryDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCategory ? 'עריכת קטגוריה' : 'הוספת קטגוריה חדשה'}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>שם (אנגלית)</Label>
+                <Input value={categoryForm.name} onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })} 
+                  placeholder="National Press" />
+              </div>
+              <div>
+                <Label>שם (עברית)</Label>
+                <Input value={categoryForm.name_he} onChange={(e) => setCategoryForm({ ...categoryForm, name_he: e.target.value })}
+                  placeholder="עיתונות ארצית" />
+              </div>
+            </div>
+            <div>
+              <Label>סדר מיון</Label>
+              <Input type="number" value={categoryForm.sort_order} 
+                onChange={(e) => setCategoryForm({ ...categoryForm, sort_order: parseInt(e.target.value) || 0 })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setCategoryDialog(false)}>ביטול</Button>
+            <Button onClick={saveCategory}>{editingCategory ? 'עדכון' : 'הוספה'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
