@@ -4,16 +4,18 @@ import WizardProgress from '@/components/wizard/WizardProgress';
 import StepMagicLink from '@/components/wizard/StepMagicLink';
 import StepBrandIdentity from '@/components/wizard/StepBrandIdentity';
 import StepPastMaterials from '@/components/wizard/StepPastMaterials';
+import StepStrategy from '@/components/wizard/StepStrategy';
 import StepBrandPassport from '@/components/wizard/StepBrandPassport';
 import { Rocket } from 'lucide-react';
 import { toast } from 'sonner';
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 const stepTitles = [
   'הלינק הקסום',
   'זהות המותג',
   'חומרי עבר',
+  'תוכנית המשחק',
   'דרכון המותג',
 ];
 
@@ -39,7 +41,7 @@ const OnboardingWizard = () => {
   };
 
   const handleComplete = () => {
-    toast.success('בשעה טובה! המותג שלכם מוכן');
+    toast.success('בשעה טובה! המותג והקמפיין מוכנים');
     window.location.href = '/dashboard';
   };
 
@@ -52,6 +54,8 @@ const OnboardingWizard = () => {
       case 3:
         return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 4:
+        return <StepStrategy data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+      case 5:
         return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
       default:
         return null;

@@ -2,8 +2,10 @@ import { WizardData } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles, ArrowRight, Building2, Palette, Type, Image } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, CalendarDays, Layers, Zap, Anchor } from 'lucide-react';
 import { toast } from 'sonner';
+import { format, differenceInDays } from 'date-fns';
+import { he } from 'date-fns/locale';
 
 interface StepBrandPassportProps {
   data: WizardData;
@@ -19,6 +21,20 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
     onComplete();
   };
 
+  const { strategy } = data;
+
+  const getDurationText = () => {
+    if (!strategy.startDate || !strategy.endDate) return null;
+    const days = differenceInDays(strategy.endDate, strategy.startDate);
+    if (days === 0) return 'יום אחד';
+    if (days === 1) return 'יומיים';
+    if (days < 7) return `${days + 1} ימים`;
+    if (days < 14) return 'שבוע וקצת';
+    if (days < 21) return 'שבועיים וקצת';
+    if (days < 30) return 'כשלושה שבועות';
+    return 'חודש ומעלה';
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -30,7 +46,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
           אז בוא נראה אם הבנו אתכם נכון
         </h2>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          הנה ה"דרכון" של המותג שלכם - בדקו שהכל מדויק
+          הנה ה"דרכון" של המותג והקמפיין שלכם - בדקו שהכל מדויק
         </p>
       </div>
 
@@ -42,7 +58,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
             <div className="flex items-center justify-between">
               <div>
                 <Badge variant="secondary" className="bg-white/20 text-white border-0 mb-2">
-                  דרכון מותג
+                  דרכון מותג + קמפיין
                 </Badge>
                 <h3 className="text-2xl font-bold">{data.brand.name || 'שם העסק'}</h3>
               </div>
@@ -111,6 +127,60 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
               </div>
             </div>
 
+            {/* Campaign Strategy Section */}
+            <div className="pt-4 border-t border-border space-y-4">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
+                <Target className="w-4 h-4 text-primary" />
+                תוכנית הקמפיין
+              </h4>
+              
+              <div className="grid md:grid-cols-3 gap-4">
+                {/* Design Direction */}
+                <div className="p-3 rounded-lg bg-secondary/50 text-center">
+                  <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                    {strategy.designDirection === 'consistent' ? (
+                      <Anchor className="w-5 h-5 text-primary" />
+                    ) : (
+                      <Sparkles className="w-5 h-5 text-primary" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">כיוון עיצובי</p>
+                  <p className="font-medium text-sm">
+                    {strategy.designDirection === 'consistent' ? 'הקו המוכר' : 'רענון'}
+                  </p>
+                </div>
+
+                {/* Duration */}
+                <div className="p-3 rounded-lg bg-secondary/50 text-center">
+                  <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                    <CalendarDays className="w-5 h-5 text-primary" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">משך הקמפיין</p>
+                  <p className="font-medium text-sm">{getDurationText() || '-'}</p>
+                  {strategy.startDate && strategy.endDate && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {format(strategy.startDate, 'dd/MM', { locale: he })} - {format(strategy.endDate, 'dd/MM', { locale: he })}
+                    </p>
+                  )}
+                </div>
+
+                {/* Structure */}
+                <div className="p-3 rounded-lg bg-secondary/50 text-center">
+                  <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                    {strategy.structure === 'single' ? (
+                      <Zap className="w-5 h-5 text-primary" />
+                    ) : (
+                      <Layers className="w-5 h-5 text-primary" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">מבנה</p>
+                  <p className="font-medium text-sm">
+                    {strategy.structure === 'single' ? 'זבנג וגמרנו' : 'סדרה'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Past Materials */}
             {data.pastMaterials.length > 0 && (
               <div className="space-y-3">
@@ -150,7 +220,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
 
             {/* Summary Stats */}
             <div className="pt-4 border-t border-border">
-              <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center justify-center gap-4 flex-wrap text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Check className="w-4 h-4 text-green-500" />
                   זהות מותגית
@@ -161,7 +231,11 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                 </div>
                 <div className="flex items-center gap-1">
                   <Check className="w-4 h-4 text-green-500" />
-                  טיפוגרפיה
+                  אסטרטגיה
+                </div>
+                <div className="flex items-center gap-1">
+                  <Check className="w-4 h-4 text-green-500" />
+                  תזמון
                 </div>
               </div>
             </div>
