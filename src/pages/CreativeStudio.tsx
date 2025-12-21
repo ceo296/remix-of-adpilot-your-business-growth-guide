@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, ImageIcon, Wand2, ZoomIn, Type, Loader2, Camera, Palette } from 'lucide-react';
+import { ArrowRight, Sparkles, ImageIcon, Wand2, ZoomIn, Type, Loader2, Camera, Palette, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,8 @@ const STYLES: { id: StyleType; label: string; icon: string }[] = [
 interface GeneratedImage {
   id: string;
   url: string;
-  status: 'approved' | 'needs-review' | 'pending';
+  status: 'approved' | 'needs-review' | 'rejected' | 'pending';
+  analysis?: string;
 }
 
 const CreativeStudio = () => {
@@ -47,6 +48,27 @@ const CreativeStudio = () => {
   const [textPrompt, setTextPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+
+  const runKosherCheck = async (imageUrl: string): Promise<{ status: string; recommendation: string }> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('kosher-check', {
+        body: { imageUrl }
+      });
+
+      if (error) {
+        console.error('Kosher check error:', error);
+        return { status: 'needs-review', recommendation: 'לא ניתן לבצע בדיקה אוטומטית' };
+      }
+
+      return {
+        status: data.status || 'needs-review',
+        recommendation: data.recommendation || ''
+      };
+    } catch (error) {
+      console.error('Kosher check failed:', error);
+      return { status: 'needs-review', recommendation: 'שגיאה בבדיקת כשרות' };
+    }
+  };
 
   const handleGenerate = async () => {
     if (!visualPrompt.trim()) {
@@ -59,13 +81,16 @@ const CreativeStudio = () => {
     }
 
     setIsGenerating(true);
+    setGeneratedImages([]);
     toast.info('מייצר טיפוגרפיה בעברית... 🎨');
 
     try {
-      // Generate 4 images
       const results: GeneratedImage[] = [];
       
+      // Generate images one by one (to show progress)
       for (let i = 0; i < 4; i++) {
+        toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
+        
         const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
             visualPrompt,
@@ -77,22 +102,56 @@ const CreativeStudio = () => {
 
         if (error) {
           console.error('Error generating image:', error);
-          toast.error(error.message || 'שגיאה ביצירת התמונה');
           continue;
         }
 
         if (data?.imageUrl) {
-          results.push({
+          // Add image with pending status
+          const newImage: GeneratedImage = {
             id: `${Date.now()}-${i}`,
             url: data.imageUrl,
-            status: data.status === 'needs-review' ? 'needs-review' : 'approved',
+            status: 'pending',
+          };
+          
+          results.push(newImage);
+          setGeneratedImages([...results]);
+
+          // Run kosher check
+          toast.info(`מריץ בדיקת כשרות לסקיצה ${i + 1}... 🔍`);
+          const kosherResult = await runKosherCheck(data.imageUrl);
+          
+          // Update status
+          newImage.status = kosherResult.status as GeneratedImage['status'];
+          newImage.analysis = kosherResult.recommendation;
+          setGeneratedImages([...results]);
+
+          // Save to database
+          await supabase.from('generated_images').insert({
+            visual_prompt: visualPrompt,
+            text_prompt: textPrompt,
+            style: selectedStyle,
+            engine: selectedEngine,
+            image_url: data.imageUrl,
+            kosher_status: kosherResult.status,
+            kosher_analysis: kosherResult.recommendation,
           });
         }
       }
 
       if (results.length > 0) {
-        setGeneratedImages(results);
-        toast.success('הסקיצות מוכנות! בסייעתא דשמיא');
+        const approved = results.filter(r => r.status === 'approved').length;
+        const needsReview = results.filter(r => r.status === 'needs-review').length;
+        const rejected = results.filter(r => r.status === 'rejected').length;
+        
+        if (approved > 0) {
+          toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
+        }
+        if (needsReview > 0) {
+          toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
+        }
+        if (rejected > 0) {
+          toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
+        }
       } else {
         toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
@@ -107,9 +166,13 @@ const CreativeStudio = () => {
   const getStatusBadge = (status: GeneratedImage['status']) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-success text-success-foreground">מאושר בסינון ראשוני ✓</Badge>;
+        return <Badge className="bg-success text-success-foreground">מאושר ✓</Badge>;
       case 'needs-review':
-        return <Badge className="bg-warning text-warning-foreground">דורש בדיקה אנושית ⚠️</Badge>;
+        return <Badge className="bg-warning text-warning-foreground">דורש בדיקה ⚠️</Badge>;
+      case 'rejected':
+        return <Badge className="bg-destructive text-destructive-foreground">נדחה ✗</Badge>;
+      case 'pending':
+        return <Badge className="bg-muted text-muted-foreground animate-pulse">בודק... 🔍</Badge>;
       default:
         return null;
     }
@@ -132,12 +195,14 @@ const CreativeStudio = () => {
               <p className="text-sm text-muted-foreground">יוצרים מודעות בסייעתא דשמיא</p>
             </div>
           </div>
-          <Link to="/brain">
-            <Button variant="outline" size="sm">
-              בית הספר של האלגוריתם
-              <Sparkles className="h-4 w-4 mr-2" />
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/brain">
+              <Button variant="outline" size="sm">
+                <Shield className="h-4 w-4 ml-2" />
+                בית הספר
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -251,6 +316,12 @@ const CreativeStudio = () => {
                 </>
               )}
             </Button>
+
+            {/* Kosher Check Info */}
+            <div className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <Shield className="h-4 w-4" />
+              כל תמונה עוברת בדיקת כשרות אוטומטית
+            </div>
           </div>
 
           {/* Right Side - Canvas */}
@@ -269,7 +340,7 @@ const CreativeStudio = () => {
             ) : (
               <div className="grid grid-cols-2 gap-4">
                 {generatedImages.map((image) => (
-                  <Card key={image.id} className="overflow-hidden group">
+                  <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
                     <div className="relative aspect-square bg-muted">
                       <img
                         src={image.url}
@@ -279,21 +350,28 @@ const CreativeStudio = () => {
                       <div className="absolute top-2 right-2">
                         {getStatusBadge(image.status)}
                       </div>
+                      {image.analysis && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-background/90 p-2 text-xs">
+                          {image.analysis}
+                        </div>
+                      )}
                       {/* Action Buttons */}
-                      <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <Button size="sm" variant="secondary">
-                          <Wand2 className="h-4 w-4 ml-1" />
-                          עריכה
-                        </Button>
-                        <Button size="sm" variant="secondary">
-                          <ZoomIn className="h-4 w-4 ml-1" />
-                          הגדלה
-                        </Button>
-                        <Button size="sm" variant="secondary">
-                          <Type className="h-4 w-4 ml-1" />
-                          טקסט
-                        </Button>
-                      </div>
+                      {image.status !== 'rejected' && image.status !== 'pending' && (
+                        <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <Button size="sm" variant="secondary">
+                            <Wand2 className="h-4 w-4 ml-1" />
+                            עריכה
+                          </Button>
+                          <Button size="sm" variant="secondary">
+                            <ZoomIn className="h-4 w-4 ml-1" />
+                            הגדלה
+                          </Button>
+                          <Button size="sm" variant="secondary">
+                            <Type className="h-4 w-4 ml-1" />
+                            טקסט
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </Card>
                 ))}
