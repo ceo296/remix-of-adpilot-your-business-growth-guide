@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Palette, Upload, X, FileImage, FileText, Sparkles, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Palette, Upload, X, FileImage, FileText, Sparkles, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,15 +20,51 @@ interface UploadedAsset {
 type UploadZone = 'fame' | 'redlines' | 'assets';
 
 const SectorBrain = () => {
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [uploads, setUploads] = useState<UploadedAsset[]>([]);
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [isTraining, setIsTraining] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load existing examples from database
+  // Check admin role
   useEffect(() => {
-    loadExamples();
-  }, []);
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('יש להתחבר למערכת');
+        navigate('/admin-auth');
+        return;
+      }
+
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (!data) {
+        toast.error('עמוד זה זמין למנהלי מערכת בלבד');
+        navigate('/dashboard');
+        return;
+      }
+
+      setIsAdmin(true);
+      setIsCheckingAuth(false);
+    };
+
+    checkAdmin();
+  }, [navigate]);
+
+  // Load existing examples from database (only after admin check)
+  useEffect(() => {
+    if (isAdmin) {
+      loadExamples();
+    }
+  }, [isAdmin]);
 
   const loadExamples = async () => {
     setIsLoading(true);
@@ -228,6 +264,22 @@ const SectorBrain = () => {
     </Card>
   );
 
+  // Show loading while checking admin status
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">בודק הרשאות...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
@@ -247,9 +299,9 @@ const SectorBrain = () => {
               </p>
             </div>
           </div>
-          <Link to="/studio">
+          <Link to="/admin-dashboard">
             <Button variant="outline" size="sm">
-              חזרה לסטודיו
+              חזרה לממשק ניהול
               <Sparkles className="h-4 w-4 mr-2" />
             </Button>
           </Link>
