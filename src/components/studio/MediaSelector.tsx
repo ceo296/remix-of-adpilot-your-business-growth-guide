@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { 
-  ChevronDown, ChevronRight, Newspaper, Package, Ruler, 
-  MapPin, Check, Upload, FileText, Image as ImageIcon
+  Newspaper, Package, Ruler, MapPin, Check, Upload, FileText, 
+  Image as ImageIcon, Info, AlertTriangle, Star, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Category {
@@ -25,6 +26,10 @@ interface Outlet {
   name_he: string | null;
   sector: string | null;
   city: string | null;
+  vibe: string | null;
+  vibe_he: string | null;
+  warning_text: string | null;
+  reach_info: string | null;
 }
 
 interface Product {
@@ -36,6 +41,8 @@ interface Product {
   requires_text: boolean;
   requires_image: boolean;
   client_price: number;
+  target_audience: string | null;
+  special_tag: string | null;
 }
 
 interface Spec {
@@ -76,6 +83,18 @@ const SECTORS = [
   { id: 'general', label: 'כללי' },
 ];
 
+const SPECIAL_TAGS = {
+  high_reach: { label: 'הפצה רוויה', icon: Star, color: 'bg-yellow-500/20 text-yellow-400' },
+  best_seller: { label: 'רב מכר', icon: Star, color: 'bg-green-500/20 text-green-400' },
+};
+
+const AUDIENCE_LABELS: Record<string, string> = {
+  women: 'נשים',
+  men: 'גברים',
+  general: 'כללי',
+  youth: 'נוער',
+};
+
 export const MediaSelector = ({ onSelect, selectedMedia }: MediaSelectorProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
@@ -94,9 +113,6 @@ export const MediaSelector = ({ onSelect, selectedMedia }: MediaSelectorProps) =
   // Content state
   const [textContent, setTextContent] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
-
-  // Expanded states
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadData();
@@ -119,19 +135,11 @@ export const MediaSelector = ({ onSelect, selectedMedia }: MediaSelectorProps) =
     setIsLoading(false);
   };
 
-  const toggleCategory = (id: string) => {
-    setExpandedCategories(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-    const cat = categories.find(c => c.id === id);
-    if (cat) {
-      setSelectedCategory(cat);
-      setSelectedOutlet(null);
-      setSelectedProduct(null);
-      setSelectedSpec(null);
-    }
+  const handleSelectCategory = (category: Category) => {
+    setSelectedCategory(category);
+    setSelectedOutlet(null);
+    setSelectedProduct(null);
+    setSelectedSpec(null);
   };
 
   const handleSelectOutlet = (outlet: Outlet) => {
@@ -218,221 +226,283 @@ export const MediaSelector = ({ onSelect, selectedMedia }: MediaSelectorProps) =
   }
 
   return (
-    <div className="space-y-6">
-      {/* Step 1: Category Selection */}
-      <div>
-        <Label className="text-lg font-semibold mb-3 block">1. בחר קטגוריה</Label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {categories.map(category => (
-            <Button
-              key={category.id}
-              variant={selectedCategory?.id === category.id ? 'default' : 'outline'}
-              className="h-auto py-4 flex flex-col items-center gap-2"
-              onClick={() => toggleCategory(category.id)}
-            >
-              <Newspaper className="h-5 w-5" />
-              <span>{category.name_he}</span>
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* City Selection (for local media) */}
-      {requiresCitySelection && (
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* Step 1: Category Selection */}
         <div>
-          <Label className="text-lg font-semibold mb-3 block">בחר עיר</Label>
-          <Select value={selectedCity} onValueChange={setSelectedCity}>
-            <SelectTrigger className="w-full md:w-64">
-              <SelectValue placeholder="בחר עיר" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">כל הערים</SelectItem>
-              {cities.map(city => (
-                <SelectItem key={city.id} value={city.name}>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    {city.name_he}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* Step 2: Outlet Selection */}
-      {selectedCategory && (
-        <div>
-          <Label className="text-lg font-semibold mb-3 block">2. בחר ערוץ/כלי מדיה</Label>
+          <Label className="text-lg font-semibold mb-3 block">1. בחר קטגוריה</Label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {filteredOutlets.map(outlet => (
-              <Card 
-                key={outlet.id}
-                className={`cursor-pointer transition-all ${
-                  selectedOutlet?.id === outlet.id 
-                    ? 'ring-2 ring-primary bg-primary/5' 
-                    : 'hover:bg-muted/50'
-                }`}
-                onClick={() => handleSelectOutlet(outlet)}
-              >
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">{outlet.name_he || outlet.name}</div>
-                    <div className="flex gap-1 mt-1">
-                      {outlet.sector && (
-                        <Badge variant="outline" className="text-xs">{getSectorLabel(outlet.sector)}</Badge>
-                      )}
-                    </div>
-                  </div>
-                  {selectedOutlet?.id === outlet.id && (
-                    <Check className="h-5 w-5 text-primary" />
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: Product Selection */}
-      {selectedOutlet && (
-        <div>
-          <Label className="text-lg font-semibold mb-3 block">3. בחר מוצר</Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {filteredProducts.map(product => (
-              <Card 
-                key={product.id}
-                className={`cursor-pointer transition-all ${
-                  selectedProduct?.id === product.id 
-                    ? 'ring-2 ring-primary bg-primary/5' 
-                    : 'hover:bg-muted/50'
-                }`}
-                onClick={() => handleSelectProduct(product)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-primary" />
-                      <span className="font-medium">{product.name_he || product.name}</span>
-                    </div>
-                    {selectedProduct?.id === product.id && (
-                      <Check className="h-5 w-5 text-primary" />
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    {product.requires_image && (
-                      <Badge variant="secondary" className="text-xs">
-                        <ImageIcon className="h-3 w-3 ml-1" />
-                        תמונה
-                      </Badge>
-                    )}
-                    {product.requires_text && (
-                      <Badge variant="secondary" className="text-xs">
-                        <FileText className="h-3 w-3 ml-1" />
-                        טקסט
-                      </Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Step 4: Spec Selection */}
-      {selectedProduct && filteredSpecs.length > 0 && (
-        <div>
-          <Label className="text-lg font-semibold mb-3 block">4. בחר מידות/פורמט</Label>
-          <div className="flex flex-wrap gap-3">
-            {filteredSpecs.map(spec => (
+            {categories.map(category => (
               <Button
-                key={spec.id}
-                variant={selectedSpec?.id === spec.id ? 'default' : 'outline'}
-                className="flex items-center gap-2"
-                onClick={() => handleSelectSpec(spec)}
+                key={category.id}
+                variant={selectedCategory?.id === category.id ? 'default' : 'outline'}
+                className="h-auto py-4 flex flex-col items-center gap-2"
+                onClick={() => handleSelectCategory(category)}
               >
-                <Ruler className="h-4 w-4" />
-                <span>{spec.name_he || spec.name}</span>
-                {spec.dimensions && (
-                  <span className="text-xs opacity-70">({spec.dimensions})</span>
-                )}
-                <Badge variant="secondary">₪{spec.client_price}</Badge>
+                <Newspaper className="h-5 w-5" />
+                <span>{category.name_he}</span>
               </Button>
             ))}
           </div>
         </div>
-      )}
 
-      {/* Content Input (based on product requirements) */}
-      {selectedProduct && selectedSpec && (
-        <div className="border-t pt-6 space-y-4">
-          <Label className="text-lg font-semibold mb-3 block">5. העלאת תוכן</Label>
-          
-          {selectedProduct.requires_image && (
-            <div>
-              <Label className="mb-2 block">
-                העלאת תמונה
-                {selectedSpec.dimensions && <span className="text-muted-foreground"> ({selectedSpec.dimensions})</span>}
-              </Label>
-              <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                {imageFile ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <Check className="h-5 w-5 text-green-500" />
-                    <span>{imageFile.name}</span>
-                    <Button variant="ghost" size="sm" onClick={() => setImageFile(null)}>
-                      שנה
-                    </Button>
-                  </div>
-                ) : (
-                  <label className="cursor-pointer">
-                    <input 
-                      type="file" 
-                      accept="image/*,.pdf" 
-                      className="hidden" 
-                      onChange={handleImageUpload}
-                    />
-                    <div className="flex flex-col items-center gap-2">
-                      <Upload className="h-8 w-8 text-muted-foreground" />
-                      <span className="text-muted-foreground">לחץ להעלאת קובץ</span>
+        {/* City Selection (for local media) */}
+        {requiresCitySelection && (
+          <div>
+            <Label className="text-lg font-semibold mb-3 block">בחר עיר</Label>
+            <Select value={selectedCity} onValueChange={setSelectedCity}>
+              <SelectTrigger className="w-full md:w-64">
+                <SelectValue placeholder="בחר עיר" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">כל הערים</SelectItem>
+                {cities.map(city => (
+                  <SelectItem key={city.id} value={city.name}>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      {city.name_he}
                     </div>
-                  </label>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {selectedProduct.requires_text && (
-            <div>
-              <Label className="mb-2 block">טקסט לפרסום</Label>
-              <Textarea
-                value={textContent}
-                onChange={(e) => handleTextChange(e.target.value)}
-                placeholder="הזן את הטקסט לפרסום..."
-                className="min-h-[120px]"
-              />
-            </div>
-          )}
-        </div>
-      )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-      {/* Selection Summary */}
-      {selectedSpec && (
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+        {/* Step 2: Outlet Selection with Tooltips */}
+        {selectedCategory && (
+          <div>
+            <Label className="text-lg font-semibold mb-3 block">2. בחר ערוץ/כלי מדיה</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredOutlets.map(outlet => (
+                <Card 
+                  key={outlet.id}
+                  className={`cursor-pointer transition-all ${
+                    selectedOutlet?.id === outlet.id 
+                      ? 'ring-2 ring-primary bg-primary/5' 
+                      : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => handleSelectOutlet(outlet)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{outlet.name_he || outlet.name}</span>
+                          {/* Info Tooltip */}
+                          {(outlet.vibe_he || outlet.reach_info) && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button className="text-muted-foreground hover:text-primary transition-colors">
+                                  <Info className="h-4 w-4" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">
+                                <div className="space-y-1">
+                                  {outlet.vibe_he && (
+                                    <div className="font-medium">{outlet.vibe_he}</div>
+                                  )}
+                                  {outlet.reach_info && (
+                                    <div className="text-sm text-muted-foreground">{outlet.reach_info}</div>
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
+                        <div className="flex gap-1 mt-2 flex-wrap">
+                          {outlet.sector && (
+                            <Badge variant="outline" className="text-xs">{getSectorLabel(outlet.sector)}</Badge>
+                          )}
+                          {outlet.vibe === 'strict_kosher' && (
+                            <Badge className="text-xs bg-orange-500/20 text-orange-400">קפדן</Badge>
+                          )}
+                          {outlet.vibe === 'high_end_open' && (
+                            <Badge className="text-xs bg-blue-500/20 text-blue-400">מגזיני</Badge>
+                          )}
+                        </div>
+                      </div>
+                      {selectedOutlet?.id === outlet.id && (
+                        <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            {/* Warning for strict outlets */}
+            {selectedOutlet?.warning_text && (
+              <Alert className="mt-4 border-orange-500/50 bg-orange-500/10">
+                <AlertTriangle className="h-4 w-4 text-orange-500" />
+                <AlertDescription className="text-orange-400">
+                  {selectedOutlet.warning_text}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
+
+        {/* Step 3: Product Selection */}
+        {selectedOutlet && (
+          <div>
+            <Label className="text-lg font-semibold mb-3 block">3. בחר מוצר</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {filteredProducts.map(product => {
+                const specialTag = product.special_tag ? SPECIAL_TAGS[product.special_tag as keyof typeof SPECIAL_TAGS] : null;
+                
+                return (
+                  <Card 
+                    key={product.id}
+                    className={`cursor-pointer transition-all ${
+                      selectedProduct?.id === product.id 
+                        ? 'ring-2 ring-primary bg-primary/5' 
+                        : 'hover:bg-muted/50'
+                    }`}
+                    onClick={() => handleSelectProduct(product)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Package className="h-4 w-4 text-primary" />
+                          <span className="font-medium">{product.name_he || product.name}</span>
+                        </div>
+                        {selectedProduct?.id === product.id && (
+                          <Check className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        {product.target_audience && product.target_audience !== 'general' && (
+                          <Badge variant="secondary" className="text-xs">
+                            <Users className="h-3 w-3 ml-1" />
+                            {AUDIENCE_LABELS[product.target_audience] || product.target_audience}
+                          </Badge>
+                        )}
+                        {specialTag && (
+                          <Badge className={`text-xs ${specialTag.color}`}>
+                            <specialTag.icon className="h-3 w-3 ml-1" />
+                            {specialTag.label}
+                          </Badge>
+                        )}
+                        {product.requires_image && (
+                          <Badge variant="outline" className="text-xs">
+                            <ImageIcon className="h-3 w-3 ml-1" />
+                            תמונה
+                          </Badge>
+                        )}
+                        {product.requires_text && (
+                          <Badge variant="outline" className="text-xs">
+                            <FileText className="h-3 w-3 ml-1" />
+                            טקסט
+                          </Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Spec Selection */}
+        {selectedProduct && filteredSpecs.length > 0 && (
+          <div>
+            <Label className="text-lg font-semibold mb-3 block">4. בחר מידות/פורמט</Label>
+            <div className="flex flex-wrap gap-3">
+              {filteredSpecs.map(spec => (
+                <Button
+                  key={spec.id}
+                  variant={selectedSpec?.id === spec.id ? 'default' : 'outline'}
+                  className="flex items-center gap-2"
+                  onClick={() => handleSelectSpec(spec)}
+                >
+                  <Ruler className="h-4 w-4" />
+                  <span>{spec.name_he || spec.name}</span>
+                  {spec.dimensions && (
+                    <span className="text-xs opacity-70">({spec.dimensions})</span>
+                  )}
+                  {spec.client_price > 0 && (
+                    <Badge variant="secondary">₪{spec.client_price}</Badge>
+                  )}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Content Input (based on product requirements) */}
+        {selectedProduct && selectedSpec && (
+          <div className="border-t pt-6 space-y-4">
+            <Label className="text-lg font-semibold mb-3 block">5. העלאת תוכן</Label>
+            
+            {selectedProduct.requires_image && (
               <div>
-                <div className="font-semibold text-primary">בחירה נוכחית:</div>
-                <div className="text-sm text-muted-foreground">
-                  {selectedCategory?.name_he} ← {selectedOutlet?.name_he || selectedOutlet?.name} ← {selectedProduct?.name_he || selectedProduct?.name} ← {selectedSpec?.name_he || selectedSpec?.name}
+                <Label className="mb-2 block">
+                  העלאת תמונה
+                  {selectedSpec.dimensions && <span className="text-muted-foreground"> ({selectedSpec.dimensions})</span>}
+                </Label>
+                <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  {imageFile ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <Check className="h-5 w-5 text-green-500" />
+                      <span>{imageFile.name}</span>
+                      <Button variant="ghost" size="sm" onClick={() => setImageFile(null)}>
+                        שנה
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer">
+                      <input 
+                        type="file" 
+                        accept="image/*,.pdf" 
+                        className="hidden" 
+                        onChange={handleImageUpload}
+                      />
+                      <div className="flex flex-col items-center gap-2">
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <span className="text-muted-foreground">לחץ להעלאת קובץ</span>
+                      </div>
+                    </label>
+                  )}
                 </div>
               </div>
-              <Badge className="text-lg px-3 py-1">₪{selectedSpec.client_price}</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+            )}
+            
+            {selectedProduct.requires_text && (
+              <div>
+                <Label className="mb-2 block">טקסט לפרסום</Label>
+                <Textarea
+                  value={textContent}
+                  onChange={(e) => handleTextChange(e.target.value)}
+                  placeholder="הזן את הטקסט לפרסום..."
+                  className="min-h-[120px]"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Selection Summary */}
+        {selectedSpec && (
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-semibold text-primary">בחירה נוכחית:</div>
+                  <div className="text-sm text-muted-foreground">
+                    {selectedCategory?.name_he} ← {selectedOutlet?.name_he || selectedOutlet?.name} ← {selectedProduct?.name_he || selectedProduct?.name} ← {selectedSpec?.name_he || selectedSpec?.name}
+                  </div>
+                </div>
+                {selectedSpec.client_price > 0 && (
+                  <Badge className="text-lg px-3 py-1">₪{selectedSpec.client_price}</Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </TooltipProvider>
   );
 };
 

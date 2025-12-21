@@ -33,6 +33,10 @@ interface Outlet {
   sector: string | null;
   city: string | null;
   is_active: boolean;
+  vibe: string | null;
+  vibe_he: string | null;
+  warning_text: string | null;
+  reach_info: string | null;
 }
 
 interface Product {
@@ -46,6 +50,8 @@ interface Product {
   base_price: number;
   client_price: number;
   is_active: boolean;
+  target_audience: string | null;
+  special_tag: string | null;
 }
 
 interface Spec {
@@ -101,11 +107,13 @@ const MediaDatabaseAdmin = () => {
 
   // Form states
   const [outletForm, setOutletForm] = useState({
-    name: '', name_he: '', sector: 'general', city: '', is_active: true
+    name: '', name_he: '', sector: 'general', city: '', is_active: true,
+    vibe: '', vibe_he: '', warning_text: '', reach_info: ''
   });
   const [productForm, setProductForm] = useState({
     name: '', name_he: '', product_type: '', requires_text: false, 
-    requires_image: true, base_price: 0, client_price: 0, is_active: true
+    requires_image: true, base_price: 0, client_price: 0, is_active: true,
+    target_audience: 'general', special_tag: ''
   });
   const [specForm, setSpecForm] = useState({
     name: '', name_he: '', dimensions: '', base_price: 0, client_price: 0, is_active: true
@@ -164,7 +172,10 @@ const MediaDatabaseAdmin = () => {
   const openAddOutlet = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
     setEditingOutlet(null);
-    setOutletForm({ name: '', name_he: '', sector: 'general', city: '', is_active: true });
+    setOutletForm({ 
+      name: '', name_he: '', sector: 'general', city: '', is_active: true,
+      vibe: '', vibe_he: '', warning_text: '', reach_info: ''
+    });
     setOutletDialog(true);
   };
 
@@ -176,7 +187,11 @@ const MediaDatabaseAdmin = () => {
       name_he: outlet.name_he || '',
       sector: outlet.sector || 'general',
       city: outlet.city || '',
-      is_active: outlet.is_active
+      is_active: outlet.is_active,
+      vibe: outlet.vibe || '',
+      vibe_he: outlet.vibe_he || '',
+      warning_text: outlet.warning_text || '',
+      reach_info: outlet.reach_info || ''
     });
     setOutletDialog(true);
   };
@@ -217,7 +232,8 @@ const MediaDatabaseAdmin = () => {
     setEditingProduct(null);
     setProductForm({
       name: '', name_he: '', product_type: '', requires_text: false,
-      requires_image: true, base_price: 0, client_price: 0, is_active: true
+      requires_image: true, base_price: 0, client_price: 0, is_active: true,
+      target_audience: 'general', special_tag: ''
     });
     setProductDialog(true);
   };
@@ -233,7 +249,9 @@ const MediaDatabaseAdmin = () => {
       requires_image: product.requires_image,
       base_price: product.base_price,
       client_price: product.client_price,
-      is_active: product.is_active
+      is_active: product.is_active,
+      target_audience: product.target_audience || 'general',
+      special_tag: product.special_tag || ''
     });
     setProductDialog(true);
   };
@@ -626,7 +644,7 @@ const MediaDatabaseAdmin = () => {
           <DialogHeader>
             <DialogTitle>{editingOutlet ? 'עריכת ערוץ' : 'הוספת ערוץ חדש'}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4">
+          <div className="grid gap-4 max-h-[60vh] overflow-y-auto">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>שם (אנגלית)</Label>
@@ -656,6 +674,45 @@ const MediaDatabaseAdmin = () => {
                     {cities.map(c => <SelectItem key={c.id} value={c.name}>{c.name_he}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            {/* Vibe/Restriction Fields */}
+            <div className="border-t pt-4 mt-2">
+              <Label className="text-sm font-semibold mb-2 block">אופי הערוץ והגבלות</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Vibe (אנגלית)</Label>
+                  <Input 
+                    value={outletForm.vibe} 
+                    onChange={(e) => setOutletForm({ ...outletForm, vibe: e.target.value })} 
+                    placeholder="strict_kosher, high_end_open, etc."
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Vibe (עברית)</Label>
+                  <Input 
+                    value={outletForm.vibe_he} 
+                    onChange={(e) => setOutletForm({ ...outletForm, vibe_he: e.target.value })}
+                    placeholder="שמרני מאוד, מגזיני ופתוח, וכו'"
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <Label className="text-xs text-muted-foreground">מידע על חשיפה</Label>
+                <Input 
+                  value={outletForm.reach_info} 
+                  onChange={(e) => setOutletForm({ ...outletForm, reach_info: e.target.value })}
+                  placeholder="העיתון הליטאי המרכזי, 150K עותקים, וכו'"
+                />
+              </div>
+              <div className="mt-3">
+                <Label className="text-xs text-muted-foreground">אזהרה (יוצג למשתמש)</Label>
+                <Textarea 
+                  value={outletForm.warning_text} 
+                  onChange={(e) => setOutletForm({ ...outletForm, warning_text: e.target.value })}
+                  placeholder="מחייב בדיקת צניעות קפדנית..."
+                  className="min-h-[60px]"
+                />
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -705,6 +762,32 @@ const MediaDatabaseAdmin = () => {
                 <Label>מחיר לקוח (₪)</Label>
                 <Input type="number" value={productForm.client_price}
                   onChange={(e) => setProductForm({ ...productForm, client_price: parseFloat(e.target.value) || 0 })} />
+              </div>
+            </div>
+            {/* Target Audience & Special Tag */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>קהל יעד</Label>
+                <Select value={productForm.target_audience} onValueChange={(v) => setProductForm({ ...productForm, target_audience: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">כללי</SelectItem>
+                    <SelectItem value="women">נשים</SelectItem>
+                    <SelectItem value="men">גברים</SelectItem>
+                    <SelectItem value="youth">נוער</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>תג מיוחד</Label>
+                <Select value={productForm.special_tag} onValueChange={(v) => setProductForm({ ...productForm, special_tag: v })}>
+                  <SelectTrigger><SelectValue placeholder="ללא" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">ללא</SelectItem>
+                    <SelectItem value="high_reach">הפצה רוויה</SelectItem>
+                    <SelectItem value="best_seller">רב מכר</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="flex gap-6">
