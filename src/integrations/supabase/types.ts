@@ -14,6 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaigns: {
+        Row: {
+          client_profile_id: string
+          created_at: string
+          creatives: Json | null
+          end_date: string | null
+          goal: string | null
+          id: string
+          name: string
+          selected_media: Json | null
+          start_date: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          vibe: string | null
+        }
+        Insert: {
+          client_profile_id: string
+          created_at?: string
+          creatives?: Json | null
+          end_date?: string | null
+          goal?: string | null
+          id?: string
+          name: string
+          selected_media?: Json | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          vibe?: string | null
+        }
+        Update: {
+          client_profile_id?: string
+          created_at?: string
+          creatives?: Json | null
+          end_date?: string | null
+          goal?: string | null
+          id?: string
+          name?: string
+          selected_media?: Json | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          vibe?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_client_profile_id_fkey"
+            columns: ["client_profile_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_profiles: {
+        Row: {
+          advantage_slider: number | null
+          advantage_type: string | null
+          agency_owner_id: string | null
+          background_color: string | null
+          body_font: string | null
+          business_name: string
+          competitor_positions: Json | null
+          competitors: string[] | null
+          created_at: string
+          header_font: string | null
+          id: string
+          is_agency_profile: boolean | null
+          logo_url: string | null
+          my_position_x: number | null
+          my_position_y: number | null
+          onboarding_completed: boolean | null
+          past_materials: Json | null
+          primary_color: string | null
+          primary_x_factor: string | null
+          secondary_color: string | null
+          target_audience: string | null
+          updated_at: string
+          user_id: string
+          website_url: string | null
+          winning_feature: string | null
+          x_factors: string[] | null
+        }
+        Insert: {
+          advantage_slider?: number | null
+          advantage_type?: string | null
+          agency_owner_id?: string | null
+          background_color?: string | null
+          body_font?: string | null
+          business_name: string
+          competitor_positions?: Json | null
+          competitors?: string[] | null
+          created_at?: string
+          header_font?: string | null
+          id?: string
+          is_agency_profile?: boolean | null
+          logo_url?: string | null
+          my_position_x?: number | null
+          my_position_y?: number | null
+          onboarding_completed?: boolean | null
+          past_materials?: Json | null
+          primary_color?: string | null
+          primary_x_factor?: string | null
+          secondary_color?: string | null
+          target_audience?: string | null
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+          winning_feature?: string | null
+          x_factors?: string[] | null
+        }
+        Update: {
+          advantage_slider?: number | null
+          advantage_type?: string | null
+          agency_owner_id?: string | null
+          background_color?: string | null
+          body_font?: string | null
+          business_name?: string
+          competitor_positions?: Json | null
+          competitors?: string[] | null
+          created_at?: string
+          header_font?: string | null
+          id?: string
+          is_agency_profile?: boolean | null
+          logo_url?: string | null
+          my_position_x?: number | null
+          my_position_y?: number | null
+          onboarding_completed?: boolean | null
+          past_materials?: Json | null
+          primary_color?: string | null
+          primary_x_factor?: string | null
+          secondary_color?: string | null
+          target_audience?: string | null
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
+          winning_feature?: string | null
+          x_factors?: string[] | null
+        }
+        Relationships: []
+      }
       generated_images: {
         Row: {
           created_at: string
