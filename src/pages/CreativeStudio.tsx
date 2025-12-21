@@ -12,6 +12,7 @@ import { StudioStyleStep, StyleChoice } from '@/components/studio/StudioStyleSte
 import { StudioPromptStep, AspectRatio } from '@/components/studio/StudioPromptStep';
 import { StudioModeToggle, StudioMode } from '@/components/studio/StudioModeToggle';
 import { StudioAutopilot, CreativeConcept } from '@/components/studio/StudioAutopilot';
+import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
 
 type AssetChoice = 'has-product' | 'no-product';
 type TreatmentChoice = 'as-is' | 'ai-magic';
@@ -65,6 +66,14 @@ const CreativeStudio = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [showQuote, setShowQuote] = useState(false);
+  const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
+
+  // Mock media items for quote (in production, this would come from media selection step)
+  const mockMediaItems: MediaItem[] = [
+    { id: '1', name: 'יתד נאמן - יום שלישי', price: 15000 },
+    { id: '2', name: 'כיכר השבת - באנר ראשי', price: 500 },
+  ];
 
   // Fetch client profile on mount
   useEffect(() => {
@@ -264,8 +273,94 @@ const CreativeStudio = () => {
     setAspectRatio('square');
     setGeneratedImages([]);
     setShowResults(false);
+    setShowQuote(false);
     setConcepts([]);
     setSelectedConcept(null);
+  };
+
+  // Quote handling functions
+  const getQuoteData = (): QuoteData => {
+    const creativeMode: QuoteData['creativeMode'] = 
+      mode === 'autopilot' ? 'autopilot' : 
+      assetChoice === 'has-product' && treatment === 'as-is' ? 'uploaded' : 'manual';
+    
+    const creativeCost = creativeMode === 'uploaded' ? 0 : 500;
+    
+    return {
+      mediaItems: mockMediaItems,
+      creativeMode,
+      creativeCost,
+    };
+  };
+
+  const handleProceedToQuote = () => {
+    setShowQuote(true);
+  };
+
+  const handleApproveQuote = async () => {
+    setIsSubmittingQuote(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('יש להתחבר כדי לשלוח הזמנה');
+        setIsSubmittingQuote(false);
+        return;
+      }
+
+      // Get or create client profile
+      const { data: profile } = await supabase
+        .from('client_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!profile) {
+        toast.error('יש ליצור פרופיל עסקי לפני שליחת הזמנה');
+        setIsSubmittingQuote(false);
+        return;
+      }
+
+      const quoteData = getQuoteData();
+      
+      // Save campaign to database
+      const campaignData = {
+        user_id: user.id,
+        client_profile_id: profile.id,
+        name: `קמפיין ${new Date().toLocaleDateString('he-IL')}`,
+        status: 'pending_approval',
+        vibe: style,
+        goal: visualPrompt,
+        selected_media: quoteData.mediaItems as unknown as import('@/integrations/supabase/types').Json,
+        creatives: generatedImages.map(img => ({
+          id: img.id,
+          url: img.url,
+          status: img.status,
+        })) as unknown as import('@/integrations/supabase/types').Json,
+      };
+      
+      const { error } = await supabase.from('campaigns').insert(campaignData);
+
+      if (error) {
+        console.error('Error saving campaign:', error);
+        toast.error('שגיאה בשמירת ההזמנה');
+        setIsSubmittingQuote(false);
+        return;
+      }
+
+      toast.success('ההזמנה התקבלה! הנציג שלנו (אנושי, לא רובוט) עובר עליה כרגע ויחזור אליך לאישור סופי וסליקה.');
+      resetWizard();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('שגיאה בשליחת ההזמנה');
+    } finally {
+      setIsSubmittingQuote(false);
+    }
+  };
+
+  const handleConsultAgent = () => {
+    toast.info('נציג יצור איתך קשר בהקדם!');
+    // In production, this could open a chat widget or send a notification
   };
 
   // Autopilot functions
@@ -544,6 +639,22 @@ const CreativeStudio = () => {
               </>
             )}
           </div>
+        ) : showQuote ? (
+          /* Quote View */
+          <div className="py-6">
+            <div className="mb-6">
+              <Button variant="ghost" onClick={() => setShowQuote(false)} className="mb-4">
+                <ChevronRight className="h-4 w-4 ml-1" />
+                חזרה לסקיצות
+              </Button>
+            </div>
+            <StudioQuoteStep
+              quoteData={getQuoteData()}
+              isSubmitting={isSubmittingQuote}
+              onApprove={handleApproveQuote}
+              onConsult={handleConsultAgent}
+            />
+          </div>
         ) : (
           /* Results View */
           <div className="space-y-6">
@@ -552,9 +663,11 @@ const CreativeStudio = () => {
                 <Sparkles className="h-6 w-6 text-primary" />
                 הסקיצות שלך
               </h2>
-              <Button variant="outline" onClick={resetWizard}>
-                התחל מחדש
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={resetWizard}>
+                  התחל מחדש
+                </Button>
+              </div>
             </div>
 
             {generatedImages.length === 0 && isGenerating ? (
@@ -568,43 +681,55 @@ const CreativeStudio = () => {
                 <p>לא נוצרו תמונות</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {generatedImages.map((image) => (
-                  <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
-                    <div className="relative aspect-square bg-muted">
-                      <img
-                        src={image.url}
-                        alt={`Generated ${image.id}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-2 right-2">
-                        {getStatusBadge(image.status)}
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {generatedImages.map((image) => (
+                    <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
+                      <div className="relative aspect-square bg-muted">
+                        <img
+                          src={image.url}
+                          alt={`Generated ${image.id}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 right-2">
+                          {getStatusBadge(image.status)}
+                        </div>
+                        {image.analysis && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-background/90 p-2 text-xs">
+                            {image.analysis}
+                          </div>
+                        )}
+                        {image.status !== 'rejected' && image.status !== 'pending' && (
+                          <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <Button size="sm" variant="secondary">
+                              <Wand2 className="h-4 w-4 ml-1" />
+                              עריכה
+                            </Button>
+                            <Button size="sm" variant="secondary">
+                              <ZoomIn className="h-4 w-4 ml-1" />
+                              הגדלה
+                            </Button>
+                            <Button size="sm" variant="secondary">
+                              <Type className="h-4 w-4 ml-1" />
+                              טקסט
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      {image.analysis && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-background/90 p-2 text-xs">
-                          {image.analysis}
-                        </div>
-                      )}
-                      {image.status !== 'rejected' && image.status !== 'pending' && (
-                        <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <Button size="sm" variant="secondary">
-                            <Wand2 className="h-4 w-4 ml-1" />
-                            עריכה
-                          </Button>
-                          <Button size="sm" variant="secondary">
-                            <ZoomIn className="h-4 w-4 ml-1" />
-                            הגדלה
-                          </Button>
-                          <Button size="sm" variant="secondary">
-                            <Type className="h-4 w-4 ml-1" />
-                            טקסט
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                ))}
-              </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Proceed to Quote Button */}
+                {!isGenerating && generatedImages.some(img => img.status === 'approved' || img.status === 'needs-review') && (
+                  <div className="flex justify-center pt-4">
+                    <Button size="lg" onClick={handleProceedToQuote} className="h-14 px-8 text-lg">
+                      המשך להצעת מחיר
+                      <ChevronLeft className="h-5 w-5 mr-2" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Kosher Check Info */}
