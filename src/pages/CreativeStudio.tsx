@@ -174,13 +174,10 @@ const CreativeStudio = () => {
       for (let i = 0; i < 4; i++) {
         toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
         
-        const { data, error } = await supabase.functions.invoke('generate-image', {
+        const { data, error } = await supabase.functions.invoke('generate-creative', {
           body: {
-            visualPrompt,
-            textPrompt,
-            style,
-            engine: config.engine,
-            mode: config.mode,
+            prompt: `${visualPrompt}. טקסט: ${textPrompt || 'ללא טקסט'}`,
+            style: style || 'default',
           }
         });
 
@@ -333,13 +330,10 @@ const CreativeStudio = () => {
       for (let i = 0; i < 4; i++) {
         toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
         
-        const { data, error } = await supabase.functions.invoke('generate-image', {
+        const { data, error } = await supabase.functions.invoke('generate-creative', {
           body: {
-            visualPrompt: selectedConcept.idea,
-            textPrompt: selectedConcept.copy,
+            prompt: `${selectedConcept.idea}. טקסט: ${selectedConcept.copy}`,
             style: 'modern',
-            engine: config.engine,
-            mode: config.mode,
           }
         });
 

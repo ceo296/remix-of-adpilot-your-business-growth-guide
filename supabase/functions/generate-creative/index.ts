@@ -49,8 +49,8 @@ serve(async (req) => {
       );
     }
 
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Simulate AI processing delay (3 seconds as requested)
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // Get mock images based on style
     const styleKey = style && mockImages[style] ? style : 'default';
