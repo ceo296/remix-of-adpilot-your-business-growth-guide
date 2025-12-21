@@ -145,41 +145,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="container mx-auto px-4 py-16 bg-muted/30">
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            {
-              icon: CheckCircle,
-              title: 'קטלוג מדיה חכם',
-              description: 'כל העיתונים והאתרים של הציבור שלנו, מסודר יפה.',
-            },
-            {
-              icon: Zap,
-              title: 'סגנונות מוכנים',
-              description: 'בחר VIBE ונעצב לך קריאייטיב גישמאק.',
-            },
-            {
-              icon: Shield,
-              title: 'ליווי מלא',
-              description: 'מהבריף ועד לפרסום – אנחנו מטפלים בהכל, בעזה״י.',
-            },
-          ].map((feature, index) => (
-            <div 
-              key={feature.title}
-              className="bg-card rounded-xl border border-border p-6 text-center hover:shadow-lg transition-all duration-300 animate-slide-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <feature.icon className="w-7 h-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="bg-gradient-primary rounded-2xl p-8 md:p-12 text-center text-primary-foreground">
