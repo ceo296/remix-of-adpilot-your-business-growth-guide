@@ -469,6 +469,10 @@ const CreativeStudio = () => {
                 isGenerating={isGeneratingConcepts || isGenerating}
                 concepts={concepts}
                 selectedConcept={selectedConcept}
+                clientInfo={clientProfile ? {
+                  business_name: clientProfile.business_name,
+                  target_audience: clientProfile.target_audience
+                } : null}
                 onGenerateConcepts={handleGenerateConcepts}
                 onSelectConcept={setSelectedConcept}
                 onExecuteConcept={handleExecuteConcept}

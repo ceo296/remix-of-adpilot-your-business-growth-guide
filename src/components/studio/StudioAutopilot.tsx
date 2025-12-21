@@ -12,10 +12,16 @@ export interface CreativeConcept {
   copy: string;
 }
 
+interface ClientInfo {
+  business_name: string;
+  target_audience: string | null;
+}
+
 interface StudioAutopilotProps {
   isGenerating: boolean;
   concepts: CreativeConcept[];
   selectedConcept: CreativeConcept | null;
+  clientInfo: ClientInfo | null;
   onGenerateConcepts: () => void;
   onSelectConcept: (concept: CreativeConcept) => void;
   onExecuteConcept: () => void;
@@ -37,6 +43,7 @@ export const StudioAutopilot = ({
   isGenerating,
   concepts,
   selectedConcept,
+  clientInfo,
   onGenerateConcepts,
   onSelectConcept,
   onExecuteConcept,
@@ -49,9 +56,23 @@ export const StudioAutopilot = ({
           <Sparkles className="h-12 w-12 text-primary" />
         </div>
         <h2 className="text-2xl font-bold mb-2">מצב אוטומטי</h2>
-        <p className="text-muted-foreground mb-8 max-w-md">
+        <p className="text-muted-foreground mb-4 max-w-md">
           תשברו אתם את הראש במקומי. המערכת תיצור 3 כיווני קריאייטיב מבוססי האסטרטגיה שלכם.
         </p>
+        
+        {/* Personalized info card */}
+        {clientInfo && (
+          <div className="bg-muted/50 border border-border rounded-lg p-4 mb-6 max-w-md">
+            <p className="text-sm text-muted-foreground mb-2">מייצרים קונספטים עבור:</p>
+            <p className="font-bold text-lg text-foreground">{clientInfo.business_name}</p>
+            {clientInfo.target_audience && (
+              <p className="text-sm text-muted-foreground mt-1">
+                קהל יעד: <span className="text-foreground">{clientInfo.target_audience}</span>
+              </p>
+            )}
+          </div>
+        )}
+        
         <Button
           size="lg"
           variant="gradient"
