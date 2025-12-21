@@ -1,27 +1,37 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, ImageIcon, Wand2, ZoomIn, Type, Loader2 } from 'lucide-react';
+import { ArrowRight, Sparkles, ImageIcon, Wand2, ZoomIn, Type, Loader2, Camera, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-type FormatType = 'instagram' | 'newspaper-strip' | 'full-page' | 'banner';
-type StyleType = 'photorealistic' | 'vector' | '3d' | 'classic';
+type EngineType = 'nano-banana' | 'flux-realism';
+type StyleType = 'ultra-realistic' | '3d-character' | 'oil-painting';
 
-const FORMATS: { id: FormatType; label: string; size: string }[] = [
-  { id: 'instagram', label: 'סטורי אינסטגרם', size: '1080x1920' },
-  { id: 'newspaper-strip', label: 'פס עיתון', size: '1200x300' },
-  { id: 'full-page', label: 'עמוד מלא', size: '2480x3508' },
-  { id: 'banner', label: 'באנר לאתר', size: '1920x600' },
+const ENGINES: { id: EngineType; label: string; sublabel: string; icon: React.ReactNode }[] = [
+  { 
+    id: 'nano-banana', 
+    label: 'ננו-בננה Pro', 
+    sublabel: 'מודל טקסט-תמונה (מומלץ למודעות)',
+    icon: <Type className="h-5 w-5" />
+  },
+  { 
+    id: 'flux-realism', 
+    label: 'פוטו-ריאליסטי', 
+    sublabel: 'מודל פוטו-ריאליסטי (ללא טקסט)',
+    icon: <Camera className="h-5 w-5" />
+  },
 ];
 
 const STYLES: { id: StyleType; label: string; icon: string }[] = [
-  { id: 'photorealistic', label: 'צילום ריאליסטי', icon: '📷' },
-  { id: 'vector', label: 'וקטור/איור', icon: '🎨' },
-  { id: '3d', label: 'תלת מימד', icon: '🧊' },
-  { id: 'classic', label: 'ציור קלאסי', icon: '🖼️' },
+  { id: 'ultra-realistic', label: 'צילום אמיתי', icon: '📷' },
+  { id: '3d-character', label: 'תלת מימד - פיקסאר', icon: '🧊' },
+  { id: 'oil-painting', label: 'ציור שמן - יוקרה', icon: '🖼️' },
 ];
 
 interface GeneratedImage {
@@ -31,35 +41,67 @@ interface GeneratedImage {
 }
 
 const CreativeStudio = () => {
-  const [selectedFormat, setSelectedFormat] = useState<FormatType>('instagram');
-  const [selectedStyle, setSelectedStyle] = useState<StyleType>('photorealistic');
-  const [prompt, setPrompt] = useState('');
+  const [selectedEngine, setSelectedEngine] = useState<EngineType>('nano-banana');
+  const [selectedStyle, setSelectedStyle] = useState<StyleType>('ultra-realistic');
+  const [visualPrompt, setVisualPrompt] = useState('');
+  const [textPrompt, setTextPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      toast.error('נא להזין תיאור למודעה');
+    if (!visualPrompt.trim()) {
+      toast.error('נא להזין תיאור לתמונה');
       return;
     }
 
+    if (selectedEngine === 'nano-banana' && !textPrompt.trim()) {
+      toast.warning('ננו-בננה מתמחה בטקסט עברי - מומלץ להוסיף טקסט למודעה');
+    }
+
     setIsGenerating(true);
-    toast.info('הרובוט עובד על זה... 🤖');
+    toast.info('מייצר טיפוגרפיה בעברית... 🎨');
 
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    try {
+      // Generate 4 images
+      const results: GeneratedImage[] = [];
+      
+      for (let i = 0; i < 4; i++) {
+        const { data, error } = await supabase.functions.invoke('generate-image', {
+          body: {
+            visualPrompt,
+            textPrompt: selectedEngine === 'nano-banana' ? textPrompt : '',
+            style: selectedStyle,
+            engine: selectedEngine,
+          }
+        });
 
-    // Mock generated images with kosher check status
-    const mockImages: GeneratedImage[] = [
-      { id: '1', url: '/placeholder.svg', status: 'approved' },
-      { id: '2', url: '/placeholder.svg', status: 'approved' },
-      { id: '3', url: '/placeholder.svg', status: 'needs-review' },
-      { id: '4', url: '/placeholder.svg', status: 'approved' },
-    ];
+        if (error) {
+          console.error('Error generating image:', error);
+          toast.error(error.message || 'שגיאה ביצירת התמונה');
+          continue;
+        }
 
-    setGeneratedImages(mockImages);
-    setIsGenerating(false);
-    toast.success('הסקיצות מוכנות! בסייעתא דשמיא');
+        if (data?.imageUrl) {
+          results.push({
+            id: `${Date.now()}-${i}`,
+            url: data.imageUrl,
+            status: data.status === 'needs-review' ? 'needs-review' : 'approved',
+          });
+        }
+      }
+
+      if (results.length > 0) {
+        setGeneratedImages(results);
+        toast.success('הסקיצות מוכנות! בסייעתא דשמיא');
+      } else {
+        toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('שגיאה ביצירת התמונות');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const getStatusBadge = (status: GeneratedImage['status']) => {
@@ -103,45 +145,67 @@ const CreativeStudio = () => {
         <div className="grid lg:grid-cols-2 gap-6 min-h-[calc(100vh-120px)]">
           {/* Left Side - Controls */}
           <div className="space-y-6">
-            {/* Format Selector */}
+            {/* Engine Selector */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <ImageIcon className="h-4 w-4 text-primary" />
-                  בחר פורמט
+                  <Palette className="h-4 w-4 text-primary" />
+                  בחר מנוע יצירה
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {FORMATS.map(format => (
+                <div className="grid grid-cols-1 gap-3">
+                  {ENGINES.map(engine => (
                     <button
-                      key={format.id}
-                      onClick={() => setSelectedFormat(format.id)}
-                      className={`p-4 rounded-lg border-2 transition-all text-right ${
-                        selectedFormat === format.id
+                      key={engine.id}
+                      onClick={() => setSelectedEngine(engine.id)}
+                      className={`p-4 rounded-lg border-2 transition-all text-right flex items-center gap-4 ${
+                        selectedEngine === engine.id
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
                       }`}
                     >
-                      <div className="font-medium">{format.label}</div>
-                      <div className="text-sm text-muted-foreground">{format.size}</div>
+                      <div className={`p-2 rounded-lg ${selectedEngine === engine.id ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                        {engine.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">{engine.label}</div>
+                        <div className="text-sm text-muted-foreground">{engine.sublabel}</div>
+                      </div>
+                      {engine.id === 'nano-banana' && (
+                        <Badge variant="secondary" className="bg-success/10 text-success">מומלץ</Badge>
+                      )}
                     </button>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Prompt Input */}
+            {/* Visual Prompt */}
             <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-4">תאר מה תרצה לראות במודעה</h3>
-                <Textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="למשל: משפחה חרדית שמחה סביב שולחן שבת, אור חם, אווירה חגיגית..."
-                  className="min-h-[120px] resize-none"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  ככל שתפרט יותר, התוצאה תהיה מדויקת יותר
-                </p>
+              <CardContent className="p-6 space-y-4">
+                <div>
+                  <Label className="font-semibold mb-2 block">תאר את התמונה</Label>
+                  <Textarea
+                    value={visualPrompt}
+                    onChange={(e) => setVisualPrompt(e.target.value)}
+                    placeholder="למשל: משפחה חרדית שמחה סביב שולחן שבת, אור חם, אווירה חגיגית..."
+                    className="min-h-[100px] resize-none"
+                  />
+                </div>
+
+                {selectedEngine === 'nano-banana' && (
+                  <div>
+                    <Label className="font-semibold mb-2 block">מה הטקסט שיהיה כתוב בתמונה?</Label>
+                    <Input
+                      value={textPrompt}
+                      onChange={(e) => setTextPrompt(e.target.value)}
+                      placeholder="למשל: שבת שלום, מבצע ענק, חג שמח..."
+                      className="text-lg"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      ננו-בננה Pro מתמחה ברינדור טקסט עברי מושלם
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -149,19 +213,19 @@ const CreativeStudio = () => {
             <Card>
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-4">סגנון עיצובי</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   {STYLES.map(style => (
                     <button
                       key={style.id}
                       onClick={() => setSelectedStyle(style.id)}
-                      className={`p-4 rounded-lg border-2 transition-all flex items-center gap-3 ${
+                      className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
                         selectedStyle === style.id
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
                       }`}
                     >
                       <span className="text-2xl">{style.icon}</span>
-                      <span className="font-medium">{style.label}</span>
+                      <span className="font-medium text-sm text-center">{style.label}</span>
                     </button>
                   ))}
                 </div>
@@ -171,19 +235,19 @@ const CreativeStudio = () => {
             {/* Generate Button */}
             <Button
               onClick={handleGenerate}
-              disabled={isGenerating || !prompt.trim()}
+              disabled={isGenerating || !visualPrompt.trim()}
               className="w-full h-14 text-lg"
               variant="gradient"
             >
               {isGenerating ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin ml-2" />
-                  הרובוט עובד על זה...
+                  מייצר טיפוגרפיה בעברית...
                 </>
               ) : (
                 <>
                   <Sparkles className="h-5 w-5 ml-2" />
-                  צור סקיצות בסייעתא דשמיא
+                  צור סקיצה עם ננו-בננה
                 </>
               )}
             </Button>
