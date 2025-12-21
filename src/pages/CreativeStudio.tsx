@@ -1,38 +1,18 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, ImageIcon, Wand2, ZoomIn, Type, Loader2, Camera, Palette, Shield } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, ZoomIn, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { StudioAssetStep } from '@/components/studio/StudioAssetStep';
+import { StudioTreatmentStep } from '@/components/studio/StudioTreatmentStep';
+import { StudioStyleStep, StyleChoice } from '@/components/studio/StudioStyleStep';
+import { StudioPromptStep } from '@/components/studio/StudioPromptStep';
 
-type EngineType = 'nano-banana' | 'flux-realism';
-type StyleType = 'ultra-realistic' | '3d-character' | 'oil-painting';
-
-const ENGINES: { id: EngineType; label: string; sublabel: string; icon: React.ReactNode }[] = [
-  { 
-    id: 'nano-banana', 
-    label: 'ננו-בננה Pro', 
-    sublabel: 'מודל טקסט-תמונה (מומלץ למודעות)',
-    icon: <Type className="h-5 w-5" />
-  },
-  { 
-    id: 'flux-realism', 
-    label: 'פוטו-ריאליסטי', 
-    sublabel: 'מודל פוטו-ריאליסטי (ללא טקסט)',
-    icon: <Camera className="h-5 w-5" />
-  },
-];
-
-const STYLES: { id: StyleType; label: string; icon: string }[] = [
-  { id: 'ultra-realistic', label: 'צילום אמיתי', icon: '📷' },
-  { id: '3d-character', label: 'תלת מימד - פיקסאר', icon: '🧊' },
-  { id: 'oil-painting', label: 'ציור שמן - יוקרה', icon: '🖼️' },
-];
+type AssetChoice = 'has-product' | 'no-product';
+type TreatmentChoice = 'as-is' | 'ai-magic';
 
 interface GeneratedImage {
   id: string;
@@ -41,13 +21,80 @@ interface GeneratedImage {
   analysis?: string;
 }
 
+const STEP_TITLES = [
+  'בחירת נכס',
+  'עיבוד תמונה',
+  'סגנון עיצובי',
+  'תיאור ותוכן',
+];
+
 const CreativeStudio = () => {
-  const [selectedEngine, setSelectedEngine] = useState<EngineType>('nano-banana');
-  const [selectedStyle, setSelectedStyle] = useState<StyleType>('ultra-realistic');
+  // Wizard state
+  const [currentStep, setCurrentStep] = useState(0);
+  const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
+  const [treatment, setTreatment] = useState<TreatmentChoice | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [style, setStyle] = useState<StyleChoice | null>(null);
   const [visualPrompt, setVisualPrompt] = useState('');
   const [textPrompt, setTextPrompt] = useState('');
+  
+  // Generation state
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [showResults, setShowResults] = useState(false);
+
+  // Calculate actual steps based on asset choice
+  const getSteps = () => {
+    if (assetChoice === 'no-product') {
+      // Skip treatment step for no-product flow
+      return [0, 2, 3]; // Asset, Style, Prompt
+    }
+    return [0, 1, 2, 3]; // All steps
+  };
+
+  const steps = getSteps();
+  const actualStepIndex = steps.indexOf(currentStep);
+  const totalSteps = steps.length;
+
+  const canProceed = () => {
+    switch (currentStep) {
+      case 0: return assetChoice !== null;
+      case 1: return uploadedImage !== null && treatment !== null;
+      case 2: return style !== null;
+      case 3: return visualPrompt.trim().length > 0;
+      default: return false;
+    }
+  };
+
+  const handleNext = () => {
+    if (currentStep === 0 && assetChoice === 'no-product') {
+      setCurrentStep(2); // Skip to style
+    } else if (actualStepIndex < totalSteps - 1) {
+      setCurrentStep(steps[actualStepIndex + 1]);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep === 2 && assetChoice === 'no-product') {
+      setCurrentStep(0); // Go back to asset
+    } else if (actualStepIndex > 0) {
+      setCurrentStep(steps[actualStepIndex - 1]);
+    }
+  };
+
+  // Determine which AI model to use based on selections
+  const getEngineConfig = () => {
+    if (assetChoice === 'no-product') {
+      // Full generation with Hebrew text
+      return { engine: 'nano-banana', mode: 'generate' };
+    }
+    if (treatment === 'as-is') {
+      // Simple layout engine (Canva-like)
+      return { engine: 'layout', mode: 'compose' };
+    }
+    // AI Magic - Inpainting
+    return { engine: 'flux-realism', mode: 'inpaint' };
+  };
 
   const runKosherCheck = async (imageUrl: string): Promise<{ status: string; recommendation: string }> => {
     try {
@@ -71,32 +118,27 @@ const CreativeStudio = () => {
   };
 
   const handleGenerate = async () => {
-    if (!visualPrompt.trim()) {
-      toast.error('נא להזין תיאור לתמונה');
-      return;
-    }
-
-    if (selectedEngine === 'nano-banana' && !textPrompt.trim()) {
-      toast.warning('ננו-בננה מתמחה בטקסט עברי - מומלץ להוסיף טקסט למודעה');
-    }
-
     setIsGenerating(true);
     setGeneratedImages([]);
-    toast.info('מייצר טיפוגרפיה בעברית... 🎨');
+    setShowResults(true);
+    
+    const config = getEngineConfig();
+    toast.info('מייצר את העיצובים שלך... 🎨');
 
     try {
       const results: GeneratedImage[] = [];
       
-      // Generate images one by one (to show progress)
+      // Generate 4 variations
       for (let i = 0; i < 4; i++) {
         toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
         
         const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
             visualPrompt,
-            textPrompt: selectedEngine === 'nano-banana' ? textPrompt : '',
-            style: selectedStyle,
-            engine: selectedEngine,
+            textPrompt,
+            style,
+            engine: config.engine,
+            mode: config.mode,
           }
         });
 
@@ -106,7 +148,6 @@ const CreativeStudio = () => {
         }
 
         if (data?.imageUrl) {
-          // Add image with pending status
           const newImage: GeneratedImage = {
             id: `${Date.now()}-${i}`,
             url: data.imageUrl,
@@ -120,7 +161,6 @@ const CreativeStudio = () => {
           toast.info(`מריץ בדיקת כשרות לסקיצה ${i + 1}... 🔍`);
           const kosherResult = await runKosherCheck(data.imageUrl);
           
-          // Update status
           newImage.status = kosherResult.status as GeneratedImage['status'];
           newImage.analysis = kosherResult.recommendation;
           setGeneratedImages([...results]);
@@ -129,8 +169,8 @@ const CreativeStudio = () => {
           await supabase.from('generated_images').insert({
             visual_prompt: visualPrompt,
             text_prompt: textPrompt,
-            style: selectedStyle,
-            engine: selectedEngine,
+            style,
+            engine: config.engine,
             image_url: data.imageUrl,
             kosher_status: kosherResult.status,
             kosher_analysis: kosherResult.recommendation,
@@ -143,15 +183,9 @@ const CreativeStudio = () => {
         const needsReview = results.filter(r => r.status === 'needs-review').length;
         const rejected = results.filter(r => r.status === 'rejected').length;
         
-        if (approved > 0) {
-          toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
-        }
-        if (needsReview > 0) {
-          toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
-        }
-        if (rejected > 0) {
-          toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
-        }
+        if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
+        if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
+        if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
       } else {
         toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
@@ -173,6 +207,49 @@ const CreativeStudio = () => {
         return <Badge className="bg-destructive text-destructive-foreground">נדחה ✗</Badge>;
       case 'pending':
         return <Badge className="bg-muted text-muted-foreground animate-pulse">בודק... 🔍</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const resetWizard = () => {
+    setCurrentStep(0);
+    setAssetChoice(null);
+    setTreatment(null);
+    setUploadedImage(null);
+    setStyle(null);
+    setVisualPrompt('');
+    setTextPrompt('');
+    setGeneratedImages([]);
+    setShowResults(false);
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return <StudioAssetStep value={assetChoice} onChange={setAssetChoice} />;
+      case 1:
+        return (
+          <StudioTreatmentStep
+            treatment={treatment}
+            onTreatmentChange={setTreatment}
+            uploadedImage={uploadedImage}
+            onImageUpload={setUploadedImage}
+          />
+        );
+      case 2:
+        return <StudioStyleStep value={style} onChange={setStyle} />;
+      case 3:
+        return (
+          <StudioPromptStep
+            visualPrompt={visualPrompt}
+            onVisualPromptChange={setVisualPrompt}
+            textPrompt={textPrompt}
+            onTextPromptChange={setTextPrompt}
+            style={style}
+            hasProduct={assetChoice === 'has-product'}
+          />
+        );
       default:
         return null;
     }
@@ -207,138 +284,95 @@ const CreativeStudio = () => {
       </header>
 
       <div className="container mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-2 gap-6 min-h-[calc(100vh-120px)]">
-          {/* Left Side - Controls */}
-          <div className="space-y-6">
-            {/* Engine Selector */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Palette className="h-4 w-4 text-primary" />
-                  בחר מנוע יצירה
-                </h3>
-                <div className="grid grid-cols-1 gap-3">
-                  {ENGINES.map(engine => (
-                    <button
-                      key={engine.id}
-                      onClick={() => setSelectedEngine(engine.id)}
-                      className={`p-4 rounded-lg border-2 transition-all text-right flex items-center gap-4 ${
-                        selectedEngine === engine.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <div className={`p-2 rounded-lg ${selectedEngine === engine.id ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                        {engine.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">{engine.label}</div>
-                        <div className="text-sm text-muted-foreground">{engine.sublabel}</div>
-                      </div>
-                      {engine.id === 'nano-banana' && (
-                        <Badge variant="secondary" className="bg-success/10 text-success">מומלץ</Badge>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+        {!showResults ? (
+          <div className="max-w-3xl mx-auto">
+            {/* Progress */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">
+                  שלב {actualStepIndex + 1} מתוך {totalSteps}
+                </span>
+                <span className="text-sm font-medium">{STEP_TITLES[currentStep]}</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${((actualStepIndex + 1) / totalSteps) * 100}%` }}
+                />
+              </div>
+            </div>
 
-            {/* Visual Prompt */}
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <div>
-                  <Label className="font-semibold mb-2 block">תאר את התמונה</Label>
-                  <Textarea
-                    value={visualPrompt}
-                    onChange={(e) => setVisualPrompt(e.target.value)}
-                    placeholder="למשל: משפחה חרדית שמחה סביב שולחן שבת, אור חם, אווירה חגיגית..."
-                    className="min-h-[100px] resize-none"
-                  />
-                </div>
+            {/* Step Content */}
+            <div className="min-h-[400px]">
+              {renderStep()}
+            </div>
 
-                {selectedEngine === 'nano-banana' && (
-                  <div>
-                    <Label className="font-semibold mb-2 block">מה הטקסט שיהיה כתוב בתמונה?</Label>
-                    <Input
-                      value={textPrompt}
-                      onChange={(e) => setTextPrompt(e.target.value)}
-                      placeholder="למשל: שבת שלום, מבצע ענק, חג שמח..."
-                      className="text-lg"
-                    />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      ננו-בננה Pro מתמחה ברינדור טקסט עברי מושלם
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            {/* Navigation */}
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                disabled={actualStepIndex === 0}
+              >
+                <ChevronRight className="h-4 w-4 ml-1" />
+                הקודם
+              </Button>
 
-            {/* Style Toggle */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-4">סגנון עיצובי</h3>
-                <div className="grid grid-cols-3 gap-3">
-                  {STYLES.map(style => (
-                    <button
-                      key={style.id}
-                      onClick={() => setSelectedStyle(style.id)}
-                      className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
-                        selectedStyle === style.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <span className="text-2xl">{style.icon}</span>
-                      <span className="font-medium text-sm text-center">{style.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Generate Button */}
-            <Button
-              onClick={handleGenerate}
-              disabled={isGenerating || !visualPrompt.trim()}
-              className="w-full h-14 text-lg"
-              variant="gradient"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin ml-2" />
-                  מייצר טיפוגרפיה בעברית...
-                </>
+              {currentStep === 3 ? (
+                <Button
+                  onClick={handleGenerate}
+                  disabled={!canProceed() || isGenerating}
+                  variant="gradient"
+                  className="min-w-[160px]"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                      מייצר...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 ml-2" />
+                      צור עיצובים
+                    </>
+                  )}
+                </Button>
               ) : (
-                <>
-                  <Sparkles className="h-5 w-5 ml-2" />
-                  צור סקיצה עם ננו-בננה
-                </>
+                <Button
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                >
+                  הבא
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                </Button>
               )}
-            </Button>
-
-            {/* Kosher Check Info */}
-            <div className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
-              <Shield className="h-4 w-4" />
-              כל תמונה עוברת בדיקת כשרות אוטומטית
             </div>
           </div>
+        ) : (
+          /* Results View */
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Sparkles className="h-6 w-6 text-primary" />
+                הסקיצות שלך
+              </h2>
+              <Button variant="outline" onClick={resetWizard}>
+                התחל מחדש
+              </Button>
+            </div>
 
-          {/* Right Side - Canvas */}
-          <div className="bg-muted/30 rounded-xl border border-border p-6">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              הסקיצות שלך
-            </h3>
-
-            {generatedImages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-[500px] text-muted-foreground">
+            {generatedImages.length === 0 && isGenerating ? (
+              <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                <Loader2 className="h-12 w-12 animate-spin mb-4" />
+                <p>מייצר את העיצובים שלך...</p>
+              </div>
+            ) : generatedImages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                 <ImageIcon className="h-16 w-16 mb-4 opacity-30" />
-                <p>הסקיצות יופיעו כאן</p>
-                <p className="text-sm">מלא את הפרטים ולחץ על "צור"</p>
+                <p>לא נוצרו תמונות</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {generatedImages.map((image) => (
                   <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
                     <div className="relative aspect-square bg-muted">
@@ -355,7 +389,6 @@ const CreativeStudio = () => {
                           {image.analysis}
                         </div>
                       )}
-                      {/* Action Buttons */}
                       {image.status !== 'rejected' && image.status !== 'pending' && (
                         <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                           <Button size="sm" variant="secondary">
@@ -377,8 +410,14 @@ const CreativeStudio = () => {
                 ))}
               </div>
             )}
+
+            {/* Kosher Check Info */}
+            <div className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <Shield className="h-4 w-4" />
+              כל תמונה עוברת בדיקת כשרות אוטומטית
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
