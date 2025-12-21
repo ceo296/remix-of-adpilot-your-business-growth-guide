@@ -37,6 +37,8 @@ interface Outlet {
   vibe_he: string | null;
   warning_text: string | null;
   reach_info: string | null;
+  logo_url: string | null;
+  brand_color: string | null;
 }
 
 interface Product {
@@ -108,7 +110,7 @@ const MediaDatabaseAdmin = () => {
   // Form states
   const [outletForm, setOutletForm] = useState({
     name: '', name_he: '', sector: 'general', city: '', is_active: true,
-    vibe: '', vibe_he: '', warning_text: '', reach_info: ''
+    vibe: '', vibe_he: '', warning_text: '', reach_info: '', brand_color: '#E31E24'
   });
   const [productForm, setProductForm] = useState({
     name: '', name_he: '', product_type: '', requires_text: false, 
@@ -174,7 +176,7 @@ const MediaDatabaseAdmin = () => {
     setEditingOutlet(null);
     setOutletForm({ 
       name: '', name_he: '', sector: 'general', city: '', is_active: true,
-      vibe: '', vibe_he: '', warning_text: '', reach_info: ''
+      vibe: '', vibe_he: '', warning_text: '', reach_info: '', brand_color: '#E31E24'
     });
     setOutletDialog(true);
   };
@@ -191,7 +193,8 @@ const MediaDatabaseAdmin = () => {
       vibe: outlet.vibe || '',
       vibe_he: outlet.vibe_he || '',
       warning_text: outlet.warning_text || '',
-      reach_info: outlet.reach_info || ''
+      reach_info: outlet.reach_info || '',
+      brand_color: outlet.brand_color || '#E31E24'
     });
     setOutletDialog(true);
   };
@@ -463,9 +466,15 @@ const MediaDatabaseAdmin = () => {
                                   <div className="border rounded-lg">
                                     <CollapsibleTrigger asChild>
                                       <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/30 transition-colors">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-3">
                                           {isOutletExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                          <Newspaper className="h-4 w-4 text-blue-400" />
+                                          {/* Brand Icon */}
+                                          <div 
+                                            className="w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                                            style={{ backgroundColor: outlet.brand_color || '#E31E24' }}
+                                          >
+                                            {(outlet.name_he || outlet.name).split(' ').slice(0, 2).map(w => w[0]).join('')}
+                                          </div>
                                           <span className="font-medium">{outlet.name_he || outlet.name}</span>
                                           {outlet.sector && (
                                             <Badge variant="outline" className="text-xs">{getSectorLabel(outlet.sector)}</Badge>
@@ -715,9 +724,29 @@ const MediaDatabaseAdmin = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Switch checked={outletForm.is_active} onCheckedChange={(c) => setOutletForm({ ...outletForm, is_active: c })} />
-              <Label>פעיל</Label>
+            {/* Brand Color */}
+            <div className="flex items-center gap-4">
+              <div>
+                <Label className="text-xs text-muted-foreground">צבע מותג</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <input 
+                    type="color" 
+                    value={outletForm.brand_color}
+                    onChange={(e) => setOutletForm({ ...outletForm, brand_color: e.target.value })}
+                    className="w-10 h-10 rounded cursor-pointer border-0"
+                  />
+                  <Input 
+                    value={outletForm.brand_color}
+                    onChange={(e) => setOutletForm({ ...outletForm, brand_color: e.target.value })}
+                    className="w-28"
+                    placeholder="#E31E24"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch checked={outletForm.is_active} onCheckedChange={(c) => setOutletForm({ ...outletForm, is_active: c })} />
+                <Label>פעיל</Label>
+              </div>
             </div>
           </div>
           <DialogFooter>

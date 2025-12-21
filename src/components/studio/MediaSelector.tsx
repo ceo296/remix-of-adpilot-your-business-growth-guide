@@ -30,6 +30,8 @@ interface Outlet {
   vibe_he: string | null;
   warning_text: string | null;
   reach_info: string | null;
+  logo_url: string | null;
+  brand_color: string | null;
 }
 
 interface Product {
@@ -274,61 +276,83 @@ export const MediaSelector = ({ onSelect, selectedMedia }: MediaSelectorProps) =
           <div>
             <Label className="text-lg font-semibold mb-3 block">2. בחר ערוץ/כלי מדיה</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredOutlets.map(outlet => (
-                <Card 
-                  key={outlet.id}
-                  className={`cursor-pointer transition-all ${
-                    selectedOutlet?.id === outlet.id 
-                      ? 'ring-2 ring-primary bg-primary/5' 
-                      : 'hover:bg-muted/50'
-                  }`}
-                  onClick={() => handleSelectOutlet(outlet)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{outlet.name_he || outlet.name}</span>
-                          {/* Info Tooltip */}
-                          {(outlet.vibe_he || outlet.reach_info) && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button className="text-muted-foreground hover:text-primary transition-colors">
-                                  <Info className="h-4 w-4" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="max-w-xs">
-                                <div className="space-y-1">
-                                  {outlet.vibe_he && (
-                                    <div className="font-medium">{outlet.vibe_he}</div>
-                                  )}
-                                  {outlet.reach_info && (
-                                    <div className="text-sm text-muted-foreground">{outlet.reach_info}</div>
-                                  )}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
+              {filteredOutlets.map(outlet => {
+                // Get initials for the outlet icon
+                const initials = (outlet.name_he || outlet.name)
+                  .split(' ')
+                  .slice(0, 2)
+                  .map(word => word[0])
+                  .join('');
+                
+                return (
+                  <Card 
+                    key={outlet.id}
+                    className={`cursor-pointer transition-all ${
+                      selectedOutlet?.id === outlet.id 
+                        ? 'ring-2 ring-primary bg-primary/5' 
+                        : 'hover:bg-muted/50'
+                    }`}
+                    onClick={() => handleSelectOutlet(outlet)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        {/* Brand Icon/Avatar */}
+                        <div 
+                          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                          style={{ backgroundColor: outlet.brand_color || '#E31E24' }}
+                        >
+                          {outlet.logo_url ? (
+                            <img src={outlet.logo_url} alt={outlet.name} className="w-8 h-8 object-contain" />
+                          ) : (
+                            initials
                           )}
                         </div>
-                        <div className="flex gap-1 mt-2 flex-wrap">
-                          {outlet.sector && (
-                            <Badge variant="outline" className="text-xs">{getSectorLabel(outlet.sector)}</Badge>
-                          )}
-                          {outlet.vibe === 'strict_kosher' && (
-                            <Badge className="text-xs bg-orange-500/20 text-orange-400">קפדן</Badge>
-                          )}
-                          {outlet.vibe === 'high_end_open' && (
-                            <Badge className="text-xs bg-blue-500/20 text-blue-400">מגזיני</Badge>
-                          )}
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium truncate">{outlet.name_he || outlet.name}</span>
+                            {/* Info Tooltip */}
+                            {(outlet.vibe_he || outlet.reach_info) && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button className="text-muted-foreground hover:text-primary transition-colors flex-shrink-0">
+                                    <Info className="h-4 w-4" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <div className="space-y-1">
+                                    {outlet.vibe_he && (
+                                      <div className="font-medium">{outlet.vibe_he}</div>
+                                    )}
+                                    {outlet.reach_info && (
+                                      <div className="text-sm text-muted-foreground">{outlet.reach_info}</div>
+                                    )}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                          <div className="flex gap-1 mt-2 flex-wrap">
+                            {outlet.sector && (
+                              <Badge variant="outline" className="text-xs">{getSectorLabel(outlet.sector)}</Badge>
+                            )}
+                            {outlet.vibe === 'strict_kosher' && (
+                              <Badge className="text-xs bg-orange-500/20 text-orange-400">קפדן</Badge>
+                            )}
+                            {outlet.vibe === 'high_end_open' && (
+                              <Badge className="text-xs bg-blue-500/20 text-blue-400">מגזיני</Badge>
+                            )}
+                          </div>
                         </div>
+                        
+                        {selectedOutlet?.id === outlet.id && (
+                          <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                        )}
                       </div>
-                      {selectedOutlet?.id === outlet.id && (
-                        <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
             
             {/* Warning for strict outlets */}
