@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Plus, Pencil, Trash2, Search, ChevronDown, ChevronRight, 
-  Building2, Newspaper, Package, Ruler, MapPin, DollarSign
+  Building2, Newspaper, Package, Ruler, MapPin, DollarSign, Upload, X, Image
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -110,8 +110,10 @@ const MediaDatabaseAdmin = () => {
   // Form states
   const [outletForm, setOutletForm] = useState({
     name: '', name_he: '', sector: 'general', city: '', is_active: true,
-    vibe: '', vibe_he: '', warning_text: '', reach_info: '', brand_color: '#E31E24'
+    vibe: '', vibe_he: '', warning_text: '', reach_info: '', brand_color: '#E31E24', logo_url: ''
   });
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [productForm, setProductForm] = useState({
     name: '', name_he: '', product_type: '', requires_text: false, 
     requires_image: true, base_price: 0, client_price: 0, is_active: true,
@@ -176,7 +178,7 @@ const MediaDatabaseAdmin = () => {
     setEditingOutlet(null);
     setOutletForm({ 
       name: '', name_he: '', sector: 'general', city: '', is_active: true,
-      vibe: '', vibe_he: '', warning_text: '', reach_info: '', brand_color: '#E31E24'
+      vibe: '', vibe_he: '', warning_text: '', reach_info: '', brand_color: '#E31E24', logo_url: ''
     });
     setOutletDialog(true);
   };
@@ -194,7 +196,8 @@ const MediaDatabaseAdmin = () => {
       vibe_he: outlet.vibe_he || '',
       warning_text: outlet.warning_text || '',
       reach_info: outlet.reach_info || '',
-      brand_color: outlet.brand_color || '#E31E24'
+      brand_color: outlet.brand_color || '#E31E24',
+      logo_url: outlet.logo_url || ''
     });
     setOutletDialog(true);
   };
@@ -205,7 +208,8 @@ const MediaDatabaseAdmin = () => {
     const data = {
       ...outletForm,
       category_id: selectedCategoryId,
-      city: outletForm.city || null
+      city: outletForm.city || null,
+      logo_url: outletForm.logo_url || null
     };
 
     if (editingOutlet) {
@@ -219,6 +223,49 @@ const MediaDatabaseAdmin = () => {
     }
     setOutletDialog(false);
     loadAllData();
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('נא להעלות קובץ תמונה בלבד');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('גודל הקובץ לא יעלה על 2MB');
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('media-logos')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('media-logos')
+        .getPublicUrl(fileName);
+
+      setOutletForm(prev => ({ ...prev, logo_url: urlData.publicUrl }));
+      toast.success('הלוגו הועלה בהצלחה');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('שגיאה בהעלאת הלוגו');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const removeLogo = () => {
+    setOutletForm(prev => ({ ...prev, logo_url: '' }));
   };
 
   const deleteOutlet = async (id: string) => {
@@ -468,13 +515,21 @@ const MediaDatabaseAdmin = () => {
                                       <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/30 transition-colors">
                                         <div className="flex items-center gap-3">
                                           {isOutletExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                          {/* Brand Icon */}
-                                          <div 
-                                            className="w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                                            style={{ backgroundColor: outlet.brand_color || '#E31E24' }}
-                                          >
-                                            {(outlet.name_he || outlet.name).split(' ').slice(0, 2).map(w => w[0]).join('')}
-                                          </div>
+                                          {/* Brand Icon / Logo */}
+                                          {outlet.logo_url ? (
+                                            <img 
+                                              src={outlet.logo_url} 
+                                              alt={outlet.name}
+                                              className="w-8 h-8 rounded object-contain bg-white flex-shrink-0"
+                                            />
+                                          ) : (
+                                            <div 
+                                              className="w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                                              style={{ backgroundColor: outlet.brand_color || '#E31E24' }}
+                                            >
+                                              {(outlet.name_he || outlet.name).split(' ').slice(0, 2).map(w => w[0]).join('')}
+                                            </div>
+                                          )}
                                           <span className="font-medium">{outlet.name_he || outlet.name}</span>
                                           {outlet.sector && (
                                             <Badge variant="outline" className="text-xs">{getSectorLabel(outlet.sector)}</Badge>
@@ -723,6 +778,64 @@ const MediaDatabaseAdmin = () => {
                   className="min-h-[60px]"
                 />
               </div>
+            </div>
+            {/* Logo Upload */}
+            <div className="border-t pt-4 mt-2">
+              <Label className="text-sm font-semibold mb-2 block">לוגו ערוץ</Label>
+              <input
+                type="file"
+                ref={logoInputRef}
+                onChange={handleLogoUpload}
+                accept="image/*"
+                className="hidden"
+              />
+              {outletForm.logo_url ? (
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img 
+                      src={outletForm.logo_url} 
+                      alt="Logo preview" 
+                      className="w-16 h-16 object-contain rounded border bg-white"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 h-6 w-6"
+                      onClick={removeLogo}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                  >
+                    <Upload className="h-4 w-4 ml-2" />
+                    החלף לוגו
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={isUploadingLogo}
+                  className="w-full h-20 border-dashed"
+                >
+                  {isUploadingLogo ? (
+                    <span>מעלה...</span>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1">
+                      <Image className="h-6 w-6 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">לחץ להעלאת לוגו</span>
+                    </div>
+                  )}
+                </Button>
+              )}
             </div>
             {/* Brand Color */}
             <div className="flex items-center gap-4">
