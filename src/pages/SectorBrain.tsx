@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Palette, Upload, X, FileImage, FileText, Sparkles, Trash2, Loader2 } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Users, Upload, X, FileImage, FileText, Sparkles, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,12 +12,12 @@ interface UploadedAsset {
   id: string;
   name: string;
   type: 'image' | 'document';
-  zone: 'fame' | 'redlines' | 'assets';
+  zone: 'fame' | 'redlines' | 'styles';
   preview?: string;
   file_path?: string;
 }
 
-type UploadZone = 'fame' | 'redlines' | 'assets';
+type UploadZone = 'fame' | 'redlines' | 'styles';
 
 const SectorBrain = () => {
   const navigate = useNavigate();
@@ -343,8 +343,8 @@ const SectorBrain = () => {
           </Card>
           <Card className="bg-primary/10 border-primary/30">
             <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-primary">{getZoneUploads('assets').length}</div>
-              <div className="text-sm text-muted-foreground">נכסי מותג</div>
+              <div className="text-3xl font-bold text-primary">{getZoneUploads('styles').length}</div>
+              <div className="text-sm text-muted-foreground">סגנונות לפי זרם</div>
             </CardContent>
           </Card>
         </div>
@@ -366,10 +366,10 @@ const SectorBrain = () => {
             color="text-destructive"
           />
           <UploadZoneCard
-            zone="assets"
-            title="נכסי המותג"
-            description="לוגו, פונטים מיוחדים, אייקונים - כל מה שמייחד את המותג"
-            icon={Palette}
+            zone="styles"
+            title="סגנון לפי זרם וקהל"
+            description="דוגמאות לסגנונות: חסידי, ליטאי, גברי, נשי, נשי חסידי, צעיר, קלאסי"
+            icon={Users}
             color="text-primary"
           />
         </div>
