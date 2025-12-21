@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Rocket, ArrowLeft, CheckCircle, Zap, Shield, Dna, Sparkles, Target, Settings, ChevronLeft } from 'lucide-react';
+import { Rocket, ArrowLeft, Zap, Shield, Handshake, ChefHat, CalendarDays, Camera, Settings, ChevronLeft, Coffee } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
@@ -60,14 +60,14 @@ const Index = () => {
       </section>
 
       {/* How It Works */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
+      <section className="container mx-auto px-4 py-16 md:py-24 font-rubik">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            <Sparkles className="w-4 h-4" />
-            תהליך מבוסס AI
+            <Coffee className="w-4 h-4" />
+            ככה זה עובד אצלנו
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            אתם תביאו את החלום, המערכת תבנה את המציאות
+            פשוט, נעים, ובלי כאב ראש
           </h2>
         </div>
         
@@ -79,31 +79,27 @@ const Index = () => {
             {[
               {
                 step: '1',
-                icon: Dna,
-                title: 'לומדים אתכם לעומק',
-                description: 'המערכת סורקת את האתר, מנתחת את המתחרים ומזקקת את הבידול המדויק שלכם.',
-                hasPulse: false,
+                icon: Handshake,
+                title: 'נעים להכיר (על אמת)',
+                description: 'לומדים מי אתם, מה הסיפור שלכם, וכן - גם איך אתם שותים את הקפה בבוקר. בלי זה אי אפשר להתקדם.',
               },
               {
                 step: '2',
-                icon: Sparkles,
-                title: 'הסטודיו האוטונומי נכנס לפעולה',
-                description: 'בחירת מסלול (סדרה/בודד) וייצור מודעות מושלמות עם טקסט חי בעברית.',
-                hasPulse: true,
+                icon: ChefHat,
+                title: 'מבשלים לכם קמפיין',
+                description: 'לוקחים את המסר שלכם ומתאימים אותו בול למגזר. בלי טעויות, עם הניואנסים הנכונים ואפס כאב ראש לכם.',
               },
               {
                 step: '3',
-                icon: Target,
-                title: 'שידוך מדיה חכם',
-                description: 'האלגוריתם מסנן את העיתונים והאתרים לפי המגזר המדויק והתקציב שלכם.',
-                hasPulse: false,
+                icon: CalendarDays,
+                title: 'תופרים את המדיה',
+                description: 'אתם מחליטים על התקציב והזמנים, אנחנו דואגים שהמודעה תגיע בול בזמן ובגודל הנכון.',
               },
               {
                 step: '4',
-                icon: Rocket,
-                title: 'משגרים ורואים תוצאות',
-                description: 'הקמפיין באוויר. אתם מקבלים \'לוח הוכחות\' עם גזרי עיתונים וצילומי מסך בזמן אמת.',
-                hasPulse: false,
+                icon: Camera,
+                title: 'אנחנו רצים, אתם נחים',
+                description: 'זהו, זה באוויר. אתם מקבלים למסך \'דרישות שלום\' חמות מהשטח - גזרי עיתונים, צילומי מסך ונחת.',
               },
             ].map((item, index) => (
               <div 
@@ -118,14 +114,8 @@ const Index = () => {
                     {item.step}
                   </div>
                   
-                  {/* Icon container with pulse */}
-                  <div className={`relative w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 mt-2 ${item.hasPulse ? 'animate-pulse' : ''}`}>
-                    {item.hasPulse && (
-                      <>
-                        <div className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping" style={{ animationDuration: '2s' }} />
-                        <div className="absolute -inset-1 rounded-2xl bg-primary/10 animate-pulse" />
-                      </>
-                    )}
+                  {/* Icon container */}
+                  <div className="relative w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 mt-2">
                     <item.icon className="w-8 h-8 text-primary relative z-10" />
                   </div>
                   

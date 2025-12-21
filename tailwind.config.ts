@@ -14,6 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
+        rubik: ['Rubik', 'sans-serif'],
         heebo: ['Heebo', 'sans-serif'],
       },
       colors: {
