@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.kosher-check]
 verify_jwt = false
+
+[functions.generate-concepts]
+verify_jwt = false
