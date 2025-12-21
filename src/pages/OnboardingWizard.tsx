@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { WizardData, initialWizardData } from '@/types/wizard';
 import WizardProgress from '@/components/wizard/WizardProgress';
 import StepMagicLink from '@/components/wizard/StepMagicLink';
+import StepWebsiteInsights from '@/components/wizard/StepWebsiteInsights';
 import StepStrategicMRI from '@/components/wizard/StepStrategicMRI';
 import StepBrandIdentity from '@/components/wizard/StepBrandIdentity';
 import StepPastMaterials from '@/components/wizard/StepPastMaterials';
@@ -10,10 +11,11 @@ import StepBrandPassport from '@/components/wizard/StepBrandPassport';
 import { Rocket } from 'lucide-react';
 import { toast } from 'sonner';
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 const stepTitles = [
   'הלינק הקסום',
+  'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
   'זהות המותג',
   'חומרי עבר',
@@ -52,14 +54,16 @@ const OnboardingWizard = () => {
       case 1:
         return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} />;
       case 2:
-        return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 3:
-        return <StepBrandIdentity data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 4:
-        return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepBrandIdentity data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 5:
-        return <StepStrategy data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 6:
+        return <StepStrategy data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+      case 7:
         return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
       default:
         return null;
