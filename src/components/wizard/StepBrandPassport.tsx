@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { WizardData } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, CalendarDays, Layers, Zap, Anchor } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, CalendarDays, Layers, Zap, Anchor, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
 
 interface StepBrandPassportProps {
   data: WizardData;
@@ -15,10 +17,63 @@ interface StepBrandPassportProps {
 }
 
 const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPassportProps) => {
-  const handleConfirm = () => {
-    updateData({ confirmed: true });
-    toast.success('בשעה טובה! זה הולך להיות גישמאק!');
-    onComplete();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('יש להתחבר כדי לשמור את הפרופיל');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare competitor positions as JSON
+      const competitorPositions = data.strategicMRI.competitorPositions.map(cp => ({
+        id: cp.id,
+        name: cp.name,
+        x: cp.x,
+        y: cp.y,
+      }));
+
+      // Save client profile
+      const { error } = await supabase.from('client_profiles').upsert({
+        user_id: user.id,
+        business_name: data.brand.name || 'עסק ללא שם',
+        website_url: data.websiteUrl || null,
+        primary_color: data.brand.colors.primary,
+        secondary_color: data.brand.colors.secondary,
+        background_color: data.brand.colors.background,
+        header_font: data.brand.headerFont,
+        body_font: data.brand.bodyFont,
+        x_factors: data.strategicMRI.xFactors,
+        primary_x_factor: data.strategicMRI.primaryXFactor,
+        advantage_type: data.strategicMRI.advantageType,
+        advantage_slider: data.strategicMRI.advantageSlider,
+        winning_feature: data.strategicMRI.winningFeature || null,
+        competitors: data.strategicMRI.competitors,
+        my_position_x: data.strategicMRI.myPosition.x,
+        my_position_y: data.strategicMRI.myPosition.y,
+        competitor_positions: competitorPositions,
+        target_audience: data.strategicMRI.targetAudience,
+        onboarding_completed: true,
+      }, {
+        onConflict: 'user_id',
+      });
+
+      if (error) throw error;
+
+      updateData({ confirmed: true });
+      toast.success('בשעה טובה! הפרופיל נשמר בהצלחה!');
+      onComplete();
+    } catch (error: any) {
+      console.error('Error saving profile:', error);
+      toast.error(error.message || 'שגיאה בשמירת הפרופיל');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const { strategy } = data;
@@ -245,13 +300,22 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
 
       {/* Navigation */}
       <div className="flex justify-between max-w-2xl mx-auto pt-6">
-        <Button variant="outline" size="lg" onClick={onPrev}>
+        <Button variant="outline" size="lg" onClick={onPrev} disabled={isSubmitting}>
           <ArrowRight className="w-4 h-4 ml-2" />
           חזרה
         </Button>
-        <Button variant="gradient" size="xl" onClick={handleConfirm} className="gap-2">
-          <Check className="w-5 h-5" />
-          בול! אפשר להתקדם
+        <Button variant="gradient" size="xl" onClick={handleConfirm} disabled={isSubmitting} className="gap-2">
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              שומר...
+            </>
+          ) : (
+            <>
+              <Check className="w-5 h-5" />
+              בול! אפשר להתקדם
+            </>
+          )}
         </Button>
       </div>
     </div>

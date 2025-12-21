@@ -29,10 +29,12 @@ const Dashboard = () => {
               <SidebarTrigger className="lg:hidden" />
               <h1 className="text-xl font-semibold text-foreground">לוח הוכחות | בס״ד</h1>
             </div>
-            <Button variant="gradient" size="default">
-              <Plus className="w-4 h-4 ml-2" />
-              קמפיין חדש
-            </Button>
+            <Link to="/new-campaign">
+              <Button variant="gradient" size="default">
+                <Plus className="w-4 h-4 ml-2" />
+                קמפיין חדש
+              </Button>
+            </Link>
           </header>
 
           {/* Main Content */}
