@@ -16,34 +16,70 @@ export interface MediaOption {
   description: string;
 }
 
+export interface BrandColors {
+  primary: string;
+  secondary: string;
+  background: string;
+}
+
+export interface BrandIdentity {
+  name: string;
+  logo: string | null;
+  colors: BrandColors;
+  headerFont: string;
+  bodyFont: string;
+}
+
+export interface UploadedMaterial {
+  id: string;
+  name: string;
+  type: string;
+  preview: string;
+}
+
 export interface WizardData {
-  // Step 1: Audience
-  sectors: SectorType[];
-  regions: string[];
+  // Step 1: Magic Link
+  websiteUrl: string;
+  isScanning: boolean;
   
-  // Step 2: Creative Direction
-  campaignGoal: CampaignGoal | null;
-  creativeVibe: CreativeVibe | null;
-  mainOffer: string;
+  // Step 2: Brand Identity
+  brand: BrandIdentity;
   
-  // Step 3: Media Selection
-  selectedMedia: string[];
+  // Step 3: Past Materials
+  pastMaterials: UploadedMaterial[];
   
-  // Step 4: Summary
-  contactName: string;
-  contactPhone: string;
+  // Step 4: Confirmation
+  confirmed: boolean;
 }
 
 export const initialWizardData: WizardData = {
-  sectors: [],
-  regions: [],
-  campaignGoal: null,
-  creativeVibe: null,
-  mainOffer: '',
-  selectedMedia: [],
-  contactName: '',
-  contactPhone: '',
+  websiteUrl: '',
+  isScanning: false,
+  brand: {
+    name: '',
+    logo: null,
+    colors: {
+      primary: '#E31E24',
+      secondary: '#000000',
+      background: '#FFFFFF',
+    },
+    headerFont: 'Assistant',
+    bodyFont: 'Heebo',
+  },
+  pastMaterials: [],
+  confirmed: false,
 };
+
+export const FONT_OPTIONS = [
+  'Assistant',
+  'Heebo',
+  'Rubik',
+  'Alef',
+  'David Libre',
+  'Frank Ruhl Libre',
+  'Secular One',
+  'Suez One',
+];
 
 export const REGIONS = [
   'ירושלים',
