@@ -10,6 +10,8 @@ import { StudioAssetStep } from '@/components/studio/StudioAssetStep';
 import { StudioTreatmentStep } from '@/components/studio/StudioTreatmentStep';
 import { StudioStyleStep, StyleChoice } from '@/components/studio/StudioStyleStep';
 import { StudioPromptStep } from '@/components/studio/StudioPromptStep';
+import { StudioModeToggle, StudioMode } from '@/components/studio/StudioModeToggle';
+import { StudioAutopilot, CreativeConcept } from '@/components/studio/StudioAutopilot';
 
 type AssetChoice = 'has-product' | 'no-product';
 type TreatmentChoice = 'as-is' | 'ai-magic';
@@ -28,7 +30,40 @@ const STEP_TITLES = [
   'תיאור ותוכן',
 ];
 
+// Mock concepts - in production these would come from AI based on strategy
+const MOCK_CONCEPTS: CreativeConcept[] = [
+  {
+    id: 'emotional-1',
+    type: 'emotional',
+    headline: 'הזווית המרגשת',
+    idea: 'תמונה של אבא ובן לומדים בחברותא, עם תאורה חמה ואינטימית.',
+    copy: 'כי העתיד שלהם מתחיל בחינוך של היום.',
+  },
+  {
+    id: 'hard-sale-1',
+    type: 'hard-sale',
+    headline: 'הזווית המכירתית',
+    idea: 'תקריב (Close-up) על המוצר עם רקע נקי ויוקרתי בזהב.',
+    copy: 'הזדמנות אחרונה למחיר השקה - אל תפספסו.',
+  },
+  {
+    id: 'pain-point-1',
+    type: 'pain-point',
+    headline: 'פתרון הבעיה',
+    idea: 'אדם נראה רגוע ומחייך אחרי שהשתמש בשירות.',
+    copy: 'להפסיק לרדוף אחרי הזנב של עצמך. תנו לנו לנהל את זה.',
+  },
+];
+
 const CreativeStudio = () => {
+  // Mode state
+  const [mode, setMode] = useState<StudioMode>('manual');
+  
+  // Autopilot state
+  const [concepts, setConcepts] = useState<CreativeConcept[]>([]);
+  const [selectedConcept, setSelectedConcept] = useState<CreativeConcept | null>(null);
+  const [isGeneratingConcepts, setIsGeneratingConcepts] = useState(false);
+  
   // Wizard state
   const [currentStep, setCurrentStep] = useState(0);
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
@@ -222,6 +257,110 @@ const CreativeStudio = () => {
     setTextPrompt('');
     setGeneratedImages([]);
     setShowResults(false);
+    setConcepts([]);
+    setSelectedConcept(null);
+  };
+
+  // Autopilot functions
+  const handleGenerateConcepts = async () => {
+    setIsGeneratingConcepts(true);
+    setConcepts([]);
+    setSelectedConcept(null);
+    
+    // Simulate AI thinking time
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // In production, this would call an AI endpoint to generate concepts
+    // based on the client's strategic DNA (target audience, product, vibe)
+    setConcepts(MOCK_CONCEPTS);
+    setIsGeneratingConcepts(false);
+    toast.success('3 כיווני קריאייטיב מוכנים!');
+  };
+
+  const handleExecuteConcept = async () => {
+    if (!selectedConcept) return;
+    
+    // Set the prompts from the selected concept
+    setVisualPrompt(selectedConcept.idea);
+    setTextPrompt(selectedConcept.copy);
+    setStyle('modern'); // Default style for autopilot
+    setAssetChoice('no-product'); // Autopilot generates from scratch
+    
+    // Generate the images
+    setIsGenerating(true);
+    setGeneratedImages([]);
+    setShowResults(true);
+    
+    const config = { engine: 'nano-banana', mode: 'generate' };
+    toast.info('מייצר את העיצובים על בסיס הקונספט שבחרת... 🎨');
+
+    try {
+      const results: GeneratedImage[] = [];
+      
+      for (let i = 0; i < 4; i++) {
+        toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
+        
+        const { data, error } = await supabase.functions.invoke('generate-image', {
+          body: {
+            visualPrompt: selectedConcept.idea,
+            textPrompt: selectedConcept.copy,
+            style: 'modern',
+            engine: config.engine,
+            mode: config.mode,
+          }
+        });
+
+        if (error) {
+          console.error('Error generating image:', error);
+          continue;
+        }
+
+        if (data?.imageUrl) {
+          const newImage: GeneratedImage = {
+            id: `${Date.now()}-${i}`,
+            url: data.imageUrl,
+            status: 'pending',
+          };
+          
+          results.push(newImage);
+          setGeneratedImages([...results]);
+
+          toast.info(`מריץ בדיקת כשרות לסקיצה ${i + 1}... 🔍`);
+          const kosherResult = await runKosherCheck(data.imageUrl);
+          
+          newImage.status = kosherResult.status as GeneratedImage['status'];
+          newImage.analysis = kosherResult.recommendation;
+          setGeneratedImages([...results]);
+
+          await supabase.from('generated_images').insert({
+            visual_prompt: selectedConcept.idea,
+            text_prompt: selectedConcept.copy,
+            style: 'modern',
+            engine: config.engine,
+            image_url: data.imageUrl,
+            kosher_status: kosherResult.status,
+            kosher_analysis: kosherResult.recommendation,
+          });
+        }
+      }
+
+      if (results.length > 0) {
+        const approved = results.filter(r => r.status === 'approved').length;
+        const needsReview = results.filter(r => r.status === 'needs-review').length;
+        const rejected = results.filter(r => r.status === 'rejected').length;
+        
+        if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
+        if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
+        if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
+      } else {
+        toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('שגיאה ביצירת התמונות');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const renderStep = () => {
@@ -286,67 +425,87 @@ const CreativeStudio = () => {
       <div className="container mx-auto px-4 py-6">
         {!showResults ? (
           <div className="max-w-3xl mx-auto">
-            {/* Progress */}
+            {/* Mode Toggle */}
             <div className="mb-8">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">
-                  שלב {actualStepIndex + 1} מתוך {totalSteps}
-                </span>
-                <span className="text-sm font-medium">{STEP_TITLES[currentStep]}</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary transition-all duration-300"
-                  style={{ width: `${((actualStepIndex + 1) / totalSteps) * 100}%` }}
-                />
-              </div>
+              <StudioModeToggle value={mode} onChange={setMode} />
             </div>
 
-            {/* Step Content */}
-            <div className="min-h-[400px]">
-              {renderStep()}
-            </div>
+            {mode === 'autopilot' ? (
+              /* Autopilot Mode */
+              <StudioAutopilot
+                isGenerating={isGeneratingConcepts || isGenerating}
+                concepts={concepts}
+                selectedConcept={selectedConcept}
+                onGenerateConcepts={handleGenerateConcepts}
+                onSelectConcept={setSelectedConcept}
+                onExecuteConcept={handleExecuteConcept}
+              />
+            ) : (
+              /* Manual Mode */
+              <>
+                {/* Progress */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">
+                      שלב {actualStepIndex + 1} מתוך {totalSteps}
+                    </span>
+                    <span className="text-sm font-medium">{STEP_TITLES[currentStep]}</span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary transition-all duration-300"
+                      style={{ width: `${((actualStepIndex + 1) / totalSteps) * 100}%` }}
+                    />
+                  </div>
+                </div>
 
-            {/* Navigation */}
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                disabled={actualStepIndex === 0}
-              >
-                <ChevronRight className="h-4 w-4 ml-1" />
-                הקודם
-              </Button>
+                {/* Step Content */}
+                <div className="min-h-[400px]">
+                  {renderStep()}
+                </div>
 
-              {currentStep === 3 ? (
-                <Button
-                  onClick={handleGenerate}
-                  disabled={!canProceed() || isGenerating}
-                  variant="gradient"
-                  className="min-w-[160px]"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                      מייצר...
-                    </>
+                {/* Navigation */}
+                <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+                  <Button
+                    variant="outline"
+                    onClick={handleBack}
+                    disabled={actualStepIndex === 0}
+                  >
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                    הקודם
+                  </Button>
+
+                  {currentStep === 3 ? (
+                    <Button
+                      onClick={handleGenerate}
+                      disabled={!canProceed() || isGenerating}
+                      variant="gradient"
+                      className="min-w-[160px]"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                          מייצר...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 ml-2" />
+                          צור עיצובים
+                        </>
+                      )}
+                    </Button>
                   ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 ml-2" />
-                      צור עיצובים
-                    </>
+                    <Button
+                      onClick={handleNext}
+                      disabled={!canProceed()}
+                    >
+                      הבא
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                    </Button>
                   )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleNext}
-                  disabled={!canProceed()}
-                >
-                  הבא
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                </Button>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           /* Results View */
