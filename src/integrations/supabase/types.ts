@@ -193,6 +193,54 @@ export type Database = {
         }
         Relationships: []
       }
+      media_categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          name_he: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          name_he: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          name_he?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      media_cities: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_he: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_he: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_he?: string
+        }
+        Relationships: []
+      }
       media_inventory: {
         Row: {
           base_price: number
@@ -237,6 +285,144 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      media_outlets: {
+        Row: {
+          category_id: string
+          city: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_he: string | null
+          sector: string | null
+        }
+        Insert: {
+          category_id: string
+          city?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_he?: string | null
+          sector?: string | null
+        }
+        Update: {
+          category_id?: string
+          city?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_he?: string | null
+          sector?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_outlets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "media_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_products: {
+        Row: {
+          base_price: number | null
+          client_price: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_he: string | null
+          outlet_id: string
+          product_type: string
+          requires_image: boolean | null
+          requires_text: boolean | null
+        }
+        Insert: {
+          base_price?: number | null
+          client_price?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_he?: string | null
+          outlet_id: string
+          product_type: string
+          requires_image?: boolean | null
+          requires_text?: boolean | null
+        }
+        Update: {
+          base_price?: number | null
+          client_price?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_he?: string | null
+          outlet_id?: string
+          product_type?: string
+          requires_image?: boolean | null
+          requires_text?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_products_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "media_outlets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_specs: {
+        Row: {
+          allowed_content: string[] | null
+          base_price: number | null
+          client_price: number | null
+          created_at: string | null
+          dimensions: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_he: string | null
+          product_id: string
+        }
+        Insert: {
+          allowed_content?: string[] | null
+          base_price?: number | null
+          client_price?: number | null
+          created_at?: string | null
+          dimensions?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_he?: string | null
+          product_id: string
+        }
+        Update: {
+          allowed_content?: string[] | null
+          base_price?: number | null
+          client_price?: number | null
+          created_at?: string | null
+          dimensions?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_he?: string | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_specs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "media_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
