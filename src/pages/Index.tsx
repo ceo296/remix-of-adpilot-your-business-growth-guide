@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Rocket, ArrowLeft, CheckCircle, Zap, Shield, Users, Palette, Newspaper, Settings } from 'lucide-react';
+import { Rocket, ArrowLeft, CheckCircle, Zap, Shield, Dna, Sparkles, Target, Settings, ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
@@ -60,52 +60,88 @@ const Index = () => {
       </section>
 
       {/* How It Works */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-12">
-          איך זה עובד? פשוט מאוד!
-        </h2>
-        <div className="grid md:grid-cols-4 gap-6">
-          {[
-            {
-              step: '1',
-              icon: Users,
-              title: 'בחר קהל',
-              description: 'ליטאי, חסידי, ספרדי – למי פונים?',
-            },
-            {
-              step: '2',
-              icon: Palette,
-              title: 'בחר סגנון',
-              description: 'צועק או יוקרתי? מה ה-VIBE?',
-            },
-            {
-              step: '3',
-              icon: Newspaper,
-              title: 'בחר מדיה',
-              description: 'עיתונות, דיגיטל, רדיו – הכל פה',
-            },
-            {
-              step: '4',
-              icon: CheckCircle,
-              title: 'בשעה טובה!',
-              description: 'אנחנו מייצרים את הקמפיין',
-            },
-          ].map((item, index) => (
-            <div 
-              key={item.step}
-              className="relative bg-card rounded-xl border border-border p-6 text-center hover:shadow-lg transition-all duration-300 animate-slide-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="absolute -top-3 right-4 w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-sm">
-                {item.step}
+      <section className="container mx-auto px-4 py-16 md:py-24">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+            <Sparkles className="w-4 h-4" />
+            תהליך מבוסס AI
+          </div>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+            אתם תביאו את החלום, המערכת תבנה את המציאות
+          </h2>
+        </div>
+        
+        <div className="relative">
+          {/* Connecting line for desktop */}
+          <div className="hidden md:block absolute top-24 right-[12%] left-[12%] h-0.5 bg-gradient-to-l from-primary/20 via-primary to-primary/20" />
+          
+          <div className="grid md:grid-cols-4 gap-8 md:gap-6">
+            {[
+              {
+                step: '1',
+                icon: Dna,
+                title: 'לומדים אתכם לעומק',
+                description: 'המערכת סורקת את האתר, מנתחת את המתחרים ומזקקת את הבידול המדויק שלכם.',
+                hasPulse: false,
+              },
+              {
+                step: '2',
+                icon: Sparkles,
+                title: 'הסטודיו האוטונומי נכנס לפעולה',
+                description: 'בחירת מסלול (סדרה/בודד) וייצור מודעות מושלמות עם טקסט חי בעברית.',
+                hasPulse: true,
+              },
+              {
+                step: '3',
+                icon: Target,
+                title: 'שידוך מדיה חכם',
+                description: 'האלגוריתם מסנן את העיתונים והאתרים לפי המגזר המדויק והתקציב שלכם.',
+                hasPulse: false,
+              },
+              {
+                step: '4',
+                icon: Rocket,
+                title: 'משגרים ורואים תוצאות',
+                description: 'הקמפיין באוויר. אתם מקבלים \'לוח הוכחות\' עם גזרי עיתונים וצילומי מסך בזמן אמת.',
+                hasPulse: false,
+              },
+            ].map((item, index) => (
+              <div 
+                key={item.step}
+                className="relative group"
+                style={{ animationDelay: `${index * 0.15}s` }}
+              >
+                {/* Card */}
+                <div className="relative bg-card rounded-2xl border border-border p-6 text-center shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 animate-fade-in">
+                  {/* Step number badge */}
+                  <div className="absolute -top-4 right-4 w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-sm shadow-lg">
+                    {item.step}
+                  </div>
+                  
+                  {/* Icon container with pulse */}
+                  <div className={`relative w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 mt-2 ${item.hasPulse ? 'animate-pulse' : ''}`}>
+                    {item.hasPulse && (
+                      <>
+                        <div className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping" style={{ animationDuration: '2s' }} />
+                        <div className="absolute -inset-1 rounded-2xl bg-primary/10 animate-pulse" />
+                      </>
+                    )}
+                    <item.icon className="w-8 h-8 text-primary relative z-10" />
+                  </div>
+                  
+                  <h3 className="text-lg font-bold text-foreground mb-3">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                </div>
+                
+                {/* Arrow connector for mobile */}
+                {index < 3 && (
+                  <div className="md:hidden flex justify-center my-4">
+                    <ChevronLeft className="w-6 h-6 text-primary rotate-[-90deg]" />
+                  </div>
+                )}
               </div>
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 mt-2">
-                <item.icon className="w-7 h-7 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
-              <p className="text-sm text-muted-foreground">{item.description}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
