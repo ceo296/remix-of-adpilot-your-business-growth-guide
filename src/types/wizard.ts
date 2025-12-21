@@ -48,27 +48,72 @@ export interface CampaignStrategy {
   structure: CampaignStructure | null;
 }
 
+// Strategic MRI Types
+export type XFactorType = 'veteran' | 'product' | 'price' | 'service' | 'brand';
+
+export type TargetAudienceType = 'end_user' | 'decision_maker';
+
+export interface CompetitorPosition {
+  id: string;
+  name: string;
+  x: number; // -100 (Cheap) to 100 (Premium)
+  y: number; // -100 (Old School) to 100 (Modern)
+}
+
+export interface StrategicMRI {
+  // Section 1: The 'Why You?' (X-Factor)
+  xFactors: XFactorType[];
+  primaryXFactor: XFactorType | null;
+  
+  // Section 2: Reality Check
+  advantageType: 'hard' | 'soft' | null; // hard = product, soft = brand
+  advantageSlider: number; // 0 (hard) to 100 (soft)
+  winningFeature: string; // only if hard advantage
+  
+  // Section 3: The Arena
+  competitors: string[];
+  myPosition: { x: number; y: number };
+  competitorPositions: CompetitorPosition[];
+  
+  // Section 4: Target Audience
+  targetAudience: TargetAudienceType | null;
+}
+
 export interface WizardData {
   // Step 1: Magic Link
   websiteUrl: string;
   isScanning: boolean;
   
-  // Step 2: Brand Identity
+  // Step 2: Strategic MRI
+  strategicMRI: StrategicMRI;
+  
+  // Step 3: Brand Identity
   brand: BrandIdentity;
   
-  // Step 3: Past Materials
+  // Step 4: Past Materials
   pastMaterials: UploadedMaterial[];
   
-  // Step 4: Strategy & Scope
+  // Step 5: Strategy & Scope
   strategy: CampaignStrategy;
   
-  // Step 5: Confirmation
+  // Step 6: Confirmation
   confirmed: boolean;
 }
 
 export const initialWizardData: WizardData = {
   websiteUrl: '',
   isScanning: false,
+  strategicMRI: {
+    xFactors: [],
+    primaryXFactor: null,
+    advantageType: null,
+    advantageSlider: 50,
+    winningFeature: '',
+    competitors: [],
+    myPosition: { x: 0, y: 0 },
+    competitorPositions: [],
+    targetAudience: null,
+  },
   brand: {
     name: '',
     logo: null,
