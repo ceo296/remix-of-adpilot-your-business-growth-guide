@@ -1,10 +1,11 @@
+import { Link } from 'react-router-dom';
 import AppSidebar from '@/components/dashboard/AppSidebar';
 import CampaignPulse from '@/components/dashboard/CampaignPulse';
 import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
 import DigitalCorner from '@/components/dashboard/DigitalCorner';
 import ProofGallery from '@/components/dashboard/ProofGallery';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Wand2, Brain } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 // Mock campaign data
@@ -57,17 +58,26 @@ const Dashboard = () => {
                 
                 {/* Quick Actions */}
                 <div className="bg-card rounded-xl border border-border p-5 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-                  <h3 className="text-sm font-semibold text-foreground mb-3">פעולות מהירות</h3>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">כלים מתקדמים</h3>
                   <div className="space-y-2">
-                    <button className="w-full p-3 rounded-lg border border-border bg-background hover:bg-accent transition-colors text-right flex items-center gap-3">
+                    <Link to="/studio" className="w-full p-3 rounded-lg border border-border bg-background hover:bg-accent transition-colors text-right flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Plus className="w-4 h-4 text-primary" />
+                        <Wand2 className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium text-foreground text-sm">הוסף קמפיין חדש</p>
-                        <p className="text-xs text-muted-foreground">יוצאים לדרך</p>
+                        <p className="font-medium text-foreground text-sm">סטודיו יצירתי</p>
+                        <p className="text-xs text-muted-foreground">ליצור מודעות עם AI</p>
                       </div>
-                    </button>
+                    </Link>
+                    <Link to="/brain" className="w-full p-3 rounded-lg border border-border bg-background hover:bg-accent transition-colors text-right flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+                        <Brain className="w-4 h-4 text-success" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground text-sm">בית הספר</p>
+                        <p className="text-xs text-muted-foreground">לימוד המערכת</p>
+                      </div>
+                    </Link>
                   </div>
                 </div>
               </div>
