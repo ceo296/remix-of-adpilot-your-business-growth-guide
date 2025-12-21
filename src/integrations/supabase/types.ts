@@ -295,7 +295,11 @@ export type Database = {
           is_active: boolean | null
           name: string
           name_he: string | null
+          reach_info: string | null
           sector: string | null
+          vibe: string | null
+          vibe_he: string | null
+          warning_text: string | null
         }
         Insert: {
           category_id: string
@@ -305,7 +309,11 @@ export type Database = {
           is_active?: boolean | null
           name: string
           name_he?: string | null
+          reach_info?: string | null
           sector?: string | null
+          vibe?: string | null
+          vibe_he?: string | null
+          warning_text?: string | null
         }
         Update: {
           category_id?: string
@@ -315,7 +323,11 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           name_he?: string | null
+          reach_info?: string | null
           sector?: string | null
+          vibe?: string | null
+          vibe_he?: string | null
+          warning_text?: string | null
         }
         Relationships: [
           {
@@ -340,6 +352,8 @@ export type Database = {
           product_type: string
           requires_image: boolean | null
           requires_text: boolean | null
+          special_tag: string | null
+          target_audience: string | null
         }
         Insert: {
           base_price?: number | null
@@ -353,6 +367,8 @@ export type Database = {
           product_type: string
           requires_image?: boolean | null
           requires_text?: boolean | null
+          special_tag?: string | null
+          target_audience?: string | null
         }
         Update: {
           base_price?: number | null
@@ -366,6 +382,8 @@ export type Database = {
           product_type?: string
           requires_image?: boolean | null
           requires_text?: boolean | null
+          special_tag?: string | null
+          target_audience?: string | null
         }
         Relationships: [
           {
