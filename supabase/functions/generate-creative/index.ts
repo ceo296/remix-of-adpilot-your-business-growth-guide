@@ -35,9 +35,9 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, style } = await req.json();
+    const { prompt, style, aspectRatio } = await req.json();
 
-    console.log('Received request:', { prompt, style });
+    console.log('Received request:', { prompt, style, aspectRatio });
 
     if (!prompt) {
       return new Response(
@@ -80,6 +80,7 @@ serve(async (req) => {
         imageUrl,
         prompt,
         style: styleKey,
+        aspectRatio: aspectRatio || 'square',
         isMock: true, // Flag to indicate this is mock data
         message: 'Mock image generated successfully. Replace with real AI API in production.',
       }),

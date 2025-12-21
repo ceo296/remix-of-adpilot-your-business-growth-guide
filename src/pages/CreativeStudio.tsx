@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { StudioAssetStep } from '@/components/studio/StudioAssetStep';
 import { StudioTreatmentStep } from '@/components/studio/StudioTreatmentStep';
 import { StudioStyleStep, StyleChoice } from '@/components/studio/StudioStyleStep';
-import { StudioPromptStep } from '@/components/studio/StudioPromptStep';
+import { StudioPromptStep, AspectRatio } from '@/components/studio/StudioPromptStep';
 import { StudioModeToggle, StudioMode } from '@/components/studio/StudioModeToggle';
 import { StudioAutopilot, CreativeConcept } from '@/components/studio/StudioAutopilot';
 
@@ -59,6 +59,7 @@ const CreativeStudio = () => {
   const [style, setStyle] = useState<StyleChoice | null>(null);
   const [visualPrompt, setVisualPrompt] = useState('');
   const [textPrompt, setTextPrompt] = useState('');
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('square');
   
   // Generation state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -178,6 +179,7 @@ const CreativeStudio = () => {
           body: {
             prompt: `${visualPrompt}. טקסט: ${textPrompt || 'ללא טקסט'}`,
             style: style || 'default',
+            aspectRatio,
           }
         });
 
@@ -259,6 +261,7 @@ const CreativeStudio = () => {
     setStyle(null);
     setVisualPrompt('');
     setTextPrompt('');
+    setAspectRatio('square');
     setGeneratedImages([]);
     setShowResults(false);
     setConcepts([]);
@@ -334,6 +337,7 @@ const CreativeStudio = () => {
           body: {
             prompt: `${selectedConcept.idea}. טקסט: ${selectedConcept.copy}`,
             style: 'modern',
+            aspectRatio: 'square',
           }
         });
 
@@ -414,6 +418,8 @@ const CreativeStudio = () => {
             onTextPromptChange={setTextPrompt}
             style={style}
             hasProduct={assetChoice === 'has-product'}
+            aspectRatio={aspectRatio}
+            onAspectRatioChange={setAspectRatio}
           />
         );
       default:
