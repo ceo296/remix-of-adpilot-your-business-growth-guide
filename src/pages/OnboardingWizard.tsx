@@ -6,14 +6,15 @@ import StepCreativeDirection from '@/components/wizard/StepCreativeDirection';
 import StepMediaCatalog from '@/components/wizard/StepMediaCatalog';
 import StepSummary from '@/components/wizard/StepSummary';
 import { Rocket } from 'lucide-react';
+import { toast } from 'sonner';
 
 const TOTAL_STEPS = 4;
 
 const stepTitles = [
-  'קהל יעד',
-  'סגנון הקמפיין',
-  'ערוצי מדיה',
-  'סיכום',
+  'למי פונים?',
+  'איזה סגנון?',
+  'איפה מפרסמים?',
+  'בשעה טובה!',
 ];
 
 const OnboardingWizard = () => {
@@ -27,6 +28,7 @@ const OnboardingWizard = () => {
   const nextStep = () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1);
+      toast.success('שכוייח! ממשיכים הלאה');
     }
   };
 
@@ -37,7 +39,7 @@ const OnboardingWizard = () => {
   };
 
   const handleComplete = () => {
-    // Navigate to dashboard
+    toast.success('בשעה טובה! הקמפיין נשלח לביצוע');
     window.location.href = '/dashboard';
   };
 
@@ -67,7 +69,7 @@ const OnboardingWizard = () => {
             </div>
             <div>
               <span className="text-xl font-bold text-foreground">AdPilot</span>
-              <span className="text-sm text-muted-foreground mr-2">| מגזר חרדי</span>
+              <span className="text-sm text-muted-foreground mr-2">| בס״ד</span>
             </div>
           </div>
           <div className="text-sm text-muted-foreground">

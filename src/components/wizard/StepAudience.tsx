@@ -11,7 +11,7 @@ interface StepAudienceProps {
 const sectors: { id: SectorType; label: string; description: string }[] = [
   { id: 'litvish', label: 'ליטאי', description: 'ישיבות וקהילות ליטאיות' },
   { id: 'chassidish', label: 'חסידי', description: 'חצרות וקהילות חסידיות' },
-  { id: 'sefardi', label: 'ספרדי-חרדי', description: 'קהילות ש"ס ועדות המזרח' },
+  { id: 'sefardi', label: 'ספרדי-חרדי', description: 'קהילות ש״ס ועדות המזרח' },
   { id: 'modern', label: 'חרדי-מודרני', description: 'חרדים עובדים ואקדמאים' },
   { id: 'general', label: 'כללי', description: 'קהל רחב ומגוון' },
 ];
@@ -42,9 +42,9 @@ const StepAudience = ({ data, updateData, onNext }: StepAudienceProps) => {
           <Users className="w-4 h-4" />
           שלב 1 מתוך 4
         </div>
-        <h1 className="text-3xl font-bold text-foreground">למי מיועד הקמפיין?</h1>
+        <h1 className="text-3xl font-bold text-foreground">שלום עליכם! למי פונים?</h1>
         <p className="text-lg text-muted-foreground">
-          בחר את המגזרים והאזורים שאליהם תרצה לפנות
+          בחר את המגזרים והאזורים – ככה נדע בדיוק למי לכוון
         </p>
       </div>
 
@@ -52,7 +52,7 @@ const StepAudience = ({ data, updateData, onNext }: StepAudienceProps) => {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Users className="w-5 h-5 text-primary" />
-          מגזר
+          איזה ציבור?
         </h3>
         <div className="flex flex-wrap gap-3">
           {sectors.map((sector) => {
@@ -84,7 +84,7 @@ const StepAudience = ({ data, updateData, onNext }: StepAudienceProps) => {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <MapPin className="w-5 h-5 text-primary" />
-          אזור גיאוגרפי
+          איפה בארץ?
         </h3>
         <div className="flex flex-wrap gap-2">
           {REGIONS.map((region) => {
@@ -112,7 +112,7 @@ const StepAudience = ({ data, updateData, onNext }: StepAudienceProps) => {
       {(data.sectors.length > 0 || data.regions.length > 0) && (
         <div className="bg-muted/50 rounded-xl p-4 border border-border">
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">בחירה נוכחית: </span>
+            <span className="font-medium text-foreground">מעולה! בחרת: </span>
             {data.sectors.length > 0 && (
               <span>
                 {sectors.filter(s => data.sectors.includes(s.id)).map(s => s.label).join(', ')}
@@ -133,7 +133,7 @@ const StepAudience = ({ data, updateData, onNext }: StepAudienceProps) => {
           onClick={onNext}
           disabled={!isValid}
         >
-          המשך לבחירת סגנון
+          הלאה, ממשיכים!
         </Button>
       </div>
     </div>

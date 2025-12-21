@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import AppSidebar from '@/components/dashboard/AppSidebar';
-import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import MetricsCards from '@/components/dashboard/MetricsCards';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,6 @@ import { Plus, Sparkles } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 const Dashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -20,11 +17,11 @@ const Dashboard = () => {
           <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-40">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="lg:hidden" />
-              <h1 className="text-xl font-semibold text-foreground">לוח בקרה</h1>
+              <h1 className="text-xl font-semibold text-foreground">לוח בקרה | בס״ד</h1>
             </div>
             <Button variant="gradient" size="default">
               <Plus className="w-4 h-4 ml-2" />
-              הצעה חדשה
+              קמפיין חדש
             </Button>
           </header>
 
@@ -34,12 +31,12 @@ const Dashboard = () => {
             <div className="bg-gradient-primary rounded-2xl p-6 text-primary-foreground animate-fade-in">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">שלום, מסעדת השף! 👋</h2>
-                  <p className="opacity-90">המערכת עובדת בשבילך - הנה מה שקורה השבוע</p>
+                  <h2 className="text-2xl font-bold mb-2">שלום עליכם! טוב לראות אתכם שוב 👋</h2>
+                  <p className="opacity-90">המערכת עובדת בשבילכם בעזה״י – הנה מה שקורה השבוע</p>
                 </div>
                 <div className="hidden md:flex items-center gap-2 bg-primary-foreground/10 rounded-full px-4 py-2">
                   <Sparkles className="w-5 h-5" />
-                  <span className="text-sm font-medium">מצב אוטומטי פעיל</span>
+                  <span className="text-sm font-medium">הכל רץ חלק!</span>
                 </div>
               </div>
             </div>
@@ -60,8 +57,8 @@ const Dashboard = () => {
                       <Plus className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">הוסף הצעה או רעיון חדש</p>
-                      <p className="text-sm text-muted-foreground">צור קמפיין חדש בקלות</p>
+                      <p className="font-medium text-foreground">הוסף קמפיין חדש</p>
+                      <p className="text-sm text-muted-foreground">יוצאים לדרך עם משהו חדש</p>
                     </div>
                   </button>
                   <button className="w-full p-4 rounded-lg border border-border bg-background hover:bg-accent transition-colors text-right flex items-center gap-3">
@@ -70,7 +67,7 @@ const Dashboard = () => {
                     </div>
                     <div>
                       <p className="font-medium text-foreground">בקש אופטימיזציה</p>
-                      <p className="text-sm text-muted-foreground">שפר ביצועים אוטומטית</p>
+                      <p className="text-sm text-muted-foreground">נשפר את הביצועים בעזה״י</p>
                     </div>
                   </button>
                 </div>
