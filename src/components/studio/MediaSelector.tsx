@@ -1,0 +1,439 @@
+import { useState, useEffect } from 'react';
+import { 
+  ChevronDown, ChevronRight, Newspaper, Package, Ruler, 
+  MapPin, Check, Upload, FileText, Image as ImageIcon
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Category {
+  id: string;
+  name: string;
+  name_he: string;
+}
+
+interface Outlet {
+  id: string;
+  category_id: string;
+  name: string;
+  name_he: string | null;
+  sector: string | null;
+  city: string | null;
+}
+
+interface Product {
+  id: string;
+  outlet_id: string;
+  name: string;
+  name_he: string | null;
+  product_type: string;
+  requires_text: boolean;
+  requires_image: boolean;
+  client_price: number;
+}
+
+interface Spec {
+  id: string;
+  product_id: string;
+  name: string;
+  name_he: string | null;
+  dimensions: string | null;
+  client_price: number;
+}
+
+interface City {
+  id: string;
+  name: string;
+  name_he: string;
+}
+
+interface SelectedMedia {
+  category: Category;
+  outlet: Outlet;
+  product: Product;
+  spec: Spec;
+  requiresText: boolean;
+  requiresImage: boolean;
+  textContent?: string;
+  imageFile?: File;
+}
+
+interface MediaSelectorProps {
+  onSelect: (selection: SelectedMedia) => void;
+  selectedMedia?: SelectedMedia | null;
+}
+
+const SECTORS = [
+  { id: 'litvish', label: 'ליטאי' },
+  { id: 'chassidish', label: 'חסידי' },
+  { id: 'sefardi', label: 'ספרדי' },
+  { id: 'general', label: 'כללי' },
+];
+
+export const MediaSelector = ({ onSelect, selectedMedia }: MediaSelectorProps) => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [outlets, setOutlets] = useState<Outlet[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [specs, setSpecs] = useState<Spec[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Selection state
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedOutlet, setSelectedOutlet] = useState<Outlet | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedSpec, setSelectedSpec] = useState<Spec | null>(null);
+  
+  // Content state
+  const [textContent, setTextContent] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  // Expanded states
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const [catRes, outRes, prodRes, specRes, cityRes] = await Promise.all([
+      supabase.from('media_categories').select('*').order('sort_order'),
+      supabase.from('media_outlets').select('*').eq('is_active', true),
+      supabase.from('media_products').select('*').eq('is_active', true),
+      supabase.from('product_specs').select('*').eq('is_active', true),
+      supabase.from('media_cities').select('*').eq('is_active', true),
+    ]);
+
+    if (catRes.data) setCategories(catRes.data);
+    if (outRes.data) setOutlets(outRes.data);
+    if (prodRes.data) setProducts(prodRes.data);
+    if (specRes.data) setSpecs(specRes.data);
+    if (cityRes.data) setCities(cityRes.data);
+    setIsLoading(false);
+  };
+
+  const toggleCategory = (id: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+    const cat = categories.find(c => c.id === id);
+    if (cat) {
+      setSelectedCategory(cat);
+      setSelectedOutlet(null);
+      setSelectedProduct(null);
+      setSelectedSpec(null);
+    }
+  };
+
+  const handleSelectOutlet = (outlet: Outlet) => {
+    setSelectedOutlet(outlet);
+    setSelectedProduct(null);
+    setSelectedSpec(null);
+  };
+
+  const handleSelectProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setSelectedSpec(null);
+  };
+
+  const handleSelectSpec = (spec: Spec) => {
+    setSelectedSpec(spec);
+    
+    if (selectedCategory && selectedOutlet && selectedProduct) {
+      onSelect({
+        category: selectedCategory,
+        outlet: selectedOutlet,
+        product: selectedProduct,
+        spec: spec,
+        requiresText: selectedProduct.requires_text,
+        requiresImage: selectedProduct.requires_image,
+        textContent: textContent || undefined,
+        imageFile: imageFile || undefined,
+      });
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      if (selectedCategory && selectedOutlet && selectedProduct && selectedSpec) {
+        onSelect({
+          category: selectedCategory,
+          outlet: selectedOutlet,
+          product: selectedProduct,
+          spec: selectedSpec,
+          requiresText: selectedProduct.requires_text,
+          requiresImage: selectedProduct.requires_image,
+          textContent,
+          imageFile: file,
+        });
+      }
+    }
+  };
+
+  const handleTextChange = (text: string) => {
+    setTextContent(text);
+    if (selectedCategory && selectedOutlet && selectedProduct && selectedSpec) {
+      onSelect({
+        category: selectedCategory,
+        outlet: selectedOutlet,
+        product: selectedProduct,
+        spec: selectedSpec,
+        requiresText: selectedProduct.requires_text,
+        requiresImage: selectedProduct.requires_image,
+        textContent: text,
+        imageFile: imageFile || undefined,
+      });
+    }
+  };
+
+  const getSectorLabel = (sector: string | null) => {
+    return SECTORS.find(s => s.id === sector)?.label || sector || '';
+  };
+
+  const requiresCitySelection = selectedCategory?.name === 'local_print' || selectedCategory?.name === 'street';
+  
+  const filteredOutlets = outlets.filter(o => {
+    if (!selectedCategory) return false;
+    const matchesCategory = o.category_id === selectedCategory.id;
+    const matchesCity = !requiresCitySelection || !selectedCity || o.city === selectedCity || !o.city;
+    return matchesCategory && matchesCity;
+  });
+
+  const filteredProducts = products.filter(p => selectedOutlet && p.outlet_id === selectedOutlet.id);
+  const filteredSpecs = specs.filter(s => selectedProduct && s.product_id === selectedProduct.id);
+
+  if (isLoading) {
+    return <div className="text-center p-8 text-muted-foreground">טוען מאגר מדיה...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Step 1: Category Selection */}
+      <div>
+        <Label className="text-lg font-semibold mb-3 block">1. בחר קטגוריה</Label>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {categories.map(category => (
+            <Button
+              key={category.id}
+              variant={selectedCategory?.id === category.id ? 'default' : 'outline'}
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => toggleCategory(category.id)}
+            >
+              <Newspaper className="h-5 w-5" />
+              <span>{category.name_he}</span>
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* City Selection (for local media) */}
+      {requiresCitySelection && (
+        <div>
+          <Label className="text-lg font-semibold mb-3 block">בחר עיר</Label>
+          <Select value={selectedCity} onValueChange={setSelectedCity}>
+            <SelectTrigger className="w-full md:w-64">
+              <SelectValue placeholder="בחר עיר" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">כל הערים</SelectItem>
+              {cities.map(city => (
+                <SelectItem key={city.id} value={city.name}>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    {city.name_he}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Step 2: Outlet Selection */}
+      {selectedCategory && (
+        <div>
+          <Label className="text-lg font-semibold mb-3 block">2. בחר ערוץ/כלי מדיה</Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {filteredOutlets.map(outlet => (
+              <Card 
+                key={outlet.id}
+                className={`cursor-pointer transition-all ${
+                  selectedOutlet?.id === outlet.id 
+                    ? 'ring-2 ring-primary bg-primary/5' 
+                    : 'hover:bg-muted/50'
+                }`}
+                onClick={() => handleSelectOutlet(outlet)}
+              >
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">{outlet.name_he || outlet.name}</div>
+                    <div className="flex gap-1 mt-1">
+                      {outlet.sector && (
+                        <Badge variant="outline" className="text-xs">{getSectorLabel(outlet.sector)}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  {selectedOutlet?.id === outlet.id && (
+                    <Check className="h-5 w-5 text-primary" />
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Product Selection */}
+      {selectedOutlet && (
+        <div>
+          <Label className="text-lg font-semibold mb-3 block">3. בחר מוצר</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {filteredProducts.map(product => (
+              <Card 
+                key={product.id}
+                className={`cursor-pointer transition-all ${
+                  selectedProduct?.id === product.id 
+                    ? 'ring-2 ring-primary bg-primary/5' 
+                    : 'hover:bg-muted/50'
+                }`}
+                onClick={() => handleSelectProduct(product)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-primary" />
+                      <span className="font-medium">{product.name_he || product.name}</span>
+                    </div>
+                    {selectedProduct?.id === product.id && (
+                      <Check className="h-5 w-5 text-primary" />
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {product.requires_image && (
+                      <Badge variant="secondary" className="text-xs">
+                        <ImageIcon className="h-3 w-3 ml-1" />
+                        תמונה
+                      </Badge>
+                    )}
+                    {product.requires_text && (
+                      <Badge variant="secondary" className="text-xs">
+                        <FileText className="h-3 w-3 ml-1" />
+                        טקסט
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Spec Selection */}
+      {selectedProduct && filteredSpecs.length > 0 && (
+        <div>
+          <Label className="text-lg font-semibold mb-3 block">4. בחר מידות/פורמט</Label>
+          <div className="flex flex-wrap gap-3">
+            {filteredSpecs.map(spec => (
+              <Button
+                key={spec.id}
+                variant={selectedSpec?.id === spec.id ? 'default' : 'outline'}
+                className="flex items-center gap-2"
+                onClick={() => handleSelectSpec(spec)}
+              >
+                <Ruler className="h-4 w-4" />
+                <span>{spec.name_he || spec.name}</span>
+                {spec.dimensions && (
+                  <span className="text-xs opacity-70">({spec.dimensions})</span>
+                )}
+                <Badge variant="secondary">₪{spec.client_price}</Badge>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Content Input (based on product requirements) */}
+      {selectedProduct && selectedSpec && (
+        <div className="border-t pt-6 space-y-4">
+          <Label className="text-lg font-semibold mb-3 block">5. העלאת תוכן</Label>
+          
+          {selectedProduct.requires_image && (
+            <div>
+              <Label className="mb-2 block">
+                העלאת תמונה
+                {selectedSpec.dimensions && <span className="text-muted-foreground"> ({selectedSpec.dimensions})</span>}
+              </Label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                {imageFile ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Check className="h-5 w-5 text-green-500" />
+                    <span>{imageFile.name}</span>
+                    <Button variant="ghost" size="sm" onClick={() => setImageFile(null)}>
+                      שנה
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="cursor-pointer">
+                    <input 
+                      type="file" 
+                      accept="image/*,.pdf" 
+                      className="hidden" 
+                      onChange={handleImageUpload}
+                    />
+                    <div className="flex flex-col items-center gap-2">
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-muted-foreground">לחץ להעלאת קובץ</span>
+                    </div>
+                  </label>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {selectedProduct.requires_text && (
+            <div>
+              <Label className="mb-2 block">טקסט לפרסום</Label>
+              <Textarea
+                value={textContent}
+                onChange={(e) => handleTextChange(e.target.value)}
+                placeholder="הזן את הטקסט לפרסום..."
+                className="min-h-[120px]"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Selection Summary */}
+      {selectedSpec && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-semibold text-primary">בחירה נוכחית:</div>
+                <div className="text-sm text-muted-foreground">
+                  {selectedCategory?.name_he} ← {selectedOutlet?.name_he || selectedOutlet?.name} ← {selectedProduct?.name_he || selectedProduct?.name} ← {selectedSpec?.name_he || selectedSpec?.name}
+                </div>
+              </div>
+              <Badge className="text-lg px-3 py-1">₪{selectedSpec.client_price}</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default MediaSelector;
