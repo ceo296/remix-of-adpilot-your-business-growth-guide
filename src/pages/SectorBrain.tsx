@@ -1,23 +1,47 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Users, Upload, X, FileImage, FileText, Sparkles, Trash2, Loader2 } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Users, Upload, X, FileImage, FileText, Sparkles, Trash2, Loader2, Type, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface UploadedAsset {
   id: string;
   name: string;
-  type: 'image' | 'document';
+  type: 'image' | 'document' | 'text';
   zone: 'fame' | 'redlines' | 'styles';
   preview?: string;
   file_path?: string;
+  text_content?: string;
+  stream_type?: string;
+  gender_audience?: string;
 }
 
 type UploadZone = 'fame' | 'redlines' | 'styles';
+type StreamType = 'hasidic' | 'litvish' | 'general' | 'sephardic';
+type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'youth' | 'classic';
+
+const STREAM_LABELS: Record<StreamType, string> = {
+  hasidic: 'חסידי',
+  litvish: 'ליטאי',
+  general: 'כללי',
+  sephardic: 'ספרדי',
+};
+
+const GENDER_LABELS: Record<GenderAudience, string> = {
+  male: 'גברים',
+  female: 'נשים',
+  hasidic_female: 'נשי חסידי',
+  hasidic_male: 'גברי חסידי',
+  youth: 'צעירים',
+  classic: 'קלאסי',
+};
 
 const SectorBrain = () => {
   const navigate = useNavigate();
@@ -27,6 +51,15 @@ const SectorBrain = () => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [isTraining, setIsTraining] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Text input states
+  const [textInputs, setTextInputs] = useState<Record<UploadZone, string>>({
+    fame: '',
+    redlines: '',
+    styles: '',
+  });
+  const [selectedStream, setSelectedStream] = useState<StreamType | ''>('');
+  const [selectedGender, setSelectedGender] = useState<GenderAudience | ''>('');
 
   // Check admin role
   useEffect(() => {
@@ -77,27 +110,78 @@ const SectorBrain = () => {
       console.error('Error loading examples:', error);
       toast.error('שגיאה בטעינת הדוגמאות');
     } else if (data) {
-      const assets: UploadedAsset[] = data.map(item => ({
-        id: item.id,
-        name: item.name,
-        type: item.file_type.startsWith('image/') ? 'image' : 'document',
-        zone: item.zone as UploadZone,
-        file_path: item.file_path,
-        preview: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${item.file_path}`,
-      }));
+      const assets: UploadedAsset[] = data.map(item => {
+        const isText = item.file_type === 'text';
+        const isImage = !isText && item.file_type?.startsWith('image/');
+        return {
+          id: item.id,
+          name: item.name,
+          type: isText ? 'text' : (isImage ? 'image' : 'document'),
+          zone: item.zone as UploadZone,
+          file_path: item.file_path,
+          text_content: item.text_content,
+          stream_type: item.stream_type,
+          gender_audience: item.gender_audience,
+          preview: isImage ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${item.file_path}` : undefined,
+        };
+      });
       setUploads(assets);
     }
     setIsLoading(false);
   };
 
-  const handleDrop = useCallback(async (e: React.DragEvent, zone: UploadZone) => {
+  const handleAddText = async (zone: UploadZone) => {
+    const text = textInputs[zone].trim();
+    if (!text) {
+      toast.error('נא להזין טקסט');
+      return;
+    }
+
+    const textName = text.substring(0, 30) + (text.length > 30 ? '...' : '');
+
+    const { data: dbData, error: dbError } = await supabase
+      .from('sector_brain_examples')
+      .insert({
+        zone,
+        name: textName,
+        file_path: '',
+        file_type: 'text',
+        text_content: text,
+        stream_type: zone === 'styles' && selectedStream ? selectedStream : null,
+        gender_audience: zone === 'styles' && selectedGender ? selectedGender : null,
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      toast.error('שגיאה בשמירת הטקסט');
+      return;
+    }
+
+    const newUpload: UploadedAsset = {
+      id: dbData.id,
+      name: textName,
+      type: 'text',
+      zone,
+      text_content: text,
+      stream_type: dbData.stream_type,
+      gender_audience: dbData.gender_audience,
+    };
+
+    setUploads(prev => [newUpload, ...prev]);
+    setTextInputs(prev => ({ ...prev, [zone]: '' }));
+    toast.success('הטקסט נוסף בהצלחה');
+  };
+
+  const handleDrop = useCallback(async (e: React.DragEvent, zone: UploadZone, streamType?: StreamType, genderAudience?: GenderAudience) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     
     const zoneNames = {
       fame: 'היכל התהילה',
       redlines: 'הקו האדום',
-      assets: 'נכסי המותג',
+      styles: 'סגנון לפי זרם',
     };
 
     for (const file of files) {
@@ -121,6 +205,8 @@ const SectorBrain = () => {
           name: file.name,
           file_path: fileName,
           file_type: file.type,
+          stream_type: zone === 'styles' && streamType ? streamType : null,
+          gender_audience: zone === 'styles' && genderAudience ? genderAudience : null,
         })
         .select()
         .single();
@@ -138,6 +224,8 @@ const SectorBrain = () => {
         type: file.type.startsWith('image/') ? 'image' : 'document',
         zone,
         file_path: fileName,
+        stream_type: dbData.stream_type,
+        gender_audience: dbData.gender_audience,
         preview: file.type.startsWith('image/') 
           ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}`
           : undefined,
@@ -201,17 +289,19 @@ const SectorBrain = () => {
     title, 
     description, 
     icon: Icon, 
-    color 
+    color,
+    showCategorySelect = false,
   }: { 
     zone: UploadZone; 
     title: string; 
     description: string; 
     icon: React.ElementType;
     color: string;
+    showCategorySelect?: boolean;
   }) => (
     <Card 
       className="border-2 border-dashed transition-all hover:border-primary/50"
-      onDrop={(e) => handleDrop(e, zone)}
+      onDrop={(e) => handleDrop(e, zone, selectedStream || undefined, selectedGender || undefined)}
       onDragOver={handleDragOver}
     >
       <CardHeader className="pb-3">
@@ -221,8 +311,67 @@ const SectorBrain = () => {
         </CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="min-h-[150px] bg-muted/30 rounded-lg flex flex-col items-center justify-center p-4 border border-border/50">
+      <CardContent className="space-y-4">
+        {/* Category selectors for styles zone */}
+        {showCategorySelect && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">זרם</Label>
+              <Select 
+                value={selectedStream} 
+                onValueChange={(v) => setSelectedStream(v as StreamType)}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="בחר זרם" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(STREAM_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">קהל יעד</Label>
+              <Select 
+                value={selectedGender} 
+                onValueChange={(v) => setSelectedGender(v as GenderAudience)}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="בחר קהל" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(GENDER_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
+        {/* Text input area */}
+        <div className="space-y-2">
+          <Textarea
+            placeholder="הקלד טקסט לדוגמה..."
+            value={textInputs[zone]}
+            onChange={(e) => setTextInputs(prev => ({ ...prev, [zone]: e.target.value }))}
+            className="min-h-[80px] resize-none"
+          />
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => handleAddText(zone)}
+            disabled={!textInputs[zone].trim()}
+            className="w-full"
+          >
+            <Plus className="h-4 w-4 ml-1" />
+            הוסף טקסט
+          </Button>
+        </div>
+
+        {/* File drop zone */}
+        <div className="min-h-[120px] bg-muted/30 rounded-lg flex flex-col items-center justify-center p-4 border border-border/50">
           {getZoneUploads(zone).length === 0 ? (
             <>
               <Upload className="h-8 w-8 text-muted-foreground mb-2" />
@@ -245,10 +394,28 @@ const SectorBrain = () => {
                     />
                   ) : upload.type === 'image' ? (
                     <FileImage className="h-10 w-10 text-primary" />
+                  ) : upload.type === 'text' ? (
+                    <Type className="h-10 w-10 text-blue-500" />
                   ) : (
                     <FileText className="h-10 w-10 text-muted-foreground" />
                   )}
-                  <span className="flex-1 truncate text-sm">{upload.name}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="block truncate text-sm">{upload.name}</span>
+                    {(upload.stream_type || upload.gender_audience) && (
+                      <div className="flex gap-1 mt-0.5">
+                        {upload.stream_type && (
+                          <Badge variant="outline" className="text-xs py-0 px-1.5">
+                            {STREAM_LABELS[upload.stream_type as StreamType]}
+                          </Badge>
+                        )}
+                        {upload.gender_audience && (
+                          <Badge variant="outline" className="text-xs py-0 px-1.5">
+                            {GENDER_LABELS[upload.gender_audience as GenderAudience]}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   <button 
                     onClick={() => removeUpload(upload.id, upload.file_path)}
                     className="text-muted-foreground hover:text-destructive transition-colors"
@@ -371,6 +538,7 @@ const SectorBrain = () => {
             description="דוגמאות לסגנונות: חסידי, ליטאי, גברי, נשי, נשי חסידי, צעיר, קלאסי"
             icon={Users}
             color="text-primary"
+            showCategorySelect={true}
           />
         </div>
 

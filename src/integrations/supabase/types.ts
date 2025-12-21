@@ -310,8 +310,11 @@ export type Database = {
           description: string | null
           file_path: string
           file_type: string
+          gender_audience: string | null
           id: string
           name: string
+          stream_type: string | null
+          text_content: string | null
           zone: string
         }
         Insert: {
@@ -319,8 +322,11 @@ export type Database = {
           description?: string | null
           file_path: string
           file_type: string
+          gender_audience?: string | null
           id?: string
           name: string
+          stream_type?: string | null
+          text_content?: string | null
           zone: string
         }
         Update: {
@@ -328,8 +334,11 @@ export type Database = {
           description?: string | null
           file_path?: string
           file_type?: string
+          gender_audience?: string | null
           id?: string
           name?: string
+          stream_type?: string | null
+          text_content?: string | null
           zone?: string
         }
         Relationships: []
