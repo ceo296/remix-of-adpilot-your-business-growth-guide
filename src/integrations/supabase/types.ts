@@ -50,6 +50,117 @@ export type Database = {
         }
         Relationships: []
       }
+      media_inventory: {
+        Row: {
+          base_price: number
+          client_price: number
+          created_at: string
+          description: string | null
+          distribution_days: string[]
+          id: string
+          is_active: boolean
+          name: string
+          reach: string | null
+          sector_tags: string[]
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          client_price?: number
+          created_at?: string
+          description?: string | null
+          distribution_days?: string[]
+          id?: string
+          is_active?: boolean
+          name: string
+          reach?: string | null
+          sector_tags?: string[]
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          client_price?: number
+          created_at?: string
+          description?: string | null
+          distribution_days?: string[]
+          id?: string
+          is_active?: boolean
+          name?: string
+          reach?: string | null
+          sector_tags?: string[]
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prompt_templates: {
+        Row: {
+          category: string
+          created_at: string
+          dynamic_variables: string[]
+          id: string
+          is_active: boolean
+          name: string
+          style_preset: string | null
+          system_prompt: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          dynamic_variables?: string[]
+          id?: string
+          is_active?: boolean
+          name: string
+          style_preset?: string | null
+          system_prompt: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          dynamic_variables?: string[]
+          id?: string
+          is_active?: boolean
+          name?: string
+          style_preset?: string | null
+          system_prompt?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sector_brain_examples: {
         Row: {
           created_at: string
@@ -80,15 +191,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -215,6 +353,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
