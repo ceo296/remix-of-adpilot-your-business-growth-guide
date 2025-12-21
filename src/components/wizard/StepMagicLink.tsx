@@ -21,8 +21,8 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
     setIsScanning(true);
     updateData({ websiteUrl: url, isScanning: true });
 
-    // Simulate scanning with mock data
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    // Simulate initial scanning
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     // Extract brand name from URL (mock)
     const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
@@ -46,6 +46,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
     });
 
     setIsScanning(false);
+    // Go to insights verification step (not skipping it)
     onNext();
   };
 

@@ -79,10 +79,22 @@ export interface StrategicMRI {
   targetAudience: TargetAudienceType | null;
 }
 
+// Website Insights (extracted from URL scan)
+export interface WebsiteInsights {
+  industry: string;
+  seniority: string;
+  coreOffering: string;
+  audience: string;
+  confirmed: boolean;
+}
+
 export interface WizardData {
   // Step 1: Magic Link
   websiteUrl: string;
   isScanning: boolean;
+  
+  // Step 1.5: Website Insights Verification
+  websiteInsights: WebsiteInsights;
   
   // Step 2: Strategic MRI
   strategicMRI: StrategicMRI;
@@ -103,6 +115,13 @@ export interface WizardData {
 export const initialWizardData: WizardData = {
   websiteUrl: '',
   isScanning: false,
+  websiteInsights: {
+    industry: '',
+    seniority: '',
+    coreOffering: '',
+    audience: '',
+    confirmed: false,
+  },
   strategicMRI: {
     xFactors: [],
     primaryXFactor: null,
