@@ -6,6 +6,10 @@ export type CreativeVibe = 'aggressive' | 'prestige' | 'heimish';
 
 export type MediaType = 'newspaper' | 'digital' | 'outdoor' | 'radio';
 
+export type DesignDirection = 'consistent' | 'refresh';
+
+export type CampaignStructure = 'single' | 'series';
+
 export interface MediaOption {
   id: string;
   name: string;
@@ -37,6 +41,13 @@ export interface UploadedMaterial {
   preview: string;
 }
 
+export interface CampaignStrategy {
+  designDirection: DesignDirection | null;
+  startDate: Date | null;
+  endDate: Date | null;
+  structure: CampaignStructure | null;
+}
+
 export interface WizardData {
   // Step 1: Magic Link
   websiteUrl: string;
@@ -48,7 +59,10 @@ export interface WizardData {
   // Step 3: Past Materials
   pastMaterials: UploadedMaterial[];
   
-  // Step 4: Confirmation
+  // Step 4: Strategy & Scope
+  strategy: CampaignStrategy;
+  
+  // Step 5: Confirmation
   confirmed: boolean;
 }
 
@@ -67,6 +81,12 @@ export const initialWizardData: WizardData = {
     bodyFont: 'Heebo',
   },
   pastMaterials: [],
+  strategy: {
+    designDirection: null,
+    startDate: null,
+    endDate: null,
+    structure: null,
+  },
   confirmed: false,
 };
 
