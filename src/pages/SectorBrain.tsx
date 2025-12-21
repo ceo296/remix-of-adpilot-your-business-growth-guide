@@ -1,11 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Palette, Upload, X, FileImage, FileText, Sparkles } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Palette, Upload, X, FileImage, FileText, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UploadedAsset {
   id: string;
@@ -13,6 +14,7 @@ interface UploadedAsset {
   type: 'image' | 'document';
   zone: 'fame' | 'redlines' | 'assets';
   preview?: string;
+  file_path?: string;
 }
 
 type UploadZone = 'fame' | 'redlines' | 'assets';
@@ -21,26 +23,92 @@ const SectorBrain = () => {
   const [uploads, setUploads] = useState<UploadedAsset[]>([]);
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [isTraining, setIsTraining] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleDrop = useCallback((e: React.DragEvent, zone: UploadZone) => {
+  // Load existing examples from database
+  useEffect(() => {
+    loadExamples();
+  }, []);
+
+  const loadExamples = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('sector_brain_examples')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading examples:', error);
+      toast.error('שגיאה בטעינת הדוגמאות');
+    } else if (data) {
+      const assets: UploadedAsset[] = data.map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.file_type.startsWith('image/') ? 'image' : 'document',
+        zone: item.zone as UploadZone,
+        file_path: item.file_path,
+        preview: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${item.file_path}`,
+      }));
+      setUploads(assets);
+    }
+    setIsLoading(false);
+  };
+
+  const handleDrop = useCallback(async (e: React.DragEvent, zone: UploadZone) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
-    
-    const newUploads: UploadedAsset[] = files.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
-      name: file.name,
-      type: file.type.startsWith('image/') ? 'image' : 'document',
-      zone,
-      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
-    }));
-
-    setUploads(prev => [...prev, ...newUploads]);
     
     const zoneNames = {
       fame: 'היכל התהילה',
       redlines: 'הקו האדום',
       assets: 'נכסי המותג',
     };
+
+    for (const file of files) {
+      // Upload to storage
+      const fileName = `${zone}/${Date.now()}-${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('sector-brain')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        toast.error(`שגיאה בהעלאת ${file.name}`);
+        continue;
+      }
+
+      // Save to database
+      const { data: dbData, error: dbError } = await supabase
+        .from('sector_brain_examples')
+        .insert({
+          zone,
+          name: file.name,
+          file_path: fileName,
+          file_type: file.type,
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        toast.error(`שגיאה בשמירת ${file.name}`);
+        continue;
+      }
+
+      // Add to local state
+      const newUpload: UploadedAsset = {
+        id: dbData.id,
+        name: file.name,
+        type: file.type.startsWith('image/') ? 'image' : 'document',
+        zone,
+        file_path: fileName,
+        preview: file.type.startsWith('image/') 
+          ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}`
+          : undefined,
+      };
+
+      setUploads(prev => [newUpload, ...prev]);
+    }
     
     toast.success(`${files.length} קבצים נוספו ל${zoneNames[zone]}`);
   }, []);
@@ -49,8 +117,26 @@ const SectorBrain = () => {
     e.preventDefault();
   };
 
-  const removeUpload = (id: string) => {
+  const removeUpload = async (id: string, filePath?: string) => {
+    // Delete from storage
+    if (filePath) {
+      await supabase.storage.from('sector-brain').remove([filePath]);
+    }
+
+    // Delete from database
+    const { error } = await supabase
+      .from('sector_brain_examples')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Delete error:', error);
+      toast.error('שגיאה במחיקת הקובץ');
+      return;
+    }
+
     setUploads(prev => prev.filter(u => u.id !== id));
+    toast.success('הקובץ נמחק');
   };
 
   const getZoneUploads = (zone: UploadZone) => uploads.filter(u => u.zone === zone);
@@ -66,12 +152,12 @@ const SectorBrain = () => {
 
     // Simulate training progress
     for (let i = 0; i <= 100; i += 5) {
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 150));
       setTrainingProgress(i);
     }
 
     setIsTraining(false);
-    toast.success('המערכת למדה בהצלחה! כעת היא מכירה את הסגנון שלכם');
+    toast.success('המערכת למדה בהצלחה! כעת היא מכירה את הסגנון שלכם ותבדוק תמונות בהתאם.');
   };
 
   const UploadZoneCard = ({ 
@@ -109,7 +195,7 @@ const SectorBrain = () => {
               </p>
             </>
           ) : (
-            <div className="w-full space-y-2">
+            <div className="w-full space-y-2 max-h-[200px] overflow-y-auto">
               {getZoneUploads(zone).map(upload => (
                 <div 
                   key={upload.id}
@@ -128,10 +214,10 @@ const SectorBrain = () => {
                   )}
                   <span className="flex-1 truncate text-sm">{upload.name}</span>
                   <button 
-                    onClick={() => removeUpload(upload.id)}
+                    onClick={() => removeUpload(upload.id, upload.file_path)}
                     className="text-muted-foreground hover:text-destructive transition-colors"
                   >
-                    <X className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               ))}
@@ -249,12 +335,15 @@ const SectorBrain = () => {
                   לפני שכל יצירה מוצגת לכם, המערכת מריצה "בדיקת כשרות" אוטומטית.
                   היא משווה את התוצאה לדוגמאות שהעלתם כאן ומסננת תוכן בעייתי.
                 </p>
-                <div className="flex gap-3">
+                <div className="flex gap-3 flex-wrap">
                   <Badge className="bg-success text-success-foreground">
                     מאושר בסינון ראשוני ✓
                   </Badge>
                   <Badge className="bg-warning text-warning-foreground">
                     דורש בדיקה אנושית ⚠️
+                  </Badge>
+                  <Badge className="bg-destructive text-destructive-foreground">
+                    נדחה אוטומטית ✗
                   </Badge>
                 </div>
               </div>

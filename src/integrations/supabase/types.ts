@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      generated_images: {
+        Row: {
+          created_at: string
+          engine: string
+          id: string
+          image_url: string
+          kosher_analysis: string | null
+          kosher_status: string
+          style: string
+          text_prompt: string | null
+          visual_prompt: string
+        }
+        Insert: {
+          created_at?: string
+          engine: string
+          id?: string
+          image_url: string
+          kosher_analysis?: string | null
+          kosher_status?: string
+          style: string
+          text_prompt?: string | null
+          visual_prompt: string
+        }
+        Update: {
+          created_at?: string
+          engine?: string
+          id?: string
+          image_url?: string
+          kosher_analysis?: string | null
+          kosher_status?: string
+          style?: string
+          text_prompt?: string | null
+          visual_prompt?: string
+        }
+        Relationships: []
+      }
+      sector_brain_examples: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_path: string
+          file_type: string
+          id: string
+          name: string
+          zone: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_type: string
+          id?: string
+          name: string
+          zone: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_type?: string
+          id?: string
+          name?: string
+          zone?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
