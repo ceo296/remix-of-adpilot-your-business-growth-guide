@@ -288,11 +288,13 @@ export type Database = {
       }
       media_outlets: {
         Row: {
+          brand_color: string | null
           category_id: string
           city: string | null
           created_at: string | null
           id: string
           is_active: boolean | null
+          logo_url: string | null
           name: string
           name_he: string | null
           reach_info: string | null
@@ -302,11 +304,13 @@ export type Database = {
           warning_text: string | null
         }
         Insert: {
+          brand_color?: string | null
           category_id: string
           city?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          logo_url?: string | null
           name: string
           name_he?: string | null
           reach_info?: string | null
@@ -316,11 +320,13 @@ export type Database = {
           warning_text?: string | null
         }
         Update: {
+          brand_color?: string | null
           category_id?: string
           city?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          logo_url?: string | null
           name?: string
           name_he?: string | null
           reach_info?: string | null
