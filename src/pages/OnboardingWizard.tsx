@@ -1,20 +1,20 @@
 import { useState } from 'react';
 import { WizardData, initialWizardData } from '@/types/wizard';
 import WizardProgress from '@/components/wizard/WizardProgress';
-import StepAudience from '@/components/wizard/StepAudience';
-import StepCreativeDirection from '@/components/wizard/StepCreativeDirection';
-import StepMediaCatalog from '@/components/wizard/StepMediaCatalog';
-import StepSummary from '@/components/wizard/StepSummary';
+import StepMagicLink from '@/components/wizard/StepMagicLink';
+import StepBrandIdentity from '@/components/wizard/StepBrandIdentity';
+import StepPastMaterials from '@/components/wizard/StepPastMaterials';
+import StepBrandPassport from '@/components/wizard/StepBrandPassport';
 import { Rocket } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TOTAL_STEPS = 4;
 
 const stepTitles = [
-  'למי פונים?',
-  'איזה סגנון?',
-  'איפה מפרסמים?',
-  'בשעה טובה!',
+  'הלינק הקסום',
+  'זהות המותג',
+  'חומרי עבר',
+  'דרכון המותג',
 ];
 
 const OnboardingWizard = () => {
@@ -39,20 +39,20 @@ const OnboardingWizard = () => {
   };
 
   const handleComplete = () => {
-    toast.success('בשעה טובה! הקמפיין נשלח לביצוע');
+    toast.success('בשעה טובה! המותג שלכם מוכן');
     window.location.href = '/dashboard';
   };
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <StepAudience data={wizardData} updateData={updateData} onNext={nextStep} />;
+        return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} />;
       case 2:
-        return <StepCreativeDirection data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepBrandIdentity data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 3:
-        return <StepMediaCatalog data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 4:
-        return <StepSummary data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
+        return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
       default:
         return null;
     }
