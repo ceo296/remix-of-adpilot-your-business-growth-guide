@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Rocket, ArrowLeft, CheckCircle, Zap, Shield, Users, Palette, Newspaper } from 'lucide-react';
+import { Rocket, ArrowLeft, CheckCircle, Zap, Shield, Users, Palette, Newspaper, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
@@ -164,8 +164,12 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t border-border py-8 bg-foreground text-background">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© תשפ״ה AdPilot - מגזר חרדי. כל הזכויות שמורות.</p>
+          <Link to="/admin-auth" className="flex items-center gap-2 text-muted hover:text-background transition-colors text-sm">
+            <Settings className="w-4 h-4" />
+            Back Office
+          </Link>
         </div>
       </footer>
     </div>
