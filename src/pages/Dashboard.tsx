@@ -5,7 +5,7 @@ import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
 import DigitalCorner from '@/components/dashboard/DigitalCorner';
 import ProofGallery from '@/components/dashboard/ProofGallery';
 import { Button } from '@/components/ui/button';
-import { Plus, Wand2, Brain } from 'lucide-react';
+import { Plus, Wand2, Brain, Settings } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 // Mock campaign data
@@ -76,6 +76,15 @@ const Dashboard = () => {
                       <div>
                         <p className="font-medium text-foreground text-sm">בית הספר</p>
                         <p className="text-xs text-muted-foreground">לימוד המערכת</p>
+                      </div>
+                    </Link>
+                    <Link to="/admin-auth" className="w-full p-3 rounded-lg border border-border bg-background hover:bg-accent transition-colors text-right flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+                        <Settings className="w-4 h-4 text-warning" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground text-sm">Back Office</p>
+                        <p className="text-xs text-muted-foreground">ניהול המערכת</p>
                       </div>
                     </Link>
                   </div>
