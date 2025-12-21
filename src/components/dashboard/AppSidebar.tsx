@@ -41,7 +41,7 @@ const AppSidebar = () => {
           </div>
           <div>
             <span className="text-lg font-bold text-foreground">AdPilot</span>
-            <p className="text-xs text-muted-foreground">פרסום אוטומטי</p>
+            <p className="text-xs text-muted-foreground">בס״ד | מגזר חרדי</p>
           </div>
         </div>
       </SidebarHeader>
@@ -86,7 +86,7 @@ const AppSidebar = () => {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200 w-full">
+              <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200 w-full">
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">יציאה</span>
               </button>

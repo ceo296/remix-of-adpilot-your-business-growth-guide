@@ -19,7 +19,7 @@ const Index = () => {
           </div>
           <Link to="/onboarding">
             <Button variant="default" size="default">
-              בנה קמפיין
+              יוצאים לדרך!
             </Button>
           </Link>
         </div>
@@ -30,23 +30,23 @@ const Index = () => {
         <div className="max-w-3xl mx-auto text-center animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
             <Zap className="w-4 h-4" />
-            פרסום חכם למגזר החרדי
+            בס״ד | פרסום חכם למגזר שלנו
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-            בנה קמפיין מושלם
-            <span className="text-gradient block mt-2">בכמה קליקים</span>
+            שלום עליכם!
+            <span className="text-gradient block mt-2">זה הולך להיות גישמאק</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            מתכנן מדיה + ארט-דירקטור בפלטפורמה אחת. 
-            בחר קהל, סגנון וערוצי מדיה – ואנחנו נבנה לך את הקמפיין.
+            מתכנן מדיה + ארט-דירקטור בפלטפורמה אחת, בסייעתא דשמיא. 
+            בחר קהל, סגנון וערוצי מדיה – ואנחנו נבנה לך קמפיין מהמם.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/onboarding">
               <Button variant="gradient" size="xl">
-                התחל לבנות קמפיין
+                מתחילים בסייעתא דשמיא
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
             </Link>
@@ -62,7 +62,7 @@ const Index = () => {
       {/* How It Works */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-12">
-          איך זה עובד?
+          איך זה עובד? פשוט מאוד!
         </h2>
         <div className="grid md:grid-cols-4 gap-6">
           {[
@@ -70,25 +70,25 @@ const Index = () => {
               step: '1',
               icon: Users,
               title: 'בחר קהל',
-              description: 'ליטאי, חסידי, ספרדי – תבחר למי לפנות',
+              description: 'ליטאי, חסידי, ספרדי – למי פונים?',
             },
             {
               step: '2',
               icon: Palette,
-              title: 'הגדר סגנון',
-              description: 'צועק או יוקרתי? בחר את ה-VIBE שלך',
+              title: 'בחר סגנון',
+              description: 'צועק או יוקרתי? מה ה-VIBE?',
             },
             {
               step: '3',
               icon: Newspaper,
               title: 'בחר מדיה',
-              description: 'עיתונות, דיגיטל, רדיו – הכל במקום אחד',
+              description: 'עיתונות, דיגיטל, רדיו – הכל פה',
             },
             {
               step: '4',
               icon: CheckCircle,
-              title: 'קבל בריף',
-              description: 'אנחנו מייצרים את הקמפיין בשבילך',
+              title: 'בשעה טובה!',
+              description: 'אנחנו מייצרים את הקמפיין',
             },
           ].map((item, index) => (
             <div 
@@ -116,17 +116,17 @@ const Index = () => {
             {
               icon: CheckCircle,
               title: 'קטלוג מדיה חכם',
-              description: 'כל העיתונים והאתרים במגזר, מסוננים לפי הקהל שלך.',
+              description: 'כל העיתונים והאתרים של הציבור שלנו, מסודר יפה.',
             },
             {
               icon: Zap,
               title: 'סגנונות מוכנים',
-              description: 'בחר VIBE ונעצב לך קריאייטיב מותאם.',
+              description: 'בחר VIBE ונעצב לך קריאייטיב גישמאק.',
             },
             {
               icon: Shield,
               title: 'ליווי מלא',
-              description: 'מהבריף ועד לפרסום – אנחנו מטפלים בהכל.',
+              description: 'מהבריף ועד לפרסום – אנחנו מטפלים בהכל, בעזה״י.',
             },
           ].map((feature, index) => (
             <div 
@@ -147,15 +147,15 @@ const Index = () => {
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="bg-gradient-primary rounded-2xl p-8 md:p-12 text-center text-primary-foreground">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">מוכן לבנות את הקמפיין הבא?</h2>
-          <p className="text-lg opacity-90 mb-6">תהליך פשוט של 4 שלבים – ואנחנו נעשה את השאר</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">מוכנים להתחיל?</h2>
+          <p className="text-lg opacity-90 mb-6">4 שלבים פשוטים – ואנחנו נעשה את השאר בעזה״י</p>
           <Link to="/onboarding">
             <Button 
               variant="secondary" 
               size="xl"
               className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
             >
-              בואו נתחיל
+              יוצאים לדרך!
               <ArrowLeft className="w-5 h-5 mr-2" />
             </Button>
           </Link>
@@ -163,9 +163,9 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border py-8">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>© 2024 AdPilot - מגזר חרדי. כל הזכויות שמורות.</p>
+      <footer className="border-t border-border py-8 bg-foreground text-background">
+        <div className="container mx-auto px-4 text-center">
+          <p>© תשפ״ה AdPilot - מגזר חרדי. כל הזכויות שמורות.</p>
         </div>
       </footer>
     </div>

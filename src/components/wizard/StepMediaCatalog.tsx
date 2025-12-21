@@ -65,9 +65,9 @@ const StepMediaCatalog = ({ data, updateData, onNext, onPrev }: StepMediaCatalog
           <Newspaper className="w-4 h-4" />
           שלב 3 מתוך 4
         </div>
-        <h1 className="text-3xl font-bold text-foreground">קטלוג המדיה החכם</h1>
+        <h1 className="text-3xl font-bold text-foreground">איפה מפרסמים?</h1>
         <p className="text-lg text-muted-foreground">
-          בחר את ערוצי הפרסום המתאימים לקהל שבחרת
+          בחר את הערוצים שמתאימים לציבור שבחרת – הכל מסודר פה יפה
         </p>
       </div>
 
@@ -77,9 +77,9 @@ const StepMediaCatalog = ({ data, updateData, onNext, onPrev }: StepMediaCatalog
           <Filter className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <p className="font-medium text-foreground text-sm">סינון חכם פעיל</p>
+          <p className="font-medium text-foreground text-sm">סינון חכם פעיל 🎯</p>
           <p className="text-xs text-muted-foreground">
-            מציג רק מדיה שמתאימה למגזרים שבחרת: {data.sectors.length > 0 ? data.sectors.join(', ') : 'הכל'}
+            מציג רק מדיה שמתאימה למגזרים שבחרת – חוסך לך זמן!
           </p>
         </div>
       </div>
@@ -148,7 +148,7 @@ const StepMediaCatalog = ({ data, updateData, onNext, onPrev }: StepMediaCatalog
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-md text-xs text-white ${getMediaTypeColor(media.type)}`}>
+                  <span className={`px-2 py-1 rounded-md text-xs text-background ${getMediaTypeColor(media.type)}`}>
                     {typeInfo.label}
                   </span>
                 </div>
@@ -171,7 +171,7 @@ const StepMediaCatalog = ({ data, updateData, onNext, onPrev }: StepMediaCatalog
 
       {filteredMedia.length === 0 && (
         <div className="text-center py-12 bg-muted/50 rounded-xl">
-          <p className="text-muted-foreground">לא נמצאו ערוצי מדיה מתאימים לסינון הנוכחי</p>
+          <p className="text-muted-foreground">אוי, לא נמצאו ערוצי מדיה מתאימים לסינון הנוכחי</p>
         </div>
       )}
 
@@ -179,7 +179,8 @@ const StepMediaCatalog = ({ data, updateData, onNext, onPrev }: StepMediaCatalog
       {data.selectedMedia.length > 0 && (
         <div className="bg-success/10 border border-success/20 rounded-xl p-4">
           <p className="text-sm text-foreground">
-            <span className="font-bold text-success">{data.selectedMedia.length}</span> ערוצי מדיה נבחרו: {' '}
+            <span className="font-bold text-success">שכוייח! </span>
+            {data.selectedMedia.length} ערוצים נבחרו: {' '}
             {MEDIA_CATALOG.filter(m => data.selectedMedia.includes(m.id)).map(m => m.name).join(', ')}
           </p>
         </div>
@@ -192,7 +193,7 @@ const StepMediaCatalog = ({ data, updateData, onNext, onPrev }: StepMediaCatalog
           onClick={onNext}
           disabled={!isValid}
         >
-          המשך לסיכום
+          הלאה לסיכום!
         </Button>
         <Button 
           variant="ghost" 
@@ -200,7 +201,7 @@ const StepMediaCatalog = ({ data, updateData, onNext, onPrev }: StepMediaCatalog
           onClick={onPrev}
         >
           <ArrowRight className="w-4 h-4 ml-2" />
-          חזור
+          רגע, חזרה
         </Button>
       </div>
     </div>

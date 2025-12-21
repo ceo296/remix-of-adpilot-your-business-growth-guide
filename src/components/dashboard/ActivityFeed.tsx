@@ -4,7 +4,7 @@ const activities = [
   {
     id: 1,
     title: 'הוחלף קריאייטיב חלש',
-    description: 'הפרסומת "הנחה מיוחדת" הוחלפה בגרסה משופרת',
+    description: 'הפרסומת "הנחה מיוחדת" הוחלפה בגרסה יותר גישמאק',
     time: 'לפני שעתיים',
     icon: Image,
     color: 'primary',
@@ -12,7 +12,7 @@ const activities = [
   {
     id: 2,
     title: 'הוגדל תקציב לפרסומת מנצחת',
-    description: 'הפרסומת "תפריט החורף" מביאה תוצאות מעולות',
+    description: 'שכוייח! הפרסומת "תפריט החורף" מביאה תוצאות מעולות',
     time: 'אתמול',
     icon: TrendingUp,
     color: 'success',
@@ -20,7 +20,7 @@ const activities = [
   {
     id: 3,
     title: 'אופטימיזציה אוטומטית',
-    description: 'שיפרנו את קהל היעד בהתאם לנתוני ההמרות',
+    description: 'שיפרנו את קהל היעד – עכשיו יותר מדויק בעזה״י',
     time: 'לפני יומיים',
     icon: Zap,
     color: 'warning',
@@ -38,7 +38,7 @@ const activities = [
 const ActivityFeed = () => {
   return (
     <div className="bg-card rounded-xl border border-border p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-      <h3 className="text-lg font-semibold text-foreground mb-4">מה עשינו השבוע</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-4">מה עשינו השבוע? 📋</h3>
       <div className="space-y-4">
         {activities.map((activity) => (
           <div 
