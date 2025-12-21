@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, ZoomIn, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,15 @@ interface GeneratedImage {
   analysis?: string;
 }
 
+interface ClientProfile {
+  business_name: string;
+  target_audience: string | null;
+  primary_x_factor: string | null;
+  winning_feature: string | null;
+  advantage_type: string | null;
+  x_factors: string[] | null;
+}
+
 const STEP_TITLES = [
   'בחירת נכס',
   'עיבוד תמונה',
@@ -30,32 +39,10 @@ const STEP_TITLES = [
   'תיאור ותוכן',
 ];
 
-// Mock concepts - in production these would come from AI based on strategy
-const MOCK_CONCEPTS: CreativeConcept[] = [
-  {
-    id: 'emotional-1',
-    type: 'emotional',
-    headline: 'הזווית המרגשת',
-    idea: 'תמונה של אבא ובן לומדים בחברותא, עם תאורה חמה ואינטימית.',
-    copy: 'כי העתיד שלהם מתחיל בחינוך של היום.',
-  },
-  {
-    id: 'hard-sale-1',
-    type: 'hard-sale',
-    headline: 'הזווית המכירתית',
-    idea: 'תקריב (Close-up) על המוצר עם רקע נקי ויוקרתי בזהב.',
-    copy: 'הזדמנות אחרונה למחיר השקה - אל תפספסו.',
-  },
-  {
-    id: 'pain-point-1',
-    type: 'pain-point',
-    headline: 'פתרון הבעיה',
-    idea: 'אדם נראה רגוע ומחייך אחרי שהשתמש בשירות.',
-    copy: 'להפסיק לרדוף אחרי הזנב של עצמך. תנו לנו לנהל את זה.',
-  },
-];
-
 const CreativeStudio = () => {
+  // Client profile state
+  const [clientProfile, setClientProfile] = useState<ClientProfile | null>(null);
+  
   // Mode state
   const [mode, setMode] = useState<StudioMode>('manual');
   
@@ -77,6 +64,26 @@ const CreativeStudio = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [showResults, setShowResults] = useState(false);
+
+  // Fetch client profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('client_profiles')
+        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile) {
+        setClientProfile(profile);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   // Calculate actual steps based on asset choice
   const getSteps = () => {
@@ -267,14 +274,40 @@ const CreativeStudio = () => {
     setConcepts([]);
     setSelectedConcept(null);
     
-    // Simulate AI thinking time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // In production, this would call an AI endpoint to generate concepts
-    // based on the client's strategic DNA (target audience, product, vibe)
-    setConcepts(MOCK_CONCEPTS);
-    setIsGeneratingConcepts(false);
-    toast.success('3 כיווני קריאייטיב מוכנים!');
+    try {
+      // Use client profile or fallback defaults
+      const profile = clientProfile || {
+        business_name: 'העסק שלי',
+        target_audience: 'משפחות חרדיות',
+        primary_x_factor: 'איכות ושירות',
+        winning_feature: 'מקצועיות',
+        advantage_type: 'שירות',
+        x_factors: ['איכות', 'מחיר', 'שירות']
+      };
+
+      const { data, error } = await supabase.functions.invoke('generate-concepts', {
+        body: { profile }
+      });
+
+      if (error) {
+        console.error('Error generating concepts:', error);
+        toast.error('שגיאה ביצירת הקונספטים');
+        setIsGeneratingConcepts(false);
+        return;
+      }
+
+      if (data?.concepts && data.concepts.length > 0) {
+        setConcepts(data.concepts);
+        toast.success('3 כיווני קריאייטיב מוכנים!');
+      } else {
+        toast.error('לא הצלחנו ליצור קונספטים. נסה שוב.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('שגיאה ביצירת הקונספטים');
+    } finally {
+      setIsGeneratingConcepts(false);
+    }
   };
 
   const handleExecuteConcept = async () => {
