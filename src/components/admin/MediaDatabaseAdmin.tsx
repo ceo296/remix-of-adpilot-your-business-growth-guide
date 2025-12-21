@@ -813,10 +813,10 @@ const MediaDatabaseAdmin = () => {
               </div>
               <div>
                 <Label>עיר (אופציונלי)</Label>
-                <Select value={outletForm.city} onValueChange={(v) => setOutletForm({ ...outletForm, city: v })}>
+                <Select value={outletForm.city || 'none'} onValueChange={(v) => setOutletForm({ ...outletForm, city: v === 'none' ? '' : v })}>
                   <SelectTrigger><SelectValue placeholder="בחר עיר" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">ללא</SelectItem>
+                    <SelectItem value="none">ללא</SelectItem>
                     {cities.map(c => <SelectItem key={c.id} value={c.name}>{c.name_he}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -1004,10 +1004,10 @@ const MediaDatabaseAdmin = () => {
               </div>
               <div>
                 <Label>תג מיוחד</Label>
-                <Select value={productForm.special_tag} onValueChange={(v) => setProductForm({ ...productForm, special_tag: v })}>
+                <Select value={productForm.special_tag || 'none'} onValueChange={(v) => setProductForm({ ...productForm, special_tag: v === 'none' ? '' : v })}>
                   <SelectTrigger><SelectValue placeholder="ללא" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">ללא</SelectItem>
+                    <SelectItem value="none">ללא</SelectItem>
                     <SelectItem value="high_reach">הפצה רוויה</SelectItem>
                     <SelectItem value="best_seller">רב מכר</SelectItem>
                   </SelectContent>
