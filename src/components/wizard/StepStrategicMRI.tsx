@@ -129,7 +129,8 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
 
   const hasValidXFactors = mri.xFactors.length > 0 || (isOtherSelected && otherXFactor.trim().length > 0);
   const otherNeedsText = isOtherSelected && otherXFactor.trim().length === 0;
-  const isValid = hasValidXFactors && !otherNeedsText && (mri.endConsumer.trim().length > 0 || mri.decisionMaker.trim().length > 0);
+  const hasValidAudience = mri.endConsumer === 'private' || mri.endConsumer === 'b2b';
+  const isValid = hasValidXFactors && !otherNeedsText && hasValidAudience;
 
   return (
     <div className="space-y-8">
@@ -465,51 +466,127 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
         </CardContent>
       </Card>
 
-      {/* Section 4: Target Audience - Free Text */}
+      {/* Section 4: Target Audience - Selection Options */}
       <Card className="border-border">
         <CardContent className="p-6 space-y-4">
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">מי הלקוח האמיתי?</h3>
-            <p className="text-sm text-muted-foreground">תאר את הצרכן הסופי ואת מקבל ההחלטות (אם שונים)</p>
+            <h3 className="text-lg font-semibold text-foreground mb-1">למי אתם פונים?</h3>
+            <p className="text-sm text-muted-foreground">בחרו את סוג הלקוחות שלכם</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* End Consumer */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary" />
+            {/* B2C - Private Customers */}
+            <div
+              onClick={() => updateMRI({ endConsumer: 'private', decisionMaker: mri.decisionMaker === 'b2b' ? '' : mri.decisionMaker })}
+              className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                mri.endConsumer === 'private'
+                  ? 'border-primary bg-primary/10 shadow-md'
+                  : 'border-border bg-card hover:border-primary/30'
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                  mri.endConsumer === 'private' ? 'bg-primary/20' : 'bg-muted'
+                }`}>
+                  <User className={`w-6 h-6 ${mri.endConsumer === 'private' ? 'text-primary' : 'text-muted-foreground'}`} />
                 </div>
-                <Label htmlFor="end-consumer" className="text-foreground font-medium">הצרכן הסופי</Label>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-1">לקוחות פרטיים</h4>
+                  <p className="text-sm text-muted-foreground">אנשים פרטיים, משפחות, צרכנים</p>
+                </div>
               </div>
-              <Input
-                id="end-consumer"
-                value={mri.endConsumer}
-                onChange={(e) => updateMRI({ endConsumer: e.target.value })}
-                placeholder="מי משתמש במוצר/שירות?"
-                className="mt-2"
-              />
-              <p className="text-xs text-muted-foreground">מי בפועל משתמש או נהנה מהמוצר</p>
+              {mri.endConsumer === 'private' && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
             </div>
 
-            {/* Decision Maker */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-muted-foreground" />
+            {/* B2B - Organizations */}
+            <div
+              onClick={() => updateMRI({ endConsumer: 'b2b', decisionMaker: mri.decisionMaker === 'private' ? '' : mri.decisionMaker })}
+              className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                mri.endConsumer === 'b2b'
+                  ? 'border-primary bg-primary/10 shadow-md'
+                  : 'border-border bg-card hover:border-primary/30'
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                  mri.endConsumer === 'b2b' ? 'bg-primary/20' : 'bg-muted'
+                }`}>
+                  <Users className={`w-6 h-6 ${mri.endConsumer === 'b2b' ? 'text-primary' : 'text-muted-foreground'}`} />
                 </div>
-                <Label htmlFor="decision-maker" className="text-foreground font-medium">מקבל ההחלטות</Label>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-1">ארגונים וחברות</h4>
+                  <p className="text-sm text-muted-foreground">רשויות, מוסדות, עסקים, חברות</p>
+                </div>
               </div>
-              <Input
-                id="decision-maker"
-                value={mri.decisionMaker}
-                onChange={(e) => updateMRI({ decisionMaker: e.target.value })}
-                placeholder="מי מחליט ומשלם?"
-                className="mt-2"
-              />
-              <p className="text-xs text-muted-foreground">מי מקבל את החלטת הרכישה (אם שונה מהצרכן)</p>
+              {mri.endConsumer === 'b2b' && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Sub-options for B2C */}
+          {mri.endConsumer === 'private' && (
+            <div className="animate-fade-in pt-4 border-t border-border space-y-3">
+              <p className="text-sm font-medium text-foreground">מי מקבל את ההחלטה?</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'buyer', label: 'הקונה עצמו', desc: 'מחליט ומשלם בעצמו' },
+                  { id: 'parent', label: 'הורים / משפחה', desc: 'ההורים משלמים' },
+                  { id: 'spouse', label: 'בן/בת זוג', desc: 'החלטה זוגית' },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => updateMRI({ decisionMaker: option.id })}
+                    className={`px-4 py-2 rounded-full border transition-all text-sm ${
+                      mri.decisionMaker === option.id
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sub-options for B2B */}
+          {mri.endConsumer === 'b2b' && (
+            <div className="animate-fade-in pt-4 border-t border-border space-y-3">
+              <p className="text-sm font-medium text-foreground">איזה סוג ארגון?</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'business', label: 'עסקים קטנים' },
+                  { id: 'corporate', label: 'חברות גדולות' },
+                  { id: 'institution', label: 'מוסדות חינוך' },
+                  { id: 'authority', label: 'רשויות מקומיות' },
+                  { id: 'nonprofit', label: 'עמותות' },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => updateMRI({ decisionMaker: option.id })}
+                    className={`px-4 py-2 rounded-full border transition-all text-sm ${
+                      mri.decisionMaker === option.id
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
