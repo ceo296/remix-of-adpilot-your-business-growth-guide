@@ -29,12 +29,16 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
   };
 
   const handleContinue = () => {
-    if (userName.trim() && brandName.trim() && logo && isAgency !== null) {
+    // Agencies don't need logo at this stage
+    const logoRequired = isAgency === false;
+    if (userName.trim() && brandName.trim() && isAgency !== null && (!logoRequired || logo)) {
       onNext(userName.trim(), brandName.trim(), logo, isAgency);
     }
   };
 
-  const isValid = userName.trim() && brandName.trim() && logo && isAgency !== null;
+  // Agencies don't need logo at this stage
+  const logoRequired = isAgency === false;
+  const isValid = userName.trim() && brandName.trim() && isAgency !== null && (!logoRequired || logo);
 
   return (
     <>
@@ -121,67 +125,69 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
               />
             </div>
 
-            {/* Logo Upload */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground flex items-center gap-1">
-                ספר מותג / לוגו
-                <span className="text-destructive">*</span>
-              </label>
-              
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                className="hidden"
-              />
-              
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className={`w-full h-24 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors cursor-pointer group ${
-                  logo 
-                    ? 'border-primary/50 bg-primary/5' 
-                    : 'border-muted-foreground/30 hover:border-primary/50'
-                }`}
-              >
-                {logo ? (
-                  <div className="flex items-center gap-4 px-4">
-                    <img 
-                      src={logo} 
-                      alt="Logo" 
-                      className="h-16 w-16 object-contain rounded-lg"
-                    />
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-foreground">הלוגו נטען בהצלחה</p>
-                      <p className="text-xs text-muted-foreground">לחץ להחלפה</p>
+            {/* Logo Upload - Only required for private clients, not for agencies */}
+            {isAgency === false && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground flex items-center gap-1">
+                  ספר מותג / לוגו
+                  <span className="text-destructive">*</span>
+                </label>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`w-full h-24 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors cursor-pointer group ${
+                    logo 
+                      ? 'border-primary/50 bg-primary/5' 
+                      : 'border-muted-foreground/30 hover:border-primary/50'
+                  }`}
+                >
+                  {logo ? (
+                    <div className="flex items-center gap-4 px-4">
+                      <img 
+                        src={logo} 
+                        alt="Logo" 
+                        className="h-16 w-16 object-contain rounded-lg"
+                      />
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-foreground">הלוגו נטען בהצלחה</p>
+                        <p className="text-xs text-muted-foreground">לחץ להחלפה</p>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center p-4 group-hover:scale-105 transition-transform">
-                    <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
-                    <span className="text-sm text-muted-foreground">לחץ להעלאה</span>
+                  ) : (
+                    <div className="text-center p-4 group-hover:scale-105 transition-transform">
+                      <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
+                      <span className="text-sm text-muted-foreground">לחץ להעלאה</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* No logo warning */}
+                {!logo && (
+                  <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 p-2 rounded-lg">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>חובה להעלות לוגו כדי ליצור קמפיינים מותאמים</span>
                   </div>
                 )}
+
+                {/* No branding link - opens Branding Studio */}
+                <button
+                  type="button"
+                  onClick={() => setShowBrandingStudio(true)}
+                  className="text-sm text-primary hover:underline underline-offset-4 flex items-center gap-1 mx-auto"
+                >
+                  אין לי מיתוג - תעזרו לי
+                  <span className="text-xs">←</span>
+                </button>
               </div>
-
-              {/* No logo warning */}
-              {!logo && (
-                <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 p-2 rounded-lg">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span>חובה להעלות לוגו כדי ליצור קמפיינים מותאמים</span>
-                </div>
-              )}
-
-              {/* No branding link - opens Branding Studio */}
-              <button
-                type="button"
-                onClick={() => setShowBrandingStudio(true)}
-                className="text-sm text-primary hover:underline underline-offset-4 flex items-center gap-1 mx-auto"
-              >
-                אין לי מיתוג - תעזרו לי
-                <span className="text-xs">←</span>
-              </button>
-            </div>
+            )}
 
             {/* Continue Button */}
             <Button
@@ -197,7 +203,10 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
 
             {!isValid && (
               <p className="text-center text-xs text-muted-foreground">
-                יש למלא את כל השדות ולהעלות לוגו כדי להמשיך
+                {isAgency === false 
+                  ? 'יש למלא את כל השדות ולהעלות לוגו כדי להמשיך'
+                  : 'יש למלא את כל השדות כדי להמשיך'
+                }
               </p>
             )}
           </CardContent>
