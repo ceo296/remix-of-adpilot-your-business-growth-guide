@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Brand Colors */
+.logo-black { color: hsl(0 0% 0%); }
+.logo-red { color: hsl(358 78% 50%); }
+
 @layer base {
   :root {
     /* Brand Colors */

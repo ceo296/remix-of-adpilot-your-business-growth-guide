@@ -35,14 +35,12 @@ const AppSidebar = () => {
   return (
     <Sidebar className="border-l border-border">
       <SidebarHeader className="p-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-            <Rocket className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <div>
-            <span className="text-lg font-bold text-foreground">AdPilot</span>
-            <p className="text-xs text-muted-foreground">בס״ד | מגזר חרדי</p>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-bold tracking-tight">
+            <span className="logo-black">AD</span>
+            <span className="logo-red">KOP</span>
+          </span>
+          <span className="text-xs text-muted-foreground">| בס״ד</span>
         </div>
       </SidebarHeader>
 
