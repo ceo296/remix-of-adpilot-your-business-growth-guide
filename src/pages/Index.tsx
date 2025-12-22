@@ -8,14 +8,11 @@ const Index = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-              <Rocket className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <span className="text-xl font-bold text-foreground">AdPilot</span>
-              <span className="text-sm text-muted-foreground mr-2">| מגזר חרדי</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold tracking-tight">
+              <span className="logo-black">AD</span>
+              <span className="logo-red">KOP</span>
+            </span>
           </div>
           <Link to="/onboarding">
             <Button variant="default" size="default">
