@@ -48,12 +48,13 @@ const OnboardingWizard = () => {
     const checkOnboardingStatus = async () => {
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('onboarding_completed')
+        .select('onboarding_completed, business_name')
         .eq('user_id', user.id)
         .maybeSingle();
       
       if (profile?.onboarding_completed) {
-        // User already completed onboarding, redirect to dashboard
+        // User already completed onboarding, show message and redirect to dashboard
+        toast.info(`שלום ${profile.business_name || ''}! כבר סיימת את ההיכרות – מעבירים אותך ליצירת קמפיין 🚀`);
         navigate('/dashboard');
       }
     };
