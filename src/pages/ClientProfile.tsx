@@ -41,7 +41,7 @@ const X_FACTORS = [
 
 const ClientProfilePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { profile, loading, updateProfile } = useClientProfile();
   
   const [isEditing, setIsEditing] = useState(false);
@@ -58,7 +58,7 @@ const ClientProfilePage = () => {
   const [targetAudience, setTargetAudience] = useState(profile?.target_audience || '');
 
   // Sync state when profile loads
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setBusinessName(profile.business_name);
       setPrimaryColor(profile.primary_color || '#E31E24');
@@ -68,18 +68,23 @@ const ClientProfilePage = () => {
       setAdvantageSlider(profile.advantage_slider || 50);
       setTargetAudience(profile.target_audience || '');
     }
-  });
+  }, [profile]);
 
-  // Handle redirects in useEffect to avoid render-time navigation
+  // Wait for auth/profile to load before redirecting
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-    } else if (!loading && !profile) {
-      navigate('/onboarding');
-    }
-  }, [user, loading, profile, navigate]);
+    if (authLoading || loading) return;
 
-  if (!user || loading || !profile) {
+    if (!user) {
+      navigate('/auth', { replace: true });
+      return;
+    }
+
+    if (!profile) {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [authLoading, loading, user, profile, navigate]);
+
+  if (authLoading || loading || !user || !profile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">טוען...</div>
