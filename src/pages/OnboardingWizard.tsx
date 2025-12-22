@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { WizardData, initialWizardData } from '@/types/wizard';
 import WizardProgress from '@/components/wizard/WizardProgress';
+import StepWelcome from '@/components/wizard/StepWelcome';
 import StepMagicLink from '@/components/wizard/StepMagicLink';
 import StepWebsiteInsights from '@/components/wizard/StepWebsiteInsights';
 import StepStrategicMRI from '@/components/wizard/StepStrategicMRI';
@@ -11,9 +12,10 @@ import StepBrandPassport from '@/components/wizard/StepBrandPassport';
 import { Rocket } from 'lucide-react';
 import { toast } from 'sonner';
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 const stepTitles = [
+  'ברוכים הבאים',
   'הלינק הקסום',
   'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
@@ -34,7 +36,9 @@ const OnboardingWizard = () => {
   const nextStep = () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1);
-      toast.success('שכוייח! ממשיכים הלאה');
+      if (currentStep > 1) {
+        toast.success('שכוייח! ממשיכים הלאה');
+      }
     }
   };
 
@@ -42,6 +46,19 @@ const OnboardingWizard = () => {
     if (currentStep > 1) {
       setCurrentStep((prev) => prev - 1);
     }
+  };
+
+  const handleWelcomeComplete = (userName: string, brandName: string) => {
+    setWizardData((prev) => ({
+      ...prev,
+      userName,
+      brand: {
+        ...prev.brand,
+        name: brandName,
+      },
+    }));
+    toast.success(`שלום ${userName}! נעים להכיר`);
+    nextStep();
   };
 
   const handleComplete = () => {
@@ -52,18 +69,20 @@ const OnboardingWizard = () => {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} />;
+        return <StepWelcome onNext={handleWelcomeComplete} />;
       case 2:
-        return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} />;
       case 3:
-        return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 4:
-        return <StepBrandIdentity data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 5:
-        return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepBrandIdentity data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 6:
-        return <StepStrategy data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 7:
+        return <StepStrategy data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+      case 8:
         return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
       default:
         return null;
@@ -80,12 +99,22 @@ const OnboardingWizard = () => {
               <Rocket className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <span className="text-xl font-bold text-foreground">AdPilot</span>
+              <span className="text-xl font-bold">
+                <span className="logo-black">AD</span>
+                <span className="logo-red">KOP</span>
+              </span>
               <span className="text-sm text-muted-foreground mr-2">| בס״ד</span>
             </div>
           </div>
-          <div className="text-sm text-muted-foreground">
-            שלב {currentStep} מתוך {TOTAL_STEPS}
+          <div className="flex items-center gap-4">
+            {wizardData.userName && (
+              <span className="text-sm font-medium text-foreground">
+                שלום, {wizardData.userName}
+              </span>
+            )}
+            <span className="text-sm text-muted-foreground">
+              שלב {currentStep} מתוך {TOTAL_STEPS}
+            </span>
           </div>
         </div>
       </header>

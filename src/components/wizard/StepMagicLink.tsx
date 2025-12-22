@@ -27,25 +27,9 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
     // Simulate initial scanning
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Extract brand name from URL (mock)
-    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-    const brandName = urlObj.hostname
-      .replace('www.', '')
-      .split('.')[0]
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, l => l.toUpperCase());
-
+    // Keep the brand name from Step 0, just try to enhance with website data
     updateData({
       isScanning: false,
-      brand: {
-        ...data.brand,
-        name: brandName,
-        colors: {
-          primary: '#E31E24',
-          secondary: '#1a1a2e',
-          background: '#FFFFFF',
-        },
-      },
     });
 
     setIsScanning(false);
@@ -53,7 +37,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
   };
 
   const handleManualContinue = () => {
-    // Set default empty values and skip to insights step with manual mode
+    // Keep brand name from Step 0, just set empty insights for manual mode
     updateData({
       websiteUrl: '',
       isScanning: false,
@@ -63,10 +47,6 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
         coreOffering: '',
         audience: '',
         confirmed: false,
-      },
-      brand: {
-        ...data.brand,
-        name: '',
       },
     });
     onNext();
@@ -82,7 +62,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
             <Sparkles className="w-10 h-10 text-primary" />
           </div>
           <h2 className="text-3xl font-bold text-foreground">
-            איך נכיר את העסק?
+            אז {data.userName || 'חבר'}, איך נלמד על {data.brand.name || 'העסק'}?
           </h2>
           <p className="text-lg text-muted-foreground max-w-md mx-auto">
             נלמד על העסק שלכם כדי להתאים את הקמפיין בצורה מושלמת
@@ -153,7 +133,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
             <Keyboard className="w-10 h-10 text-primary" />
           </div>
           <h2 className="text-3xl font-bold text-foreground">
-            מעולה! ספרו לנו על העסק
+            מעולה {data.userName ? data.userName : ''}! ספרו לנו על {data.brand.name || 'העסק'}
           </h2>
           <p className="text-lg text-muted-foreground max-w-md mx-auto">
             בשלב הבא נאסוף כמה פרטים חשובים על העסק שלכם
