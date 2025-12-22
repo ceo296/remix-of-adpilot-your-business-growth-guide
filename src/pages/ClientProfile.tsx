@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
@@ -70,22 +70,21 @@ const ClientProfilePage = () => {
     }
   });
 
-  if (!user) {
-    navigate('/auth');
-    return null;
-  }
+  // Handle redirects in useEffect to avoid render-time navigation
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+    } else if (!loading && !profile) {
+      navigate('/onboarding');
+    }
+  }, [user, loading, profile, navigate]);
 
-  if (loading) {
+  if (!user || loading || !profile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">טוען...</div>
       </div>
     );
-  }
-
-  if (!profile) {
-    navigate('/onboarding');
-    return null;
   }
 
   const toggleXFactor = (factor: string) => {

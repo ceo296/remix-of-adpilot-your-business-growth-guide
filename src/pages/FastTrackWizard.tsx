@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
@@ -68,14 +68,21 @@ const FastTrackWizard = () => {
 
   const TOTAL_STEPS = 3;
 
-  if (!user) {
-    navigate('/auth');
-    return null;
-  }
+  // Handle redirects in useEffect to avoid render-time navigation
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+    } else if (profile && !profile.onboarding_completed) {
+      navigate('/onboarding');
+    }
+  }, [user, profile, navigate]);
 
-  if (!profile?.onboarding_completed) {
-    navigate('/onboarding');
-    return null;
+  if (!user || !profile?.onboarding_completed) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">טוען...</div>
+      </div>
+    );
   }
 
   const toggleMediaType = (typeId: string) => {
