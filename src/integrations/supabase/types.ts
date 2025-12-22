@@ -67,6 +67,7 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          budget: number | null
           client_profile_id: string
           created_at: string
           creatives: Json | null
@@ -77,11 +78,15 @@ export type Database = {
           selected_media: Json | null
           start_date: string | null
           status: string | null
+          target_city: string | null
+          target_gender: string | null
+          target_stream: string | null
           updated_at: string
           user_id: string
           vibe: string | null
         }
         Insert: {
+          budget?: number | null
           client_profile_id: string
           created_at?: string
           creatives?: Json | null
@@ -92,11 +97,15 @@ export type Database = {
           selected_media?: Json | null
           start_date?: string | null
           status?: string | null
+          target_city?: string | null
+          target_gender?: string | null
+          target_stream?: string | null
           updated_at?: string
           user_id: string
           vibe?: string | null
         }
         Update: {
+          budget?: number | null
           client_profile_id?: string
           created_at?: string
           creatives?: Json | null
@@ -107,6 +116,9 @@ export type Database = {
           selected_media?: Json | null
           start_date?: string | null
           status?: string | null
+          target_city?: string | null
+          target_gender?: string | null
+          target_stream?: string | null
           updated_at?: string
           user_id?: string
           vibe?: string | null
@@ -356,6 +368,7 @@ export type Database = {
           name_he: string | null
           reach_info: string | null
           sector: string | null
+          stream: string | null
           vibe: string | null
           vibe_he: string | null
           warning_text: string | null
@@ -372,6 +385,7 @@ export type Database = {
           name_he?: string | null
           reach_info?: string | null
           sector?: string | null
+          stream?: string | null
           vibe?: string | null
           vibe_he?: string | null
           warning_text?: string | null
@@ -388,6 +402,7 @@ export type Database = {
           name_he?: string | null
           reach_info?: string | null
           sector?: string | null
+          stream?: string | null
           vibe?: string | null
           vibe_he?: string | null
           warning_text?: string | null
@@ -407,6 +422,7 @@ export type Database = {
           base_price: number | null
           client_price: number | null
           created_at: string | null
+          gender_target: string | null
           id: string
           is_active: boolean | null
           name: string
@@ -422,6 +438,7 @@ export type Database = {
           base_price?: number | null
           client_price?: number | null
           created_at?: string | null
+          gender_target?: string | null
           id?: string
           is_active?: boolean | null
           name: string
@@ -437,6 +454,7 @@ export type Database = {
           base_price?: number | null
           client_price?: number | null
           created_at?: string | null
+          gender_target?: string | null
           id?: string
           is_active?: boolean | null
           name?: string

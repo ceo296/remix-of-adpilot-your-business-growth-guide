@@ -6,11 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { 
   Rocket, 
   ArrowLeft, 
@@ -20,15 +17,12 @@ import {
   Zap, 
   Sparkles, 
   Heart,
-  Newspaper,
-  Globe,
-  Radio,
-  Megaphone,
   Wand2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 
 const CAMPAIGN_GOALS = [
   { id: 'sale', label: 'מבצע/סייל', description: 'מכירות מיידיות', icon: Target },
@@ -37,14 +31,19 @@ const CAMPAIGN_GOALS = [
   { id: 'event', label: 'אירוע', description: 'כנס/אירוע', icon: Heart },
 ];
 
-// Vibe is now taken from client profile - no longer selected per campaign
-
-const MEDIA_TYPES = [
-  { id: 'newspaper', label: 'עיתונות', icon: Newspaper },
-  { id: 'digital', label: 'דיגיטל', icon: Globe },
-  { id: 'radio', label: 'רדיו', icon: Radio },
-  { id: 'outdoor', label: 'חוצות', icon: Megaphone },
-];
+interface MediaPackage {
+  id: string;
+  name: string;
+  description: string;
+  totalPrice: number;
+  items: {
+    id: string;
+    name: string;
+    price: number;
+    reach?: string;
+  }[];
+  recommended?: boolean;
+}
 
 const FastTrackWizard = () => {
   const navigate = useNavigate();
@@ -59,7 +58,13 @@ const FastTrackWizard = () => {
   const [goal, setGoal] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
-  const [selectedMediaTypes, setSelectedMediaTypes] = useState<string[]>([]);
+  
+  // Budget & Audience data
+  const [budget, setBudget] = useState<number>(0);
+  const [targetStream, setTargetStream] = useState<string>('');
+  const [targetGender, setTargetGender] = useState<string>('');
+  const [targetCity, setTargetCity] = useState<string>('');
+  const [selectedPackage, setSelectedPackage] = useState<MediaPackage | null>(null);
 
   const TOTAL_STEPS = 3;
 
@@ -85,14 +90,6 @@ const FastTrackWizard = () => {
     );
   }
 
-  const toggleMediaType = (typeId: string) => {
-    setSelectedMediaTypes(prev =>
-      prev.includes(typeId)
-        ? prev.filter(t => t !== typeId)
-        : [...prev, typeId]
-    );
-  };
-
   const nextStep = () => {
     if (step < TOTAL_STEPS) {
       setStep(prev => prev + 1);
@@ -106,7 +103,7 @@ const FastTrackWizard = () => {
   };
 
   const handleSubmit = async () => {
-    if (!profile) return;
+    if (!profile || !selectedPackage) return;
 
     setIsSubmitting(true);
     try {
@@ -115,10 +112,14 @@ const FastTrackWizard = () => {
         user_id: user.id,
         name: campaignName || `קמפיין ${format(new Date(), 'dd/MM/yyyy')}`,
         goal,
-        vibe: profile.advantage_type || 'default', // Use profile's style preference
+        vibe: profile.advantage_type || 'default',
         start_date: startDate?.toISOString().split('T')[0],
         end_date: endDate?.toISOString().split('T')[0],
-        selected_media: selectedMediaTypes,
+        selected_media: selectedPackage.items.map(item => ({ id: item.id, name: item.name, price: item.price })),
+        budget,
+        target_stream: targetStream,
+        target_gender: targetGender,
+        target_city: targetCity,
         status: 'draft',
       });
 
@@ -140,7 +141,7 @@ const FastTrackWizard = () => {
       case 2:
         return startDate !== undefined;
       case 3:
-        return selectedMediaTypes.length > 0;
+        return selectedPackage !== null;
       default:
         return false;
     }
@@ -289,58 +290,43 @@ const FastTrackWizard = () => {
           </div>
         )}
 
-        {/* Step 3: Media Selection */}
+        {/* Step 3: Budget & Media Selection */}
         {step === 3 && (
           <div className="space-y-8 animate-fade-in">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-2">איפה מפרסמים?</h2>
-              <p className="text-muted-foreground">בחר את סוגי המדיה הרצויים</p>
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">תקציב וקהל יעד</h2>
+              <p className="text-muted-foreground">הגדר תקציב ובחר חבילת מדיה מותאמת</p>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>סוגי מדיה</CardTitle>
-                <CardDescription>בחר את הערוצים בהם תרצה לפרסם</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {MEDIA_TYPES.map((media) => {
-                    const isSelected = selectedMediaTypes.includes(media.id);
-                    return (
-                      <div
-                        key={media.id}
-                        onClick={() => toggleMediaType(media.id)}
-                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${
-                          isSelected
-                            ? 'border-primary bg-primary/10'
-                            : 'border-border hover:border-primary/30'
-                        }`}
-                      >
-                        <div className={`w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center ${
-                          isSelected ? 'bg-primary/20' : 'bg-muted'
-                        }`}>
-                          <media.icon className={`w-6 h-6 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-                        </div>
-                        <p className="font-medium text-foreground">{media.label}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+            <BudgetAudienceStep
+              budget={budget}
+              onBudgetChange={setBudget}
+              targetStream={targetStream}
+              onTargetStreamChange={setTargetStream}
+              targetGender={targetGender}
+              onTargetGenderChange={setTargetGender}
+              targetCity={targetCity}
+              onTargetCityChange={setTargetCity}
+              selectedPackage={selectedPackage}
+              onPackageSelect={setSelectedPackage}
+            />
 
             {/* Summary */}
-            <Card className="bg-primary/5 border-primary/20">
-              <CardHeader>
-                <CardTitle className="text-primary">סיכום הקמפיין</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <p><span className="text-muted-foreground">עסק:</span> {profile?.business_name}</p>
-                <p><span className="text-muted-foreground">מטרה:</span> {CAMPAIGN_GOALS.find(g => g.id === goal)?.label}</p>
-                {startDate && <p><span className="text-muted-foreground">תאריכים:</span> {format(startDate, 'dd/MM/yyyy')} {endDate && `- ${format(endDate, 'dd/MM/yyyy')}`}</p>}
-                <p><span className="text-muted-foreground">מדיה:</span> {selectedMediaTypes.map(t => MEDIA_TYPES.find(m => m.id === t)?.label).join(', ')}</p>
-              </CardContent>
-            </Card>
+            {selectedPackage && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="text-primary">סיכום הקמפיין</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <p><span className="text-muted-foreground">עסק:</span> {profile?.business_name}</p>
+                  <p><span className="text-muted-foreground">מטרה:</span> {CAMPAIGN_GOALS.find(g => g.id === goal)?.label}</p>
+                  {startDate && <p><span className="text-muted-foreground">תאריכים:</span> {format(startDate, 'dd/MM/yyyy')} {endDate && `- ${format(endDate, 'dd/MM/yyyy')}`}</p>}
+                  <p><span className="text-muted-foreground">תקציב:</span> ₪{budget.toLocaleString()}</p>
+                  <p><span className="text-muted-foreground">חבילה:</span> {selectedPackage.name}</p>
+                  <p><span className="text-muted-foreground">סה"כ מדיה:</span> ₪{selectedPackage.totalPrice.toLocaleString()}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 
