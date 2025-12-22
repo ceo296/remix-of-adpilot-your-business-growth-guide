@@ -4,7 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Check, Pencil, Building2, Clock, Star, Users, Loader2 } from 'lucide-react';
+import { Check, Building2, Clock, Star, Users, Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface StepWebsiteInsightsProps {
   data: WizardData;
@@ -18,7 +26,10 @@ interface InsightField {
   label: string;
   sublabel: string;
   value: string;
+  placeholder: string;
   icon: React.ReactNode;
+  type: 'text' | 'select';
+  options?: string[];
 }
 
 const LOADING_MESSAGES = [
@@ -29,87 +40,66 @@ const LOADING_MESSAGES = [
   'מסכם תובנות...',
 ];
 
-// Mock data based on URL - in production this would come from scraping
-const getMockInsights = (url: string): InsightField[] => {
-  // Generate some variation based on URL
-  const urlLower = url.toLowerCase();
-  
-  let industry = 'ריהוט לבית ולמשרד';
-  let seniority = 'פעילים משנת 1998 (25+ שנה)';
-  let coreOffering = 'מערכות ישיבה בהתאמה אישית';
-  let audience = 'משפחות חרדיות (סגנון מודרני)';
+const INDUSTRY_OPTIONS = [
+  'ריהוט לבית ולמשרד',
+  'מזון ומאפים',
+  'טכנולוגיה ומחשוב',
+  'אופנה והלבשה',
+  'שירותי בריאות',
+  'חינוך והדרכה',
+  'נדל"ן',
+  'שירותים פיננסיים',
+  'אירועים ושמחות',
+  'אחר',
+];
 
-  if (urlLower.includes('food') || urlLower.includes('אוכל')) {
-    industry = 'מזון ומאפים';
-    coreOffering = 'מאפים מסורתיים איכותיים';
-    audience = 'קהילות חרדיות - אירועים ושבתות';
-  } else if (urlLower.includes('tech') || urlLower.includes('טכנולוגיה')) {
-    industry = 'טכנולוגיה ומחשוב';
-    coreOffering = 'פתרונות IT למגזר החרדי';
-    audience = 'עסקים ומוסדות חינוך';
-  } else if (urlLower.includes('fashion') || urlLower.includes('אופנה')) {
-    industry = 'אופנה והלבשה';
-    coreOffering = 'ביגוד צנוע ואיכותי';
-    audience = 'נשים וגברים חרדים';
-  }
-
-  return [
-    {
-      id: 'industry',
-      label: 'אתם עוסקים ב...',
-      sublabel: 'תחום עיסוק',
-      value: industry,
-      icon: <Building2 className="h-5 w-5" />,
-    },
-    {
-      id: 'seniority',
-      label: 'על המפה כבר...',
-      sublabel: 'ותק וניסיון',
-      value: seniority,
-      icon: <Clock className="h-5 w-5" />,
-    },
-    {
-      id: 'coreOffering',
-      label: 'המומחיות שלכם היא...',
-      sublabel: 'מוצר הדגל',
-      value: coreOffering,
-      icon: <Star className="h-5 w-5" />,
-    },
-    {
-      id: 'audience',
-      label: 'נראה שאתם מדברים ל...',
-      sublabel: 'קהל יעד משוער',
-      value: audience,
-      icon: <Users className="h-5 w-5" />,
-    },
-  ];
-};
+const AUDIENCE_OPTIONS = [
+  'משפחות חרדיות',
+  'קהילות חסידיות',
+  'ציבור ליטאי',
+  'נשים חרדיות',
+  'גברים חרדיים',
+  'בעלי עסקים',
+  'מוסדות חינוך',
+  'כלל הציבור החרדי',
+  'אחר',
+];
 
 const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteInsightsProps) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const isManualMode = !data.websiteUrl;
+  const [isLoading, setIsLoading] = useState(!isManualMode);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const [insights, setInsights] = useState<InsightField[]>([]);
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [scrapeFailed, setScrapeFailed] = useState(false);
+  
+  // Form values - start empty for manual mode
+  const [formValues, setFormValues] = useState({
+    businessName: data.brand.name || '',
+    industry: data.websiteInsights.industry || '',
+    seniority: data.websiteInsights.seniority || '',
+    coreOffering: data.websiteInsights.coreOffering || '',
+    audience: data.websiteInsights.audience || '',
+  });
 
-  // Simulate loading with animated messages
+  // Simulate loading with animated messages (only for website mode)
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading && !isManualMode) {
       const interval = setInterval(() => {
         setLoadingMessageIndex((prev) => {
           if (prev >= LOADING_MESSAGES.length - 1) {
             clearInterval(interval);
-            // After all messages, show insights
+            // After all messages, "attempt" to scrape
             setTimeout(() => {
-              const mockInsights = getMockInsights(data.websiteUrl);
-              setInsights(mockInsights);
-              // Initialize edit values
-              const values: Record<string, string> = {};
-              mockInsights.forEach(insight => {
-                values[insight.id] = insight.value;
+              // Simulate scrape failure - leave fields empty
+              setScrapeFailed(true);
+              setFormValues({
+                businessName: data.brand.name || '',
+                industry: '',
+                seniority: '',
+                coreOffering: '',
+                audience: '',
               });
-              setEditValues(values);
               setIsLoading(false);
+              toast.warning('לא הצלחנו לקרוא הכל, אנא השלימו את הפרטים החסרים');
             }, 500);
             return prev;
           }
@@ -119,34 +109,41 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
 
       return () => clearInterval(interval);
     }
-  }, [isLoading, data.websiteUrl]);
+  }, [isLoading, isManualMode, data.brand.name]);
 
-  const handleEditStart = (fieldId: string) => {
-    setEditingField(fieldId);
-  };
-
-  const handleEditSave = (fieldId: string) => {
-    setInsights(prev => prev.map(insight => 
-      insight.id === fieldId 
-        ? { ...insight, value: editValues[fieldId] }
-        : insight
-    ));
-    setEditingField(null);
+  const handleValueChange = (field: string, value: string) => {
+    setFormValues(prev => ({ ...prev, [field]: value }));
   };
 
   const handleConfirm = () => {
+    // Validate required fields
+    if (!formValues.businessName.trim()) {
+      toast.error('נא להזין שם עסק');
+      return;
+    }
+    if (!formValues.industry) {
+      toast.error('נא לבחור תחום עיסוק');
+      return;
+    }
+
     // Save insights to wizard data
     updateData({
+      brand: {
+        ...data.brand,
+        name: formValues.businessName,
+      },
       websiteInsights: {
-        industry: editValues.industry || '',
-        seniority: editValues.seniority || '',
-        coreOffering: editValues.coreOffering || '',
-        audience: editValues.audience || '',
+        industry: formValues.industry,
+        seniority: formValues.seniority,
+        coreOffering: formValues.coreOffering,
+        audience: formValues.audience,
         confirmed: true,
       },
     });
     onNext();
   };
+
+  const isValid = formValues.businessName.trim() && formValues.industry;
 
   if (isLoading) {
     return (
@@ -190,76 +187,165 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="text-center space-y-4">
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-success/20 to-success/5 flex items-center justify-center">
-          <Check className="w-10 h-10 text-success" />
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+          {isManualMode ? (
+            <Building2 className="w-10 h-10 text-primary" />
+          ) : scrapeFailed ? (
+            <AlertCircle className="w-10 h-10 text-warning" />
+          ) : (
+            <Check className="w-10 h-10 text-success" />
+          )}
         </div>
         <h2 className="text-3xl font-bold text-foreground">
-          זה מה שהבנו מהאתר. דייקנו?
+          {isManualMode ? 'ספרו לנו על העסק' : 'השלימו את הפרטים'}
         </h2>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          אם משהו לא מדויק - אפשר לערוך
+          {isManualMode 
+            ? 'מלאו את הפרטים כדי שנוכל להתאים לכם את הקמפיין' 
+            : scrapeFailed 
+              ? 'לא הצלחנו לאסוף את כל המידע - אנא השלימו'
+              : 'אם משהו לא מדויק - אפשר לערוך'
+          }
         </p>
       </div>
 
-      {/* Insights Card */}
+      {/* Form Card */}
       <Card className="max-w-2xl mx-auto">
-        <CardContent className="p-6 space-y-4">
-          {insights.map((insight) => (
-            <div 
-              key={insight.id}
-              className="flex items-start gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-            >
-              <div className="p-3 rounded-lg bg-primary/10 text-primary">
-                {insight.icon}
+        <CardContent className="p-6 space-y-6">
+          {/* Business Name */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <Building2 className="h-5 w-5" />
               </div>
-              <div className="flex-1 space-y-1">
-                <Label className="text-xs text-muted-foreground uppercase tracking-wider">
-                  {insight.sublabel}
+              <div className="flex-1">
+                <Label htmlFor="businessName" className="text-sm font-medium">
+                  שם העסק *
                 </Label>
-                <p className="text-sm text-muted-foreground">{insight.label}</p>
-                
-                {editingField === insight.id ? (
-                  <div className="flex gap-2 mt-2">
-                    <Input
-                      value={editValues[insight.id]}
-                      onChange={(e) => setEditValues(prev => ({
-                        ...prev,
-                        [insight.id]: e.target.value
-                      }))}
-                      className="flex-1"
-                      autoFocus
-                    />
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleEditSave(insight.id)}
-                    >
-                      שמור
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold text-foreground">
-                      {insight.value}
-                    </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditStart(insight.id)}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
-          ))}
+            <Input
+              id="businessName"
+              value={formValues.businessName}
+              onChange={(e) => handleValueChange('businessName', e.target.value)}
+              placeholder="לדוגמה: רהיטי הבית"
+              className="text-lg"
+            />
+          </div>
+
+          {/* Industry */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <Star className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="industry" className="text-sm font-medium">
+                  תחום עיסוק *
+                </Label>
+              </div>
+            </div>
+            <Select
+              value={formValues.industry}
+              onValueChange={(value) => handleValueChange('industry', value)}
+            >
+              <SelectTrigger className="text-lg bg-background">
+                <SelectValue placeholder="בחרו תחום עיסוק" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border border-border z-50">
+                {INDUSTRY_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formValues.industry === 'אחר' && (
+              <Input
+                value={formValues.coreOffering}
+                onChange={(e) => handleValueChange('coreOffering', e.target.value)}
+                placeholder="פרטו את תחום העיסוק"
+                className="mt-2"
+              />
+            )}
+          </div>
+
+          {/* Seniority */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+                <Clock className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="seniority" className="text-sm font-medium">
+                  ותק וניסיון
+                </Label>
+              </div>
+            </div>
+            <Input
+              id="seniority"
+              value={formValues.seniority}
+              onChange={(e) => handleValueChange('seniority', e.target.value)}
+              placeholder="לדוגמה: פעילים משנת 2010 (14 שנה)"
+            />
+          </div>
+
+          {/* Core Offering */}
+          {formValues.industry !== 'אחר' && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+                  <Star className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="coreOffering" className="text-sm font-medium">
+                    המוצר/שירות המרכזי
+                  </Label>
+                </div>
+              </div>
+              <Input
+                id="coreOffering"
+                value={formValues.coreOffering}
+                onChange={(e) => handleValueChange('coreOffering', e.target.value)}
+                placeholder="לדוגמה: מערכות ישיבה בהתאמה אישית"
+              />
+            </div>
+          )}
+
+          {/* Audience */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+                <Users className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="audience" className="text-sm font-medium">
+                  קהל היעד
+                </Label>
+              </div>
+            </div>
+            <Select
+              value={formValues.audience}
+              onValueChange={(value) => handleValueChange('audience', value)}
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="בחרו קהל יעד" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border border-border z-50">
+                {AUDIENCE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
 
       {/* Micro-copy */}
       <p className="text-center text-sm text-muted-foreground">
-        אין בעיה, לפעמים הרובוט צריך משקפיים. תתקנו אותו 🤓
+        * שדות חובה | השאר השדות אופציונליים אך יעזרו לנו להתאים טוב יותר
       </p>
 
       {/* Action Buttons */}
@@ -269,9 +355,10 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
           size="xl"
           variant="gradient"
           className="flex-1"
+          disabled={!isValid}
         >
           <Check className="w-5 h-5 ml-2" />
-          בול! אפשר להתקדם
+          מעולה! אפשר להתקדם
         </Button>
       </div>
 
@@ -281,7 +368,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
           onClick={onPrev}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
         >
-          רוצה להחליף לינק? חזרה אחורה
+          חזרה לשלב הקודם
         </button>
       </div>
     </div>
