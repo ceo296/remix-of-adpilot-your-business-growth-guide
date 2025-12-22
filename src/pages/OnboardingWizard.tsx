@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { WizardData, initialWizardData } from '@/types/wizard';
 import WizardProgress from '@/components/wizard/WizardProgress';
 import StepWelcome from '@/components/wizard/StepWelcome';
+import StepSelectClient from '@/components/wizard/StepSelectClient';
 import StepMagicLink from '@/components/wizard/StepMagicLink';
 import StepWebsiteInsights from '@/components/wizard/StepWebsiteInsights';
 import StepStrategicMRI from '@/components/wizard/StepStrategicMRI';
@@ -15,10 +16,22 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS_REGULAR = 7;
+const TOTAL_STEPS_AGENCY = 8; // Extra step for client selection
 
-const stepTitles = [
+const stepTitlesRegular = [
   'ברוכים הבאים',
+  'הלינק הקסום',
+  'מה למדנו עליכם',
+  'ה-MRI האסטרטגי',
+  'חומרי עבר',
+  'אסטרטגיית קמפיין',
+  'דרכון המותג',
+];
+
+const stepTitlesAgency = [
+  'ברוכים הבאים',
+  'בחירת לקוח',
   'הלינק הקסום',
   'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
@@ -33,6 +46,11 @@ const OnboardingWizard = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAgency, setIsAgency] = useState(false);
+  const [selectedAgencyClientId, setSelectedAgencyClientId] = useState<string | null>(null);
+
+  const TOTAL_STEPS = isAgency ? TOTAL_STEPS_AGENCY : TOTAL_STEPS_REGULAR;
+  const stepTitles = isAgency ? stepTitlesAgency : stepTitlesRegular;
 
   // Redirect to auth if not logged in, or to dashboard if already completed onboarding
   useEffect(() => {
@@ -43,16 +61,16 @@ const OnboardingWizard = () => {
       return;
     }
     
-    // Check if user already completed onboarding
+    // Check if user already completed onboarding (for regular users, not agencies)
     const checkOnboardingStatus = async () => {
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('onboarding_completed, business_name')
+        .select('onboarding_completed, business_name, is_agency_profile')
         .eq('user_id', user.id)
         .maybeSingle();
       
-      if (profile?.onboarding_completed) {
-        // User already completed onboarding, show message and redirect to dashboard
+      // If regular user completed onboarding, redirect
+      if (profile?.onboarding_completed && !profile?.is_agency_profile) {
         toast.info(`שלום ${profile.business_name || ''}! כבר סיימת את ההיכרות – מעבירים אותך ליצירת קמפיין 🚀`);
         navigate('/dashboard');
       }
@@ -68,7 +86,6 @@ const OnboardingWizard = () => {
   const nextStep = () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1);
-      // Scroll to top of page on step change
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (currentStep > 1) {
         toast.success('שכוייח! ממשיכים הלאה');
@@ -79,12 +96,9 @@ const OnboardingWizard = () => {
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep((prev) => prev - 1);
-      // Scroll to top of page on step change
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-
-  const [isAgency, setIsAgency] = useState(false);
 
   const handleWelcomeComplete = (userName: string, brandName: string, logo: string | null, isAgencyUser: boolean) => {
     setIsAgency(isAgencyUser);
@@ -98,6 +112,21 @@ const OnboardingWizard = () => {
       },
     }));
     toast.success(`שלום ${userName}! נעים להכיר`);
+    nextStep();
+  };
+
+  const handleSelectClient = (clientId: string, clientName: string, clientLogo: string | null, websiteUrl: string | null) => {
+    setSelectedAgencyClientId(clientId);
+    setWizardData((prev) => ({
+      ...prev,
+      brand: {
+        ...prev.brand,
+        name: clientName,
+        logo: clientLogo,
+      },
+      websiteUrl: websiteUrl || '',
+    }));
+    toast.success(`מעולה! מתחילים היכרות עם ${clientName}`);
     nextStep();
   };
 
@@ -123,15 +152,8 @@ const OnboardingWizard = () => {
         throw profileError;
       }
 
-      // Check if client profile exists
-      const { data: existingProfile } = await supabase
-        .from('client_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (existingProfile) {
-        // Update existing client profile
+      // For agencies, update the selected client profile
+      if (isAgency && selectedAgencyClientId) {
         const { error: clientError } = await supabase
           .from('client_profiles')
           .update({
@@ -153,41 +175,96 @@ const OnboardingWizard = () => {
             competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
             end_consumer: wizardData.strategicMRI.endConsumer,
             decision_maker: wizardData.strategicMRI.decisionMaker,
-            is_agency_profile: isAgency,
             onboarding_completed: true,
           })
-          .eq('user_id', user.id);
+          .eq('id', selectedAgencyClientId);
 
         if (clientError) throw clientError;
-      } else {
-        // Create new client profile
-        const { error: clientError } = await supabase
+        
+        // Also ensure the agency profile exists
+        const { data: agencyProfile } = await supabase
           .from('client_profiles')
-          .insert([{
-            user_id: user.id,
-            business_name: wizardData.brand.name,
-            website_url: wizardData.websiteUrl || null,
-            primary_color: wizardData.brand.colors.primary,
-            secondary_color: wizardData.brand.colors.secondary,
-            background_color: wizardData.brand.colors.background,
-            header_font: wizardData.brand.headerFont,
-            body_font: wizardData.brand.bodyFont,
-            x_factors: wizardData.strategicMRI.xFactors,
-            primary_x_factor: wizardData.strategicMRI.primaryXFactor,
-            advantage_type: wizardData.strategicMRI.advantageType,
-            advantage_slider: wizardData.strategicMRI.advantageSlider,
-            winning_feature: wizardData.strategicMRI.winningFeature,
-            competitors: wizardData.strategicMRI.competitors,
-            my_position_x: wizardData.strategicMRI.myPosition.x,
-            my_position_y: wizardData.strategicMRI.myPosition.y,
-            competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
-            end_consumer: wizardData.strategicMRI.endConsumer,
-            decision_maker: wizardData.strategicMRI.decisionMaker,
-            is_agency_profile: isAgency,
-            onboarding_completed: true,
-          }]);
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_agency_profile', true)
+          .maybeSingle();
 
-        if (clientError) throw clientError;
+        if (!agencyProfile) {
+          // Create agency profile if doesn't exist
+          await supabase.from('client_profiles').insert({
+            user_id: user.id,
+            business_name: wizardData.userName + ' Agency',
+            is_agency_profile: true,
+            onboarding_completed: true,
+          });
+        }
+      } else {
+        // Regular user flow - check if profile exists
+        const { data: existingProfile } = await supabase
+          .from('client_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existingProfile) {
+          // Update existing client profile
+          const { error: clientError } = await supabase
+            .from('client_profiles')
+            .update({
+              business_name: wizardData.brand.name,
+              website_url: wizardData.websiteUrl || null,
+              primary_color: wizardData.brand.colors.primary,
+              secondary_color: wizardData.brand.colors.secondary,
+              background_color: wizardData.brand.colors.background,
+              header_font: wizardData.brand.headerFont,
+              body_font: wizardData.brand.bodyFont,
+              x_factors: wizardData.strategicMRI.xFactors,
+              primary_x_factor: wizardData.strategicMRI.primaryXFactor,
+              advantage_type: wizardData.strategicMRI.advantageType,
+              advantage_slider: wizardData.strategicMRI.advantageSlider,
+              winning_feature: wizardData.strategicMRI.winningFeature,
+              competitors: wizardData.strategicMRI.competitors,
+              my_position_x: wizardData.strategicMRI.myPosition.x,
+              my_position_y: wizardData.strategicMRI.myPosition.y,
+              competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
+              end_consumer: wizardData.strategicMRI.endConsumer,
+              decision_maker: wizardData.strategicMRI.decisionMaker,
+              is_agency_profile: false,
+              onboarding_completed: true,
+            })
+            .eq('user_id', user.id);
+
+          if (clientError) throw clientError;
+        } else {
+          // Create new client profile
+          const { error: clientError } = await supabase
+            .from('client_profiles')
+            .insert([{
+              user_id: user.id,
+              business_name: wizardData.brand.name,
+              website_url: wizardData.websiteUrl || null,
+              primary_color: wizardData.brand.colors.primary,
+              secondary_color: wizardData.brand.colors.secondary,
+              background_color: wizardData.brand.colors.background,
+              header_font: wizardData.brand.headerFont,
+              body_font: wizardData.brand.bodyFont,
+              x_factors: wizardData.strategicMRI.xFactors,
+              primary_x_factor: wizardData.strategicMRI.primaryXFactor,
+              advantage_type: wizardData.strategicMRI.advantageType,
+              advantage_slider: wizardData.strategicMRI.advantageSlider,
+              winning_feature: wizardData.strategicMRI.winningFeature,
+              competitors: wizardData.strategicMRI.competitors,
+              my_position_x: wizardData.strategicMRI.myPosition.x,
+              my_position_y: wizardData.strategicMRI.myPosition.y,
+              competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
+              end_consumer: wizardData.strategicMRI.endConsumer,
+              decision_maker: wizardData.strategicMRI.decisionMaker,
+              is_agency_profile: false,
+              onboarding_completed: true,
+            }]);
+
+          if (clientError) throw clientError;
+        }
       }
 
       toast.success('בשעה טובה! המותג והקמפיין מוכנים');
@@ -215,6 +292,31 @@ const OnboardingWizard = () => {
   }
 
   const renderStep = () => {
+    // Agency flow has an extra step after welcome
+    if (isAgency) {
+      switch (currentStep) {
+        case 1:
+          return <StepWelcome onNext={handleWelcomeComplete} />;
+        case 2:
+          return <StepSelectClient onNext={handleSelectClient} onPrev={prevStep} />;
+        case 3:
+          return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} />;
+        case 4:
+          return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        case 5:
+          return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        case 6:
+          return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        case 7:
+          return <StepStrategy data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        case 8:
+          return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
+        default:
+          return null;
+      }
+    }
+
+    // Regular user flow
     switch (currentStep) {
       case 1:
         return <StepWelcome onNext={handleWelcomeComplete} />;
