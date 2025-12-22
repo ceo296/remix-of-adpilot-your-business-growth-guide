@@ -35,11 +35,30 @@ const OnboardingWizard = () => {
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Redirect to auth if not logged in
+  // Redirect to auth if not logged in, or to dashboard if already completed onboarding
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return;
+    
+    if (!user) {
       navigate('/auth?redirect=/onboarding');
+      return;
     }
+    
+    // Check if user already completed onboarding
+    const checkOnboardingStatus = async () => {
+      const { data: profile } = await supabase
+        .from('client_profiles')
+        .select('onboarding_completed')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (profile?.onboarding_completed) {
+        // User already completed onboarding, redirect to dashboard
+        navigate('/dashboard');
+      }
+    };
+    
+    checkOnboardingStatus();
   }, [user, authLoading, navigate]);
 
   const updateData = (data: Partial<WizardData>) => {
