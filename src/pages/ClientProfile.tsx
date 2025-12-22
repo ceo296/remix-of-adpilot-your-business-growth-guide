@@ -25,8 +25,10 @@ import {
   Save,
   ArrowRight,
   X,
-  Plus
+  Plus,
+  RefreshCw
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const X_FACTORS = [
@@ -123,6 +125,21 @@ const ClientProfilePage = () => {
       toast.error(error.message || 'שגיאה בעדכון הפרופיל');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleRestartOnboarding = async () => {
+    try {
+      // Reset onboarding_completed flag
+      await supabase
+        .from('client_profiles')
+        .update({ onboarding_completed: false })
+        .eq('user_id', user.id);
+      
+      toast.success('מעביר לאונבורדינג...');
+      navigate('/onboarding');
+    } catch (error: any) {
+      toast.error('שגיאה בהתחלת האונבורדינג מחדש');
     }
   };
 
@@ -391,6 +408,29 @@ const ClientProfilePage = () => {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Restart Onboarding */}
+        <Card className="border-dashed">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="w-5 h-5 text-muted-foreground" />
+              התחל אונבורדינג מחדש
+            </CardTitle>
+            <CardDescription>
+              רוצה לעדכן את כל הנתונים מההתחלה? לחץ כאן לחזור לתהליך האונבורדינג המלא
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline" 
+              onClick={handleRestartOnboarding}
+              className="w-full md:w-auto"
+            >
+              <RefreshCw className="w-4 h-4 ml-2" />
+              התחל אונבורדינג מחדש
+            </Button>
           </CardContent>
         </Card>
       </main>
