@@ -49,6 +49,8 @@ const OnboardingWizard = () => {
   const nextStep = () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1);
+      // Scroll to top of page on step change
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       if (currentStep > 1) {
         toast.success('שכוייח! ממשיכים הלאה');
       }
@@ -58,6 +60,8 @@ const OnboardingWizard = () => {
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep((prev) => prev - 1);
+      // Scroll to top of page on step change
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
