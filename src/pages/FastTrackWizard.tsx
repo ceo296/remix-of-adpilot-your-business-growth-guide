@@ -352,7 +352,7 @@ const FastTrackWizard = () => {
           ) : (
             <Button onClick={handleSubmit} disabled={!canProceed() || isSubmitting} variant="gradient">
               <Wand2 className="w-4 h-4 ml-2" />
-              {isSubmitting ? 'יוצר...' : 'צור קמפיין'}
+              {isSubmitting ? 'מעבד...' : 'מתקדמים לפרסום'}
             </Button>
           )}
         </div>
