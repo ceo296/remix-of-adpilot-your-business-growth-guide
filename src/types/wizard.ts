@@ -51,7 +51,7 @@ export interface CampaignStrategy {
 // Strategic MRI Types
 export type XFactorType = 'veteran' | 'product' | 'price' | 'service' | 'brand';
 
-export type TargetAudienceType = 'end_user' | 'decision_maker';
+// TargetAudienceType removed - now using free text fields
 
 export interface CompetitorPosition {
   id: string;
@@ -76,8 +76,9 @@ export interface StrategicMRI {
   myPosition: { x: number; y: number };
   competitorPositions: CompetitorPosition[];
   
-  // Section 4: Target Audience
-  targetAudience: TargetAudienceType | null;
+  // Section 4: Target Audience (free text)
+  endConsumer: string; // Who uses the product
+  decisionMaker: string; // Who makes the purchase decision
 }
 
 // Website Insights (extracted from URL scan)
@@ -137,7 +138,8 @@ export const initialWizardData: WizardData = {
     competitors: [],
     myPosition: { x: 0, y: 0 },
     competitorPositions: [],
-    targetAudience: null,
+    endConsumer: '',
+    decisionMaker: '',
   },
   brand: {
     name: '',
