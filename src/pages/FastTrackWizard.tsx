@@ -52,8 +52,8 @@ const MEDIA_TYPES = [
 
 const FastTrackWizard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { profile } = useClientProfile();
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useClientProfile();
   
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,16 +68,21 @@ const FastTrackWizard = () => {
 
   const TOTAL_STEPS = 3;
 
-  // Handle redirects in useEffect to avoid render-time navigation
+  // Wait for auth/profile to load before redirecting
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-    } else if (profile && !profile.onboarding_completed) {
-      navigate('/onboarding');
-    }
-  }, [user, profile, navigate]);
+    if (authLoading || profileLoading) return;
 
-  if (!user || !profile?.onboarding_completed) {
+    if (!user) {
+      navigate('/auth', { replace: true });
+      return;
+    }
+
+    if (profile && !profile.onboarding_completed) {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [authLoading, profileLoading, user, profile, navigate]);
+
+  if (authLoading || profileLoading || !user || !profile?.onboarding_completed) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">טוען...</div>
