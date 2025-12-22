@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft, Wand2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
 
 interface StepMagicLinkProps {
   data: WizardData;
@@ -209,8 +210,33 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
     );
   }
 
-  // Manual Mode - Skip directly to insights
+  // Manual Mode - With input fields
   if (inputMode === 'manual') {
+    const insights = data.websiteInsights || { industry: '', seniority: '', coreOffering: '', audience: '', confirmed: false };
+    
+    const handleManualFieldChange = (field: string, value: string) => {
+      updateData({
+        websiteInsights: {
+          ...insights,
+          [field]: value,
+        },
+      });
+    };
+
+    const handleManualSubmit = () => {
+      if (!insights.industry?.trim() || !insights.coreOffering?.trim()) {
+        toast.error('נא למלא לפחות את תחום העיסוק ומה אתם מציעים');
+        return;
+      }
+      updateData({
+        websiteInsights: {
+          ...insights,
+          confirmed: true,
+        },
+      });
+      onNext();
+    };
+
     return (
       <div className="space-y-8">
         {/* Header */}
@@ -222,24 +248,64 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
             מעולה {data.userName ? data.userName : ''}! ספרו לנו על {data.brand.name || 'העסק'}
           </h2>
           <p className="text-lg text-muted-foreground max-w-md mx-auto">
-            בשלב הבא נאסוף כמה פרטים חשובים על העסק שלכם
+            מלאו את הפרטים הבאים כדי שנוכל להתאים את הקמפיין
           </p>
         </div>
 
-        {/* Continue Button */}
+        {/* Manual Input Form */}
         <div className="max-w-xl mx-auto">
           <Card className="border-2 border-primary/20">
-            <CardContent className="p-8 text-center space-y-6">
+            <CardContent className="p-8 space-y-6">
+              {/* Industry */}
               <div className="space-y-2">
-                <p className="text-foreground font-medium">
-                  נשאל אתכם כמה שאלות קצרות:
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• שם העסק</li>
-                  <li>• תחום העיסוק</li>
-                  <li>• ותק וניסיון</li>
-                  <li>• קהל היעד</li>
-                </ul>
+                <label className="text-sm font-medium text-foreground">
+                  תחום העיסוק *
+                </label>
+                <Input
+                  placeholder="לדוגמה: אופנה, מסעדנות, טכנולוגיה..."
+                  value={insights.industry || ''}
+                  onChange={(e) => handleManualFieldChange('industry', e.target.value)}
+                  className="text-right"
+                />
+              </div>
+
+              {/* Core Offering */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  מה אתם מציעים? *
+                </label>
+                <Textarea
+                  placeholder="תארו בקצרה את המוצר או השירות שלכם..."
+                  value={insights.coreOffering || ''}
+                  onChange={(e) => handleManualFieldChange('coreOffering', e.target.value)}
+                  className="text-right min-h-[80px]"
+                />
+              </div>
+
+              {/* Seniority */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  ותק וניסיון
+                </label>
+                <Input
+                  placeholder="לדוגמה: 5 שנים, חדשים בתחום..."
+                  value={insights.seniority || ''}
+                  onChange={(e) => handleManualFieldChange('seniority', e.target.value)}
+                  className="text-right"
+                />
+              </div>
+
+              {/* Target Audience */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  קהל היעד
+                </label>
+                <Input
+                  placeholder="לדוגמה: משפחות צעירות, עסקים קטנים..."
+                  value={insights.audience || ''}
+                  onChange={(e) => handleManualFieldChange('audience', e.target.value)}
+                  className="text-right"
+                />
               </div>
               
               {/* AI Auto-fill button */}
@@ -259,20 +325,20 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
                   ) : (
                     <>
                       <Wand2 className="w-5 h-5 ml-2" />
-                      נתח את העסק אוטומטית ✨
+                      מלא אוטומטית עם AI ✨
                     </>
                   )}
                 </Button>
               )}
               
               <Button
-                onClick={handleManualContinue}
+                onClick={handleManualSubmit}
                 size="xl"
                 variant="gradient"
                 className="w-full"
               >
                 <Sparkles className="w-5 h-5 ml-2" />
-                יאללה, בואו נתחיל ידנית
+                המשך
               </Button>
             </CardContent>
           </Card>
