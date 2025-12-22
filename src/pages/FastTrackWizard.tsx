@@ -37,11 +37,7 @@ const CAMPAIGN_GOALS = [
   { id: 'event', label: 'אירוע', description: 'כנס/אירוע', icon: Heart },
 ];
 
-const VIBES = [
-  { id: 'aggressive', label: 'אגרסיבי', description: 'מסרים חזקים, צועקים' },
-  { id: 'prestige', label: 'יוקרתי', description: 'אלגנטי, מינימליסטי' },
-  { id: 'heimish', label: 'היימיש', description: 'חם, משפחתי, קרוב' },
-];
+// Vibe is now taken from client profile - no longer selected per campaign
 
 const MEDIA_TYPES = [
   { id: 'newspaper', label: 'עיתונות', icon: Newspaper },
@@ -61,7 +57,6 @@ const FastTrackWizard = () => {
   // Campaign data
   const [campaignName, setCampaignName] = useState('');
   const [goal, setGoal] = useState<string | null>(null);
-  const [vibe, setVibe] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [selectedMediaTypes, setSelectedMediaTypes] = useState<string[]>([]);
@@ -120,7 +115,7 @@ const FastTrackWizard = () => {
         user_id: user.id,
         name: campaignName || `קמפיין ${format(new Date(), 'dd/MM/yyyy')}`,
         goal,
-        vibe,
+        vibe: profile.advantage_type || 'default', // Use profile's style preference
         start_date: startDate?.toISOString().split('T')[0],
         end_date: endDate?.toISOString().split('T')[0],
         selected_media: selectedMediaTypes,
@@ -141,7 +136,7 @@ const FastTrackWizard = () => {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return goal !== null && vibe !== null;
+        return goal !== null;
       case 2:
         return startDate !== undefined;
       case 3:
@@ -217,29 +212,6 @@ const FastTrackWizard = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>ה-VIBE של הקמפיין</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-3">
-                  {VIBES.map((v) => (
-                    <div
-                      key={v.id}
-                      onClick={() => setVibe(v.id)}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${
-                        vibe === v.id
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/30'
-                      }`}
-                    >
-                      <p className="font-medium text-foreground">{v.label}</p>
-                      <p className="text-xs text-muted-foreground">{v.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
 
@@ -365,7 +337,6 @@ const FastTrackWizard = () => {
               <CardContent className="space-y-2 text-sm">
                 <p><span className="text-muted-foreground">עסק:</span> {profile?.business_name}</p>
                 <p><span className="text-muted-foreground">מטרה:</span> {CAMPAIGN_GOALS.find(g => g.id === goal)?.label}</p>
-                <p><span className="text-muted-foreground">אווירה:</span> {VIBES.find(v => v.id === vibe)?.label}</p>
                 {startDate && <p><span className="text-muted-foreground">תאריכים:</span> {format(startDate, 'dd/MM/yyyy')} {endDate && `- ${format(endDate, 'dd/MM/yyyy')}`}</p>}
                 <p><span className="text-muted-foreground">מדיה:</span> {selectedMediaTypes.map(t => MEDIA_TYPES.find(m => m.id === t)?.label).join(', ')}</p>
               </CardContent>
