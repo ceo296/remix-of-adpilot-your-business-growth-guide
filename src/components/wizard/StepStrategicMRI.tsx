@@ -129,7 +129,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
 
   const hasValidXFactors = mri.xFactors.length > 0 || (isOtherSelected && otherXFactor.trim().length > 0);
   const otherNeedsText = isOtherSelected && otherXFactor.trim().length === 0;
-  const hasValidAudience = mri.endConsumer === 'private' || mri.endConsumer === 'b2b';
+  const hasValidAudience = mri.endConsumer === 'private' || mri.endConsumer === 'b2b' || mri.endConsumer === 'both';
   const isValid = hasValidXFactors && !otherNeedsText && hasValidAudience;
 
   return (
@@ -474,10 +474,10 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
             <p className="text-sm text-muted-foreground">בחרו את סוג הלקוחות שלכם</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* B2C - Private Customers */}
             <div
-              onClick={() => updateMRI({ endConsumer: 'private', decisionMaker: mri.decisionMaker === 'b2b' ? '' : mri.decisionMaker })}
+              onClick={() => updateMRI({ endConsumer: 'private', decisionMaker: '' })}
               className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                 mri.endConsumer === 'private'
                   ? 'border-primary bg-primary/10 shadow-md'
@@ -506,7 +506,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
 
             {/* B2B - Organizations */}
             <div
-              onClick={() => updateMRI({ endConsumer: 'b2b', decisionMaker: mri.decisionMaker === 'private' ? '' : mri.decisionMaker })}
+              onClick={() => updateMRI({ endConsumer: 'b2b', decisionMaker: '' })}
               className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                 mri.endConsumer === 'b2b'
                   ? 'border-primary bg-primary/10 shadow-md'
@@ -525,6 +525,38 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 </div>
               </div>
               {mri.endConsumer === 'b2b' && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            {/* Both - Mixed */}
+            <div
+              onClick={() => updateMRI({ endConsumer: 'both', decisionMaker: '' })}
+              className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                mri.endConsumer === 'both'
+                  ? 'border-primary bg-primary/10 shadow-md'
+                  : 'border-border bg-card hover:border-primary/30'
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                  mri.endConsumer === 'both' ? 'bg-primary/20' : 'bg-muted'
+                }`}>
+                  <div className="relative">
+                    <User className={`w-5 h-5 absolute -right-1 -top-1 ${mri.endConsumer === 'both' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <Users className={`w-5 h-5 absolute -left-1 -bottom-1 ${mri.endConsumer === 'both' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-1">גם וגם</h4>
+                  <p className="text-sm text-muted-foreground">פרטיים וגם ארגונים</p>
+                </div>
+              </div>
+              {mri.endConsumer === 'both' && (
                 <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                   <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
