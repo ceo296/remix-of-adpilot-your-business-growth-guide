@@ -23,9 +23,9 @@ import { useLocation } from 'react-router-dom';
 
 const menuItems = [
   { title: 'לוח בקרה', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'קמפיינים', url: '/campaigns', icon: Megaphone },
-  { title: 'דוחות', url: '/reports', icon: BarChart3 },
-  { title: 'הגדרות', url: '/settings', icon: Settings },
+  { title: 'קמפיין חדש', url: '/new-campaign', icon: Megaphone },
+  { title: 'סטודיו יצירתי', url: '/studio', icon: Rocket },
+  { title: 'פרופיל', url: '/profile', icon: Settings },
 ];
 
 const AppSidebar = () => {
