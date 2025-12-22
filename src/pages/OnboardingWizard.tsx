@@ -128,7 +128,8 @@ const OnboardingWizard = () => {
             my_position_x: wizardData.strategicMRI.myPosition.x,
             my_position_y: wizardData.strategicMRI.myPosition.y,
             competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
-            target_audience: wizardData.strategicMRI.targetAudience,
+            end_consumer: wizardData.strategicMRI.endConsumer,
+            decision_maker: wizardData.strategicMRI.decisionMaker,
             onboarding_completed: true,
           })
           .eq('user_id', user.id);
@@ -156,7 +157,8 @@ const OnboardingWizard = () => {
             my_position_x: wizardData.strategicMRI.myPosition.x,
             my_position_y: wizardData.strategicMRI.myPosition.y,
             competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
-            target_audience: wizardData.strategicMRI.targetAudience,
+            end_consumer: wizardData.strategicMRI.endConsumer,
+            decision_maker: wizardData.strategicMRI.decisionMaker,
             onboarding_completed: true,
           }]);
 

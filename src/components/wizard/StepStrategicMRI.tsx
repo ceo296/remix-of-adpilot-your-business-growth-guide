@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { WizardData, XFactorType, TargetAudienceType, CompetitorPosition } from '@/types/wizard';
+import { WizardData, XFactorType, CompetitorPosition } from '@/types/wizard';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -66,12 +66,12 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
       setBotMessage('הבנתי, משדרים יציבות ויוקרה. אולד-סקול איכותי.');
     } else if (hasPrice && isMassMarket) {
       setBotMessage("הבנתי, נלך על מסרים של 'אסור לפספס' ומבצעים.");
-    } else if (mri.xFactors.length > 0 && mri.targetAudience) {
+    } else if (mri.xFactors.length > 0 && (mri.endConsumer || mri.decisionMaker)) {
       setBotMessage('מעולה! יש לי תמונה ברורה של הפוזיציה שלכם.');
     } else {
       setBotMessage(null);
     }
-  }, [mri.xFactors, mri.myPosition, mri.targetAudience]);
+  }, [mri.xFactors, mri.myPosition, mri.endConsumer, mri.decisionMaker]);
 
   const toggleXFactor = (factor: XFactorType) => {
     const current = mri.xFactors;
@@ -129,7 +129,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
 
   const hasValidXFactors = mri.xFactors.length > 0 || (isOtherSelected && otherXFactor.trim().length > 0);
   const otherNeedsText = isOtherSelected && otherXFactor.trim().length === 0;
-  const isValid = hasValidXFactors && !otherNeedsText && mri.targetAudience !== null;
+  const isValid = hasValidXFactors && !otherNeedsText && (mri.endConsumer.trim().length > 0 || mri.decisionMaker.trim().length > 0);
 
   return (
     <div className="space-y-8">
@@ -465,41 +465,50 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
         </CardContent>
       </Card>
 
-      {/* Section 4: Target Audience */}
+      {/* Section 4: Target Audience - Free Text */}
       <Card className="border-border">
         <CardContent className="p-6 space-y-4">
           <div>
             <h3 className="text-lg font-semibold text-foreground mb-1">מי הלקוח האמיתי?</h3>
-            <p className="text-sm text-muted-foreground">האם אנחנו מדברים ל...</p>
+            <p className="text-sm text-muted-foreground">תאר את הצרכן הסופי ואת מקבל ההחלטות (אם שונים)</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {TARGET_AUDIENCES.map((audience) => {
-              const isSelected = mri.targetAudience === audience.id;
-              return (
-                <div
-                  key={audience.id}
-                  onClick={() => updateMRI({ targetAudience: audience.id })}
-                  className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                    isSelected
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border bg-card hover:border-primary/30'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      isSelected ? 'bg-primary/20' : 'bg-muted'
-                    }`}>
-                      <audience.icon className={`w-6 h-6 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{audience.label}</p>
-                      <p className="text-sm text-muted-foreground">{audience.description}</p>
-                    </div>
-                  </div>
+            {/* End Consumer */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <User className="w-5 h-5 text-primary" />
                 </div>
-              );
-            })}
+                <Label htmlFor="end-consumer" className="text-foreground font-medium">הצרכן הסופי</Label>
+              </div>
+              <Input
+                id="end-consumer"
+                value={mri.endConsumer}
+                onChange={(e) => updateMRI({ endConsumer: e.target.value })}
+                placeholder="מי משתמש במוצר/שירות?"
+                className="mt-2"
+              />
+              <p className="text-xs text-muted-foreground">מי בפועל משתמש או נהנה מהמוצר</p>
+            </div>
+
+            {/* Decision Maker */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <Label htmlFor="decision-maker" className="text-foreground font-medium">מקבל ההחלטות</Label>
+              </div>
+              <Input
+                id="decision-maker"
+                value={mri.decisionMaker}
+                onChange={(e) => updateMRI({ decisionMaker: e.target.value })}
+                placeholder="מי מחליט ומשלם?"
+                className="mt-2"
+              />
+              <p className="text-xs text-muted-foreground">מי מקבל את החלטת הרכישה (אם שונה מהצרכן)</p>
+            </div>
           </div>
         </CardContent>
       </Card>
