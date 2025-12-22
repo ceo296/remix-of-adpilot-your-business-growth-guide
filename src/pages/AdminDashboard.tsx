@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   Database, Brain, FileText, Users, LogOut, Menu, X, 
-  Settings, ChevronLeft 
+  Settings, ChevronLeft, Palette 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,14 +12,16 @@ import MediaDatabaseAdmin from '@/components/admin/MediaDatabaseAdmin';
 import AIBrainAdmin from '@/components/admin/AIBrainAdmin';
 import PromptTemplates from '@/components/admin/PromptTemplates';
 import ClientOverview from '@/components/admin/ClientOverview';
+import BrandingOrdersAdmin from '@/components/admin/BrandingOrdersAdmin';
 
-type AdminTab = 'media' | 'brain' | 'prompts' | 'clients';
+type AdminTab = 'media' | 'brain' | 'prompts' | 'clients' | 'branding';
 
 const TABS = [
   { id: 'media' as AdminTab, label: 'ניהול מדיה', icon: Database },
   { id: 'brain' as AdminTab, label: 'אימון המערכת', icon: Brain },
   { id: 'prompts' as AdminTab, label: 'תבניות ננו-בננה', icon: FileText },
   { id: 'clients' as AdminTab, label: 'רשימת לקוחות', icon: Users },
+  { id: 'branding' as AdminTab, label: 'הזמנות מיתוג', icon: Palette },
 ];
 
 const AdminDashboard = () => {
@@ -104,6 +106,8 @@ const AdminDashboard = () => {
         return <PromptTemplates />;
       case 'clients':
         return <ClientOverview />;
+      case 'branding':
+        return <BrandingOrdersAdmin />;
       default:
         return <MediaDatabaseAdmin />;
     }
