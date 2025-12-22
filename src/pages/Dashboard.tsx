@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AppSidebar from '@/components/dashboard/AppSidebar';
 import CampaignPulse from '@/components/dashboard/CampaignPulse';
@@ -5,9 +6,12 @@ import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
 import DigitalCorner from '@/components/dashboard/DigitalCorner';
 import ProofGallery from '@/components/dashboard/ProofGallery';
 import OnboardingStatus from '@/components/dashboard/OnboardingStatus';
+import OnboardingSuccessModal from '@/components/dashboard/OnboardingSuccessModal';
 import { Button } from '@/components/ui/button';
 import { Plus, Wand2, Brain, Settings } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 // Mock campaign data
 const campaignData = {
@@ -18,8 +22,44 @@ const campaignData = {
 };
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const [userName, setUserName] = useState<string>('');
+  const [brandName, setBrandName] = useState<string>('');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return;
+      
+      // Fetch profile name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile?.full_name) {
+        setUserName(profile.full_name);
+      }
+
+      // Fetch brand name
+      const { data: clientProfile } = await supabase
+        .from('client_profiles')
+        .select('business_name')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (clientProfile?.business_name) {
+        setBrandName(clientProfile.business_name);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
   return (
     <SidebarProvider>
+      {/* Onboarding Success Modal */}
+      <OnboardingSuccessModal userName={userName} brandName={brandName} />
+      
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         

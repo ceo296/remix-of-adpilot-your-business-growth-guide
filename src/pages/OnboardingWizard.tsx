@@ -167,7 +167,7 @@ const OnboardingWizard = () => {
       }
 
       toast.success('בשעה טובה! המותג והקמפיין מוכנים');
-      navigate('/dashboard');
+      navigate('/dashboard?welcome=true');
     } catch (error) {
       console.error('Error saving onboarding data:', error);
       toast.error('שגיאה בשמירת הנתונים, נסו שוב');
