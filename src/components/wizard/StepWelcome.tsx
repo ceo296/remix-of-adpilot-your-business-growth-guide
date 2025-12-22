@@ -85,7 +85,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
           {/* Logo Upload */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">
-              הלוגו שלך (אופציונלי)
+              ספר מותג / לוגו
             </label>
             
             <input
@@ -115,10 +115,23 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
               ) : (
                 <div className="text-center p-4 group-hover:scale-105 transition-transform">
                   <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
-                  <span className="text-sm text-muted-foreground">לחץ להעלאת לוגו</span>
+                  <span className="text-sm text-muted-foreground">לחץ להעלאה</span>
                 </div>
               )}
             </div>
+
+            {/* No branding link */}
+            <button
+              type="button"
+              onClick={() => {
+                // TODO: Navigate to branding process
+                window.open('https://wa.me/972000000000?text=היי, אני צריך עזרה עם מיתוג', '_blank');
+              }}
+              className="text-sm text-primary hover:underline underline-offset-4 flex items-center gap-1 mx-auto"
+            >
+              אין לי מיתוג - תעזרו לי
+              <span className="text-xs">←</span>
+            </button>
           </div>
 
           {/* Continue Button */}
