@@ -1,23 +1,16 @@
-import { useEffect } from 'react';
 import { WizardData, DesignDirection, CampaignStructure } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { format, differenceInDays } from 'date-fns';
-import { he } from 'date-fns/locale';
 import { 
   Anchor, 
   Sparkles, 
-  CalendarIcon, 
   Zap, 
   Layers, 
   ArrowRight, 
   ArrowLeft,
   Target
 } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface StepStrategyProps {
   data: WizardData;
@@ -38,38 +31,7 @@ const StepStrategy = ({ data, updateData, onNext, onPrev }: StepStrategyProps) =
     });
   };
 
-  // Smart advisor logic
-  useEffect(() => {
-    if (strategy.startDate && strategy.endDate && strategy.structure) {
-      const days = differenceInDays(strategy.endDate, strategy.startDate);
-      
-      if (days > 14 && strategy.structure === 'single') {
-        toast.warning(
-          'חודש שלם עם אותה מודעה? הציבור עלול להשתעמם... אנחנו ממליצים על סדרה.',
-          { duration: 5000 }
-        );
-      } else if (days < 3 && strategy.structure === 'series') {
-        toast.warning(
-          'בשביל יומיים לא בטוח שצריך סדרה. מודעה אחת חזקה תעשה את העבודה.',
-          { duration: 5000 }
-        );
-      }
-    }
-  }, [strategy.startDate, strategy.endDate, strategy.structure]);
-
-  const isComplete = strategy.designDirection && strategy.startDate && strategy.endDate && strategy.structure;
-
-  const getDurationText = () => {
-    if (!strategy.startDate || !strategy.endDate) return null;
-    const days = differenceInDays(strategy.endDate, strategy.startDate);
-    if (days === 0) return 'יום אחד';
-    if (days === 1) return 'יומיים';
-    if (days < 7) return `${days + 1} ימים`;
-    if (days < 14) return 'שבוע וקצת';
-    if (days < 21) return 'שבועיים וקצת';
-    if (days < 30) return 'כשלושה שבועות';
-    return 'חודש ומעלה';
-  };
+  const isComplete = strategy.designDirection && strategy.structure;
 
   return (
     <div className="space-y-8">
@@ -79,10 +41,10 @@ const StepStrategy = ({ data, updateData, onNext, onPrev }: StepStrategyProps) =
           <Target className="w-10 h-10 text-primary" />
         </div>
         <h2 className="text-3xl font-bold text-foreground">
-          תוכנית המשחק
+          אסטרטגיית קמפיין
         </h2>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          בואו נקבע את האסטרטגיה - כמה זמן רצים ואיך נראים
+          בואו נקבע את הכיוון העיצובי ואת מבנה הקמפיין
         </p>
       </div>
 
@@ -151,101 +113,7 @@ const StepStrategy = ({ data, updateData, onNext, onPrev }: StepStrategyProps) =
         </div>
       </div>
 
-      {/* Part 2: Duration */}
-      <div className="max-w-3xl mx-auto space-y-4">
-        <h3 className="text-xl font-semibold text-foreground text-center">
-          כמה זמן רצים?
-        </h3>
-
-        <Card className="border-2 border-border">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-              {/* Start Date */}
-              <div className="space-y-2 text-center">
-                <label className="text-sm text-muted-foreground">מתחילים</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        'w-[180px] justify-start text-right font-normal',
-                        !strategy.startDate && 'text-muted-foreground'
-                      )}
-                    >
-                      <CalendarIcon className="ml-2 h-4 w-4" />
-                      {strategy.startDate ? (
-                        format(strategy.startDate, 'dd/MM/yyyy', { locale: he })
-                      ) : (
-                        <span>בחר תאריך</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={strategy.startDate || undefined}
-                      onSelect={(date) => updateStrategy({ startDate: date || null })}
-                      initialFocus
-                      className="pointer-events-auto"
-                      disabled={(date) => date < new Date()}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <span className="text-2xl text-muted-foreground">→</span>
-
-              {/* End Date */}
-              <div className="space-y-2 text-center">
-                <label className="text-sm text-muted-foreground">מסיימים</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        'w-[180px] justify-start text-right font-normal',
-                        !strategy.endDate && 'text-muted-foreground'
-                      )}
-                    >
-                      <CalendarIcon className="ml-2 h-4 w-4" />
-                      {strategy.endDate ? (
-                        format(strategy.endDate, 'dd/MM/yyyy', { locale: he })
-                      ) : (
-                        <span>בחר תאריך</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={strategy.endDate || undefined}
-                      onSelect={(date) => updateStrategy({ endDate: date || null })}
-                      initialFocus
-                      className="pointer-events-auto"
-                      disabled={(date) => 
-                        date < new Date() || 
-                        (strategy.startDate ? date < strategy.startDate : false)
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            {/* Duration Display */}
-            {getDurationText() && (
-              <div className="mt-4 text-center">
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">
-                  <CalendarIcon className="w-4 h-4" />
-                  {getDurationText()}
-                </span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Part 3: Structure */}
+      {/* Part 2: Structure */}
       <div className="max-w-3xl mx-auto space-y-4">
         <h3 className="text-xl font-semibold text-foreground text-center">
           ומה התוכנית האומנותית?
