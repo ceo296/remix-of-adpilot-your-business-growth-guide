@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      branding_orders: {
+        Row: {
+          audience: string | null
+          created_at: string
+          design_preferences: string | null
+          differentiator: string | null
+          essence: string | null
+          id: string
+          package_price: number | null
+          package_type: string | null
+          payment_status: string | null
+          persona: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          vision: string | null
+        }
+        Insert: {
+          audience?: string | null
+          created_at?: string
+          design_preferences?: string | null
+          differentiator?: string | null
+          essence?: string | null
+          id?: string
+          package_price?: number | null
+          package_type?: string | null
+          payment_status?: string | null
+          persona?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          vision?: string | null
+        }
+        Update: {
+          audience?: string | null
+          created_at?: string
+          design_preferences?: string | null
+          differentiator?: string | null
+          essence?: string | null
+          id?: string
+          package_price?: number | null
+          package_type?: string | null
+          payment_status?: string | null
+          persona?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vision?: string | null
+        }
+        Relationships: []
+      }
       campaigns: {
         Row: {
           client_profile_id: string
