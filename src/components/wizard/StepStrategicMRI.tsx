@@ -130,7 +130,9 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
     updateMRI({ competitorPositions: newPositions });
   };
 
-  const isValid = mri.xFactors.length > 0 && mri.targetAudience !== null;
+  const hasValidXFactors = mri.xFactors.length > 0 || (isOtherSelected && otherXFactor.trim().length > 0);
+  const otherNeedsText = isOtherSelected && otherXFactor.trim().length === 0;
+  const isValid = hasValidXFactors && !otherNeedsText && mri.targetAudience !== null;
 
   return (
     <div className="space-y-8">
@@ -199,15 +201,17 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 onClick={toggleOtherXFactor}
                 className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                   isOtherSelected
-                    ? 'border-primary/50 bg-primary/5'
+                    ? otherNeedsText
+                      ? 'border-destructive bg-destructive/5'
+                      : 'border-primary/50 bg-primary/5'
                     : 'border-border bg-card hover:border-primary/30'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    isOtherSelected ? 'bg-primary/20' : 'bg-muted'
+                    isOtherSelected ? (otherNeedsText ? 'bg-destructive/20' : 'bg-primary/20') : 'bg-muted'
                   }`}>
-                    <Edit3 className={`w-5 h-5 ${isOtherSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <Edit3 className={`w-5 h-5 ${isOtherSelected ? (otherNeedsText ? 'text-destructive' : 'text-primary') : 'text-muted-foreground'}`} />
                   </div>
                   <div className="flex-1 mt-1">
                     <p className="font-medium text-foreground">אחר</p>
@@ -220,8 +224,11 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                       value={otherXFactor}
                       onChange={(e) => handleOtherXFactorChange(e.target.value)}
                       placeholder="תאר את הגורם המבדל הייחודי שלך..."
-                      className="min-h-[60px] text-sm"
+                      className={`min-h-[60px] text-sm ${otherNeedsText ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
+                    {otherNeedsText && (
+                      <p className="text-xs text-destructive mt-1">יש למלא את השדה</p>
+                    )}
                   </div>
                 )}
               </div>
