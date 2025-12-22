@@ -43,26 +43,26 @@ interface BudgetAudienceStepProps {
 }
 
 const STREAMS = [
-  { id: 'litvish', label: 'ליטאי', emoji: '📚' },
+  { id: 'general', label: 'כללי', emoji: '🕎' },
+  { id: 'litvish', label: 'ליטאי', emoji: '📖' },
   { id: 'hasidic', label: 'חסידי', emoji: '🎩' },
-  { id: 'sephardi', label: 'ספרדי', emoji: '🌴' },
-  { id: 'general', label: 'כללי', emoji: '🌐' },
+  { id: 'sephardi', label: 'ספרדי', emoji: '🕌' },
 ];
 
 const GENDERS = [
-  { id: 'men', label: 'גברים', emoji: '👔' },
-  { id: 'women', label: 'נשים', emoji: '👗' },
+  { id: 'men', label: 'גברים', emoji: '🧔' },
+  { id: 'women', label: 'נשים', emoji: '👒' },
   { id: 'family', label: 'משפחה', emoji: '👨‍👩‍👧‍👦' },
 ];
 
 const CITIES = [
+  { id: 'nationwide', label: 'ארצי', primary: true },
   { id: 'bnei-brak', label: 'בני ברק' },
   { id: 'jerusalem', label: 'ירושלים' },
   { id: 'ashdod', label: 'אשדוד' },
   { id: 'bet-shemesh', label: 'בית שמש' },
   { id: 'modiin-illit', label: 'מודיעין עילית' },
   { id: 'elad', label: 'אלעד' },
-  { id: 'nationwide', label: 'ארצי' },
 ];
 
 export const BudgetAudienceStep = ({
@@ -303,7 +303,9 @@ export const BudgetAudienceStep = ({
                   className={`px-4 py-2 rounded-full border transition-all text-sm ${
                     targetCity === city.id
                       ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border hover:border-primary/50'
+                      : 'primary' in city && city.primary
+                        ? 'border-primary bg-primary/10 hover:bg-primary/20 font-medium'
+                        : 'border-border hover:border-primary/50'
                   }`}
                 >
                   {city.label}
