@@ -17,20 +17,26 @@ import {
   Settings, 
   HelpCircle,
   Rocket,
-  LogOut
+  LogOut,
+  Building2,
+  Users
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-
-const menuItems = [
-  { title: 'לוח בקרה', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'קמפיין חדש', url: '/new-campaign', icon: Megaphone },
-  { title: 'סטודיו יצירתי', url: '/studio', icon: Rocket },
-  { title: 'פרופיל', url: '/profile', icon: Settings },
-];
+import { useAgencyClients } from '@/hooks/useAgencyClients';
+import ClientSelector from './ClientSelector';
 
 const AppSidebar = () => {
   const location = useLocation();
+  const { isAgency } = useAgencyClients();
   const isActive = (path: string) => location.pathname === path;
+
+  const menuItems = [
+    { title: 'לוח בקרה', url: '/dashboard', icon: LayoutDashboard },
+    { title: 'קמפיין חדש', url: '/new-campaign', icon: Megaphone },
+    { title: 'סטודיו יצירתי', url: '/studio', icon: Rocket },
+    ...(isAgency ? [{ title: 'ניהול לקוחות', url: '/clients', icon: Users }] : []),
+    { title: 'פרופיל', url: '/profile', icon: Settings },
+  ];
 
   return (
     <Sidebar className="border-l border-border">
@@ -42,6 +48,13 @@ const AppSidebar = () => {
           </span>
           <span className="text-xs text-muted-foreground">| בס״ד</span>
         </div>
+        
+        {/* Client Selector for Agencies */}
+        {isAgency && (
+          <div className="mt-3">
+            <ClientSelector />
+          </div>
+        )}
       </SidebarHeader>
 
       <SidebarContent className="p-3">

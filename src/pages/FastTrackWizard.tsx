@@ -2,12 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
+import { useAgencyClients } from '@/hooks/useAgencyClients';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   Rocket, 
   ArrowLeft, 
@@ -17,7 +25,8 @@ import {
   Zap, 
   Sparkles, 
   Heart,
-  Wand2
+  Wand2,
+  Building2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -49,6 +58,7 @@ const FastTrackWizard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useClientProfile();
+  const { isAgency, clients, selectedClient, selectedClientId, setSelectedClientId, loading: agencyLoading } = useAgencyClients();
   
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,9 +78,12 @@ const FastTrackWizard = () => {
 
   const TOTAL_STEPS = 3;
 
+  // The active client profile (for agencies: selected client, for regular users: their own profile)
+  const activeProfile = isAgency ? selectedClient : profile;
+
   // Wait for auth/profile to load before redirecting
   useEffect(() => {
-    if (authLoading || profileLoading) return;
+    if (authLoading || profileLoading || agencyLoading) return;
 
     if (!user) {
       navigate('/auth', { replace: true });
@@ -80,9 +93,9 @@ const FastTrackWizard = () => {
     if (profile && !profile.onboarding_completed) {
       navigate('/onboarding', { replace: true });
     }
-  }, [authLoading, profileLoading, user, profile, navigate]);
+  }, [authLoading, profileLoading, agencyLoading, user, profile, navigate]);
 
-  if (authLoading || profileLoading || !user || !profile?.onboarding_completed) {
+  if (authLoading || profileLoading || agencyLoading || !user || !profile?.onboarding_completed) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">טוען...</div>
@@ -103,16 +116,16 @@ const FastTrackWizard = () => {
   };
 
   const handleSubmit = async () => {
-    if (!profile || !selectedPackage) return;
+    if (!activeProfile || !selectedPackage) return;
 
     setIsSubmitting(true);
     try {
       const { error } = await supabase.from('campaigns').insert({
-        client_profile_id: profile.id,
+        client_profile_id: activeProfile.id,
         user_id: user.id,
         name: campaignName || `קמפיין ${format(new Date(), 'dd/MM/yyyy')}`,
         goal,
-        vibe: profile.advantage_type || 'default',
+        vibe: activeProfile.advantage_type || 'default',
         start_date: startDate?.toISOString().split('T')[0],
         end_date: endDate?.toISOString().split('T')[0],
         selected_media: selectedPackage.items.map(item => ({ id: item.id, name: item.name, price: item.price })),
@@ -158,11 +171,31 @@ const FastTrackWizard = () => {
             </div>
             <div>
               <span className="text-xl font-bold text-foreground">קמפיין חדש</span>
-              <span className="text-sm text-muted-foreground mr-2">| {profile?.business_name}</span>
+              <span className="text-sm text-muted-foreground mr-2">| {activeProfile?.business_name}</span>
             </div>
           </div>
-          <div className="text-sm text-muted-foreground">
-            שלב {step} מתוך {TOTAL_STEPS}
+          <div className="flex items-center gap-4">
+            {/* Client selector for agencies */}
+            {isAgency && clients.length > 0 && (
+              <Select value={selectedClientId || ''} onValueChange={setSelectedClientId}>
+                <SelectTrigger className="w-[180px]">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <SelectValue placeholder="בחר לקוח" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.business_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <div className="text-sm text-muted-foreground">
+              שלב {step} מתוך {TOTAL_STEPS}
+            </div>
           </div>
         </div>
       </header>
@@ -318,7 +351,7 @@ const FastTrackWizard = () => {
                   <CardTitle className="text-primary">סיכום הקמפיין</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  <p><span className="text-muted-foreground">עסק:</span> {profile?.business_name}</p>
+                  <p><span className="text-muted-foreground">עסק:</span> {activeProfile?.business_name}</p>
                   <p><span className="text-muted-foreground">מטרה:</span> {CAMPAIGN_GOALS.find(g => g.id === goal)?.label}</p>
                   {startDate && <p><span className="text-muted-foreground">תאריכים:</span> {format(startDate, 'dd/MM/yyyy')} {endDate && `- ${format(endDate, 'dd/MM/yyyy')}`}</p>}
                   <p><span className="text-muted-foreground">תקציב:</span> ₪{budget.toLocaleString()}</p>
