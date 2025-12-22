@@ -3,7 +3,8 @@ import { WizardData } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Briefcase, Award } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,6 +17,42 @@ interface StepBrandPassportProps {
 
 const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPassportProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editMode, setEditMode] = useState<'fonts' | 'business' | null>(null);
+  
+  // Editable local state
+  const [editedFonts, setEditedFonts] = useState({
+    headerFont: data.brand.headerFont,
+    bodyFont: data.brand.bodyFont,
+  });
+  const [editedBusiness, setEditedBusiness] = useState({
+    industry: data.websiteInsights?.industry || '',
+    seniority: data.websiteInsights?.seniority || '',
+    audience: data.websiteInsights?.audience || '',
+    coreOffering: data.websiteInsights?.coreOffering || '',
+  });
+
+  const handleSaveFonts = () => {
+    updateData({
+      brand: {
+        ...data.brand,
+        headerFont: editedFonts.headerFont,
+        bodyFont: editedFonts.bodyFont,
+      }
+    });
+    setEditMode(null);
+    toast.success('הפונטים עודכנו');
+  };
+
+  const handleSaveBusiness = () => {
+    updateData({
+      websiteInsights: {
+        ...data.websiteInsights,
+        ...editedBusiness,
+      }
+    });
+    setEditMode(null);
+    toast.success('פרטי העסק עודכנו');
+  };
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
@@ -152,62 +189,152 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
 
               {/* Fonts */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-foreground flex items-center gap-2">
-                  <Type className="w-4 h-4 text-primary" />
-                  טיפוגרפיה
+                <h4 className="font-semibold text-foreground flex items-center gap-2 justify-between">
+                  <span className="flex items-center gap-2">
+                    <Type className="w-4 h-4 text-primary" />
+                    טיפוגרפיה
+                  </span>
+                  {editMode === 'fonts' ? (
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode(null)}>
+                        <X className="w-3 h-3" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-600" onClick={handleSaveFonts}>
+                        <Check className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode('fonts')}>
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                  )}
                 </h4>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/50">
-                    <span className="text-sm text-muted-foreground">כותרות</span>
-                    <span className="font-medium">{data.brand.headerFont}</span>
+                {editMode === 'fonts' ? (
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">פונט כותרות</label>
+                      <Input
+                        value={editedFonts.headerFont}
+                        onChange={(e) => setEditedFonts(prev => ({ ...prev, headerFont: e.target.value }))}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">פונט טקסט</label>
+                      <Input
+                        value={editedFonts.bodyFont}
+                        onChange={(e) => setEditedFonts(prev => ({ ...prev, bodyFont: e.target.value }))}
+                        className="h-8 text-sm"
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/50">
-                    <span className="text-sm text-muted-foreground">טקסט</span>
-                    <span className="font-medium">{data.brand.bodyFont}</span>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/50">
+                      <span className="text-sm text-muted-foreground">כותרות</span>
+                      <span className="font-medium">{data.brand.headerFont}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/50">
+                      <span className="text-sm text-muted-foreground">טקסט</span>
+                      <span className="font-medium">{data.brand.bodyFont}</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
             {/* Business Insights Section */}
             {websiteInsights && (
               <div className="pt-4 border-t border-border space-y-4">
-                <h4 className="font-semibold text-foreground flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-primary" />
-                  אודות העסק
+                <h4 className="font-semibold text-foreground flex items-center gap-2 justify-between">
+                  <span className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-primary" />
+                    אודות העסק
+                  </span>
+                  {editMode === 'business' ? (
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode(null)}>
+                        <X className="w-3 h-3" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-600" onClick={handleSaveBusiness}>
+                        <Check className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode('business')}>
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                  )}
                 </h4>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {websiteInsights.industry && (
-                    <div className="p-3 rounded-lg bg-secondary/50">
-                      <p className="text-xs text-muted-foreground mb-1">תחום פעילות</p>
-                      <p className="font-medium text-sm">{websiteInsights.industry}</p>
+                {editMode === 'business' ? (
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">תחום פעילות</label>
+                      <Input
+                        value={editedBusiness.industry}
+                        onChange={(e) => setEditedBusiness(prev => ({ ...prev, industry: e.target.value }))}
+                        className="h-8 text-sm"
+                      />
                     </div>
-                  )}
-                  {websiteInsights.seniority && (
-                    <div className="p-3 rounded-lg bg-secondary/50">
-                      <p className="text-xs text-muted-foreground mb-1">ותק בשוק</p>
-                      <p className="font-medium text-sm">{websiteInsights.seniority}</p>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">ותק בשוק</label>
+                      <Input
+                        value={editedBusiness.seniority}
+                        onChange={(e) => setEditedBusiness(prev => ({ ...prev, seniority: e.target.value }))}
+                        className="h-8 text-sm"
+                      />
                     </div>
-                  )}
-                  {websiteInsights.audience && (
-                    <div className="p-3 rounded-lg bg-secondary/50">
-                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        קהל יעד
-                      </p>
-                      <p className="font-medium text-sm">{websiteInsights.audience}</p>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">קהל יעד</label>
+                      <Input
+                        value={editedBusiness.audience}
+                        onChange={(e) => setEditedBusiness(prev => ({ ...prev, audience: e.target.value }))}
+                        className="h-8 text-sm"
+                      />
                     </div>
-                  )}
-                  {websiteInsights.coreOffering && (
-                    <div className="p-3 rounded-lg bg-secondary/50">
-                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                        <Award className="w-3 h-3" />
-                        הצעת הערך
-                      </p>
-                      <p className="font-medium text-sm">{websiteInsights.coreOffering}</p>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">הצעת הערך</label>
+                      <Input
+                        value={editedBusiness.coreOffering}
+                        onChange={(e) => setEditedBusiness(prev => ({ ...prev, coreOffering: e.target.value }))}
+                        className="h-8 text-sm"
+                      />
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {websiteInsights.industry && (
+                      <div className="p-3 rounded-lg bg-secondary/50">
+                        <p className="text-xs text-muted-foreground mb-1">תחום פעילות</p>
+                        <p className="font-medium text-sm">{websiteInsights.industry}</p>
+                      </div>
+                    )}
+                    {websiteInsights.seniority && (
+                      <div className="p-3 rounded-lg bg-secondary/50">
+                        <p className="text-xs text-muted-foreground mb-1">ותק בשוק</p>
+                        <p className="font-medium text-sm">{websiteInsights.seniority}</p>
+                      </div>
+                    )}
+                    {websiteInsights.audience && (
+                      <div className="p-3 rounded-lg bg-secondary/50">
+                        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          קהל יעד
+                        </p>
+                        <p className="font-medium text-sm">{websiteInsights.audience}</p>
+                      </div>
+                    )}
+                    {websiteInsights.coreOffering && (
+                      <div className="p-3 rounded-lg bg-secondary/50">
+                        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                          <Award className="w-3 h-3" />
+                          הצעת הערך
+                        </p>
+                        <p className="font-medium text-sm">{websiteInsights.coreOffering}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
