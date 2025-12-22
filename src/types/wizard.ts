@@ -89,6 +89,9 @@ export interface WebsiteInsights {
 }
 
 export interface WizardData {
+  // Step 0: Welcome
+  userName: string;
+  
   // Step 1: Magic Link
   websiteUrl: string;
   isScanning: boolean;
@@ -113,6 +116,7 @@ export interface WizardData {
 }
 
 export const initialWizardData: WizardData = {
+  userName: '',
   websiteUrl: '',
   isScanning: false,
   websiteInsights: {
