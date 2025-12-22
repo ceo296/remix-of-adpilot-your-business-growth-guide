@@ -12,6 +12,7 @@ import CreativeStudio from "./pages/CreativeStudio";
 import SectorBrain from "./pages/SectorBrain";
 import ClientProfile from "./pages/ClientProfile";
 import FastTrackWizard from "./pages/FastTrackWizard";
+import AgencyClients from "./pages/AgencyClients";
 import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/brain" element={<SectorBrain />} />
             <Route path="/profile" element={<ClientProfile />} />
             <Route path="/new-campaign" element={<FastTrackWizard />} />
+            <Route path="/clients" element={<AgencyClients />} />
             <Route path="/admin-auth" element={<AdminAuth />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
