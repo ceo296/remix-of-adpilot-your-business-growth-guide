@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { WizardData, initialWizardData } from '@/types/wizard';
 import WizardProgress from '@/components/wizard/WizardProgress';
 import StepWelcome from '@/components/wizard/StepWelcome';
@@ -9,8 +10,10 @@ import StepBrandIdentity from '@/components/wizard/StepBrandIdentity';
 import StepPastMaterials from '@/components/wizard/StepPastMaterials';
 import StepStrategy from '@/components/wizard/StepStrategy';
 import StepBrandPassport from '@/components/wizard/StepBrandPassport';
-import { Rocket } from 'lucide-react';
+import { Rocket, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const TOTAL_STEPS = 8;
 
@@ -26,8 +29,18 @@ const stepTitles = [
 ];
 
 const OnboardingWizard = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth?redirect=/onboarding');
+    }
+  }, [user, authLoading, navigate]);
 
   const updateData = (data: Partial<WizardData>) => {
     setWizardData((prev) => ({ ...prev, ...data }));
@@ -61,10 +74,114 @@ const OnboardingWizard = () => {
     nextStep();
   };
 
-  const handleComplete = () => {
-    toast.success('בשעה טובה! המותג והקמפיין מוכנים');
-    window.location.href = '/dashboard';
+  const handleComplete = async () => {
+    if (!user) {
+      toast.error('נא להתחבר כדי לשמור את הנתונים');
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      // Update profile with user name
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          full_name: wizardData.userName,
+        })
+        .eq('id', user.id);
+
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        throw profileError;
+      }
+
+      // Check if client profile exists
+      const { data: existingProfile } = await supabase
+        .from('client_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existingProfile) {
+        // Update existing client profile
+        const { error: clientError } = await supabase
+          .from('client_profiles')
+          .update({
+            business_name: wizardData.brand.name,
+            website_url: wizardData.websiteUrl || null,
+            primary_color: wizardData.brand.colors.primary,
+            secondary_color: wizardData.brand.colors.secondary,
+            background_color: wizardData.brand.colors.background,
+            header_font: wizardData.brand.headerFont,
+            body_font: wizardData.brand.bodyFont,
+            x_factors: wizardData.strategicMRI.xFactors,
+            primary_x_factor: wizardData.strategicMRI.primaryXFactor,
+            advantage_type: wizardData.strategicMRI.advantageType,
+            advantage_slider: wizardData.strategicMRI.advantageSlider,
+            winning_feature: wizardData.strategicMRI.winningFeature,
+            competitors: wizardData.strategicMRI.competitors,
+            my_position_x: wizardData.strategicMRI.myPosition.x,
+            my_position_y: wizardData.strategicMRI.myPosition.y,
+            competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
+            target_audience: wizardData.strategicMRI.targetAudience,
+            onboarding_completed: true,
+          })
+          .eq('user_id', user.id);
+
+        if (clientError) throw clientError;
+      } else {
+        // Create new client profile
+        const { error: clientError } = await supabase
+          .from('client_profiles')
+          .insert([{
+            user_id: user.id,
+            business_name: wizardData.brand.name,
+            website_url: wizardData.websiteUrl || null,
+            primary_color: wizardData.brand.colors.primary,
+            secondary_color: wizardData.brand.colors.secondary,
+            background_color: wizardData.brand.colors.background,
+            header_font: wizardData.brand.headerFont,
+            body_font: wizardData.brand.bodyFont,
+            x_factors: wizardData.strategicMRI.xFactors,
+            primary_x_factor: wizardData.strategicMRI.primaryXFactor,
+            advantage_type: wizardData.strategicMRI.advantageType,
+            advantage_slider: wizardData.strategicMRI.advantageSlider,
+            winning_feature: wizardData.strategicMRI.winningFeature,
+            competitors: wizardData.strategicMRI.competitors,
+            my_position_x: wizardData.strategicMRI.myPosition.x,
+            my_position_y: wizardData.strategicMRI.myPosition.y,
+            competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
+            target_audience: wizardData.strategicMRI.targetAudience,
+            onboarding_completed: true,
+          }]);
+
+        if (clientError) throw clientError;
+      }
+
+      toast.success('בשעה טובה! המותג והקמפיין מוכנים');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error saving onboarding data:', error);
+      toast.error('שגיאה בשמירת הנתונים, נסו שוב');
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!user) {
+    return null;
+  }
 
   const renderStep = () => {
     switch (currentStep) {
