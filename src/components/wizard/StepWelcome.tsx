@@ -1,20 +1,33 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, Heart } from 'lucide-react';
+import { Sparkles, Heart, Upload } from 'lucide-react';
 
 interface StepWelcomeProps {
-  onNext: (userName: string, brandName: string) => void;
+  onNext: (userName: string, brandName: string, logo: string | null) => void;
 }
 
 const StepWelcome = ({ onNext }: StepWelcomeProps) => {
   const [userName, setUserName] = useState('');
   const [brandName, setBrandName] = useState('');
+  const [logo, setLogo] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setLogo(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleContinue = () => {
     if (userName.trim() && brandName.trim()) {
-      onNext(userName.trim(), brandName.trim());
+      onNext(userName.trim(), brandName.trim(), logo);
     }
   };
 
@@ -67,6 +80,45 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
               onChange={(e) => setBrandName(e.target.value)}
               className="text-lg h-14"
             />
+          </div>
+
+          {/* Logo Upload */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              הלוגו שלך (אופציונלי)
+            </label>
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleLogoUpload}
+              className="hidden"
+            />
+            
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full h-24 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group"
+            >
+              {logo ? (
+                <div className="flex items-center gap-4 px-4">
+                  <img 
+                    src={logo} 
+                    alt="Logo" 
+                    className="h-16 w-16 object-contain rounded-lg"
+                  />
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-foreground">הלוגו נטען בהצלחה</p>
+                    <p className="text-xs text-muted-foreground">לחץ להחלפה</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center p-4 group-hover:scale-105 transition-transform">
+                  <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
+                  <span className="text-sm text-muted-foreground">לחץ להעלאת לוגו</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Continue Button */}

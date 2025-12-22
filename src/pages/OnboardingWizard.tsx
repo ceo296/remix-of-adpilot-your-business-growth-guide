@@ -65,13 +65,14 @@ const OnboardingWizard = () => {
     }
   };
 
-  const handleWelcomeComplete = (userName: string, brandName: string) => {
+  const handleWelcomeComplete = (userName: string, brandName: string, logo: string | null) => {
     setWizardData((prev) => ({
       ...prev,
       userName,
       brand: {
         ...prev.brand,
         name: brandName,
+        logo: logo,
       },
     }));
     toast.success(`שלום ${userName}! נעים להכיר`);
