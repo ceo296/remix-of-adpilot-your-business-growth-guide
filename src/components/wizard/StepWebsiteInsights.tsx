@@ -68,6 +68,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
     seniority: data.websiteInsights.seniority || '',
     coreOffering: data.websiteInsights.coreOffering || '',
     audience: data.websiteInsights.audience || '',
+    audienceOther: '',
   });
 
   const handleValueChange = (field: string, value: string) => {
@@ -96,6 +97,13 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
       toast.error('נא לבחור קהל יעד');
       return;
     }
+    if (formValues.audience === 'אחר' && !formValues.audienceOther.trim()) {
+      toast.error('נא לפרט את קהל היעד');
+      return;
+    }
+
+    // Determine the final audience value
+    const finalAudience = formValues.audience === 'אחר' ? formValues.audienceOther : formValues.audience;
 
     // Save insights to wizard data
     updateData({
@@ -107,14 +115,14 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
         industry: formValues.industry,
         seniority: formValues.seniority,
         coreOffering: formValues.coreOffering,
-        audience: formValues.audience,
+        audience: finalAudience,
         confirmed: true,
       },
     });
     onNext();
   };
 
-  const isValid = formValues.businessName.trim() && formValues.industry && formValues.seniority.trim() && formValues.coreOffering.trim() && formValues.audience;
+  const isValid = formValues.businessName.trim() && formValues.industry && formValues.seniority.trim() && formValues.coreOffering.trim() && formValues.audience && (formValues.audience !== 'אחר' || formValues.audienceOther.trim());
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -270,6 +278,14 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
                 ))}
               </SelectContent>
             </Select>
+            {formValues.audience === 'אחר' && (
+              <Input
+                value={formValues.audienceOther}
+                onChange={(e) => handleValueChange('audienceOther', e.target.value)}
+                placeholder="פרטו את קהל היעד"
+                className="mt-2"
+              />
+            )}
           </div>
         </CardContent>
       </Card>
