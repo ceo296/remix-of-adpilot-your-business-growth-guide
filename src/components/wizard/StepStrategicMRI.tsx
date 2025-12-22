@@ -364,26 +364,78 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
             </div>
           )}
 
-          {/* Positioning Map */}
-          <div className="relative bg-muted/30 rounded-xl p-4 border border-border">
-            <p className="text-center text-sm text-muted-foreground mb-4">מפת פוזיציה (גרור את הנקודות)</p>
+          {/* Positioning Map - Modern Design */}
+          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6 border border-border/50 shadow-sm">
+            {/* Header */}
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <GripHorizontal className="w-4 h-4 text-primary" />
+              </div>
+              <div className="text-center">
+                <h4 className="font-semibold text-foreground">מפת הפוזיציה שלך</h4>
+                <p className="text-xs text-muted-foreground">גרור את העיגולים למיקום הנכון</p>
+              </div>
+            </div>
             
-            <div className="relative w-full aspect-square max-w-md mx-auto bg-background rounded-lg border border-border overflow-hidden">
-              {/* Axis Labels */}
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">מודרני / חדשני</div>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">אולד סקול</div>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground writing-mode-vertical">פרימיום</div>
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground writing-mode-vertical">זול</div>
+            {/* Map Container */}
+            <div className="relative w-full aspect-square max-w-sm mx-auto">
+              {/* Background with gradient quadrants */}
+              <div className="absolute inset-0 rounded-2xl overflow-hidden bg-background border-2 border-border/30 shadow-inner">
+                {/* Quadrant backgrounds */}
+                <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-950/20" />
+                <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-bl from-blue-50/50 to-transparent dark:from-blue-950/20" />
+                <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tr from-amber-50/50 to-transparent dark:from-amber-950/20" />
+                <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tl from-rose-50/50 to-transparent dark:from-rose-950/20" />
+                
+                {/* Grid pattern */}
+                <div className="absolute inset-0 opacity-30">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={`h-${i}`} className="absolute w-full h-px bg-border" style={{ top: `${(i + 1) * 16.66}%` }} />
+                  ))}
+                  {[...Array(5)].map((_, i) => (
+                    <div key={`v-${i}`} className="absolute h-full w-px bg-border" style={{ left: `${(i + 1) * 16.66}%` }} />
+                  ))}
+                </div>
+                
+                {/* Center cross - prominent */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-border to-transparent" />
+                  <div className="absolute h-full w-0.5 bg-gradient-to-b from-transparent via-border to-transparent" />
+                </div>
+              </div>
               
-              {/* Grid Lines */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="absolute w-full h-px bg-border" />
-                <div className="absolute h-full w-px bg-border" />
+              {/* Axis Labels - Outside the map */}
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                  <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <span className="text-sm font-medium text-foreground">מודרני / חדשני</span>
+              </div>
+              
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <Trophy className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                </div>
+                <span className="text-sm font-medium text-foreground">אולד סקול / קלאסי</span>
+              </div>
+              
+              <div className="absolute -right-2 top-1/2 -translate-y-1/2 translate-x-full flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Tag className="w-3 h-3 text-primary" />
+                </div>
+                <span className="text-sm font-medium text-foreground">פרימיום</span>
+              </div>
+              
+              <div className="absolute -left-2 top-1/2 -translate-y-1/2 -translate-x-full flex items-center gap-1.5">
+                <span className="text-sm font-medium text-foreground">זול</span>
+                <div className="w-5 h-5 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                  <Tag className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                </div>
               </div>
 
-              {/* My Position */}
+              {/* My Position - Enhanced */}
               <div
-                className="absolute w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold cursor-grab active:cursor-grabbing shadow-lg z-20 transform -translate-x-1/2 -translate-y-1/2"
+                className="absolute w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground text-sm font-bold cursor-grab active:cursor-grabbing shadow-xl shadow-primary/30 z-20 transform -translate-x-1/2 -translate-y-1/2 ring-4 ring-background ring-offset-0 hover:scale-110 transition-transform"
                 style={{
                   left: `${50 + mri.myPosition.x / 2}%`,
                   top: `${50 - mri.myPosition.y / 2}%`,
@@ -402,11 +454,11 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 אני
               </div>
 
-              {/* Competitor Positions */}
+              {/* Competitor Positions - Enhanced */}
               {mri.competitorPositions.map((comp, idx) => (
                 <div
                   key={comp.id}
-                  className="absolute w-10 h-10 rounded-full bg-destructive/80 flex items-center justify-center text-destructive-foreground text-xs font-medium cursor-grab active:cursor-grabbing shadow-md z-10 transform -translate-x-1/2 -translate-y-1/2"
+                  className="absolute w-11 h-11 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 dark:from-slate-400 dark:to-slate-500 flex items-center justify-center text-white dark:text-slate-900 text-xs font-semibold cursor-grab active:cursor-grabbing shadow-lg z-10 transform -translate-x-1/2 -translate-y-1/2 ring-2 ring-background hover:scale-110 transition-transform"
                   style={{
                     left: `${50 + comp.x / 2}%`,
                     top: `${50 - comp.y / 2}%`,
@@ -427,6 +479,22 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 </div>
               ))}
             </div>
+            
+            {/* Legend */}
+            {mri.competitors.length > 0 && (
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                  <div className="w-3 h-3 rounded-full bg-primary" />
+                  <span className="text-xs font-medium text-foreground">אני</span>
+                </div>
+                {mri.competitors.map((comp, idx) => (
+                  <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div className="w-3 h-3 rounded-full bg-slate-600 dark:bg-slate-400" />
+                    <span className="text-xs font-medium text-foreground">{comp}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
