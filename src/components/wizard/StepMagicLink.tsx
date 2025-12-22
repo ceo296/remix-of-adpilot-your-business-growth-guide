@@ -3,7 +3,9 @@ import { WizardData } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft } from 'lucide-react';
+import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft, Wand2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface StepMagicLinkProps {
   data: WizardData;
@@ -15,8 +17,60 @@ type InputMode = null | 'website' | 'manual';
 
 const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
   const [isScanning, setIsScanning] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showSparkles, setShowSparkles] = useState(false);
   const [url, setUrl] = useState(data.websiteUrl);
   const [inputMode, setInputMode] = useState<InputMode>(null);
+
+  const handleAnalyze = async () => {
+    if (!data.brand.name && !url.trim()) {
+      toast.error('נא להזין שם עסק או כתובת אתר');
+      return;
+    }
+    
+    setIsAnalyzing(true);
+    updateData({ websiteUrl: url });
+
+    try {
+      const { data: result, error } = await supabase.functions.invoke('predict-business', {
+        body: { 
+          brandName: data.brand.name,
+          websiteUrl: url.trim() || null
+        }
+      });
+
+      if (error) throw error;
+
+      const predictions = result?.predictions;
+      
+      if (predictions) {
+        // Show sparkles animation
+        setShowSparkles(true);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setShowSparkles(false);
+        
+        // Update wizard data with predictions
+        updateData({
+          websiteUrl: url,
+          isScanning: false,
+          websiteInsights: {
+            industry: predictions.industry || '',
+            seniority: predictions.seniority || '',
+            coreOffering: predictions.coreOffering || '',
+            audience: predictions.audience || '',
+            confirmed: false,
+          },
+        });
+        
+        toast.success('ניתחנו את העסק בהצלחה!');
+        onNext();
+      }
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      toast.error('שגיאה בניתוח, נסו שוב או המשיכו ידנית');
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleScan = async () => {
     if (!url.trim()) return;
@@ -24,20 +78,15 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
     setIsScanning(true);
     updateData({ websiteUrl: url, isScanning: true });
 
-    // Simulate initial scanning
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Keep the brand name from Step 0, just try to enhance with website data
-    updateData({
-      isScanning: false,
-    });
-
+    // Simulate initial scanning then proceed
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Use AI to analyze
+    await handleAnalyze();
     setIsScanning(false);
-    onNext();
   };
 
   const handleManualContinue = () => {
-    // Keep brand name from Step 0, just set empty insights for manual mode
     updateData({
       websiteUrl: '',
       isScanning: false,
@@ -51,6 +100,43 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
     });
     onNext();
   };
+
+  // Sparkles animation overlay
+  if (showSparkles) {
+    return (
+      <div className="space-y-8">
+        <div className="text-center space-y-6">
+          <div className="relative w-32 h-32 mx-auto">
+            {/* Sparkle animations */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Sparkles className="w-16 h-16 text-primary animate-pulse" />
+            </div>
+            {/* Floating sparkles */}
+            <div className="absolute top-0 left-4 animate-bounce delay-100">
+              <Sparkles className="w-6 h-6 text-yellow-400" />
+            </div>
+            <div className="absolute top-4 right-2 animate-bounce delay-200">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <div className="absolute bottom-4 left-2 animate-bounce delay-300">
+              <Sparkles className="w-4 h-4 text-yellow-500" />
+            </div>
+            <div className="absolute bottom-0 right-4 animate-bounce">
+              <Sparkles className="w-5 h-5 text-primary/80" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-2xl font-bold text-foreground animate-pulse">
+              ✨ מנתחים את העסק שלכם ✨
+            </p>
+            <p className="text-muted-foreground">
+              הקסם קורה עכשיו...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Choice Screen
   if (inputMode === null) {
@@ -156,6 +242,29 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
                 </ul>
               </div>
               
+              {/* AI Auto-fill button */}
+              {data.brand.name && (
+                <Button
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing}
+                  size="lg"
+                  variant="outline"
+                  className="w-full border-primary/50 text-primary hover:bg-primary/10"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                      מנתח...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-5 h-5 ml-2" />
+                      נתח את העסק אוטומטית ✨
+                    </>
+                  )}
+                </Button>
+              )}
+              
               <Button
                 onClick={handleManualContinue}
                 size="xl"
@@ -163,7 +272,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
                 className="w-full"
               >
                 <Sparkles className="w-5 h-5 ml-2" />
-                יאללה, בואו נתחיל
+                יאללה, בואו נתחיל ידנית
               </Button>
             </CardContent>
           </Card>
@@ -201,7 +310,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
       {/* URL Input */}
       <Card className="max-w-xl mx-auto border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors">
         <CardContent className="p-8">
-          {!isScanning ? (
+          {!isScanning && !isAnalyzing ? (
             <div className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
@@ -224,12 +333,12 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
                 variant="gradient"
                 className="w-full"
               >
-                <Sparkles className="w-5 h-5 ml-2" />
-                יאללה, תלמדו אותי
+                <Wand2 className="w-5 h-5 ml-2" />
+                נתח את העסק אוטומטית ✨
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">
-                אנחנו נסרוק את האתר ונזהה את הלוגו, הצבעים והסגנון שלכם
+                נשתמש בבינה מלאכותית לזהות את סוג העסק, קהל היעד והמוצרים שלכם
               </p>
             </div>
           ) : (
@@ -242,10 +351,10 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
               </div>
               <div className="space-y-2">
                 <p className="text-xl font-semibold text-foreground">
-                  לומדים את השפה שלכם...
+                  מנתחים את העסק שלכם...
                 </p>
                 <p className="text-muted-foreground animate-pulse">
-                  רק רגע, מעיינים בנתונים...
+                  רק רגע, הקסם קורה...
                 </p>
               </div>
             </div>
@@ -254,7 +363,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
       </Card>
 
       {/* Back Option */}
-      {!isScanning && (
+      {!isScanning && !isAnalyzing && (
         <div className="text-center">
           <button
             onClick={() => setInputMode(null)}
