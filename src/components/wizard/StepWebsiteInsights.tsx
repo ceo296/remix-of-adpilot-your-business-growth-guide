@@ -75,13 +75,25 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
   };
 
   const handleConfirm = () => {
-    // Validate required fields
+    // Validate all required fields
     if (!formValues.businessName.trim()) {
       toast.error('נא להזין שם עסק');
       return;
     }
     if (!formValues.industry) {
       toast.error('נא לבחור תחום עיסוק');
+      return;
+    }
+    if (!formValues.seniority.trim()) {
+      toast.error('נא להזין ותק וניסיון');
+      return;
+    }
+    if (!formValues.coreOffering.trim()) {
+      toast.error('נא להזין את המוצר/שירות המרכזי');
+      return;
+    }
+    if (!formValues.audience) {
+      toast.error('נא לבחור קהל יעד');
       return;
     }
 
@@ -102,7 +114,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
     onNext();
   };
 
-  const isValid = formValues.businessName.trim() && formValues.industry;
+  const isValid = formValues.businessName.trim() && formValues.industry && formValues.seniority.trim() && formValues.coreOffering.trim() && formValues.audience;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -194,12 +206,12 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
           {/* Seniority */}
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
                 <Clock className="h-5 w-5" />
               </div>
               <div className="flex-1">
                 <Label htmlFor="seniority" className="text-sm font-medium">
-                  ותק וניסיון
+                  ותק וניסיון *
                 </Label>
               </div>
             </div>
@@ -212,36 +224,34 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
           </div>
 
           {/* Core Offering */}
-          {formValues.industry !== 'אחר' && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted text-muted-foreground">
-                  <Star className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <Label htmlFor="coreOffering" className="text-sm font-medium">
-                    המוצר/שירות המרכזי
-                  </Label>
-                </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <Star className="h-5 w-5" />
               </div>
-              <Input
-                id="coreOffering"
-                value={formValues.coreOffering}
-                onChange={(e) => handleValueChange('coreOffering', e.target.value)}
-                placeholder="לדוגמה: מערכות ישיבה בהתאמה אישית"
-              />
+              <div className="flex-1">
+                <Label htmlFor="coreOffering" className="text-sm font-medium">
+                  המוצר/שירות המרכזי *
+                </Label>
+              </div>
             </div>
-          )}
+            <Input
+              id="coreOffering"
+              value={formValues.coreOffering}
+              onChange={(e) => handleValueChange('coreOffering', e.target.value)}
+              placeholder="לדוגמה: מערכות ישיבה בהתאמה אישית"
+            />
+          </div>
 
           {/* Audience */}
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
                 <Users className="h-5 w-5" />
               </div>
               <div className="flex-1">
                 <Label htmlFor="audience" className="text-sm font-medium">
-                  קהל היעד
+                  קהל היעד *
                 </Label>
               </div>
             </div>
@@ -266,7 +276,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
 
       {/* Micro-copy */}
       <p className="text-center text-sm text-muted-foreground">
-        * שדות חובה | השאר השדות אופציונליים אך יעזרו לנו להתאים טוב יותר
+        * כל השדות הם שדות חובה
       </p>
 
       {/* Action Buttons */}
