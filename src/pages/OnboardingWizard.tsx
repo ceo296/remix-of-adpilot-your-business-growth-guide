@@ -85,7 +85,10 @@ const OnboardingWizard = () => {
     }
   };
 
-  const handleWelcomeComplete = (userName: string, brandName: string, logo: string | null) => {
+  const [isAgency, setIsAgency] = useState(false);
+
+  const handleWelcomeComplete = (userName: string, brandName: string, logo: string | null, isAgencyUser: boolean) => {
+    setIsAgency(isAgencyUser);
     setWizardData((prev) => ({
       ...prev,
       userName,
@@ -151,6 +154,7 @@ const OnboardingWizard = () => {
             competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
             end_consumer: wizardData.strategicMRI.endConsumer,
             decision_maker: wizardData.strategicMRI.decisionMaker,
+            is_agency_profile: isAgency,
             onboarding_completed: true,
           })
           .eq('user_id', user.id);
@@ -180,6 +184,7 @@ const OnboardingWizard = () => {
             competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
             end_consumer: wizardData.strategicMRI.endConsumer,
             decision_maker: wizardData.strategicMRI.decisionMaker,
+            is_agency_profile: isAgency,
             onboarding_completed: true,
           }]);
 

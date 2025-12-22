@@ -2,17 +2,18 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, Heart, Upload } from 'lucide-react';
+import { Sparkles, Heart, Upload, User, Building2, AlertCircle } from 'lucide-react';
 import { BrandingStudio } from './BrandingStudio';
 
 interface StepWelcomeProps {
-  onNext: (userName: string, brandName: string, logo: string | null) => void;
+  onNext: (userName: string, brandName: string, logo: string | null, isAgency: boolean) => void;
 }
 
 const StepWelcome = ({ onNext }: StepWelcomeProps) => {
   const [userName, setUserName] = useState('');
   const [brandName, setBrandName] = useState('');
   const [logo, setLogo] = useState<string | null>(null);
+  const [isAgency, setIsAgency] = useState<boolean | null>(null);
   const [showBrandingStudio, setShowBrandingStudio] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -28,12 +29,12 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
   };
 
   const handleContinue = () => {
-    if (userName.trim() && brandName.trim()) {
-      onNext(userName.trim(), brandName.trim(), logo);
+    if (userName.trim() && brandName.trim() && logo && isAgency !== null) {
+      onNext(userName.trim(), brandName.trim(), logo, isAgency);
     }
   };
 
-  const isValid = userName.trim() && brandName.trim();
+  const isValid = userName.trim() && brandName.trim() && logo && isAgency !== null;
 
   return (
     <>
@@ -57,6 +58,41 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
         {/* Form */}
         <Card className="max-w-xl mx-auto border-2 border-primary/20">
           <CardContent className="p-8 space-y-6">
+            {/* Account Type */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground">
+                מי אתה?
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAgency(false)}
+                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                    isAgency === false
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <User className="w-6 h-6" />
+                  <span className="font-medium">לקוח פרטי</span>
+                  <span className="text-xs text-muted-foreground">עסק אחד, קמפיינים משלי</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAgency(true)}
+                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                    isAgency === true
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Building2 className="w-6 h-6" />
+                  <span className="font-medium">סוכנות שיווק</span>
+                  <span className="text-xs text-muted-foreground">מנהל כמה לקוחות</span>
+                </button>
+              </div>
+            </div>
+
             {/* User Name */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
@@ -74,11 +110,11 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
             {/* Brand Name */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
-                שם המותג/העסק?
+                {isAgency ? 'שם הסוכנות?' : 'שם המותג/העסק?'}
               </label>
               <Input
                 type="text"
-                placeholder="שם העסק"
+                placeholder={isAgency ? 'שם הסוכנות' : 'שם העסק'}
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
                 className="text-lg h-14"
@@ -87,8 +123,9 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
 
             {/* Logo Upload */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
+              <label className="text-sm font-medium text-foreground flex items-center gap-1">
                 ספר מותג / לוגו
+                <span className="text-destructive">*</span>
               </label>
               
               <input
@@ -101,7 +138,11 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
               
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-24 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group"
+                className={`w-full h-24 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors cursor-pointer group ${
+                  logo 
+                    ? 'border-primary/50 bg-primary/5' 
+                    : 'border-muted-foreground/30 hover:border-primary/50'
+                }`}
               >
                 {logo ? (
                   <div className="flex items-center gap-4 px-4">
@@ -122,6 +163,14 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   </div>
                 )}
               </div>
+
+              {/* No logo warning */}
+              {!logo && (
+                <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 p-2 rounded-lg">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>חובה להעלות לוגו כדי ליצור קמפיינים מותאמים</span>
+                </div>
+              )}
 
               {/* No branding link - opens Branding Studio */}
               <button
@@ -145,6 +194,12 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
               <Sparkles className="w-5 h-5 ml-2" />
               המשך
             </Button>
+
+            {!isValid && (
+              <p className="text-center text-xs text-muted-foreground">
+                יש למלא את כל השדות ולהעלות לוגו כדי להמשיך
+              </p>
+            )}
           </CardContent>
         </Card>
 
