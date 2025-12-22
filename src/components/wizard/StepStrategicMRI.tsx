@@ -179,41 +179,79 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
         </CardContent>
       </Card>
 
-      {/* Section 2: Reality Check */}
-      <Card className="border-border">
-        <CardContent className="p-6 space-y-4">
-          <div>
+      {/* Section 2: Reality Check - Visual Advantage Spectrum */}
+      <Card className="border-border overflow-hidden">
+        <CardContent className="p-6 space-y-6">
+          <div className="text-center">
             <h3 className="text-lg font-semibold text-foreground mb-1">בוא נהיה כנים - איפה היתרון יושב?</h3>
-            <p className="text-sm text-muted-foreground">הזז את הסליידר לפי סוג היתרון שלך</p>
+            <p className="text-sm text-muted-foreground">לחץ על הצד שמתאים יותר לעסק שלך</p>
           </div>
           
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm">
-              <span className="text-foreground font-medium">יתרון פיזי מובהק</span>
-              <span className="text-foreground font-medium">יתרון תדמיתי/רגשי</span>
+          {/* Visual Toggle Cards */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Physical Advantage */}
+            <div
+              onClick={() => updateMRI({ advantageSlider: 20, advantageType: 'hard' })}
+              className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center ${
+                mri.advantageSlider < 50
+                  ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]'
+                  : 'border-border bg-card hover:border-primary/30'
+              }`}
+            >
+              <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-colors ${
+                mri.advantageSlider < 50 ? 'bg-primary/20' : 'bg-muted'
+              }`}>
+                <Package className={`w-8 h-8 ${mri.advantageSlider < 50 ? 'text-primary' : 'text-muted-foreground'}`} />
+              </div>
+              <h4 className="font-bold text-foreground mb-2">יתרון פיזי מובהק</h4>
+              <p className="text-sm text-muted-foreground">טעים יותר, חזק יותר, מהיר יותר</p>
+              <div className="mt-3 flex flex-wrap gap-1 justify-center">
+                <Badge variant="secondary" className="text-xs">איכות</Badge>
+                <Badge variant="secondary" className="text-xs">ביצועים</Badge>
+                <Badge variant="secondary" className="text-xs">עובדות</Badge>
+              </div>
+              {mri.advantageSlider < 50 && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
             </div>
-            
-            <Slider
-              value={[mri.advantageSlider]}
-              onValueChange={([value]) => {
-                updateMRI({
-                  advantageSlider: value,
-                  advantageType: value < 40 ? 'hard' : value > 60 ? 'soft' : null,
-                });
-              }}
-              max={100}
-              step={1}
-              className="w-full"
-            />
-            
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>טעים, חזק, מהיר</span>
-              <span>יוקרה, היימיש, כיף</span>
+
+            {/* Emotional Advantage */}
+            <div
+              onClick={() => updateMRI({ advantageSlider: 80, advantageType: 'soft' })}
+              className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center ${
+                mri.advantageSlider >= 50
+                  ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]'
+                  : 'border-border bg-card hover:border-primary/30'
+              }`}
+            >
+              <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-colors ${
+                mri.advantageSlider >= 50 ? 'bg-primary/20' : 'bg-muted'
+              }`}>
+                <Heart className={`w-8 h-8 ${mri.advantageSlider >= 50 ? 'text-primary' : 'text-muted-foreground'}`} />
+              </div>
+              <h4 className="font-bold text-foreground mb-2">יתרון תדמיתי/רגשי</h4>
+              <p className="text-sm text-muted-foreground">יוקרה, היימיש, סטייל, כיף</p>
+              <div className="mt-3 flex flex-wrap gap-1 justify-center">
+                <Badge variant="secondary" className="text-xs">תחושה</Badge>
+                <Badge variant="secondary" className="text-xs">סיפור</Badge>
+                <Badge variant="secondary" className="text-xs">חוויה</Badge>
+              </div>
+              {mri.advantageSlider >= 50 && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
             </div>
           </div>
 
-          {mri.advantageSlider < 40 && (
-            <div className="animate-fade-in">
+          {mri.advantageSlider < 50 && (
+            <div className="animate-fade-in pt-2">
               <Label htmlFor="winning-feature" className="text-foreground">מה הפיצ׳ר המנצח?</Label>
               <Input
                 id="winning-feature"
