@@ -24,10 +24,7 @@ const X_FACTORS: { id: XFactorType; label: string; description: string; icon: Re
   { id: 'brand', label: 'הבטחה פרסומית', description: 'המוצר דומה, אבל הסיפור שלנו אחר.', icon: Sparkles },
 ];
 
-const TARGET_AUDIENCES: { id: TargetAudienceType; label: string; description: string; icon: React.ElementType }[] = [
-  { id: 'end_user', label: 'הצרכן הסופי', description: 'הבחור ישיבה שקונה את החליפה', icon: User },
-  { id: 'decision_maker', label: 'מקבל ההחלטות', description: 'האמא/האישה שמשלמת', icon: Users },
-];
+// TARGET_AUDIENCES removed - now using free text fields
 
 const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
   const [newCompetitor, setNewCompetitor] = useState('');
