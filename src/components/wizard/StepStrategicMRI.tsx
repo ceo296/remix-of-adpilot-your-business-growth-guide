@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { WizardData, XFactorType, TargetAudienceType, CompetitorPosition } from '@/types/wizard';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, Trophy, Package, Tag, Heart, Sparkles, Users, User, Plus, X, GripHorizontal, Bot } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Trophy, Package, Tag, Heart, Sparkles, Users, User, Plus, X, GripHorizontal, Bot, Edit3 } from 'lucide-react';
 
 interface StepProps {
   data: WizardData;
@@ -31,6 +32,23 @@ const TARGET_AUDIENCES: { id: TargetAudienceType; label: string; description: st
 const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
   const [newCompetitor, setNewCompetitor] = useState('');
   const [botMessage, setBotMessage] = useState<string | null>(null);
+  const [otherXFactor, setOtherXFactor] = useState(data.strategicMRI.otherXFactor || '');
+  const [isOtherSelected, setIsOtherSelected] = useState(!!data.strategicMRI.otherXFactor);
+
+  const toggleOtherXFactor = () => {
+    if (isOtherSelected) {
+      setIsOtherSelected(false);
+      setOtherXFactor('');
+      updateMRI({ otherXFactor: '' });
+    } else {
+      setIsOtherSelected(true);
+    }
+  };
+
+  const handleOtherXFactorChange = (value: string) => {
+    setOtherXFactor(value);
+    updateMRI({ otherXFactor: value });
+  };
 
   const mri = data.strategicMRI;
 
@@ -171,10 +189,42 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                       <p className="font-medium text-foreground">{factor.label}</p>
                       <p className="text-xs text-muted-foreground mt-1">{factor.description}</p>
                     </div>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Other Option */}
+              <div
+                onClick={toggleOtherXFactor}
+                className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                  isOtherSelected
+                    ? 'border-primary/50 bg-primary/5'
+                    : 'border-border bg-card hover:border-primary/30'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    isOtherSelected ? 'bg-primary/20' : 'bg-muted'
+                  }`}>
+                    <Edit3 className={`w-5 h-5 ${isOtherSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
+                  <div className="flex-1 mt-1">
+                    <p className="font-medium text-foreground">אחר</p>
+                    <p className="text-xs text-muted-foreground mt-1">יש לי סיבה ייחודית משלי</p>
                   </div>
                 </div>
-              );
-            })}
+                {isOtherSelected && (
+                  <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                    <Textarea
+                      value={otherXFactor}
+                      onChange={(e) => handleOtherXFactorChange(e.target.value)}
+                      placeholder="תאר את הגורם המבדל הייחודי שלך..."
+                      className="min-h-[60px] text-sm"
+                    />
+                  </div>
+                )}
+              </div>
           </div>
         </CardContent>
       </Card>

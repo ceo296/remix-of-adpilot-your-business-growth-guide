@@ -64,6 +64,7 @@ export interface StrategicMRI {
   // Section 1: The 'Why You?' (X-Factor)
   xFactors: XFactorType[];
   primaryXFactor: XFactorType | null;
+  otherXFactor: string; // Free text for 'Other' option
   
   // Section 2: Reality Check
   advantageType: 'hard' | 'soft' | null; // hard = product, soft = brand
@@ -129,6 +130,7 @@ export const initialWizardData: WizardData = {
   strategicMRI: {
     xFactors: [],
     primaryXFactor: null,
+    otherXFactor: '',
     advantageType: null,
     advantageSlider: 50,
     winningFeature: '',
