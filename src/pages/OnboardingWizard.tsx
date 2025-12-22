@@ -6,7 +6,7 @@ import StepWelcome from '@/components/wizard/StepWelcome';
 import StepMagicLink from '@/components/wizard/StepMagicLink';
 import StepWebsiteInsights from '@/components/wizard/StepWebsiteInsights';
 import StepStrategicMRI from '@/components/wizard/StepStrategicMRI';
-import StepBrandIdentity from '@/components/wizard/StepBrandIdentity';
+
 import StepPastMaterials from '@/components/wizard/StepPastMaterials';
 import StepStrategy from '@/components/wizard/StepStrategy';
 import StepBrandPassport from '@/components/wizard/StepBrandPassport';
@@ -15,16 +15,15 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 7;
 
 const stepTitles = [
   'ברוכים הבאים',
   'הלינק הקסום',
   'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
-  'זהות המותג',
   'חומרי עבר',
-  'תוכנית המשחק',
+  'אסטרטגיית קמפיין',
   'דרכון המותג',
 ];
 
@@ -226,12 +225,10 @@ const OnboardingWizard = () => {
       case 4:
         return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 5:
-        return <StepBrandIdentity data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-      case 6:
         return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-      case 7:
+      case 6:
         return <StepStrategy data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-      case 8:
+      case 7:
         return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
       default:
         return null;
