@@ -4,6 +4,7 @@ import CampaignPulse from '@/components/dashboard/CampaignPulse';
 import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
 import DigitalCorner from '@/components/dashboard/DigitalCorner';
 import ProofGallery from '@/components/dashboard/ProofGallery';
+import OnboardingStatus from '@/components/dashboard/OnboardingStatus';
 import { Button } from '@/components/ui/button';
 import { Plus, Wand2, Brain, Settings } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -56,6 +57,7 @@ const Dashboard = () => {
 
               {/* Digital Corner - Small Widget */}
               <div className="space-y-6">
+                <OnboardingStatus />
                 <DigitalCorner />
                 
                 {/* Quick Actions */}
