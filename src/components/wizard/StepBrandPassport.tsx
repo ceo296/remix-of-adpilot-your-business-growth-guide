@@ -57,7 +57,8 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
         my_position_x: data.strategicMRI.myPosition.x,
         my_position_y: data.strategicMRI.myPosition.y,
         competitor_positions: competitorPositions,
-        target_audience: data.strategicMRI.targetAudience,
+        end_consumer: data.strategicMRI.endConsumer || null,
+        decision_maker: data.strategicMRI.decisionMaker || null,
         onboarding_completed: true,
       }, {
         onConflict: 'user_id',

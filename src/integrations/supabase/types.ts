@@ -81,6 +81,8 @@ export type Database = {
           competitor_positions: Json | null
           competitors: string[] | null
           created_at: string
+          decision_maker: string | null
+          end_consumer: string | null
           header_font: string | null
           id: string
           is_agency_profile: boolean | null
@@ -109,6 +111,8 @@ export type Database = {
           competitor_positions?: Json | null
           competitors?: string[] | null
           created_at?: string
+          decision_maker?: string | null
+          end_consumer?: string | null
           header_font?: string | null
           id?: string
           is_agency_profile?: boolean | null
@@ -137,6 +141,8 @@ export type Database = {
           competitor_positions?: Json | null
           competitors?: string[] | null
           created_at?: string
+          decision_maker?: string | null
+          end_consumer?: string | null
           header_font?: string | null
           id?: string
           is_agency_profile?: boolean | null
