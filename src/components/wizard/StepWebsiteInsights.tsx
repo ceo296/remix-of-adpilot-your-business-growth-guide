@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { WizardData } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Check, Building2, Clock, Star, Users, Loader2, AlertCircle } from 'lucide-react';
+import { Check, Building2, Clock, Star, Users, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Select,
@@ -31,14 +31,6 @@ interface InsightField {
   type: 'text' | 'select';
   options?: string[];
 }
-
-const LOADING_MESSAGES = [
-  'סורק מוצרים...',
-  'קורא את האודות...',
-  'מנתח שפה ומסרים...',
-  'מזהה קהל יעד...',
-  'מסכם תובנות...',
-];
 
 const INDUSTRY_OPTIONS = [
   'ריהוט לבית ולמשרד',
@@ -67,11 +59,9 @@ const AUDIENCE_OPTIONS = [
 
 const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteInsightsProps) => {
   const isManualMode = !data.websiteUrl;
-  const [isLoading, setIsLoading] = useState(!isManualMode);
-  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const [scrapeFailed, setScrapeFailed] = useState(false);
+  const hasAIPredictions = !!(data.websiteInsights.industry || data.websiteInsights.audience);
   
-  // Form values - start empty for manual mode
+  // Form values - start with existing data (from AI predictions or previous input)
   const [formValues, setFormValues] = useState({
     businessName: data.brand.name || '',
     industry: data.websiteInsights.industry || '',
@@ -79,37 +69,6 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
     coreOffering: data.websiteInsights.coreOffering || '',
     audience: data.websiteInsights.audience || '',
   });
-
-  // Simulate loading with animated messages (only for website mode)
-  useEffect(() => {
-    if (isLoading && !isManualMode) {
-      const interval = setInterval(() => {
-        setLoadingMessageIndex((prev) => {
-          if (prev >= LOADING_MESSAGES.length - 1) {
-            clearInterval(interval);
-            // After all messages, "attempt" to scrape
-            setTimeout(() => {
-              // Simulate scrape failure - leave fields empty
-              setScrapeFailed(true);
-              setFormValues({
-                businessName: data.brand.name || '',
-                industry: '',
-                seniority: '',
-                coreOffering: '',
-                audience: '',
-              });
-              setIsLoading(false);
-              toast.warning('לא הצלחנו לקרוא הכל, אנא השלימו את הפרטים החסרים');
-            }, 500);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 800);
-
-      return () => clearInterval(interval);
-    }
-  }, [isLoading, isManualMode, data.brand.name]);
 
   const handleValueChange = (field: string, value: string) => {
     setFormValues(prev => ({ ...prev, [field]: value }));
@@ -145,44 +104,6 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
 
   const isValid = formValues.businessName.trim() && formValues.industry;
 
-  if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <div className="text-center space-y-4">
-          <div className="relative w-24 h-24 mx-auto">
-            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-            <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
-              <Loader2 className="w-12 h-12 text-primary animate-spin" />
-            </div>
-          </div>
-          <div className="space-y-3">
-            <p className="text-xl font-semibold text-foreground">
-              לומדים את העסק שלכם...
-            </p>
-            <div className="flex flex-col items-center gap-2">
-              {LOADING_MESSAGES.map((msg, idx) => (
-                <p 
-                  key={msg}
-                  className={`text-sm transition-all duration-300 ${
-                    idx === loadingMessageIndex 
-                      ? 'text-primary font-medium' 
-                      : idx < loadingMessageIndex 
-                        ? 'text-success' 
-                        : 'text-muted-foreground'
-                  }`}
-                >
-                  {idx < loadingMessageIndex && '✓ '}
-                  {idx === loadingMessageIndex && '⏳ '}
-                  {msg}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -190,20 +111,20 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
         <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
           {isManualMode ? (
             <Building2 className="w-10 h-10 text-primary" />
-          ) : scrapeFailed ? (
-            <AlertCircle className="w-10 h-10 text-warning" />
+          ) : hasAIPredictions ? (
+            <Sparkles className="w-10 h-10 text-primary" />
           ) : (
             <Check className="w-10 h-10 text-success" />
           )}
         </div>
         <h2 className="text-3xl font-bold text-foreground">
-          {isManualMode ? 'ספרו לנו על העסק' : 'השלימו את הפרטים'}
+          {isManualMode ? 'ספרו לנו על העסק' : hasAIPredictions ? 'זיהינו את העסק! ✨' : 'השלימו את הפרטים'}
         </h2>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
           {isManualMode 
             ? 'מלאו את הפרטים כדי שנוכל להתאים לכם את הקמפיין' 
-            : scrapeFailed 
-              ? 'לא הצלחנו לאסוף את כל המידע - אנא השלימו'
+            : hasAIPredictions 
+              ? 'בדקו שהפרטים נכונים - אפשר לערוך אם משהו לא מדויק'
               : 'אם משהו לא מדויק - אפשר לערוך'
           }
         </p>
