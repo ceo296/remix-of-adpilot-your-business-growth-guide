@@ -3,10 +3,8 @@ import { WizardData } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, CalendarDays, Layers, Zap, Anchor, Loader2 } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Briefcase, Award } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
-import { he } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 
 interface StepBrandPassportProps {
@@ -77,19 +75,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
     }
   };
 
-  const { strategy } = data;
-
-  const getDurationText = () => {
-    if (!strategy.startDate || !strategy.endDate) return null;
-    const days = differenceInDays(strategy.endDate, strategy.startDate);
-    if (days === 0) return 'יום אחד';
-    if (days === 1) return 'יומיים';
-    if (days < 7) return `${days + 1} ימים`;
-    if (days < 14) return 'שבוע וקצת';
-    if (days < 21) return 'שבועיים וקצת';
-    if (days < 30) return 'כשלושה שבועות';
-    return 'חודש ומעלה';
-  };
+  const { strategy, websiteInsights } = data;
 
   return (
     <div className="space-y-8">
@@ -183,6 +169,48 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
               </div>
             </div>
 
+            {/* Business Insights Section */}
+            {websiteInsights && (
+              <div className="pt-4 border-t border-border space-y-4">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-primary" />
+                  אודות העסק
+                </h4>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {websiteInsights.industry && (
+                    <div className="p-3 rounded-lg bg-secondary/50">
+                      <p className="text-xs text-muted-foreground mb-1">תחום פעילות</p>
+                      <p className="font-medium text-sm">{websiteInsights.industry}</p>
+                    </div>
+                  )}
+                  {websiteInsights.seniority && (
+                    <div className="p-3 rounded-lg bg-secondary/50">
+                      <p className="text-xs text-muted-foreground mb-1">ותק בשוק</p>
+                      <p className="font-medium text-sm">{websiteInsights.seniority}</p>
+                    </div>
+                  )}
+                  {websiteInsights.audience && (
+                    <div className="p-3 rounded-lg bg-secondary/50">
+                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        קהל יעד
+                      </p>
+                      <p className="font-medium text-sm">{websiteInsights.audience}</p>
+                    </div>
+                  )}
+                  {websiteInsights.coreOffering && (
+                    <div className="p-3 rounded-lg bg-secondary/50">
+                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <Award className="w-3 h-3" />
+                        הצעת הערך
+                      </p>
+                      <p className="font-medium text-sm">{websiteInsights.coreOffering}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Campaign Strategy Section */}
             <div className="pt-4 border-t border-border space-y-4">
               <h4 className="font-semibold text-foreground flex items-center gap-2">
@@ -190,7 +218,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                 תוכנית הקמפיין
               </h4>
               
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 {/* Design Direction */}
                 <div className="p-3 rounded-lg bg-secondary/50 text-center">
                   <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center mb-2">
@@ -204,20 +232,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                   <p className="font-medium text-sm">
                     {strategy.designDirection === 'consistent' ? 'הקו המוכר' : 'רענון'}
                   </p>
-                </div>
-
-                {/* Duration */}
-                <div className="p-3 rounded-lg bg-secondary/50 text-center">
-                  <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                    <CalendarDays className="w-5 h-5 text-primary" />
-                  </div>
-                  <p className="text-xs text-muted-foreground">משך הקמפיין</p>
-                  <p className="font-medium text-sm">{getDurationText() || '-'}</p>
-                  {strategy.startDate && strategy.endDate && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {format(strategy.startDate, 'dd/MM', { locale: he })} - {format(strategy.endDate, 'dd/MM', { locale: he })}
-                    </p>
-                  )}
                 </div>
 
                 {/* Structure */}
