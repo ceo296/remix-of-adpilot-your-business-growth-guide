@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
   Plus, 
   Upload, 
@@ -9,32 +11,68 @@ import {
   Activity, 
   ArrowLeft,
   Sparkles,
-  FileUp
+  FileUp,
+  Calendar,
+  Wallet,
+  CheckCircle2,
+  Clock,
+  TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CampaignHistory from './CampaignHistory';
-import CampaignPulse from './CampaignPulse';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { format } from 'date-fns';
+import { he } from 'date-fns/locale';
 
 type HubView = 'main' | 'new-campaign' | 'history' | 'status';
 
-interface DashboardHubProps {
-  activeCampaign?: {
-    startDate: Date;
-    endDate: Date;
-    newspaperCount: number;
-    digitalCount: number;
-  };
+interface CampaignStatus {
+  id: string;
+  name: string;
+  status: string;
+  budget: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  selected_media: any[];
 }
 
-const DashboardHub = ({ activeCampaign }: DashboardHubProps) => {
+const DashboardHub = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentView, setCurrentView] = useState<HubView>('main');
+  const [activeCampaign, setActiveCampaign] = useState<CampaignStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActiveCampaign = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('campaigns')
+        .select('id, name, status, budget, start_date, end_date, selected_media')
+        .eq('user_id', user.id)
+        .in('status', ['active', 'pending_approval', 'draft'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        setActiveCampaign({
+          ...data,
+          selected_media: Array.isArray(data.selected_media) ? data.selected_media : []
+        });
+      }
+      setLoading(false);
+    };
+
+    fetchActiveCampaign();
+  }, [user]);
 
   const handleNewCampaign = (type: 'create' | 'upload') => {
     if (type === 'create') {
       navigate('/studio');
     } else {
-      // TODO: Navigate to upload flow
       navigate('/studio?mode=upload');
     }
   };
@@ -180,27 +218,151 @@ const DashboardHub = ({ activeCampaign }: DashboardHubProps) => {
     </div>
   );
 
-  const renderStatusView = () => (
-    <div className="space-y-6 animate-fade-in">
-      <Button 
-        variant="ghost" 
-        onClick={() => setCurrentView('main')}
-        className="mb-4"
-      >
-        <ArrowLeft className="w-4 h-4 ml-2" />
-        חזרה
-      </Button>
+  const renderStatusView = () => {
+    if (!activeCampaign) return null;
 
-      {activeCampaign && (
-        <CampaignPulse 
-          startDate={activeCampaign.startDate}
-          endDate={activeCampaign.endDate}
-          newspaperCount={activeCampaign.newspaperCount}
-          digitalCount={activeCampaign.digitalCount}
-        />
-      )}
-    </div>
-  );
+    const mediaItems = activeCampaign.selected_media || [];
+    const totalBudget = activeCampaign.budget || 0;
+    const usedBudget = mediaItems.reduce((sum: number, item: any) => sum + (item.price || 0), 0);
+    const budgetPercent = totalBudget > 0 ? Math.min((usedBudget / totalBudget) * 100, 100) : 0;
+
+    const publishedItems = mediaItems.filter((item: any) => item.status === 'published');
+    const pendingItems = mediaItems.filter((item: any) => item.status !== 'published');
+
+    const STATUS_LABELS: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+      draft: { label: 'טיוטה', variant: 'secondary' },
+      pending_approval: { label: 'ממתין לאישור', variant: 'outline' },
+      active: { label: 'פעיל', variant: 'default' },
+    };
+
+    const statusInfo = STATUS_LABELS[activeCampaign.status] || STATUS_LABELS.draft;
+
+    return (
+      <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+        <Button 
+          variant="ghost" 
+          onClick={() => setCurrentView('main')}
+          className="mb-4"
+        >
+          <ArrowLeft className="w-4 h-4 ml-2" />
+          חזרה
+        </Button>
+
+        {/* Campaign Header */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">{activeCampaign.name}</h2>
+                <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
+                  {activeCampaign.start_date && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {format(new Date(activeCampaign.start_date), 'd בMMM', { locale: he })}
+                      {activeCampaign.end_date && ` - ${format(new Date(activeCampaign.end_date), 'd בMMM', { locale: he })}`}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Badge variant={statusInfo.variant} className="text-sm px-3 py-1">
+                {statusInfo.label}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Budget Card */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">ניצול תקציב</h3>
+                <p className="text-sm text-muted-foreground">
+                  ₪{usedBudget.toLocaleString()} מתוך ₪{totalBudget.toLocaleString()}
+                </p>
+              </div>
+              <div className="flex-1 text-left">
+                <span className="text-2xl font-bold text-primary">{Math.round(budgetPercent)}%</span>
+              </div>
+            </div>
+            <Progress value={budgetPercent} className="h-3" />
+          </CardContent>
+        </Card>
+
+        {/* Media Status Grid */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Published */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-success" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">פורסם</h3>
+                  <p className="text-sm text-muted-foreground">{publishedItems.length} פריטים</p>
+                </div>
+              </div>
+              {publishedItems.length > 0 ? (
+                <div className="space-y-2">
+                  {publishedItems.slice(0, 3).map((item: any, idx: number) => (
+                    <div key={idx} className="p-2 bg-success/5 rounded-lg text-sm">
+                      {item.name}
+                    </div>
+                  ))}
+                  {publishedItems.length > 3 && (
+                    <p className="text-xs text-muted-foreground">+ עוד {publishedItems.length - 3} פריטים</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">עדיין לא פורסם כלום</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Pending */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-warning" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">עתיד להתפרסם</h3>
+                  <p className="text-sm text-muted-foreground">{pendingItems.length} פריטים</p>
+                </div>
+              </div>
+              {pendingItems.length > 0 ? (
+                <div className="space-y-2">
+                  {pendingItems.slice(0, 3).map((item: any, idx: number) => (
+                    <div key={idx} className="p-2 bg-warning/5 rounded-lg text-sm">
+                      {item.name}
+                    </div>
+                  ))}
+                  {pendingItems.length > 3 && (
+                    <p className="text-xs text-muted-foreground">+ עוד {pendingItems.length - 3} פריטים</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">אין פריטים ממתינים</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">טוען...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[400px] flex flex-col justify-center">
