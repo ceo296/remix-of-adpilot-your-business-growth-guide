@@ -82,7 +82,7 @@ const DashboardHub = () => {
         <p className="text-muted-foreground">בחר אפשרות להמשך</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto px-4">
         {/* Campaign History Card */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 group border-2"
