@@ -70,7 +70,7 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           מה עשיתם עד היום? אל תתקמצנו...
         </h2>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          תעלו לפה מודעות עבר, פליירים, באנרים. זה יעזור לנו לשמור על הקו שלכם.
+          תעלו לפה חומרי פרסום שעשיתם לאחרונה. זה יעזור לנו לשמור על הקו שלכם.
         </p>
       </div>
 
@@ -163,14 +163,35 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between max-w-3xl mx-auto pt-6">
-        <Button variant="outline" size="lg" onClick={onPrev}>
+      <div className="flex flex-col items-center gap-4 max-w-3xl mx-auto pt-6">
+        {/* Primary CTA - only enabled when materials uploaded */}
+        <Button 
+          variant="gradient" 
+          size="lg" 
+          onClick={onNext}
+          disabled={data.pastMaterials.length === 0}
+          className="w-full max-w-md"
+        >
+          קדימה, ממשיכים
+          <ArrowLeft className="w-4 h-4 mr-2" />
+        </Button>
+        
+        {/* Secondary skip option */}
+        {data.pastMaterials.length === 0 && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onNext}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            אין לי שום חומרי פרסום להציג
+          </Button>
+        )}
+        
+        {/* Back button */}
+        <Button variant="outline" size="sm" onClick={onPrev} className="mt-2">
           <ArrowRight className="w-4 h-4 ml-2" />
           חזרה
-        </Button>
-        <Button variant="gradient" size="lg" onClick={onNext}>
-          {data.pastMaterials.length > 0 ? 'יופי, ממשיכים' : 'אין לי, ממשיכים'}
-          <ArrowLeft className="w-4 h-4 mr-2" />
         </Button>
       </div>
     </div>
