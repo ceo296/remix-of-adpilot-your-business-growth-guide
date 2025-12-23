@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -337,6 +337,83 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                 )}
               </div>
             )}
+
+            {/* Strategic Positioning Section */}
+            <div className="pt-4 border-t border-border space-y-4">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
+                <Target className="w-4 h-4 text-primary" />
+                מיצוב אסטרטגי
+              </h4>
+              
+              <div className="grid md:grid-cols-2 gap-3">
+                {/* Advantage Type */}
+                <div className="p-3 rounded-lg bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    {data.strategicMRI.advantageType === 'hard' ? (
+                      <Package className="w-3 h-3" />
+                    ) : (
+                      <Heart className="w-3 h-3" />
+                    )}
+                    סוג היתרון
+                  </p>
+                  <p className="font-medium text-sm">
+                    {data.strategicMRI.advantageType === 'hard' ? 'יתרון פיזי מובהק' : 'יתרון תדמיתי/רגשי'}
+                  </p>
+                </div>
+
+                {/* Primary X-Factor */}
+                {data.strategicMRI.primaryXFactor && (
+                  <div className="p-3 rounded-lg bg-secondary/50">
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <Trophy className="w-3 h-3" />
+                      הגורם המבדל העיקרי
+                    </p>
+                    <p className="font-medium text-sm">
+                      {data.strategicMRI.primaryXFactor === 'veteran' && 'הוותק והניסיון'}
+                      {data.strategicMRI.primaryXFactor === 'product' && 'עליונות מוצרית'}
+                      {data.strategicMRI.primaryXFactor === 'price' && 'המחיר'}
+                      {data.strategicMRI.primaryXFactor === 'service' && 'השירות והיחס'}
+                      {data.strategicMRI.primaryXFactor === 'brand' && 'הבטחה פרסומית'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Price Positioning */}
+                <div className="p-3 rounded-lg bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <Tag className="w-3 h-3" />
+                    מיצוב מחיר
+                  </p>
+                  <p className="font-medium text-sm">
+                    {data.strategicMRI.myPosition.x < -30 ? 'זול / משתלם' : 
+                     data.strategicMRI.myPosition.x > 30 ? 'פרימיום / יוקרה' : 'מחיר ביניים'}
+                  </p>
+                </div>
+
+                {/* Style Positioning */}
+                <div className="p-3 rounded-lg bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    סגנון
+                  </p>
+                  <p className="font-medium text-sm">
+                    {data.strategicMRI.myPosition.y < -30 ? 'קלאסי ומסורתי' : 
+                     data.strategicMRI.myPosition.y > 30 ? 'מודרני וחדשני' : 'מאוזן'}
+                  </p>
+                </div>
+
+                {/* Winning Feature - if exists */}
+                {data.strategicMRI.winningFeature && (
+                  <div className="p-3 rounded-lg bg-secondary/50 md:col-span-2">
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <Award className="w-3 h-3" />
+                      הפיצ'ר המנצח
+                    </p>
+                    <p className="font-medium text-sm">{data.strategicMRI.winningFeature}</p>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Campaign Strategy Section */}
             <div className="pt-4 border-t border-border space-y-4">
