@@ -1,22 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import AppSidebar from '@/components/dashboard/AppSidebar';
-import CampaignPulse from '@/components/dashboard/CampaignPulse';
-import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
-import DigitalCorner from '@/components/dashboard/DigitalCorner';
-import ProofGallery from '@/components/dashboard/ProofGallery';
-import OnboardingStatus from '@/components/dashboard/OnboardingStatus';
 import OnboardingSuccessModal from '@/components/dashboard/OnboardingSuccessModal';
 import BusinessIdCard from '@/components/dashboard/BusinessIdCard';
-import CampaignHistory from '@/components/dashboard/CampaignHistory';
-import { Button } from '@/components/ui/button';
-import { Plus, Wand2, Brain, Settings } from 'lucide-react';
+import DashboardHub from '@/components/dashboard/DashboardHub';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-// Mock campaign data
-const campaignData = {
+// Mock active campaign data (in production, fetch from DB)
+const activeCampaignData = {
   startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12), // 12 days ago
   endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 18), // 18 days from now
   newspaperCount: 3,
@@ -27,6 +19,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [userName, setUserName] = useState<string>('');
   const [brandName, setBrandName] = useState<string>('');
+  const [hasActiveCampaign, setHasActiveCampaign] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -53,10 +46,21 @@ const Dashboard = () => {
       if (clientProfile?.business_name) {
         setBrandName(clientProfile.business_name);
       }
+
+      // Check for active campaigns
+      const { data: campaigns } = await supabase
+        .from('campaigns')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .limit(1);
+      
+      setHasActiveCampaign(campaigns && campaigns.length > 0);
     };
 
     fetchUserData();
   }, [user]);
+
   return (
     <SidebarProvider>
       {/* Onboarding Success Modal */}
@@ -72,80 +76,23 @@ const Dashboard = () => {
               <SidebarTrigger className="lg:hidden" />
               <h1 className="text-xl font-semibold text-foreground">לוח הוכחות | בס״ד</h1>
             </div>
-            <Link to="/new-campaign">
-              <Button variant="gradient" size="default">
-                <Plus className="w-4 h-4 ml-2" />
-                קמפיין חדש
-              </Button>
-            </Link>
           </header>
 
-          {/* Main Content */}
-          <main className="flex-1 p-6 space-y-6 overflow-auto">
-            {/* Business ID Card - Main Feature */}
-            <BusinessIdCard />
-
-            {/* Campaign History */}
-            <CampaignHistory />
-
-            {/* Campaign Pulse - Status Header */}
-            <CampaignPulse 
-              startDate={campaignData.startDate}
-              endDate={campaignData.endDate}
-              newspaperCount={campaignData.newspaperCount}
-              digitalCount={campaignData.digitalCount}
-            />
-
-            {/* Main Grid */}
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Activity Timeline - Main Feed */}
-              <div className="lg:col-span-2">
-                <ActivityTimeline />
-              </div>
-
-              {/* Digital Corner - Small Widget */}
-              <div className="space-y-6">
-                <OnboardingStatus />
-                <DigitalCorner />
-                
-                {/* Quick Actions */}
-                <div className="bg-card rounded-xl border border-border p-5 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-                  <h3 className="text-sm font-semibold text-foreground mb-3">כלים מתקדמים</h3>
-                  <div className="space-y-2">
-                    <Link to="/studio" className="w-full p-3 rounded-lg border border-border bg-background hover:bg-accent transition-colors text-right flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Wand2 className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground text-sm">סטודיו יצירתי</p>
-                        <p className="text-xs text-muted-foreground">ליצור מודעות עם AI</p>
-                      </div>
-                    </Link>
-                    <Link to="/brain" className="w-full p-3 rounded-lg border border-border bg-background hover:bg-accent transition-colors text-right flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
-                        <Brain className="w-4 h-4 text-success" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground text-sm">בית הספר</p>
-                        <p className="text-xs text-muted-foreground">לימוד המערכת</p>
-                      </div>
-                    </Link>
-                    <Link to="/admin-auth" className="w-full p-3 rounded-lg border border-border bg-background hover:bg-accent transition-colors text-right flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
-                        <Settings className="w-4 h-4 text-warning" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground text-sm">Back Office</p>
-                        <p className="text-xs text-muted-foreground">ניהול המערכת</p>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-              </div>
+          {/* Main Content - No Scroll, Hub Layout */}
+          <main className="flex-1 p-6 flex flex-col overflow-hidden">
+            {/* Business ID Card - Compact */}
+            <div className="mb-6">
+              <BusinessIdCard />
             </div>
 
-            {/* Proof Gallery */}
-            <ProofGallery />
+            {/* Dashboard Hub - Main Navigation */}
+            <div className="flex-1 flex items-center justify-center">
+              <div className="w-full max-w-5xl">
+                <DashboardHub 
+                  activeCampaign={hasActiveCampaign ? activeCampaignData : undefined}
+                />
+              </div>
+            </div>
           </main>
         </div>
       </div>
