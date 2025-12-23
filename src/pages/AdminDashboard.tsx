@@ -139,20 +139,36 @@ const AdminDashboard = () => {
 
         {/* Navigation */}
         <nav className="flex-1 p-2">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors mb-1 ${
-                activeTab === tab.id
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-[#888] hover:bg-[#1a1a1d] hover:text-white'
-              }`}
-            >
-              <tab.icon className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span>{tab.label}</span>}
-            </button>
-          ))}
+          {TABS.map(tab => {
+            // Special case: brain tab navigates to full /brain page
+            if (tab.id === 'brain') {
+              return (
+                <Link
+                  key={tab.id}
+                  to="/brain"
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors mb-1 text-[#888] hover:bg-[#1a1a1d] hover:text-white`}
+                >
+                  <tab.icon className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && <span>{tab.label}</span>}
+                </Link>
+              );
+            }
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors mb-1 ${
+                  activeTab === tab.id
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-[#888] hover:bg-[#1a1a1d] hover:text-white'
+                }`}
+              >
+                <tab.icon className="h-5 w-5 flex-shrink-0" />
+                {sidebarOpen && <span>{tab.label}</span>}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Footer */}
