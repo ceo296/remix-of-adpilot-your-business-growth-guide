@@ -8,6 +8,7 @@ import ProofGallery from '@/components/dashboard/ProofGallery';
 import OnboardingStatus from '@/components/dashboard/OnboardingStatus';
 import OnboardingSuccessModal from '@/components/dashboard/OnboardingSuccessModal';
 import BusinessIdCard from '@/components/dashboard/BusinessIdCard';
+import CampaignHistory from '@/components/dashboard/CampaignHistory';
 import { Button } from '@/components/ui/button';
 import { Plus, Wand2, Brain, Settings } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -83,6 +84,9 @@ const Dashboard = () => {
           <main className="flex-1 p-6 space-y-6 overflow-auto">
             {/* Business ID Card - Main Feature */}
             <BusinessIdCard />
+
+            {/* Campaign History */}
+            <CampaignHistory />
 
             {/* Campaign Pulse - Status Header */}
             <CampaignPulse 
