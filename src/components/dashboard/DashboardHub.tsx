@@ -279,9 +279,9 @@ const DashboardHub = () => {
               <h3 className="font-semibold text-foreground text-lg">ניצול תקציב</h3>
             </div>
             
-            <div className="flex items-center gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-6">
               {/* Pie Chart */}
-              <div className="w-48 h-48">
+              <div className="w-40 h-40 flex-shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -291,8 +291,8 @@ const DashboardHub = () => {
                       ]}
                       cx="50%"
                       cy="50%"
-                      innerRadius={50}
-                      outerRadius={70}
+                      innerRadius={40}
+                      outerRadius={60}
                       paddingAngle={2}
                       dataKey="value"
                       startAngle={90}
@@ -315,19 +315,19 @@ const DashboardHub = () => {
               </div>
               
               {/* Stats */}
-              <div className="flex-1 space-y-4">
+              <div className="flex-1 w-full space-y-4">
                 <div className="text-center mb-4">
-                  <span className="text-4xl font-bold text-primary">{Math.round(budgetPercent)}%</span>
+                  <span className="text-3xl font-bold text-primary">{Math.round(budgetPercent)}%</span>
                   <p className="text-sm text-muted-foreground mt-1">נוצלו מהתקציב</p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-lg bg-primary/10 text-center">
-                    <p className="text-lg font-bold text-primary">₪{usedBudget.toLocaleString()}</p>
+                    <p className="text-base font-bold text-primary">₪{usedBudget.toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground">נוצל</p>
                   </div>
                   <div className="p-3 rounded-lg bg-muted text-center">
-                    <p className="text-lg font-bold text-foreground">₪{Math.max(0, totalBudget - usedBudget).toLocaleString()}</p>
+                    <p className="text-base font-bold text-foreground">₪{Math.max(0, totalBudget - usedBudget).toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground">נותר</p>
                   </div>
                 </div>
