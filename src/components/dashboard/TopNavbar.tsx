@@ -1,4 +1,5 @@
 import { NavLink } from '@/components/NavLink';
+import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   Megaphone, 
@@ -6,11 +7,13 @@ import {
   Settings, 
   HelpCircle,
   LogOut,
-  Users
+  Users,
+  Shield
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAgencyClients } from '@/hooks/useAgencyClients';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import ClientSelector from './ClientSelector';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,14 +28,30 @@ const TopNavbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAgency } = useAgencyClients();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
   const isActive = (path: string) => location.pathname === path;
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      setIsAdmin(!!data);
+    };
+    checkAdmin();
+  }, [user]);
 
   const menuItems = [
     { title: 'לוח בקרה', url: '/dashboard', icon: LayoutDashboard },
     { title: 'קמפיין חדש', url: '/new-campaign', icon: Megaphone },
     { title: 'סטודיו יצירתי', url: '/studio', icon: Rocket },
     ...(isAgency ? [{ title: 'ניהול לקוחות', url: '/clients', icon: Users }] : []),
+    ...(isAdmin ? [{ title: 'ממשק ניהול', url: '/admin-dashboard', icon: Shield }] : []),
     { title: 'פרופיל', url: '/profile', icon: Settings },
   ];
 
