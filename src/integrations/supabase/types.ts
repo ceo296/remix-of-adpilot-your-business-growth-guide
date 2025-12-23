@@ -65,6 +65,47 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_media_proofs: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          image_url: string
+          media_outlet_name: string
+          notes: string | null
+          proof_type: string
+          publication_date: string | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          media_outlet_name: string
+          notes?: string | null
+          proof_type?: string
+          publication_date?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          media_outlet_name?: string
+          notes?: string | null
+          proof_type?: string
+          publication_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_media_proofs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           budget: number | null

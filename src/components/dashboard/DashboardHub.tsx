@@ -13,7 +13,9 @@ import {
   Calendar,
   Wallet,
   CheckCircle2,
-  Clock
+  Clock,
+  Image,
+  Newspaper
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CampaignHistory from './CampaignHistory';
@@ -35,11 +37,21 @@ interface CampaignStatus {
   selected_media: any[];
 }
 
+interface MediaProof {
+  id: string;
+  media_outlet_name: string;
+  proof_type: string;
+  image_url: string;
+  publication_date: string | null;
+  notes: string | null;
+}
+
 const DashboardHub = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState<HubView>('main');
   const [activeCampaign, setActiveCampaign] = useState<CampaignStatus | null>(null);
+  const [mediaProofs, setMediaProofs] = useState<MediaProof[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,6 +72,17 @@ const DashboardHub = () => {
           ...data,
           selected_media: Array.isArray(data.selected_media) ? data.selected_media : []
         });
+
+        // Fetch media proofs for this campaign
+        const { data: proofs } = await supabase
+          .from('campaign_media_proofs')
+          .select('*')
+          .eq('campaign_id', data.id)
+          .order('created_at', { ascending: false });
+
+        if (proofs) {
+          setMediaProofs(proofs);
+        }
       }
       setLoading(false);
     };
@@ -402,8 +425,62 @@ const DashboardHub = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Media Proofs Gallery */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Newspaper className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">גזרי עיתונים והוכחות פרסום</h3>
+                <p className="text-sm text-muted-foreground">{mediaProofs.length} תמונות</p>
+              </div>
+            </div>
+            
+            {mediaProofs.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {mediaProofs.map((proof) => (
+                  <div 
+                    key={proof.id} 
+                    className="relative aspect-[4/3] rounded-lg overflow-hidden bg-muted group cursor-pointer"
+                  >
+                    <img 
+                      src={proof.image_url} 
+                      alt={proof.media_outlet_name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-2 right-2 left-2 text-white">
+                        <p className="text-xs font-medium truncate">{proof.media_outlet_name}</p>
+                        {proof.publication_date && (
+                          <p className="text-[10px] opacity-80">
+                            {format(new Date(proof.publication_date), 'd בMMM yyyy', { locale: he })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute top-2 right-2 text-[10px] bg-white/90"
+                    >
+                      {proof.proof_type === 'clipping' ? 'גזיר עיתון' : 'צילום מסך'}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Image className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">עדיין לא הועלו הוכחות פרסום</p>
+                <p className="text-xs mt-1">הוכחות יופיעו כאן לאחר הפרסום</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    );
+    )
   };
 
   if (loading) {
