@@ -121,15 +121,7 @@ const OnboardingSuccessModal = ({ userName = 'שם', brandName = 'העסק' }: O
               className="w-full text-lg font-bold gap-2 shadow-glow"
             >
               <Sparkles className="w-5 h-5" />
-              יאללה, בוא נבנה את הקמפיין 🎨
-            </Button>
-            <Button 
-              onClick={handleStayOnDashboard}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              אישאר בלוח הבקרה
+              יאללה ממשיכים לקמפיין
             </Button>
           </div>
         </div>
