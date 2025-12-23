@@ -142,7 +142,7 @@ const StepStrategy = ({ data, updateData, onNext, onPrev }: StepStrategyProps) =
               <div>
                 <h4 className="text-lg font-bold text-foreground">פרסום נקודתי</h4>
                 <p className="text-sm text-muted-foreground mt-2">
-                  מודעה אחת מדויקת שרצה לאורך כל התקופה.
+                  קריאייטיב אחד ממוקד שמתפרסם בכל ערוצי המדיה שנבחרו.
                 </p>
               </div>
             </CardContent>
