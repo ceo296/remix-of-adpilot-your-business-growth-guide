@@ -7,19 +7,10 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-// Mock active campaign data (in production, fetch from DB)
-const activeCampaignData = {
-  startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12), // 12 days ago
-  endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 18), // 18 days from now
-  newspaperCount: 3,
-  digitalCount: 2,
-};
-
 const Dashboard = () => {
   const { user } = useAuth();
   const [userName, setUserName] = useState<string>('');
   const [brandName, setBrandName] = useState<string>('');
-  const [hasActiveCampaign, setHasActiveCampaign] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -46,16 +37,6 @@ const Dashboard = () => {
       if (clientProfile?.business_name) {
         setBrandName(clientProfile.business_name);
       }
-
-      // Check for active campaigns
-      const { data: campaigns } = await supabase
-        .from('campaigns')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .limit(1);
-      
-      setHasActiveCampaign(campaigns && campaigns.length > 0);
     };
 
     fetchUserData();
@@ -88,9 +69,7 @@ const Dashboard = () => {
             {/* Dashboard Hub - Main Navigation */}
             <div className="flex-1 flex items-center justify-center">
               <div className="w-full max-w-5xl">
-                <DashboardHub 
-                  activeCampaign={hasActiveCampaign ? activeCampaignData : undefined}
-                />
+                <DashboardHub />
               </div>
             </div>
           </main>
