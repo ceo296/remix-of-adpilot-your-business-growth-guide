@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   Database, Brain, FileText, Users, LogOut, Menu, X, 
-  Settings, ChevronLeft, Palette 
+  Settings, ChevronLeft, Palette, Newspaper
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,8 +13,9 @@ import AIBrainAdmin from '@/components/admin/AIBrainAdmin';
 import PromptTemplates from '@/components/admin/PromptTemplates';
 import ClientOverview from '@/components/admin/ClientOverview';
 import BrandingOrdersAdmin from '@/components/admin/BrandingOrdersAdmin';
+import ProofManagement from '@/components/admin/ProofManagement';
 
-type AdminTab = 'media' | 'brain' | 'prompts' | 'clients' | 'branding';
+type AdminTab = 'media' | 'brain' | 'prompts' | 'clients' | 'branding' | 'proofs';
 
 const TABS = [
   { id: 'media' as AdminTab, label: 'ניהול מדיה', icon: Database },
@@ -22,6 +23,7 @@ const TABS = [
   { id: 'prompts' as AdminTab, label: 'תבניות ננו-בננה', icon: FileText },
   { id: 'clients' as AdminTab, label: 'רשימת לקוחות', icon: Users },
   { id: 'branding' as AdminTab, label: 'הזמנות מיתוג', icon: Palette },
+  { id: 'proofs' as AdminTab, label: 'הוכחות פרסום', icon: Newspaper },
 ];
 
 const AdminDashboard = () => {
@@ -108,6 +110,8 @@ const AdminDashboard = () => {
         return <ClientOverview />;
       case 'branding':
         return <BrandingOrdersAdmin />;
+      case 'proofs':
+        return <ProofManagement />;
       default:
         return <MediaDatabaseAdmin />;
     }
