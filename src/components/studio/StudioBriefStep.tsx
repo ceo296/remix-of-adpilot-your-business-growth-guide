@@ -79,7 +79,7 @@ export const StudioBriefStep = ({ value, onChange, businessName }: StudioBriefSt
       <div className="space-y-3">
         <Label htmlFor="campaign-offer" className="text-foreground font-medium flex items-center gap-2">
           <Gift className="w-4 h-4 text-primary" />
-          מה ההצעה המכירתית? *
+          מה ההצעה הפרסומית? *
         </Label>
         <Textarea
           id="campaign-offer"

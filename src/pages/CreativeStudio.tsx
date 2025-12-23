@@ -576,12 +576,14 @@ const CreativeStudio = () => {
       <div className="container mx-auto px-4 py-6">
         {!showResults ? (
           <div className="max-w-3xl mx-auto">
-            {/* Mode Toggle */}
-            <div className="mb-8">
-              <StudioModeToggle value={mode} onChange={setMode} />
-            </div>
+            {/* Mode Toggle - only show after brief step */}
+            {currentStep > 0 && (
+              <div className="mb-8">
+                <StudioModeToggle value={mode} onChange={setMode} />
+              </div>
+            )}
 
-            {mode === 'autopilot' ? (
+            {mode === 'autopilot' && currentStep > 0 ? (
               /* Autopilot Mode */
               <StudioAutopilot
                 isGenerating={isGeneratingConcepts || isGenerating}
