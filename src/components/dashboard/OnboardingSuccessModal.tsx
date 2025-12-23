@@ -103,12 +103,12 @@ const OnboardingSuccessModal = ({ userName = 'שם', brandName = 'העסק' }: O
               תודה, {userName}
             </h2>
             <p className="text-lg text-primary font-semibold">
-              הראש של ADKOP התחיל לעבוד.
+              בניית הפרופיל של {brandName} הושלמה!
             </p>
             <p className="text-muted-foreground">
-              קלטנו את כל הנתונים על <span className="text-foreground font-medium">{brandName}</span>.
+              קלטנו את כל הנתונים והמערכת מוכנה.
               <br />
-              הכל מוכן לשלב הבא.
+              עכשיו אפשר לעבור לבניית הקמפיין.
             </p>
           </div>
 
