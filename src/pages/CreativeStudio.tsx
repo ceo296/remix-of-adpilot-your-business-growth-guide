@@ -32,6 +32,10 @@ interface ClientProfile {
   winning_feature: string | null;
   advantage_type: string | null;
   x_factors: string[] | null;
+  contact_phone: string | null;
+  contact_whatsapp: string | null;
+  contact_email: string | null;
+  contact_address: string | null;
 }
 
 const STEP_TITLES = [
@@ -61,6 +65,12 @@ const CreativeStudio = () => {
     offer: '',
     goal: null,
     structure: null,
+    contactSelection: {
+      phone: false,
+      whatsapp: false,
+      email: false,
+      address: false,
+    },
   });
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
   const [treatment, setTreatment] = useState<TreatmentChoice | null>(null);
@@ -91,7 +101,7 @@ const CreativeStudio = () => {
 
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors')
+        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address')
         .eq('user_id', user.id)
         .single();
 
@@ -278,6 +288,12 @@ const CreativeStudio = () => {
       offer: '',
       goal: null,
       structure: null,
+      contactSelection: {
+        phone: false,
+        whatsapp: false,
+        email: false,
+        address: false,
+      },
     });
     setAssetChoice(null);
     setTreatment(null);
@@ -512,6 +528,12 @@ const CreativeStudio = () => {
             value={campaignBrief} 
             onChange={setCampaignBrief}
             businessName={clientProfile?.business_name}
+            contactInfo={clientProfile ? {
+              contact_phone: clientProfile.contact_phone,
+              contact_whatsapp: clientProfile.contact_whatsapp,
+              contact_email: clientProfile.contact_email,
+              contact_address: clientProfile.contact_address,
+            } : undefined}
           />
         );
       case 1:

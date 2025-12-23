@@ -81,6 +81,19 @@ export interface StrategicMRI {
   decisionMaker: string; // Who makes the purchase decision
 }
 
+// Contact Assets
+export interface ContactAssets {
+  contact_phone: string;
+  contact_whatsapp: string;
+  contact_email: string;
+  contact_address: string;
+  contact_youtube: string;
+  social_facebook: string;
+  social_instagram: string;
+  social_tiktok: string;
+  social_linkedin: string;
+}
+
 // Website Insights (extracted from URL scan)
 export interface WebsiteInsights {
   industry: string;
@@ -110,12 +123,27 @@ export interface WizardData {
   // Step 4: Past Materials
   pastMaterials: UploadedMaterial[];
   
+  // Contact Assets
+  contactAssets: ContactAssets;
+  
   // Step 5: Strategy & Scope
   strategy: CampaignStrategy;
   
   // Step 6: Confirmation
   confirmed: boolean;
 }
+
+export const initialContactAssets: ContactAssets = {
+  contact_phone: '',
+  contact_whatsapp: '',
+  contact_email: '',
+  contact_address: '',
+  contact_youtube: '',
+  social_facebook: '',
+  social_instagram: '',
+  social_tiktok: '',
+  social_linkedin: '',
+};
 
 export const initialWizardData: WizardData = {
   userName: '',
@@ -153,6 +181,7 @@ export const initialWizardData: WizardData = {
     bodyFont: 'Heebo',
   },
   pastMaterials: [],
+  contactAssets: initialContactAssets,
   strategy: {
     designDirection: null,
     startDate: null,

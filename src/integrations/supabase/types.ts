@@ -143,6 +143,11 @@ export type Database = {
           business_name: string
           competitor_positions: Json | null
           competitors: string[] | null
+          contact_address: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          contact_whatsapp: string | null
+          contact_youtube: string | null
           created_at: string
           decision_maker: string | null
           end_consumer: string | null
@@ -157,6 +162,10 @@ export type Database = {
           primary_color: string | null
           primary_x_factor: string | null
           secondary_color: string | null
+          social_facebook: string | null
+          social_instagram: string | null
+          social_linkedin: string | null
+          social_tiktok: string | null
           target_audience: string | null
           updated_at: string
           user_id: string
@@ -173,6 +182,11 @@ export type Database = {
           business_name: string
           competitor_positions?: Json | null
           competitors?: string[] | null
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_whatsapp?: string | null
+          contact_youtube?: string | null
           created_at?: string
           decision_maker?: string | null
           end_consumer?: string | null
@@ -187,6 +201,10 @@ export type Database = {
           primary_color?: string | null
           primary_x_factor?: string | null
           secondary_color?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_linkedin?: string | null
+          social_tiktok?: string | null
           target_audience?: string | null
           updated_at?: string
           user_id: string
@@ -203,6 +221,11 @@ export type Database = {
           business_name?: string
           competitor_positions?: Json | null
           competitors?: string[] | null
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_whatsapp?: string | null
+          contact_youtube?: string | null
           created_at?: string
           decision_maker?: string | null
           end_consumer?: string | null
@@ -217,6 +240,10 @@ export type Database = {
           primary_color?: string | null
           primary_x_factor?: string | null
           secondary_color?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_linkedin?: string | null
+          social_tiktok?: string | null
           target_audience?: string | null
           updated_at?: string
           user_id?: string

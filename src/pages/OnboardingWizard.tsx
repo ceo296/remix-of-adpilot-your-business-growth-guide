@@ -1,28 +1,30 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { WizardData, initialWizardData } from '@/types/wizard';
+import { WizardData, initialWizardData, ContactAssets } from '@/types/wizard';
 import WizardProgress from '@/components/wizard/WizardProgress';
 import StepWelcome from '@/components/wizard/StepWelcome';
 import StepSelectClient from '@/components/wizard/StepSelectClient';
 import StepMagicLink from '@/components/wizard/StepMagicLink';
 import StepWebsiteInsights from '@/components/wizard/StepWebsiteInsights';
 import StepStrategicMRI from '@/components/wizard/StepStrategicMRI';
-
+import StepContactAssets from '@/components/wizard/StepContactAssets';
 import StepPastMaterials from '@/components/wizard/StepPastMaterials';
 import StepBrandPassport from '@/components/wizard/StepBrandPassport';
 import { Rocket, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 
-const TOTAL_STEPS_REGULAR = 6;
-const TOTAL_STEPS_AGENCY = 7; // Extra step for client selection
+const TOTAL_STEPS_REGULAR = 7;
+const TOTAL_STEPS_AGENCY = 8; // Extra step for client selection
 
 const stepTitlesRegular = [
   'ברוכים הבאים',
   'הלינק הקסום',
   'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
+  'פרטי יצירת קשר',
   'חומרי עבר',
   'דרכון המותג',
 ];
@@ -33,6 +35,7 @@ const stepTitlesAgency = [
   'הלינק הקסום',
   'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
+  'פרטי יצירת קשר',
   'חומרי עבר',
   'דרכון המותג',
 ];
@@ -172,6 +175,15 @@ const OnboardingWizard = () => {
             competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
             end_consumer: wizardData.strategicMRI.endConsumer,
             decision_maker: wizardData.strategicMRI.decisionMaker,
+            contact_phone: wizardData.contactAssets.contact_phone || null,
+            contact_whatsapp: wizardData.contactAssets.contact_whatsapp || null,
+            contact_email: wizardData.contactAssets.contact_email || null,
+            contact_address: wizardData.contactAssets.contact_address || null,
+            contact_youtube: wizardData.contactAssets.contact_youtube || null,
+            social_facebook: wizardData.contactAssets.social_facebook || null,
+            social_instagram: wizardData.contactAssets.social_instagram || null,
+            social_tiktok: wizardData.contactAssets.social_tiktok || null,
+            social_linkedin: wizardData.contactAssets.social_linkedin || null,
             onboarding_completed: true,
           })
           .eq('id', selectedAgencyClientId);
@@ -226,6 +238,15 @@ const OnboardingWizard = () => {
               competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
               end_consumer: wizardData.strategicMRI.endConsumer,
               decision_maker: wizardData.strategicMRI.decisionMaker,
+              contact_phone: wizardData.contactAssets.contact_phone || null,
+              contact_whatsapp: wizardData.contactAssets.contact_whatsapp || null,
+              contact_email: wizardData.contactAssets.contact_email || null,
+              contact_address: wizardData.contactAssets.contact_address || null,
+              contact_youtube: wizardData.contactAssets.contact_youtube || null,
+              social_facebook: wizardData.contactAssets.social_facebook || null,
+              social_instagram: wizardData.contactAssets.social_instagram || null,
+              social_tiktok: wizardData.contactAssets.social_tiktok || null,
+              social_linkedin: wizardData.contactAssets.social_linkedin || null,
               is_agency_profile: false,
               onboarding_completed: true,
             })
@@ -256,6 +277,15 @@ const OnboardingWizard = () => {
               competitor_positions: JSON.parse(JSON.stringify(wizardData.strategicMRI.competitorPositions)),
               end_consumer: wizardData.strategicMRI.endConsumer,
               decision_maker: wizardData.strategicMRI.decisionMaker,
+              contact_phone: wizardData.contactAssets.contact_phone || null,
+              contact_whatsapp: wizardData.contactAssets.contact_whatsapp || null,
+              contact_email: wizardData.contactAssets.contact_email || null,
+              contact_address: wizardData.contactAssets.contact_address || null,
+              contact_youtube: wizardData.contactAssets.contact_youtube || null,
+              social_facebook: wizardData.contactAssets.social_facebook || null,
+              social_instagram: wizardData.contactAssets.social_instagram || null,
+              social_tiktok: wizardData.contactAssets.social_tiktok || null,
+              social_linkedin: wizardData.contactAssets.social_linkedin || null,
               is_agency_profile: false,
               onboarding_completed: true,
             }]);
@@ -288,6 +318,13 @@ const OnboardingWizard = () => {
     return null;
   }
 
+  const handleContactAssetsChange = (data: Partial<ContactAssets>) => {
+    setWizardData((prev) => ({
+      ...prev,
+      contactAssets: { ...prev.contactAssets, ...data },
+    }));
+  };
+
   const renderStep = () => {
     // Agency flow has an extra step after welcome
     if (isAgency) {
@@ -303,8 +340,18 @@ const OnboardingWizard = () => {
         case 5:
           return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 6:
-          return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+          return (
+            <div className="space-y-6">
+              <StepContactAssets data={wizardData.contactAssets} onChange={handleContactAssetsChange} />
+              <div className="flex justify-between">
+                <Button variant="outline" onClick={prevStep}>הקודם</Button>
+                <Button onClick={nextStep}>הבא</Button>
+              </div>
+            </div>
+          );
         case 7:
+          return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        case 8:
           return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
         default:
           return null;
@@ -322,8 +369,18 @@ const OnboardingWizard = () => {
       case 4:
         return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 5:
-        return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return (
+          <div className="space-y-6">
+            <StepContactAssets data={wizardData.contactAssets} onChange={handleContactAssetsChange} />
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={prevStep}>הקודם</Button>
+              <Button onClick={nextStep}>הבא</Button>
+            </div>
+          </div>
+        );
       case 6:
+        return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+      case 7:
         return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
       default:
         return null;
