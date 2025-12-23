@@ -83,22 +83,6 @@ const DashboardHub = () => {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        {/* New Campaign Card */}
-        <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 group border-2"
-          onClick={() => setCurrentView('new-campaign')}
-        >
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Plus className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">קמפיין חדש</h3>
-            <p className="text-sm text-muted-foreground">
-              צור קמפיין חדש או העלה חומרים קיימים
-            </p>
-          </CardContent>
-        </Card>
-
         {/* Campaign History Card */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 group border-2"
@@ -115,27 +99,43 @@ const DashboardHub = () => {
           </CardContent>
         </Card>
 
-        {/* Campaign Status Card */}
+        {/* Campaign Status Card - CENTER */}
         <Card 
           className={cn(
-            "cursor-pointer transition-all duration-300 hover:shadow-lg group border-2",
-            activeCampaign ? "hover:border-primary/50" : "opacity-60 cursor-not-allowed"
+            "cursor-pointer transition-all duration-300 hover:shadow-lg group border-2 md:order-none order-first",
+            activeCampaign ? "hover:border-primary/50 border-primary" : "hover:border-muted-foreground/30"
           )}
-          onClick={() => activeCampaign && setCurrentView('status')}
+          onClick={() => setCurrentView('status')}
         >
           <CardContent className="p-8 text-center">
             <div className={cn(
-              "w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform",
-              activeCampaign ? "bg-success" : "bg-muted"
+              "w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform",
+              activeCampaign ? "bg-primary" : "bg-muted"
             )}>
               <Activity className={cn(
-                "w-8 h-8",
-                activeCampaign ? "text-success-foreground" : "text-muted-foreground"
+                "w-10 h-10",
+                activeCampaign ? "text-primary-foreground" : "text-muted-foreground"
               )} />
             </div>
             <h3 className="text-xl font-bold text-foreground mb-2">סטטוס קמפיין</h3>
             <p className="text-sm text-muted-foreground">
-              {activeCampaign ? "עקוב אחרי הקמפיין הפעיל" : "אין קמפיין פעיל כרגע"}
+              {activeCampaign ? "עקוב אחרי הקמפיין הפעיל" : "צפה בסטטוס ופרטי התקציב"}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* New Campaign Card */}
+        <Card 
+          className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 group border-2"
+          onClick={() => setCurrentView('new-campaign')}
+        >
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Plus className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-2">קמפיין חדש</h3>
+            <p className="text-sm text-muted-foreground">
+              צור קמפיין חדש או העלה חומרים קיימים
             </p>
           </CardContent>
         </Card>
