@@ -59,18 +59,16 @@ const Dashboard = () => {
             </div>
           </header>
 
-          {/* Main Content - No Scroll, Hub Layout */}
-          <main className="flex-1 p-6 flex flex-col overflow-hidden">
+          {/* Main Content */}
+          <main className="flex-1 p-6 overflow-y-auto">
             {/* Business ID Card - Compact */}
             <div className="mb-6">
               <BusinessIdCard />
             </div>
 
             {/* Dashboard Hub - Main Navigation */}
-            <div className="flex-1 flex items-center justify-center">
-              <div className="w-full max-w-5xl">
-                <DashboardHub />
-              </div>
+            <div className="w-full max-w-5xl mx-auto">
+              <DashboardHub />
             </div>
           </main>
         </div>
