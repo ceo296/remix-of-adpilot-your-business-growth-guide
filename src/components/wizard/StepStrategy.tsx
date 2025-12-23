@@ -140,7 +140,7 @@ const StepStrategy = ({ data, updateData, onNext, onPrev }: StepStrategyProps) =
                 <Zap className="w-8 h-8" />
               </div>
               <div>
-                <h4 className="text-lg font-bold text-foreground">זבנג וגמרנו</h4>
+                <h4 className="text-lg font-bold text-foreground">פרסום נקודתי</h4>
                 <p className="text-sm text-muted-foreground mt-2">
                   מודעה אחת מדויקת שרצה לאורך כל התקופה.
                 </p>
