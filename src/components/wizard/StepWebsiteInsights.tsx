@@ -267,7 +267,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
               value={formValues.audience}
               onValueChange={(value) => handleValueChange('audience', value)}
             >
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className={`bg-background ${!formValues.audience ? 'border-destructive/50' : ''}`}>
                 <SelectValue placeholder="בחרו קהל יעד" />
               </SelectTrigger>
               <SelectContent className="bg-popover border border-border z-50">
