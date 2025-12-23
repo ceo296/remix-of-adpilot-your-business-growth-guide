@@ -372,7 +372,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                   </div>
                   <p className="text-xs text-muted-foreground">מבנה</p>
                   <p className="font-medium text-sm">
-                    {strategy.structure === 'single' ? 'זבנג וגמרנו' : 'סדרה'}
+                    {strategy.structure === 'single' ? 'פרסום נקודתי' : 'סדרה'}
                   </p>
                 </div>
               </div>
