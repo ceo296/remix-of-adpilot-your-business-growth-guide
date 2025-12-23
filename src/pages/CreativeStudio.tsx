@@ -13,6 +13,7 @@ import { StudioPromptStep, AspectRatio } from '@/components/studio/StudioPromptS
 import { StudioModeToggle, StudioMode } from '@/components/studio/StudioModeToggle';
 import { StudioAutopilot, CreativeConcept } from '@/components/studio/StudioAutopilot';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
+import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/studio/StudioBriefStep';
 
 type AssetChoice = 'has-product' | 'no-product';
 type TreatmentChoice = 'as-is' | 'ai-magic';
@@ -34,6 +35,7 @@ interface ClientProfile {
 }
 
 const STEP_TITLES = [
+  'בריף קמפיין',
   'בחירת נכס',
   'עיבוד תמונה',
   'סגנון עיצובי',
@@ -54,6 +56,12 @@ const CreativeStudio = () => {
   
   // Wizard state
   const [currentStep, setCurrentStep] = useState(0);
+  const [campaignBrief, setCampaignBrief] = useState<CampaignBrief>({
+    title: '',
+    offer: '',
+    goal: null,
+    structure: null,
+  });
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
   const [treatment, setTreatment] = useState<TreatmentChoice | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -99,9 +107,9 @@ const CreativeStudio = () => {
   const getSteps = () => {
     if (assetChoice === 'no-product') {
       // Skip treatment step for no-product flow
-      return [0, 2, 3]; // Asset, Style, Prompt
+      return [0, 1, 3, 4]; // Brief, Asset, Style, Prompt
     }
-    return [0, 1, 2, 3]; // All steps
+    return [0, 1, 2, 3, 4]; // All steps including Brief
   };
 
   const steps = getSteps();
@@ -110,25 +118,26 @@ const CreativeStudio = () => {
 
   const canProceed = () => {
     switch (currentStep) {
-      case 0: return assetChoice !== null;
-      case 1: return uploadedImage !== null && treatment !== null;
-      case 2: return style !== null;
-      case 3: return visualPrompt.trim().length > 0;
+      case 0: return campaignBrief.offer.trim().length > 0 && campaignBrief.structure !== null;
+      case 1: return assetChoice !== null;
+      case 2: return uploadedImage !== null && treatment !== null;
+      case 3: return style !== null;
+      case 4: return visualPrompt.trim().length > 0;
       default: return false;
     }
   };
 
   const handleNext = () => {
-    if (currentStep === 0 && assetChoice === 'no-product') {
-      setCurrentStep(2); // Skip to style
+    if (currentStep === 1 && assetChoice === 'no-product') {
+      setCurrentStep(3); // Skip to style
     } else if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
     }
   };
 
   const handleBack = () => {
-    if (currentStep === 2 && assetChoice === 'no-product') {
-      setCurrentStep(0); // Go back to asset
+    if (currentStep === 3 && assetChoice === 'no-product') {
+      setCurrentStep(1); // Go back to asset
     } else if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
     }
@@ -264,6 +273,12 @@ const CreativeStudio = () => {
 
   const resetWizard = () => {
     setCurrentStep(0);
+    setCampaignBrief({
+      title: '',
+      offer: '',
+      goal: null,
+      structure: null,
+    });
     setAssetChoice(null);
     setTreatment(null);
     setUploadedImage(null);
@@ -492,8 +507,16 @@ const CreativeStudio = () => {
   const renderStep = () => {
     switch (currentStep) {
       case 0:
-        return <StudioAssetStep value={assetChoice} onChange={setAssetChoice} />;
+        return (
+          <StudioBriefStep 
+            value={campaignBrief} 
+            onChange={setCampaignBrief}
+            businessName={clientProfile?.business_name}
+          />
+        );
       case 1:
+        return <StudioAssetStep value={assetChoice} onChange={setAssetChoice} />;
+      case 2:
         return (
           <StudioTreatmentStep
             treatment={treatment}
@@ -502,9 +525,9 @@ const CreativeStudio = () => {
             onImageUpload={setUploadedImage}
           />
         );
-      case 2:
-        return <StudioStyleStep value={style} onChange={setStyle} />;
       case 3:
+        return <StudioStyleStep value={style} onChange={setStyle} />;
+      case 4:
         return (
           <StudioPromptStep
             visualPrompt={visualPrompt}
@@ -607,7 +630,7 @@ const CreativeStudio = () => {
                     הקודם
                   </Button>
 
-                  {currentStep === 3 ? (
+                  {currentStep === 4 ? (
                     <Button
                       onClick={handleGenerate}
                       disabled={!canProceed() || isGenerating}

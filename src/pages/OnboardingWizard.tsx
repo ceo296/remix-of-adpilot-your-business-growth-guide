@@ -9,15 +9,14 @@ import StepWebsiteInsights from '@/components/wizard/StepWebsiteInsights';
 import StepStrategicMRI from '@/components/wizard/StepStrategicMRI';
 
 import StepPastMaterials from '@/components/wizard/StepPastMaterials';
-import StepStrategy from '@/components/wizard/StepStrategy';
 import StepBrandPassport from '@/components/wizard/StepBrandPassport';
 import { Rocket, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-const TOTAL_STEPS_REGULAR = 7;
-const TOTAL_STEPS_AGENCY = 8; // Extra step for client selection
+const TOTAL_STEPS_REGULAR = 6;
+const TOTAL_STEPS_AGENCY = 7; // Extra step for client selection
 
 const stepTitlesRegular = [
   'ברוכים הבאים',
@@ -25,7 +24,6 @@ const stepTitlesRegular = [
   'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
   'חומרי עבר',
-  'אסטרטגיית קמפיין',
   'דרכון המותג',
 ];
 
@@ -36,7 +34,6 @@ const stepTitlesAgency = [
   'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
   'חומרי עבר',
-  'אסטרטגיית קמפיין',
   'דרכון המותג',
 ];
 
@@ -308,8 +305,6 @@ const OnboardingWizard = () => {
         case 6:
           return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 7:
-          return <StepStrategy data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-        case 8:
           return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
         default:
           return null;
@@ -329,8 +324,6 @@ const OnboardingWizard = () => {
       case 5:
         return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 6:
-        return <StepStrategy data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-      case 7:
         return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
       default:
         return null;
