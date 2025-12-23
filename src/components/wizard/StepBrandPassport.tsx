@@ -415,46 +415,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
               </div>
             </div>
 
-            {/* Campaign Strategy Section */}
-            <div className="pt-4 border-t border-border space-y-4">
-              <h4 className="font-semibold text-foreground flex items-center gap-2">
-                <Target className="w-4 h-4 text-primary" />
-                תוכנית הקמפיין
-              </h4>
-              
-              <div className="grid md:grid-cols-2 gap-4">
-                {/* Design Direction */}
-                <div className="p-3 rounded-lg bg-secondary/50 text-center">
-                  <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                    {strategy.designDirection === 'consistent' ? (
-                      <Anchor className="w-5 h-5 text-primary" />
-                    ) : (
-                      <Sparkles className="w-5 h-5 text-primary" />
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">כיוון עיצובי</p>
-                  <p className="font-medium text-sm">
-                    {strategy.designDirection === 'consistent' ? 'הקו המוכר' : 'רענון'}
-                  </p>
-                </div>
-
-                {/* Structure */}
-                <div className="p-3 rounded-lg bg-secondary/50 text-center">
-                  <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                    {strategy.structure === 'single' ? (
-                      <Zap className="w-5 h-5 text-primary" />
-                    ) : (
-                      <Layers className="w-5 h-5 text-primary" />
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">מבנה</p>
-                  <p className="font-medium text-sm">
-                    {strategy.structure === 'single' ? 'פרסום נקודתי' : 'סדרה'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Past Materials */}
             {data.pastMaterials.length > 0 && (
               <div className="space-y-3">
