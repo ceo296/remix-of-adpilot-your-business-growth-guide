@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
   Plus, 
-  Upload, 
   Layers, 
   Activity, 
   ArrowLeft,
@@ -15,8 +13,7 @@ import {
   Calendar,
   Wallet,
   CheckCircle2,
-  Clock,
-  TrendingUp
+  Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CampaignHistory from './CampaignHistory';
@@ -24,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 type HubView = 'main' | 'new-campaign' | 'history' | 'status';
 
@@ -271,24 +269,76 @@ const DashboardHub = () => {
           </CardContent>
         </Card>
 
-        {/* Budget Card */}
+        {/* Budget Card with Pie Chart */}
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Wallet className="w-5 h-5 text-primary" />
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground">ניצול תקציב</h3>
-                <p className="text-sm text-muted-foreground">
-                  ₪{usedBudget.toLocaleString()} מתוך ₪{totalBudget.toLocaleString()}
-                </p>
+              <h3 className="font-semibold text-foreground text-lg">ניצול תקציב</h3>
+            </div>
+            
+            <div className="flex items-center gap-8">
+              {/* Pie Chart */}
+              <div className="w-48 h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'נוצל', value: usedBudget, color: 'hsl(var(--primary))' },
+                        { name: 'נותר', value: Math.max(0, totalBudget - usedBudget), color: 'hsl(var(--muted))' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={70}
+                      paddingAngle={2}
+                      dataKey="value"
+                      startAngle={90}
+                      endAngle={-270}
+                    >
+                      <Cell fill="hsl(var(--primary))" />
+                      <Cell fill="hsl(var(--muted))" />
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number) => `₪${value.toLocaleString()}`}
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        direction: 'rtl'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <div className="flex-1 text-left">
-                <span className="text-2xl font-bold text-primary">{Math.round(budgetPercent)}%</span>
+              
+              {/* Stats */}
+              <div className="flex-1 space-y-4">
+                <div className="text-center mb-4">
+                  <span className="text-4xl font-bold text-primary">{Math.round(budgetPercent)}%</span>
+                  <p className="text-sm text-muted-foreground mt-1">נוצלו מהתקציב</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 rounded-lg bg-primary/10 text-center">
+                    <p className="text-lg font-bold text-primary">₪{usedBudget.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">נוצל</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted text-center">
+                    <p className="text-lg font-bold text-foreground">₪{Math.max(0, totalBudget - usedBudget).toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">נותר</p>
+                  </div>
+                </div>
+                
+                <div className="text-center pt-2">
+                  <p className="text-sm text-muted-foreground">
+                    תקציב כולל: <span className="font-semibold text-foreground">₪{totalBudget.toLocaleString()}</span>
+                  </p>
+                </div>
               </div>
             </div>
-            <Progress value={budgetPercent} className="h-3" />
           </CardContent>
         </Card>
 
