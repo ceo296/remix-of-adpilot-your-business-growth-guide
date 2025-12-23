@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Zap, 
   Layers, 
@@ -13,24 +13,45 @@ import {
   Gift, 
   Megaphone, 
   Calendar,
-  Sparkles
+  Sparkles,
+  Phone,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Link as LinkIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type CampaignStructure = 'single' | 'series';
 export type CampaignGoal = 'awareness' | 'promotion' | 'launch' | 'seasonal' | 'other';
 
+export type ContactSelection = {
+  phone: boolean;
+  whatsapp: boolean;
+  email: boolean;
+  address: boolean;
+};
+
 export interface CampaignBrief {
   title: string;
   offer: string;
   goal: CampaignGoal | null;
   structure: CampaignStructure | null;
+  contactSelection: ContactSelection;
+}
+
+export interface ContactInfo {
+  contact_phone?: string | null;
+  contact_whatsapp?: string | null;
+  contact_email?: string | null;
+  contact_address?: string | null;
 }
 
 interface StudioBriefStepProps {
   value: CampaignBrief;
   onChange: (brief: CampaignBrief) => void;
   businessName?: string;
+  contactInfo?: ContactInfo;
 }
 
 const GOAL_OPTIONS: { id: CampaignGoal; label: string; description: string; icon: React.ElementType }[] = [
@@ -40,10 +61,27 @@ const GOAL_OPTIONS: { id: CampaignGoal; label: string; description: string; icon
   { id: 'seasonal', label: 'עונתי / חג', description: 'קמפיין לרגל אירוע או עונה', icon: Calendar },
 ];
 
-export const StudioBriefStep = ({ value, onChange, businessName }: StudioBriefStepProps) => {
+export const StudioBriefStep = ({ value, onChange, businessName, contactInfo }: StudioBriefStepProps) => {
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
   };
+
+  const toggleContact = (key: keyof CampaignBrief['contactSelection']) => {
+    onChange({
+      ...value,
+      contactSelection: {
+        ...value.contactSelection,
+        [key]: !value.contactSelection[key],
+      },
+    });
+  };
+
+  const hasAnyContact = contactInfo && (
+    contactInfo.contact_phone || 
+    contactInfo.contact_whatsapp || 
+    contactInfo.contact_email || 
+    contactInfo.contact_address
+  );
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -220,6 +258,76 @@ export const StudioBriefStep = ({ value, onChange, businessName }: StudioBriefSt
               ? '💡 פרסום נקודתי מתאים כשרוצים להעביר מסר ברור ומהיר, כמו מבצע קצר או הודעה חשובה.'
               : '💡 סדרה מתאימה כשרוצים לבנות נרטיב לאורך זמן, כמו השקה מדורגת או סיפור מותג.'}
           </p>
+        </div>
+      )}
+
+      {/* Contact Info Selection */}
+      {hasAnyContact && (
+        <div className="space-y-4">
+          <Label className="text-foreground font-medium flex items-center gap-2">
+            <LinkIcon className="w-4 h-4 text-primary" />
+            מה להציג בקמפיין?
+          </Label>
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              {contactInfo?.contact_phone && (
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="contact-phone"
+                    checked={value.contactSelection.phone}
+                    onCheckedChange={() => toggleContact('phone')}
+                  />
+                  <label htmlFor="contact-phone" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    <span>טלפון:</span>
+                    <span className="text-muted-foreground" dir="ltr">{contactInfo.contact_phone}</span>
+                  </label>
+                </div>
+              )}
+              {contactInfo?.contact_whatsapp && (
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="contact-whatsapp"
+                    checked={value.contactSelection.whatsapp}
+                    onCheckedChange={() => toggleContact('whatsapp')}
+                  />
+                  <label htmlFor="contact-whatsapp" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                    <span>וואטסאפ:</span>
+                    <span className="text-muted-foreground" dir="ltr">{contactInfo.contact_whatsapp}</span>
+                  </label>
+                </div>
+              )}
+              {contactInfo?.contact_email && (
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="contact-email"
+                    checked={value.contactSelection.email}
+                    onCheckedChange={() => toggleContact('email')}
+                  />
+                  <label htmlFor="contact-email" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    <span>מייל:</span>
+                    <span className="text-muted-foreground" dir="ltr">{contactInfo.contact_email}</span>
+                  </label>
+                </div>
+              )}
+              {contactInfo?.contact_address && (
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="contact-address"
+                    checked={value.contactSelection.address}
+                    onCheckedChange={() => toggleContact('address')}
+                  />
+                  <label htmlFor="contact-address" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                    <span>כתובת:</span>
+                    <span className="text-muted-foreground">{contactInfo.contact_address}</span>
+                  </label>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
