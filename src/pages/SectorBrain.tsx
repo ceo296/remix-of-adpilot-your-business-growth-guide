@@ -453,7 +453,7 @@ const SectorBrain = () => {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/admin-dashboard" className="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
               <ArrowRight className="h-5 w-5" />
             </Link>
             <div>
@@ -467,9 +467,9 @@ const SectorBrain = () => {
             </div>
           </div>
           <Link to="/admin-dashboard">
-            <Button variant="outline" size="sm">
+            <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90">
+              <ArrowRight className="h-4 w-4 ml-2" />
               חזרה לממשק ניהול
-              <Sparkles className="h-4 w-4 mr-2" />
             </Button>
           </Link>
         </div>
