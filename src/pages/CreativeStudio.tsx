@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import confetti from 'canvas-confetti';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, ZoomIn, Type, RefreshCw, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,63 @@ const STEP_TITLES = [
   'סגנון עיצובי',
   'תיאור ותוכן',
 ];
+
+// Success Screen Component with Confetti
+const SuccessScreen = ({ onReset }: { onReset: () => void }) => {
+  useEffect(() => {
+    // Fire confetti on mount
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#E31E24', '#FFD700', '#22c55e']
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#E31E24', '#FFD700', '#22c55e']
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+
+    frame();
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center py-20 max-w-lg mx-auto text-center">
+      <div className="w-24 h-24 rounded-full bg-success/20 flex items-center justify-center mb-8 animate-scale-in">
+        <CheckCircle2 className="h-12 w-12 text-success" />
+      </div>
+      <h2 className="text-3xl font-bold mb-4">ההזמנה נשלחה בהצלחה!</h2>
+      <p className="text-lg text-muted-foreground mb-2">
+        ההזמנה ופרטי המשתמש נשלחו למייל שלך
+      </p>
+      <p className="text-muted-foreground mb-8">
+        אפשר לעקוב אחרי סטטוס הקמפיין בכל עת באזור האישי
+      </p>
+      <div className="flex gap-4">
+        <Button variant="outline" onClick={onReset}>
+          יצירת קמפיין חדש
+        </Button>
+        <Button asChild>
+          <Link to="/dashboard">
+            לאזור האישי
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const CreativeStudio = () => {
   // Client profile state
@@ -755,28 +813,7 @@ const CreativeStudio = () => {
           </div>
         ) : showSuccess ? (
           /* Success View */
-          <div className="flex flex-col items-center justify-center py-20 max-w-lg mx-auto text-center">
-            <div className="w-24 h-24 rounded-full bg-success/20 flex items-center justify-center mb-8 animate-scale-in">
-              <CheckCircle2 className="h-12 w-12 text-success" />
-            </div>
-            <h2 className="text-3xl font-bold mb-4">ההזמנה נשלחה בהצלחה!</h2>
-            <p className="text-lg text-muted-foreground mb-2">
-              ההזמנה ופרטי המשתמש נשלחו למייל שלך
-            </p>
-            <p className="text-muted-foreground mb-8">
-              אפשר לעקוב אחרי סטטוס הקמפיין בכל עת באזור האישי
-            </p>
-            <div className="flex gap-4">
-              <Button variant="outline" onClick={() => { setShowSuccess(false); resetWizard(); }}>
-                יצירת קמפיין חדש
-              </Button>
-              <Button asChild>
-                <Link to="/dashboard">
-                  לאזור האישי
-                </Link>
-              </Button>
-            </div>
-          </div>
+          <SuccessScreen onReset={() => { setShowSuccess(false); resetWizard(); }} />
         ) : showQuote ? (
           /* Quote View */
           <div className="py-6">
