@@ -107,6 +107,7 @@ const CreativeStudio = () => {
   const [showResults, setShowResults] = useState(false);
   const [showMediaSelection, setShowMediaSelection] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
 
   // Media selection state
@@ -328,6 +329,7 @@ const CreativeStudio = () => {
     setGeneratedImages([]);
     setShowResults(false);
     setShowQuote(false);
+    setShowSuccess(false);
     setConcepts([]);
     setSelectedConcept(null);
   };
@@ -444,8 +446,8 @@ const CreativeStudio = () => {
         return;
       }
 
-      toast.success('ההזמנה התקבלה! הנציג שלנו (אנושי, לא רובוט) עובר עליה כרגע ויחזור אליך לאישור סופי וסליקה.');
-      resetWizard();
+      setShowQuote(false);
+      setShowSuccess(true);
     } catch (error) {
       console.error('Error:', error);
       toast.error('שגיאה בשליחת ההזמנה');
@@ -750,6 +752,30 @@ const CreativeStudio = () => {
                 </div>
               </>
             )}
+          </div>
+        ) : showSuccess ? (
+          /* Success View */
+          <div className="flex flex-col items-center justify-center py-20 max-w-lg mx-auto text-center">
+            <div className="w-24 h-24 rounded-full bg-success/20 flex items-center justify-center mb-8 animate-scale-in">
+              <CheckCircle2 className="h-12 w-12 text-success" />
+            </div>
+            <h2 className="text-3xl font-bold mb-4">ההזמנה נשלחה בהצלחה!</h2>
+            <p className="text-lg text-muted-foreground mb-2">
+              ההזמנה ופרטי המשתמש נשלחו למייל שלך
+            </p>
+            <p className="text-muted-foreground mb-8">
+              אפשר לעקוב אחרי סטטוס הקמפיין בכל עת באזור האישי
+            </p>
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={() => { setShowSuccess(false); resetWizard(); }}>
+                יצירת קמפיין חדש
+              </Button>
+              <Button asChild>
+                <Link to="/dashboard">
+                  לאזור האישי
+                </Link>
+              </Button>
+            </div>
           </div>
         ) : showQuote ? (
           /* Quote View */
