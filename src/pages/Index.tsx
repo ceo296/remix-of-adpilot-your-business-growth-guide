@@ -40,16 +40,11 @@ const Index = () => {
             בחר קהל, סגנון וערוצי מדיה – ואנחנו נבנה לך קמפיין מהמם.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link to="/onboarding">
               <Button variant="gradient" size="xl">
                 מתחילים בסייעתא דשמיא
                 <ArrowLeft className="w-5 h-5 mr-2" />
-              </Button>
-            </Link>
-            <Link to="/dashboard">
-              <Button variant="outline" size="xl">
-                לוח בקרה
               </Button>
             </Link>
           </div>
