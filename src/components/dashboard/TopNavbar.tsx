@@ -8,7 +8,8 @@ import {
   HelpCircle,
   LogOut,
   Users,
-  Shield
+  Shield,
+  Brain
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAgencyClients } from '@/hooks/useAgencyClients';
@@ -51,7 +52,10 @@ const TopNavbar = () => {
     { title: 'קמפיין חדש', url: '/new-campaign', icon: Megaphone },
     { title: 'סטודיו יצירתי', url: '/studio', icon: Rocket },
     ...(isAgency ? [{ title: 'ניהול לקוחות', url: '/clients', icon: Users }] : []),
-    ...(isAdmin ? [{ title: 'ממשק ניהול', url: '/admin-dashboard', icon: Shield }] : []),
+    ...(isAdmin ? [
+      { title: 'מוח', url: '/brain', icon: Brain },
+      { title: 'ממשק ניהול', url: '/admin-dashboard', icon: Shield },
+    ] : []),
     { title: 'פרופיל', url: '/profile', icon: Settings },
   ];
 
