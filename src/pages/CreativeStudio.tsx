@@ -803,7 +803,7 @@ const CreativeStudio = () => {
                 variant="gradient"
                 className="h-14 px-8 text-lg gap-2"
               >
-                המשך להצעת מחיר
+                מתקדמים להזמנת מדיה
                 <ChevronLeft className="h-5 w-5" />
               </Button>
             </div>
