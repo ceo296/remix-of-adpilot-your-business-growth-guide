@@ -1,10 +1,46 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Rocket, ArrowLeft, Zap, Shield, Handshake, ChefHat, CalendarDays, Camera, Settings, ChevronLeft, Coffee } from 'lucide-react';
+import { Rocket, ArrowLeft, Zap, Settings, Info, Handshake, ChefHat, CalendarDays, Camera, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from '@/components/ui/sheet';
 
 const Index = () => {
+  const steps = [
+    {
+      step: '1',
+      icon: Handshake,
+      title: 'נעים להכיר (על אמת)',
+      description: 'לומדים מי אתם, מה הסיפור שלכם, וכן - גם איך אתם שותים את הקפה בבוקר.',
+    },
+    {
+      step: '2',
+      icon: ChefHat,
+      title: 'מבשלים לכם קמפיין',
+      description: 'לוקחים את המסר שלכם ומתאימים אותו בול למגזר. בלי טעויות, עם הניואנסים הנכונים.',
+    },
+    {
+      step: '3',
+      icon: CalendarDays,
+      title: 'תופרים את המדיה',
+      description: 'אתם מחליטים על התקציב והזמנים, אנחנו דואגים שהמודעה תגיע בול בזמן.',
+    },
+    {
+      step: '4',
+      icon: Camera,
+      title: 'אנחנו רצים, אתם נחים',
+      description: 'זהו, זה באוויר. אתם מקבלים דרישות שלום חמות מהשטח - גזרי עיתונים וצילומי מסך.',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -14,16 +50,70 @@ const Index = () => {
               <span className="logo-red">KOP</span>
             </span>
           </div>
-          <Link to="/auth">
-            <Button variant="default" size="default">
-              כניסה למערכת
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="default">
+                  <Info className="w-4 h-4 ml-2" />
+                  אודות
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+                <SheetHeader className="mb-6">
+                  <SheetTitle className="text-2xl text-right">מה זה ADKOP?</SheetTitle>
+                </SheetHeader>
+                
+                <div className="space-y-6 text-right">
+                  <div className="bg-primary/10 rounded-xl p-4">
+                    <p className="text-lg font-medium text-foreground mb-2">
+                      מתכנן מדיה + ארט-דירקטור בפלטפורמה אחת
+                    </p>
+                    <p className="text-muted-foreground">
+                      בסייעתא דשמיא, אנחנו בונים לכם קמפיינים מותאמים בול למגזר החרדי - 
+                      בלי כאבי ראש, בלי טעויות, ועם כל הניואנסים הנכונים.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-bold mb-4">איך זה עובד?</h3>
+                    <div className="space-y-4">
+                      {steps.map((item) => (
+                        <div key={item.step} className="flex gap-4 items-start">
+                          <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-sm shrink-0">
+                            {item.step}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-foreground">{item.title}</h4>
+                            <p className="text-sm text-muted-foreground">{item.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/50 rounded-xl p-4">
+                    <h3 className="font-bold mb-2">מה יוצא לכם מזה?</h3>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li>✓ קמפיינים מותאמים בול לקהל שלכם</li>
+                      <li>✓ חיסכון בזמן ובכאבי ראש</li>
+                      <li>✓ ליווי מקצועי מא' עד ת'</li>
+                      <li>✓ דוחות ותיעוד של כל פרסום</li>
+                    </ul>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+            <Link to="/auth">
+              <Button variant="default" size="default">
+                כניסה למערכת
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
+      {/* Hero Section - Clean and centered */}
+      <section className="flex-1 flex items-center justify-center container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto text-center animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
             <Zap className="w-4 h-4" />
@@ -50,83 +140,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* How It Works */}
-      <section className="container mx-auto px-4 py-16 md:py-24 font-rubik">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            <Coffee className="w-4 h-4" />
-            ככה זה עובד אצלנו
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            פשוט, נעים, ובלי כאב ראש
-          </h2>
-        </div>
-        
-        <div className="relative">
-          {/* Connecting line for desktop */}
-          <div className="hidden md:block absolute top-24 right-[12%] left-[12%] h-0.5 bg-gradient-to-l from-primary/20 via-primary to-primary/20" />
-          
-          <div className="grid md:grid-cols-4 gap-8 md:gap-6">
-            {[
-              {
-                step: '1',
-                icon: Handshake,
-                title: 'נעים להכיר (על אמת)',
-                description: 'לומדים מי אתם, מה הסיפור שלכם, וכן - גם איך אתם שותים את הקפה בבוקר. בלי זה אי אפשר להתקדם.',
-              },
-              {
-                step: '2',
-                icon: ChefHat,
-                title: 'מבשלים לכם קמפיין',
-                description: 'לוקחים את המסר שלכם ומתאימים אותו בול למגזר. בלי טעויות, עם הניואנסים הנכונים ואפס כאב ראש לכם.',
-              },
-              {
-                step: '3',
-                icon: CalendarDays,
-                title: 'תופרים את המדיה',
-                description: 'אתם מחליטים על התקציב והזמנים, אנחנו דואגים שהמודעה תגיע בול בזמן ובגודל הנכון.',
-              },
-              {
-                step: '4',
-                icon: Camera,
-                title: 'אנחנו רצים, אתם נחים',
-                description: 'זהו, זה באוויר. אתם מקבלים למסך \'דרישות שלום\' חמות מהשטח - גזרי עיתונים, צילומי מסך ונחת.',
-              },
-            ].map((item, index) => (
-              <div 
-                key={item.step}
-                className="relative group"
-                style={{ animationDelay: `${index * 0.15}s` }}
-              >
-                {/* Card */}
-                <div className="relative bg-card rounded-2xl border border-border p-6 text-center shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 animate-fade-in">
-                  {/* Step number badge */}
-                  <div className="absolute -top-4 right-4 w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-sm shadow-lg">
-                    {item.step}
-                  </div>
-                  
-                  {/* Icon container */}
-                  <div className="relative w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 mt-2">
-                    <item.icon className="w-8 h-8 text-primary relative z-10" />
-                  </div>
-                  
-                  <h3 className="text-lg font-bold text-foreground mb-3">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
-                </div>
-                
-                {/* Arrow connector for mobile */}
-                {index < 3 && (
-                  <div className="md:hidden flex justify-center my-4">
-                    <ChevronLeft className="w-6 h-6 text-primary rotate-[-90deg]" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
 
       {/* Footer */}
       <footer className="border-t border-border py-8 bg-foreground text-background">
