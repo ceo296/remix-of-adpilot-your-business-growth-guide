@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   DollarSign, 
   Users, 
@@ -11,9 +12,11 @@ import {
   Check, 
   Package,
   Sparkles,
-  Star
+  Star,
+  MousePointerClick
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { MediaSelector } from '@/components/studio/MediaSelector';
 
 interface MediaPackage {
   id: string;
@@ -40,6 +43,8 @@ interface BudgetAudienceStepProps {
   onTargetCityChange: (value: string) => void;
   selectedPackage: MediaPackage | null;
   onPackageSelect: (pkg: MediaPackage) => void;
+  onManualMediaSelect?: (selection: any) => void;
+  manualMediaSelection?: any;
 }
 
 const STREAMS = [
@@ -76,9 +81,12 @@ export const BudgetAudienceStep = ({
   onTargetCityChange,
   selectedPackage,
   onPackageSelect,
+  onManualMediaSelect,
+  manualMediaSelection,
 }: BudgetAudienceStepProps) => {
   const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [isLoadingPackages, setIsLoadingPackages] = useState(false);
+  const [selectionMode, setSelectionMode] = useState<'packages' | 'manual'>('packages');
 
   // Generate packages based on budget and audience selection
   useEffect(() => {
@@ -316,76 +324,109 @@ export const BudgetAudienceStep = ({
         </CardContent>
       </Card>
 
-      {/* Media Packages */}
+      {/* Media Selection Mode Tabs */}
       {showPackages && (
-        <div className="space-y-4">
-          <div className="text-center">
-            <h3 className="text-xl font-bold mb-1">חבילות מדיה מומלצות</h3>
-            <p className="text-muted-foreground text-sm">
-              מותאמות לתקציב {formatPrice(budget)} וקהל {STREAMS.find(s => s.id === targetStream)?.label} {GENDERS.find(g => g.id === targetGender)?.label}
-            </p>
-          </div>
+        <Tabs value={selectionMode} onValueChange={(v) => setSelectionMode(v as 'packages' | 'manual')} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="packages" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              חבילות מומלצות
+            </TabsTrigger>
+            <TabsTrigger value="manual" className="flex items-center gap-2">
+              <MousePointerClick className="h-4 w-4" />
+              בחירה ידנית
+            </TabsTrigger>
+          </TabsList>
 
-          {isLoadingPackages ? (
-            <div className="text-center py-8 text-muted-foreground">טוען חבילות...</div>
-          ) : (
-            <div className="grid md:grid-cols-3 gap-4">
-              {packages.map((pkg) => (
-                <Card 
-                  key={pkg.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg relative ${
-                    selectedPackage?.id === pkg.id
-                      ? 'ring-2 ring-primary shadow-lg'
-                      : 'hover:border-primary/50'
-                  } ${pkg.recommended ? 'border-primary/50' : ''}`}
-                  onClick={() => onPackageSelect(pkg)}
-                >
-                  {pkg.recommended && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-primary text-primary-foreground">
-                        <Star className="h-3 w-3 ml-1" />
-                        מומלץ
-                      </Badge>
-                    </div>
-                  )}
-                  
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      {pkg.name}
-                    </CardTitle>
-                    <CardDescription>{pkg.description}</CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-3">
-                    <div className="space-y-2">
-                      {pkg.items.map((item) => (
-                        <div key={item.id} className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{item.name}</span>
-                          <span className="font-medium">{formatPrice(item.price)}</span>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="border-t pt-3 flex justify-between items-center">
-                      <span className="font-bold">סה"כ</span>
-                      <span className="text-xl font-bold text-primary">
-                        {formatPrice(pkg.totalPrice)}
-                      </span>
-                    </div>
+          {/* Packages Tab */}
+          <TabsContent value="packages" className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-xl font-bold mb-1">חבילות מדיה מומלצות</h3>
+              <p className="text-muted-foreground text-sm">
+                מותאמות לתקציב {formatPrice(budget)} וקהל {STREAMS.find(s => s.id === targetStream)?.label} {GENDERS.find(g => g.id === targetGender)?.label}
+              </p>
+            </div>
 
-                    {selectedPackage?.id === pkg.id && (
-                      <div className="flex items-center justify-center gap-2 text-primary pt-2">
-                        <Check className="h-5 w-5" />
-                        <span className="font-medium">נבחר</span>
+            {isLoadingPackages ? (
+              <div className="text-center py-8 text-muted-foreground">טוען חבילות...</div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-4">
+                {packages.map((pkg) => (
+                  <Card 
+                    key={pkg.id}
+                    className={`cursor-pointer transition-all hover:shadow-lg relative ${
+                      selectedPackage?.id === pkg.id
+                        ? 'ring-2 ring-primary shadow-lg'
+                        : 'hover:border-primary/50'
+                    } ${pkg.recommended ? 'border-primary/50' : ''}`}
+                    onClick={() => onPackageSelect(pkg)}
+                  >
+                    {pkg.recommended && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <Badge className="bg-primary text-primary-foreground">
+                          <Star className="h-3 w-3 ml-1" />
+                          מומלץ
+                        </Badge>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-              ))}
+                    
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Package className="h-5 w-5" />
+                        {pkg.name}
+                      </CardTitle>
+                      <CardDescription>{pkg.description}</CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-3">
+                      <div className="space-y-2">
+                        {pkg.items.map((item) => (
+                          <div key={item.id} className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">{item.name}</span>
+                            <span className="font-medium">{formatPrice(item.price)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="border-t pt-3 flex justify-between items-center">
+                        <span className="font-bold">סה"כ</span>
+                        <span className="text-xl font-bold text-primary">
+                          {formatPrice(pkg.totalPrice)}
+                        </span>
+                      </div>
+
+                      {selectedPackage?.id === pkg.id && (
+                        <div className="flex items-center justify-center gap-2 text-primary pt-2">
+                          <Check className="h-5 w-5" />
+                          <span className="font-medium">נבחר</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Manual Selection Tab */}
+          <TabsContent value="manual" className="space-y-4">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold mb-1">בחירה ידנית של מדיה</h3>
+              <p className="text-muted-foreground text-sm">
+                בחר בעצמך את ערוצי המדיה המדויקים לקמפיין שלך
+              </p>
             </div>
-          )}
-        </div>
+            
+            <Card>
+              <CardContent className="pt-6">
+                <MediaSelector 
+                  onSelect={(selection) => onManualMediaSelect?.(selection)}
+                  selectedMedia={manualMediaSelection}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
