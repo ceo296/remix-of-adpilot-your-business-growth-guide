@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Rocket, ArrowLeft, Zap, Settings, Info, ChefHat, CalendarDays, X } from 'lucide-react';
+import { Rocket, ArrowLeft, Zap, Settings, Info, ChefHat, CalendarDays, X, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   Sheet,
@@ -36,6 +36,12 @@ const Index = () => {
       icon: Rocket,
       title: 'שיגור',
       description: 'סוגרים עסקה, והמודעה בדרך לפרסום. חסכנו לכם את הטלפונים, הבירוקרטיה וההמתנה. פשוט לעבור.',
+    },
+    {
+      step: '5',
+      icon: BarChart3,
+      title: 'סטטוס קמפיין בכל רגע נתון',
+      description: 'כמה מהתקציב נוצל, איפה כבר פורסם ואיפה עתיד להתפרסם – הכל שקוף מול העיניים.',
     },
   ];
 
