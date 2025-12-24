@@ -77,14 +77,14 @@ const SuccessScreen = ({ onReset }: { onReset: () => void }) => {
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: ['#E31E24', '#FFD700', '#22c55e']
+        colors: ['#E31E24', '#ff4d4d', '#c41920']
       });
       confetti({
         particleCount: 3,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: ['#E31E24', '#FFD700', '#22c55e']
+        colors: ['#E31E24', '#ff4d4d', '#c41920']
       });
 
       if (Date.now() < end) {
