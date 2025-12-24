@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAgencyClients } from '@/hooks/useAgencyClients';
@@ -32,16 +32,28 @@ const AgencyClients = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Redirect if not logged in
-  if (!authLoading && !user) {
-    navigate('/auth');
-    return null;
-  }
+  // Handle redirects with useEffect to avoid render-time navigation
+  useEffect(() => {
+    if (authLoading || loading) return;
+    
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    
+    if (!isAgency) {
+      navigate('/dashboard');
+      return;
+    }
+  }, [authLoading, loading, user, isAgency, navigate]);
 
-  // Redirect if not an agency
-  if (!loading && !isAgency) {
-    navigate('/dashboard');
-    return null;
+  // Show loading or nothing while checking
+  if (authLoading || loading || !user || !isAgency) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
   }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,13 +115,6 @@ const AgencyClients = () => {
     setPrimaryColor('#E31E24');
   };
 
-  if (loading || authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
