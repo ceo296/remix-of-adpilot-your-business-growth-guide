@@ -73,6 +73,7 @@ export interface StrategicMRI {
   
   // Section 3: The Arena
   competitors: string[];
+  noCompetitors: boolean; // User confirmed they have no competitors
   myPosition: { x: number; y: number };
   competitorPositions: CompetitorPosition[];
   
@@ -164,6 +165,7 @@ export const initialWizardData: WizardData = {
     advantageSlider: 50,
     winningFeature: '',
     competitors: [],
+    noCompetitors: false,
     myPosition: { x: 0, y: 0 },
     competitorPositions: [],
     endConsumer: '',
