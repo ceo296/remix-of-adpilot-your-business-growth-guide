@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Rocket, ArrowLeft, Zap, Settings, Info, Handshake, ChefHat, CalendarDays, Camera, X } from 'lucide-react';
+import { Rocket, ArrowLeft, Zap, Settings, Info, ChefHat, CalendarDays, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   Sheet,
@@ -15,27 +15,27 @@ const Index = () => {
   const steps = [
     {
       step: '1',
-      icon: Handshake,
-      title: 'נעים להכיר (על אמת)',
-      description: 'לומדים מי אתם, מה הסיפור שלכם, וכן - גם איך אתם שותים את הקפה בבוקר.',
+      icon: Zap,
+      title: 'עושים סדר באסטרטגיה',
+      description: 'אנחנו לוקחים את המידע שבידיכם, מחדדים את היתרונות שלכם, והופכים את הידע הגולמי שלכם לבריף פרסומי מנצח.',
     },
     {
       step: '2',
       icon: ChefHat,
-      title: 'מבשלים לכם קמפיין',
-      description: 'לוקחים את המסר שלכם ומתאימים אותו בול למגזר. בלי טעויות, עם הניואנסים הנכונים.',
+      title: 'קריאייטיב שמרגיש \'משלנו\'',
+      description: 'עיצוב וקופירייטינג שנוצרים במיוחד למגזר. המערכת דואגת שהשפה תהיה מדויקת, צנועה ומותאמת לקהל היעד.',
     },
     {
       step: '3',
       icon: CalendarDays,
-      title: 'תופרים את המדיה',
-      description: 'אתם מחליטים על התקציב והזמנים, אנחנו דואגים שהמודעה תגיע בול בזמן.',
+      title: 'כל המדיה במקום אחד',
+      description: 'במקום לרדוף אחרי נציגי מכירות בעיתונים ובאתרים – הכל מרוכז לכם מול העיניים. בוחרים איפה לפרסם, רואים מחירים, ומתקדמים בלחיצת כפתור.',
     },
     {
       step: '4',
-      icon: Camera,
-      title: 'אנחנו רצים, אתם נחים',
-      description: 'זהו, זה באוויר. אתם מקבלים דרישות שלום חמות מהשטח - גזרי עיתונים וצילומי מסך.',
+      icon: Rocket,
+      title: 'שיגור',
+      description: 'סוגרים עסקה, והמודעה בדרך לפרסום. חסכנו לכם את הטלפונים, הבירוקרטיה וההמתנה. פשוט לעבור.',
     },
   ];
 
@@ -60,17 +60,17 @@ const Index = () => {
               </SheetTrigger>
               <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
                 <SheetHeader className="mb-6">
-                  <SheetTitle className="text-2xl text-right">מה זה ADKOP?</SheetTitle>
+                  <SheetTitle className="text-2xl text-right">?ADKOP מה זה</SheetTitle>
                 </SheetHeader>
                 
                 <div className="space-y-6 text-right">
                   <div className="bg-primary/10 rounded-xl p-4">
                     <p className="text-lg font-medium text-foreground mb-2">
-                      מתכנן מדיה + ארט-דירקטור בפלטפורמה אחת
+                      לפצח את המגזר החרדי – בלי ריטיינר, בלי התחייבות, ובלי כאבי ראש.
                     </p>
                     <p className="text-muted-foreground">
-                      בסייעתא דשמיא, אנחנו בונים לכם קמפיינים מותאמים בול למגזר החרדי - 
-                      בלי כאבי ראש, בלי טעויות, ועם כל הניואנסים הנכונים.
+                      הכירו את ADKOP: הפלטפורמה שמרכזת לכם את כל תהליך הפרסום במקום אחד. 
+                      מאסטרטגיה ועד מודעה בעיתון – הכל קורה כאן, בקצב שלכם.
                     </p>
                   </div>
 
@@ -92,12 +92,12 @@ const Index = () => {
                   </div>
 
                   <div className="bg-muted/50 rounded-xl p-4">
-                    <h3 className="font-bold mb-2">מה יוצא לכם מזה?</h3>
+                    <h3 className="font-bold mb-2">למה דווקא ADKOP?</h3>
                     <ul className="space-y-2 text-sm text-muted-foreground">
-                      <li>✓ קמפיינים מותאמים בול לקהל שלכם</li>
-                      <li>✓ חיסכון בזמן ובכאבי ראש</li>
-                      <li>✓ ליווי מקצועי מא' עד ת'</li>
-                      <li>✓ דוחות ותיעוד של כל פרסום</li>
+                      <li>✓ הכל במקום אחד – מאסטרטגיה ועד פרסום</li>
+                      <li>✓ שפה ועיצוב מותאמים למגזר</li>
+                      <li>✓ שקיפות במחירים ובתהליך</li>
+                      <li>✓ בלי התחייבות, בלי ריטיינר</li>
                     </ul>
                   </div>
                 </div>
