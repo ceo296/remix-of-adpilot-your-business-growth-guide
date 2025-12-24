@@ -56,7 +56,7 @@ interface StudioBriefStepProps {
 
 const GOAL_OPTIONS: { id: CampaignGoal; label: string; description: string; icon: React.ElementType }[] = [
   { id: 'awareness', label: 'מודעות למותג', description: 'להציג את העסק ולהגביר נוכחות', icon: Megaphone },
-  { id: 'promotion', label: 'מבצע / הנחה', description: 'לקדם הצעה מיוחדת או מחיר', icon: Tag },
+  { id: 'promotion', label: 'סייל / מבצע', description: 'לקדם הצעה מיוחדת או מחיר', icon: Tag },
   { id: 'launch', label: 'השקה', description: 'להשיק מוצר, שירות או סניף חדש', icon: Sparkles },
   { id: 'seasonal', label: 'עונתי / חג', description: 'קמפיין לרגל אירוע או עונה', icon: Calendar },
 ];
