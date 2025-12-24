@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, ZoomIn, Type } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, ZoomIn, Type, RefreshCw, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { StudioAssetStep } from '@/components/studio/StudioAssetStep';
@@ -17,6 +18,7 @@ import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/
 
 type AssetChoice = 'has-product' | 'no-product';
 type TreatmentChoice = 'as-is' | 'ai-magic';
+type FeedbackMode = 'none' | 'another-round' | 'small-fixes';
 
 interface GeneratedImage {
   id: string;
@@ -53,6 +55,10 @@ const CreativeStudio = () => {
   // Mode state
   const [mode, setMode] = useState<StudioMode>('manual');
   
+  // Feedback state
+  const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('none');
+  const [feedbackText, setFeedbackText] = useState('');
+  
   // Autopilot state
   const [concepts, setConcepts] = useState<CreativeConcept[]>([]);
   const [selectedConcept, setSelectedConcept] = useState<CreativeConcept | null>(null);
@@ -86,12 +92,6 @@ const CreativeStudio = () => {
   const [showResults, setShowResults] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
-
-  // Mock media items for quote (in production, this would come from media selection step)
-  const mockMediaItems: MediaItem[] = [
-    { id: '1', name: 'יתד נאמן - יום שלישי', price: 15000 },
-    { id: '2', name: 'כיכר השבת - באנר ראשי', price: 500 },
-  ];
 
   // Fetch client profile on mount
   useEffect(() => {
@@ -317,11 +317,33 @@ const CreativeStudio = () => {
     
     const creativeCost = creativeMode === 'uploaded' ? 0 : 500;
     
+    const mediaItems: MediaItem[] = [
+      { id: '1', name: 'יתד נאמן - יום שלישי', price: 15000 },
+      { id: '2', name: 'כיכר השבת - באנר ראשי', price: 500 },
+    ];
+    
     return {
-      mediaItems: mockMediaItems,
+      mediaItems,
       creativeMode,
       creativeCost,
     };
+  };
+
+  // Feedback handlers
+  const handleSubmitFeedback = () => {
+    if (!feedbackText.trim()) {
+      toast.error('נא להזין פירוט');
+      return;
+    }
+    
+    if (feedbackMode === 'another-round') {
+      toast.success('בקשתך לסבב נוסף התקבלה! נחזור אליך בהקדם.');
+    } else if (feedbackMode === 'small-fixes') {
+      toast.success('התיקונים התקבלו! נעדכן אותך כשהעיצובים המעודכנים מוכנים.');
+    }
+    
+    setFeedbackMode('none');
+    setFeedbackText('');
   };
 
   const handleProceedToQuote = () => {
@@ -767,13 +789,85 @@ const CreativeStudio = () => {
                   ))}
                 </div>
 
-                {/* Proceed to Quote Button */}
+                {/* Feedback Section */}
                 {!isGenerating && generatedImages.some(img => img.status === 'approved' || img.status === 'needs-review') && (
-                  <div className="flex justify-center pt-4">
-                    <Button size="lg" onClick={handleProceedToQuote} className="h-14 px-8 text-lg">
-                      המשך להצעת מחיר
-                      <ChevronLeft className="h-5 w-5 mr-2" />
-                    </Button>
+                  <div className="mt-8 space-y-4">
+                    {/* Feedback Buttons */}
+                    {feedbackMode === 'none' && (
+                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => setFeedbackMode('another-round')}
+                          className="gap-2"
+                        >
+                          <RefreshCw className="h-5 w-5" />
+                          אשמח לעוד סבב סקיצות
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => setFeedbackMode('small-fixes')}
+                          className="gap-2"
+                        >
+                          <MessageSquare className="h-5 w-5" />
+                          אהבתי! יש לי כמה תיקונים
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Feedback Text Area */}
+                    {feedbackMode !== 'none' && (
+                      <Card className="p-5 max-w-2xl mx-auto animate-fade-in">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-lg">
+                              {feedbackMode === 'another-round' 
+                                ? 'מה היית רוצה לשנות בסבב הבא?' 
+                                : 'אילו תיקונים נדרשים?'}
+                            </h3>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setFeedbackMode('none');
+                                setFeedbackText('');
+                              }}
+                            >
+                              ביטול
+                            </Button>
+                          </div>
+                          <Textarea
+                            value={feedbackText}
+                            onChange={(e) => setFeedbackText(e.target.value)}
+                            placeholder={
+                              feedbackMode === 'another-round'
+                                ? 'פרט מה לא התחבר, מה חשוב להדגיש יותר - ברמת המלל או העיצוב...'
+                                : 'פרט את התיקונים הנדרשים...'
+                            }
+                            className="min-h-[120px] text-right"
+                            dir="rtl"
+                          />
+                          <Button onClick={handleSubmitFeedback} className="w-full">
+                            שלח
+                          </Button>
+                        </div>
+                      </Card>
+                    )}
+
+                    {/* Fixed Approve Button */}
+                    <div className="flex justify-center pt-4 border-t border-border mt-6">
+                      <Button 
+                        size="lg" 
+                        onClick={handleProceedToQuote} 
+                        variant="gradient"
+                        className="h-14 px-8 text-lg gap-2"
+                      >
+                        <CheckCircle2 className="h-5 w-5" />
+                        הקו מאושר! ממשיכים למדיה
+                        <ChevronLeft className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </>
