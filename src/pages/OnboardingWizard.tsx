@@ -23,8 +23,8 @@ const stepTitlesRegular = [
   'ברוכים הבאים',
   'הלינק הקסום',
   'מה למדנו עליכם',
-  'ה-MRI האסטרטגי',
   'פרטי יצירת קשר',
+  'ה-MRI האסטרטגי',
   'חומרי עבר',
   'דרכון המותג',
 ];
@@ -34,8 +34,8 @@ const stepTitlesAgency = [
   'בחירת לקוח',
   'הלינק הקסום',
   'מה למדנו עליכם',
-  'ה-MRI האסטרטגי',
   'פרטי יצירת קשר',
+  'ה-MRI האסטרטגי',
   'חומרי עבר',
   'דרכון המותג',
 ];
@@ -338,8 +338,6 @@ const OnboardingWizard = () => {
         case 4:
           return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 5:
-          return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-        case 6:
           return (
             <div className="space-y-6">
               <StepContactAssets data={wizardData.contactAssets} onChange={handleContactAssetsChange} />
@@ -349,6 +347,8 @@ const OnboardingWizard = () => {
               </div>
             </div>
           );
+        case 6:
+          return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 7:
           return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 8:
@@ -367,8 +367,6 @@ const OnboardingWizard = () => {
       case 3:
         return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 4:
-        return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-      case 5:
         return (
           <div className="space-y-6">
             <StepContactAssets data={wizardData.contactAssets} onChange={handleContactAssetsChange} />
@@ -378,6 +376,8 @@ const OnboardingWizard = () => {
             </div>
           </div>
         );
+      case 5:
+        return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 6:
         return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 7:
