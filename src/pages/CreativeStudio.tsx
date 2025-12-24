@@ -15,6 +15,7 @@ import { StudioModeToggle, StudioMode } from '@/components/studio/StudioModeTogg
 import { StudioAutopilot, CreativeConcept } from '@/components/studio/StudioAutopilot';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
 import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/studio/StudioBriefStep';
+import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 
 type AssetChoice = 'has-product' | 'no-product';
 type TreatmentChoice = 'as-is' | 'ai-magic';
@@ -38,6 +39,20 @@ interface ClientProfile {
   contact_whatsapp: string | null;
   contact_email: string | null;
   contact_address: string | null;
+}
+
+interface MediaPackage {
+  id: string;
+  name: string;
+  description: string;
+  totalPrice: number;
+  items: {
+    id: string;
+    name: string;
+    price: number;
+    reach?: string;
+  }[];
+  recommended?: boolean;
 }
 
 const STEP_TITLES = [
@@ -90,8 +105,16 @@ const CreativeStudio = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [showMediaSelection, setShowMediaSelection] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
+
+  // Media selection state
+  const [mediaBudget, setMediaBudget] = useState<number>(0);
+  const [mediaTargetStream, setMediaTargetStream] = useState<string>('');
+  const [mediaTargetGender, setMediaTargetGender] = useState<string>('');
+  const [mediaTargetCity, setMediaTargetCity] = useState<string>('nationwide');
+  const [selectedMediaPackage, setSelectedMediaPackage] = useState<MediaPackage | null>(null);
 
   // Fetch client profile on mount
   useEffect(() => {
@@ -317,10 +340,17 @@ const CreativeStudio = () => {
     
     const creativeCost = creativeMode === 'uploaded' ? 0 : 500;
     
-    const mediaItems: MediaItem[] = [
-      { id: '1', name: 'יתד נאמן - יום שלישי', price: 15000 },
-      { id: '2', name: 'כיכר השבת - באנר ראשי', price: 500 },
-    ];
+    // Use selected package items if available, otherwise use defaults
+    const mediaItems: MediaItem[] = selectedMediaPackage 
+      ? selectedMediaPackage.items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+        }))
+      : [
+          { id: '1', name: 'יתד נאמן - יום שלישי', price: 15000 },
+          { id: '2', name: 'כיכר השבת - באנר ראשי', price: 500 },
+        ];
     
     return {
       mediaItems,
@@ -346,8 +376,21 @@ const CreativeStudio = () => {
     setFeedbackText('');
   };
 
+  const handleProceedToMediaSelection = () => {
+    setShowMediaSelection(true);
+  };
+
   const handleProceedToQuote = () => {
+    if (!selectedMediaPackage) {
+      toast.error('נא לבחור חבילת מדיה');
+      return;
+    }
+    setShowMediaSelection(false);
     setShowQuote(true);
+  };
+
+  const handleBackToResults = () => {
+    setShowMediaSelection(false);
   };
 
   const handleApproveQuote = async () => {
@@ -712,9 +755,9 @@ const CreativeStudio = () => {
           /* Quote View */
           <div className="py-6">
             <div className="mb-6">
-              <Button variant="ghost" onClick={() => setShowQuote(false)} className="mb-4">
+              <Button variant="ghost" onClick={() => { setShowQuote(false); setShowMediaSelection(true); }} className="mb-4">
                 <ChevronRight className="h-4 w-4 ml-1" />
-                חזרה לסקיצות
+                חזרה לבחירת מדיה
               </Button>
             </div>
             <StudioQuoteStep
@@ -723,6 +766,47 @@ const CreativeStudio = () => {
               onApprove={handleApproveQuote}
               onConsult={handleConsultAgent}
             />
+          </div>
+        ) : showMediaSelection ? (
+          /* Media Selection View */
+          <div className="max-w-4xl mx-auto py-6">
+            <div className="mb-6">
+              <Button variant="ghost" onClick={handleBackToResults} className="mb-4">
+                <ChevronRight className="h-4 w-4 ml-1" />
+                חזרה לסקיצות
+              </Button>
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold mb-2">בחירת מדיה ותקציב</h2>
+                <p className="text-muted-foreground">הגדר את קהל היעד והתקציב, ונתאים לך חבילות מדיה מושלמות</p>
+              </div>
+            </div>
+            
+            <BudgetAudienceStep
+              budget={mediaBudget}
+              onBudgetChange={setMediaBudget}
+              targetStream={mediaTargetStream}
+              onTargetStreamChange={setMediaTargetStream}
+              targetGender={mediaTargetGender}
+              onTargetGenderChange={setMediaTargetGender}
+              targetCity={mediaTargetCity}
+              onTargetCityChange={setMediaTargetCity}
+              selectedPackage={selectedMediaPackage}
+              onPackageSelect={setSelectedMediaPackage}
+            />
+
+            {/* Continue to Quote Button */}
+            <div className="flex justify-center pt-8 mt-8 border-t border-border">
+              <Button 
+                size="lg" 
+                onClick={handleProceedToQuote} 
+                disabled={!selectedMediaPackage}
+                variant="gradient"
+                className="h-14 px-8 text-lg gap-2"
+              >
+                המשך להצעת מחיר
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         ) : (
           /* Results View */
@@ -859,7 +943,7 @@ const CreativeStudio = () => {
                     <div className="flex justify-center pt-4 border-t border-border mt-6">
                       <Button 
                         size="lg" 
-                        onClick={handleProceedToQuote} 
+                        onClick={handleProceedToMediaSelection} 
                         variant="gradient"
                         className="h-14 px-8 text-lg gap-2"
                       >
