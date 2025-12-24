@@ -32,10 +32,10 @@ interface StepContactAssetsProps {
 }
 
 const CONTACT_FIELDS = [
-  { key: 'contact_phone', label: 'טלפון', icon: Phone, placeholder: '03-1234567', type: 'tel' },
-  { key: 'contact_whatsapp', label: 'וואטסאפ', icon: MessageCircle, placeholder: '050-1234567', type: 'tel' },
-  { key: 'contact_email', label: 'מייל', icon: Mail, placeholder: 'info@business.com', type: 'email' },
-  { key: 'contact_address', label: 'כתובת', icon: MapPin, placeholder: 'רחוב הדוגמה 10, בני ברק', type: 'text' },
+  { key: 'contact_phone', label: 'טלפון', icon: Phone, placeholder: '03-1234567', type: 'tel', required: true },
+  { key: 'contact_whatsapp', label: 'וואטסאפ', icon: MessageCircle, placeholder: '050-1234567', type: 'tel', required: false },
+  { key: 'contact_email', label: 'מייל', icon: Mail, placeholder: 'info@business.com', type: 'email', required: true },
+  { key: 'contact_address', label: 'כתובת', icon: MapPin, placeholder: 'רחוב הדוגמה 10, בני ברק', type: 'text', required: false },
 ] as const;
 
 const SOCIAL_FIELDS = [
@@ -70,11 +70,12 @@ export const StepContactAssets = ({ data, onChange }: StepContactAssetsProps) =>
             פרטי התקשרות
           </h3>
           <div className="grid md:grid-cols-2 gap-4">
-            {CONTACT_FIELDS.map(({ key, label, icon: Icon, placeholder, type }) => (
+            {CONTACT_FIELDS.map(({ key, label, icon: Icon, placeholder, type, required }) => (
               <div key={key} className="space-y-2">
                 <Label htmlFor={key} className="flex items-center gap-2 text-foreground">
                   <Icon className="w-4 h-4 text-muted-foreground" />
                   {label}
+                  {required && <span className="text-destructive text-xs">*</span>}
                 </Label>
                 <Input
                   id={key}
@@ -82,8 +83,9 @@ export const StepContactAssets = ({ data, onChange }: StepContactAssetsProps) =>
                   value={data[key as keyof ContactAssets] || ''}
                   onChange={(e) => onChange({ [key]: e.target.value })}
                   placeholder={placeholder}
-                  className="text-left"
+                  className={`text-left ${required && !data[key as keyof ContactAssets]?.trim() ? 'border-destructive/50' : ''}`}
                   dir="ltr"
+                  required={required}
                 />
               </div>
             ))}
