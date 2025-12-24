@@ -127,23 +127,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="bg-gradient-primary rounded-2xl p-8 md:p-12 text-center text-primary-foreground">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">מוכנים להתחיל?</h2>
-          <p className="text-lg opacity-90 mb-6">4 שלבים פשוטים – ואנחנו נעשה את השאר בעזה״י</p>
-          <Link to="/onboarding">
-            <Button 
-              variant="secondary" 
-              size="xl"
-              className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-            >
-              יוצאים לדרך!
-              <ArrowLeft className="w-5 h-5 mr-2" />
-            </Button>
-          </Link>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border py-8 bg-foreground text-background">
