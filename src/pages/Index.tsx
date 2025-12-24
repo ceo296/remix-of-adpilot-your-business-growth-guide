@@ -14,9 +14,9 @@ const Index = () => {
               <span className="logo-red">KOP</span>
             </span>
           </div>
-          <Link to="/onboarding">
+          <Link to="/auth">
             <Button variant="default" size="default">
-              יוצאים לדרך!
+              כניסה למערכת
             </Button>
           </Link>
         </div>
