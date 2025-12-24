@@ -31,7 +31,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
   const [botMessage, setBotMessage] = useState<string | null>(null);
   const [otherXFactor, setOtherXFactor] = useState(data.strategicMRI.otherXFactor || '');
   const [isOtherSelected, setIsOtherSelected] = useState(!!data.strategicMRI.otherXFactor);
-
+  const [noCompetitors, setNoCompetitors] = useState(data.strategicMRI.noCompetitors || false);
   const toggleOtherXFactor = () => {
     if (isOtherSelected) {
       setIsOtherSelected(false);
@@ -130,7 +130,18 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
   const hasValidXFactors = mri.xFactors.length > 0 || (isOtherSelected && otherXFactor.trim().length > 0);
   const otherNeedsText = isOtherSelected && otherXFactor.trim().length === 0;
   const hasValidAudience = mri.endConsumer === 'private' || mri.endConsumer === 'b2b' || mri.endConsumer === 'both';
-  const isValid = hasValidXFactors && !otherNeedsText && hasValidAudience;
+  const hasValidCompetitors = noCompetitors || mri.competitors.length > 0;
+  const isValid = hasValidXFactors && !otherNeedsText && hasValidAudience && hasValidCompetitors;
+
+  const toggleNoCompetitors = () => {
+    const newValue = !noCompetitors;
+    setNoCompetitors(newValue);
+    updateMRI({ noCompetitors: newValue });
+    if (newValue) {
+      // Clear competitors when selecting "no competitors"
+      updateMRI({ competitors: [], competitorPositions: [], noCompetitors: newValue });
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -423,45 +434,65 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
             </div>
           </div>
 
-          {/* Competitors Section - Optional */}
+          {/* Competitors Section - Required */}
           <div className="pt-4 border-t border-border">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-foreground">מתחרים עיקריים (אופציונלי)</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-foreground">מתחרים עיקריים</span>
+                <span className="text-xs text-destructive">*</span>
+              </div>
               <span className="text-xs text-muted-foreground">עד 3 מתחרים</span>
             </div>
-            <div className="flex gap-2">
-              <Input
-                value={newCompetitor}
-                onChange={(e) => setNewCompetitor(e.target.value)}
-                placeholder="שם המתחרה..."
-                onKeyDown={(e) => e.key === 'Enter' && addCompetitor()}
-                disabled={mri.competitors.length >= 3}
-              />
-              <Button
-                onClick={addCompetitor}
-                disabled={!newCompetitor.trim() || mri.competitors.length >= 3}
-                variant="outline"
-                size="icon"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
+            
+            {!noCompetitors && (
+              <>
+                <div className="flex gap-2">
+                  <Input
+                    value={newCompetitor}
+                    onChange={(e) => setNewCompetitor(e.target.value)}
+                    placeholder="שם המתחרה..."
+                    onKeyDown={(e) => e.key === 'Enter' && addCompetitor()}
+                    disabled={mri.competitors.length >= 3}
+                    className={!hasValidCompetitors ? 'border-destructive' : ''}
+                  />
+                  <Button
+                    onClick={addCompetitor}
+                    disabled={!newCompetitor.trim() || mri.competitors.length >= 3}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
 
-            {mri.competitors.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {mri.competitors.map((comp, idx) => (
-                  <Badge key={idx} variant="outline" className="pl-3 pr-1.5 py-1.5 gap-2 bg-muted/50">
-                    {comp}
-                    <button
-                      onClick={() => removeCompetitor(idx)}
-                      className="hover:bg-destructive/20 rounded-full p-0.5"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
+                {mri.competitors.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {mri.competitors.map((comp, idx) => (
+                      <Badge key={idx} variant="outline" className="pl-3 pr-1.5 py-1.5 gap-2 bg-muted/50">
+                        {comp}
+                        <button
+                          onClick={() => removeCompetitor(idx)}
+                          className="hover:bg-destructive/20 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
+
+            <button
+              onClick={toggleNoCompetitors}
+              className={`mt-3 px-4 py-2 rounded-full border transition-all text-sm ${
+                noCompetitors
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border hover:border-primary/50 text-muted-foreground'
+              }`}
+            >
+              אין לי מתחרים
+            </button>
           </div>
         </CardContent>
       </Card>
