@@ -7,11 +7,12 @@ import {
   Monitor, 
   Layers,
   Megaphone,
-  Check
+  Check,
+  RectangleHorizontal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type MediaType = 'ad' | 'radio' | 'banner' | 'all';
+export type MediaType = 'ad' | 'radio' | 'banner' | 'billboard' | 'all';
 
 export interface MediaTypeSelection {
   type: MediaType | null;
@@ -49,6 +50,13 @@ const MEDIA_OPTIONS: {
     description: 'באנרים לאתרים, אפליקציות ופלטפורמות דיגיטליות', 
     icon: Monitor,
     tags: ['דיגיטלי', 'אונליין']
+  },
+  { 
+    id: 'billboard', 
+    label: 'שלטי חוצות', 
+    description: 'שילוט חוצות, ביגבורד ושלטים בתחנות אוטובוס', 
+    icon: RectangleHorizontal,
+    tags: ['חוצות', 'OOH']
   },
   { 
     id: 'all', 
@@ -138,6 +146,8 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
               ? '💡 נתמקד ביצירת מודעה מושלמת לפרסום בעיתונות ובמגזינים.'
               : value === 'radio'
               ? '💡 ניצור לך תסריט ספוט רדיו מותאם לקהל היעד שלך.'
+              : value === 'billboard'
+              ? '💡 נעצב שלט חוצות בולט ומרשים שייתפס מרחוק.'
               : '💡 נעצב באנר דיגיטלי בממדים המתאימים לפלטפורמות המובילות.'}
           </p>
         </div>
