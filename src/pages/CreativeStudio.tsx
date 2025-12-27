@@ -185,6 +185,11 @@ const CreativeStudio = () => {
   const [mediaTargetCity, setMediaTargetCity] = useState<string>('nationwide');
   const [selectedMediaPackage, setSelectedMediaPackage] = useState<MediaPackage | null>(null);
 
+  // Scroll to top when changing views
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep, showResults, showMediaSelection, showQuote, showSuccess]);
+
   // Fetch client profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
