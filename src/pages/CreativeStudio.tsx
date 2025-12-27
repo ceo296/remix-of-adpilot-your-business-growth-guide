@@ -40,6 +40,9 @@ interface ClientProfile {
   contact_whatsapp: string | null;
   contact_email: string | null;
   contact_address: string | null;
+  contact_youtube: string | null;
+  social_facebook: string | null;
+  social_instagram: string | null;
 }
 
 interface MediaPackage {
@@ -149,6 +152,10 @@ const CreativeStudio = () => {
       whatsapp: false,
       email: false,
       address: false,
+      youtube: false,
+      facebook: false,
+      instagram: false,
+      customText: '',
     },
   });
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
@@ -183,7 +190,7 @@ const CreativeStudio = () => {
 
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address')
+        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram')
         .eq('user_id', user.id)
         .single();
 
@@ -375,6 +382,10 @@ const CreativeStudio = () => {
         whatsapp: false,
         email: false,
         address: false,
+        youtube: false,
+        facebook: false,
+        instagram: false,
+        customText: '',
       },
     });
     setAssetChoice(null);

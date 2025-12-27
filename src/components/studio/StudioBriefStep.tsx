@@ -18,7 +18,11 @@ import {
   Mail,
   MapPin,
   MessageCircle,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Youtube,
+  Facebook,
+  Instagram,
+  Type
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +34,10 @@ export type ContactSelection = {
   whatsapp: boolean;
   email: boolean;
   address: boolean;
+  youtube: boolean;
+  facebook: boolean;
+  instagram: boolean;
+  customText: string;
 };
 
 export interface CampaignBrief {
@@ -45,6 +53,9 @@ export interface ContactInfo {
   contact_whatsapp?: string | null;
   contact_email?: string | null;
   contact_address?: string | null;
+  contact_youtube?: string | null;
+  social_facebook?: string | null;
+  social_instagram?: string | null;
 }
 
 interface StudioBriefStepProps {
@@ -80,8 +91,21 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo }: 
     contactInfo.contact_phone || 
     contactInfo.contact_whatsapp || 
     contactInfo.contact_email || 
-    contactInfo.contact_address
+    contactInfo.contact_address ||
+    contactInfo.contact_youtube ||
+    contactInfo.social_facebook ||
+    contactInfo.social_instagram
   );
+
+  const updateCustomText = (text: string) => {
+    onChange({
+      ...value,
+      contactSelection: {
+        ...value.contactSelection,
+        customText: text,
+      },
+    });
+  };
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -326,8 +350,68 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo }: 
                   </label>
                 </div>
               )}
+              {contactInfo?.contact_youtube && (
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="contact-youtube"
+                    checked={value.contactSelection.youtube}
+                    onCheckedChange={() => toggleContact('youtube')}
+                  />
+                  <label htmlFor="contact-youtube" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Youtube className="w-4 h-4 text-muted-foreground" />
+                    <span>יוטיוב:</span>
+                    <span className="text-muted-foreground" dir="ltr">{contactInfo.contact_youtube}</span>
+                  </label>
+                </div>
+              )}
+              {contactInfo?.social_facebook && (
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="contact-facebook"
+                    checked={value.contactSelection.facebook}
+                    onCheckedChange={() => toggleContact('facebook')}
+                  />
+                  <label htmlFor="contact-facebook" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Facebook className="w-4 h-4 text-muted-foreground" />
+                    <span>פייסבוק:</span>
+                    <span className="text-muted-foreground" dir="ltr">{contactInfo.social_facebook}</span>
+                  </label>
+                </div>
+              )}
+              {contactInfo?.social_instagram && (
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="contact-instagram"
+                    checked={value.contactSelection.instagram}
+                    onCheckedChange={() => toggleContact('instagram')}
+                  />
+                  <label htmlFor="contact-instagram" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Instagram className="w-4 h-4 text-muted-foreground" />
+                    <span>אינסטגרם:</span>
+                    <span className="text-muted-foreground" dir="ltr">{contactInfo.social_instagram}</span>
+                  </label>
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Custom Text Field */}
+          <div className="space-y-2">
+            <Label htmlFor="custom-display-text" className="flex items-center gap-2 text-foreground font-medium">
+              <Type className="w-4 h-4 text-primary" />
+              טקסט חופשי להצגה
+            </Label>
+            <Input
+              id="custom-display-text"
+              value={value.contactSelection.customText}
+              onChange={(e) => updateCustomText(e.target.value)}
+              placeholder="לדוגמה: להשיג בחנויות הנבחרות, בהשגחת הרב..."
+              className="text-base"
+            />
+            <p className="text-xs text-muted-foreground">
+              טקסט זה יופיע בקריאייטיב בנוסף לפרטי הקשר שנבחרו
+            </p>
+          </div>
         </div>
       )}
     </div>
