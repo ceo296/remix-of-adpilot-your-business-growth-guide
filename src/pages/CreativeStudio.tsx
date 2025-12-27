@@ -567,7 +567,7 @@ const CreativeStudio = () => {
       };
 
       const { data, error } = await supabase.functions.invoke('generate-concepts', {
-        body: { profile }
+        body: { profile, mediaType }
       });
 
       if (error) {
