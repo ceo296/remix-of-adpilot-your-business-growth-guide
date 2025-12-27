@@ -94,7 +94,7 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
       {/* Media Type Selection */}
       <div className="space-y-4">
         <Label className="text-foreground font-medium">סוג המדיה *</Label>
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-3 gap-4">
           {MEDIA_OPTIONS.map((option) => (
             <Card
               key={option.id}
