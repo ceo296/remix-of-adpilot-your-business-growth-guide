@@ -929,10 +929,26 @@ const CreativeStudio = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Dynamic grid based on media type */}
+                <div className={
+                  mediaType === 'banner' 
+                    ? 'grid grid-cols-1 lg:grid-cols-2 gap-4' 
+                    : mediaType === 'billboard'
+                    ? 'grid grid-cols-1 gap-4'
+                    : 'grid grid-cols-2 lg:grid-cols-4 gap-4'
+                }>
                   {generatedImages.map((image) => (
                     <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
-                      <div className="relative aspect-square bg-muted">
+                      {/* Dynamic aspect ratio based on media type */}
+                      <div className={`relative bg-muted ${
+                        mediaType === 'banner' 
+                          ? 'aspect-[4/1]' 
+                          : mediaType === 'billboard'
+                          ? 'aspect-[16/9]'
+                          : mediaType === 'social'
+                          ? 'aspect-square'
+                          : 'aspect-square'
+                      }`}>
                         <img
                           src={image.url}
                           alt={`Generated ${image.id}`}
