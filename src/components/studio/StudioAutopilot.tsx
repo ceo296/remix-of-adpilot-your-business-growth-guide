@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check } from 'lucide-react';
+import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check, Volume2, FileText, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ export interface CreativeConcept {
   headline: string;
   idea: string;
   copy: string;
+  mediaType?: MediaType;
 }
 
 interface ClientInfo {
@@ -55,6 +56,172 @@ const MEDIA_OPTIONS: {
   { id: 'social', label: 'סושיאל', icon: Share2 },
   { id: 'all', label: 'קמפיין 360°', icon: Layers },
 ];
+
+// Media-specific preview component
+const ConceptPreview = ({ concept, mediaType }: { concept: CreativeConcept; mediaType: MediaType | null }) => {
+  if (mediaType === 'radio') {
+    // Radio script preview with audio player mockup
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Volume2 className="h-4 w-4" />
+          תסריט ספוט רדיו (30 שניות)
+        </div>
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20">
+          {/* Audio waveform mockup */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <Radio className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-1 h-8">
+                {[...Array(40)].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="w-1 bg-primary/40 rounded-full"
+                    style={{ 
+                      height: `${Math.random() * 100}%`,
+                      minHeight: '4px'
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <span className="text-xs text-muted-foreground">0:30</span>
+          </div>
+          {/* Script text */}
+          <div className="bg-background/80 rounded-lg p-3 border border-border">
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap" dir="rtl">
+              {concept.copy}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+            <Badge variant="secondary" className="text-xs">קריין</Badge>
+            <span>• הנחיות: {concept.idea}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mediaType === 'ad' || mediaType === 'all') {
+    // Print ad preview
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Newspaper className="h-4 w-4" />
+          תצוגת מודעה
+        </div>
+        <div className="bg-white border-2 border-border rounded-lg p-6 shadow-md max-w-sm mx-auto">
+          {/* Ad mockup */}
+          <div className="aspect-[3/4] bg-gradient-to-b from-muted/30 to-muted/60 rounded-lg p-4 flex flex-col justify-between">
+            {/* Image placeholder */}
+            <div className="flex-1 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 rounded-lg mb-4">
+              <div className="text-center text-muted-foreground/50">
+                <Image className="h-8 w-8 mx-auto mb-2" />
+                <p className="text-xs">{concept.idea}</p>
+              </div>
+            </div>
+            {/* Ad copy */}
+            <div className="bg-background rounded-lg p-3 text-center">
+              <p className="font-bold text-foreground text-lg mb-1" dir="rtl">{concept.headline}</p>
+              <p className="text-sm text-foreground" dir="rtl">"{concept.copy}"</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mediaType === 'banner') {
+    // Digital banner preview
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Monitor className="h-4 w-4" />
+          תצוגת באנר
+        </div>
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-border rounded-lg p-3 overflow-hidden">
+          {/* Banner mockup - horizontal */}
+          <div className="aspect-[4/1] bg-gradient-to-r from-muted to-muted/80 rounded flex items-center justify-between px-6">
+            <div className="flex-1 text-right" dir="rtl">
+              <p className="font-bold text-foreground text-sm md:text-base">{concept.headline}</p>
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{concept.copy}</p>
+            </div>
+            <Button size="sm" variant="default" className="mr-4 text-xs">
+              לחצו כאן
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mediaType === 'billboard') {
+    // Billboard preview
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <RectangleHorizontal className="h-4 w-4" />
+          תצוגת שלט חוצות
+        </div>
+        <div className="bg-muted/50 rounded-lg p-4">
+          {/* Billboard mockup */}
+          <div className="aspect-[16/9] bg-gradient-to-br from-primary/20 via-primary/10 to-muted rounded-lg border-4 border-muted-foreground/20 flex flex-col items-center justify-center p-8 shadow-lg">
+            <p className="font-black text-2xl md:text-3xl text-foreground text-center" dir="rtl">
+              {concept.copy}
+            </p>
+            <div className="mt-4 text-xs text-muted-foreground text-center">
+              {concept.idea}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground text-center mt-2">* נקרא ב-3 שניות מרכב נוסע</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (mediaType === 'social') {
+    // Social media post preview
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Share2 className="h-4 w-4" />
+          תצוגת פוסט סושיאל
+        </div>
+        <div className="bg-background border border-border rounded-xl max-w-xs mx-auto shadow-md">
+          {/* Social post mockup */}
+          <div className="p-3 border-b border-border flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-primary/20" />
+            <div>
+              <p className="text-xs font-bold">העסק שלי</p>
+              <p className="text-xs text-muted-foreground">ממומן</p>
+            </div>
+          </div>
+          <div className="aspect-square bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
+            <div className="text-center px-4">
+              <Image className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+              <p className="text-xs text-muted-foreground">{concept.idea}</p>
+            </div>
+          </div>
+          <div className="p-3">
+            <p className="text-sm font-medium" dir="rtl">{concept.headline}</p>
+            <p className="text-sm text-foreground mt-1" dir="rtl">{concept.copy}</p>
+            <p className="text-xs text-primary mt-2">#פרסום #קמפיין #מומלץ</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default - text preview
+  return (
+    <div className="bg-background/50 rounded-lg p-3 border border-border mt-3">
+      <p className="text-sm font-medium">קופי מוצע:</p>
+      <p className="text-foreground">"{concept.copy}"</p>
+    </div>
+  );
+};
 
 export const StudioAutopilot = ({
   isGenerating,
@@ -165,17 +332,26 @@ export const StudioAutopilot = ({
     );
   }
 
+  // Get media type label
+  const getMediaLabel = () => {
+    const media = MEDIA_OPTIONS.find(m => m.id === selectedMediaType);
+    return media?.label || 'קריאייטיב';
+  };
+
   // Concepts display
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
+        <Badge variant="secondary" className="mb-3">
+          {selectedMediaType === 'radio' ? '🎙️' : selectedMediaType === 'billboard' ? '🪧' : selectedMediaType === 'social' ? '📱' : '📰'} {getMediaLabel()}
+        </Badge>
         <h2 className="text-2xl font-bold mb-2">בחרו את הזווית שמדברת אליכם</h2>
         <p className="text-muted-foreground">
           3 כיוונים שונים מבוססי האסטרטגיה שלכם
         </p>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-6">
         {concepts.map((concept) => {
           const Icon = CONCEPT_ICONS[concept.type];
           const colorClass = CONCEPT_COLORS[concept.type];
@@ -188,8 +364,8 @@ export const StudioAutopilot = ({
               className={cn(
                 "p-6 cursor-pointer transition-all border-2",
                 colorClass,
-                isSelected && "ring-2 ring-primary ring-offset-2 scale-[1.02]",
-                "hover:scale-[1.01] hover:shadow-lg"
+                isSelected && "ring-2 ring-primary ring-offset-2 scale-[1.01]",
+                "hover:scale-[1.005] hover:shadow-lg"
               )}
             >
               <div className="flex items-start gap-4">
@@ -202,18 +378,18 @@ export const StudioAutopilot = ({
                   <Icon className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold mb-2">{concept.headline}</h3>
-                  <p className="text-muted-foreground mb-3">{concept.idea}</p>
-                  <div className="bg-background/50 rounded-lg p-3 border border-border">
-                    <p className="text-sm font-medium">קופי מוצע:</p>
-                    <p className="text-foreground">"{concept.copy}"</p>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold mb-2">{concept.headline}</h3>
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                        ✓
+                      </div>
+                    )}
                   </div>
+                  
+                  {/* Media-specific preview */}
+                  <ConceptPreview concept={concept} mediaType={selectedMediaType} />
                 </div>
-                {isSelected && (
-                  <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                    ✓
-                  </div>
-                )}
               </div>
             </Card>
           );
