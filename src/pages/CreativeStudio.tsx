@@ -776,6 +776,8 @@ const CreativeStudio = () => {
                   business_name: clientProfile.business_name,
                   target_audience: clientProfile.target_audience
                 } : null}
+                selectedMediaType={mediaType}
+                onMediaTypeChange={setMediaType}
                 onGenerateConcepts={handleGenerateConcepts}
                 onSelectConcept={setSelectedConcept}
                 onExecuteConcept={handleExecuteConcept}

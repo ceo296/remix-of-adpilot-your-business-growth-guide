@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2 } from 'lucide-react';
+import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { MediaType } from './StudioMediaTypeStep';
 
 export interface CreativeConcept {
   id: string;
@@ -22,6 +24,8 @@ interface StudioAutopilotProps {
   concepts: CreativeConcept[];
   selectedConcept: CreativeConcept | null;
   clientInfo: ClientInfo | null;
+  selectedMediaType: MediaType | null;
+  onMediaTypeChange: (type: MediaType) => void;
   onGenerateConcepts: () => void;
   onSelectConcept: (concept: CreativeConcept) => void;
   onExecuteConcept: () => void;
@@ -39,11 +43,26 @@ const CONCEPT_COLORS = {
   'pain-point': 'border-emerald-500/50 bg-emerald-500/5',
 };
 
+const MEDIA_OPTIONS: { 
+  id: MediaType; 
+  label: string; 
+  icon: React.ElementType;
+}[] = [
+  { id: 'radio', label: 'רדיו', icon: Radio },
+  { id: 'ad', label: 'מודעות', icon: Newspaper },
+  { id: 'banner', label: 'באנרים', icon: Monitor },
+  { id: 'billboard', label: 'שלטי חוצות', icon: RectangleHorizontal },
+  { id: 'social', label: 'סושיאל', icon: Share2 },
+  { id: 'all', label: 'קמפיין 360°', icon: Layers },
+];
+
 export const StudioAutopilot = ({
   isGenerating,
   concepts,
   selectedConcept,
   clientInfo,
+  selectedMediaType,
+  onMediaTypeChange,
   onGenerateConcepts,
   onSelectConcept,
   onExecuteConcept,
@@ -56,9 +75,51 @@ export const StudioAutopilot = ({
           <Sparkles className="h-12 w-12 text-primary" />
         </div>
         <h2 className="text-2xl font-bold mb-2">מצב אוטומטי</h2>
-        <p className="text-muted-foreground mb-4 max-w-md">
+        <p className="text-muted-foreground mb-6 max-w-md">
           תשברו אתם את הראש במקומי. המערכת תיצור 3 כיווני קריאייטיב מבוססי האסטרטגיה שלכם.
         </p>
+        
+        {/* Media Type Selection */}
+        <div className="w-full max-w-2xl mb-6">
+          <p className="text-sm font-medium text-muted-foreground mb-3">איזה חומר פרסומי תרצו ליצור?</p>
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+            {MEDIA_OPTIONS.map((option) => (
+              <Card
+                key={option.id}
+                className={cn(
+                  'cursor-pointer transition-all duration-300 border-2 relative',
+                  selectedMediaType === option.id
+                    ? 'border-primary bg-primary/5 shadow-md'
+                    : 'border-border hover:border-primary/50'
+                )}
+                onClick={() => onMediaTypeChange(option.id)}
+              >
+                <CardContent className="p-3 flex flex-col items-center gap-2">
+                  <div className={cn(
+                    'w-10 h-10 rounded-lg flex items-center justify-center',
+                    selectedMediaType === option.id ? 'bg-primary/20' : 'bg-muted'
+                  )}>
+                    <option.icon className={cn(
+                      'w-5 h-5',
+                      selectedMediaType === option.id ? 'text-primary' : 'text-muted-foreground'
+                    )} />
+                  </div>
+                  <span className={cn(
+                    'text-xs font-medium',
+                    selectedMediaType === option.id ? 'text-primary' : 'text-muted-foreground'
+                  )}>
+                    {option.label}
+                  </span>
+                  {selectedMediaType === option.id && (
+                    <div className="absolute top-1 left-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-3 h-3 text-primary-foreground" />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
         
         {/* Personalized info card */}
         {clientInfo && (
@@ -77,11 +138,16 @@ export const StudioAutopilot = ({
           size="lg"
           variant="gradient"
           onClick={onGenerateConcepts}
+          disabled={!selectedMediaType}
           className="text-lg px-8"
         >
           <Wand2 className="h-5 w-5 ml-2" />
           תכינו לי סקיצות על בסיס האסטרטגיה
         </Button>
+        
+        {!selectedMediaType && (
+          <p className="text-xs text-muted-foreground mt-2">יש לבחור סוג מדיה להמשך</p>
+        )}
       </div>
     );
   }
