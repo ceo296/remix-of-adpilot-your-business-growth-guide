@@ -16,6 +16,7 @@ import { StudioModeToggle, StudioMode } from '@/components/studio/StudioModeTogg
 import { StudioAutopilot, CreativeConcept } from '@/components/studio/StudioAutopilot';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
 import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/studio/StudioBriefStep';
+import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaTypeStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 
 type AssetChoice = 'has-product' | 'no-product';
@@ -61,6 +62,7 @@ interface MediaPackage {
 
 const STEP_TITLES = [
   'בריף קמפיין',
+  'סוג מדיה',
   'בחירת נכס',
   'עיבוד תמונה',
   'סגנון עיצובי',
@@ -158,6 +160,7 @@ const CreativeStudio = () => {
       customText: '',
     },
   });
+  const [mediaType, setMediaType] = useState<MediaType | null>(null);
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
   const [treatment, setTreatment] = useState<TreatmentChoice | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -202,13 +205,18 @@ const CreativeStudio = () => {
     fetchProfile();
   }, []);
 
-  // Calculate actual steps based on asset choice
+  // Calculate actual steps based on asset choice and media type
   const getSteps = () => {
+    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment, 4=Style, 5=Prompt
+    if (mediaType === 'radio') {
+      // Radio doesn't need visual steps
+      return [0, 1, 5]; // Brief, MediaType, Prompt (for script)
+    }
     if (assetChoice === 'no-product') {
       // Skip treatment step for no-product flow
-      return [0, 1, 3, 4]; // Brief, Asset, Style, Prompt
+      return [0, 1, 2, 4, 5]; // Brief, MediaType, Asset, Style, Prompt
     }
-    return [0, 1, 2, 3, 4]; // All steps including Brief
+    return [0, 1, 2, 3, 4, 5]; // All steps
   };
 
   const steps = getSteps();
@@ -218,25 +226,30 @@ const CreativeStudio = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 0: return campaignBrief.offer.trim().length > 0 && campaignBrief.structure !== null;
-      case 1: return assetChoice !== null;
-      case 2: return uploadedImage !== null && treatment !== null;
-      case 3: return style !== null;
-      case 4: return visualPrompt.trim().length > 0;
+      case 1: return mediaType !== null;
+      case 2: return assetChoice !== null;
+      case 3: return uploadedImage !== null && treatment !== null;
+      case 4: return style !== null;
+      case 5: return visualPrompt.trim().length > 0;
       default: return false;
     }
   };
 
   const handleNext = () => {
-    if (currentStep === 1 && assetChoice === 'no-product') {
-      setCurrentStep(3); // Skip to style
+    if (currentStep === 1 && mediaType === 'radio') {
+      setCurrentStep(5); // Skip to prompt for radio
+    } else if (currentStep === 2 && assetChoice === 'no-product') {
+      setCurrentStep(4); // Skip treatment to style
     } else if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
     }
   };
 
   const handleBack = () => {
-    if (currentStep === 3 && assetChoice === 'no-product') {
-      setCurrentStep(1); // Go back to asset
+    if (currentStep === 5 && mediaType === 'radio') {
+      setCurrentStep(1); // Go back to media type for radio
+    } else if (currentStep === 4 && assetChoice === 'no-product') {
+      setCurrentStep(2); // Go back to asset
     } else if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
     }
@@ -388,6 +401,7 @@ const CreativeStudio = () => {
         customText: '',
       },
     });
+    setMediaType(null);
     setAssetChoice(null);
     setTreatment(null);
     setUploadedImage(null);
@@ -669,12 +683,17 @@ const CreativeStudio = () => {
               contact_whatsapp: clientProfile.contact_whatsapp,
               contact_email: clientProfile.contact_email,
               contact_address: clientProfile.contact_address,
+              contact_youtube: clientProfile.contact_youtube,
+              social_facebook: clientProfile.social_facebook,
+              social_instagram: clientProfile.social_instagram,
             } : undefined}
           />
         );
       case 1:
-        return <StudioAssetStep value={assetChoice} onChange={setAssetChoice} />;
+        return <StudioMediaTypeStep value={mediaType} onChange={setMediaType} />;
       case 2:
+        return <StudioAssetStep value={assetChoice} onChange={setAssetChoice} />;
+      case 3:
         return (
           <StudioTreatmentStep
             treatment={treatment}
@@ -683,9 +702,9 @@ const CreativeStudio = () => {
             onImageUpload={setUploadedImage}
           />
         );
-      case 3:
-        return <StudioStyleStep value={style} onChange={setStyle} />;
       case 4:
+        return <StudioStyleStep value={style} onChange={setStyle} />;
+      case 5:
         return (
           <StudioPromptStep
             visualPrompt={visualPrompt}
