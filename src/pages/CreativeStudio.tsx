@@ -715,6 +715,7 @@ const CreativeStudio = () => {
             hasProduct={assetChoice === 'has-product'}
             aspectRatio={aspectRatio}
             onAspectRatioChange={setAspectRatio}
+            mediaType={mediaType}
           />
         );
       default:
