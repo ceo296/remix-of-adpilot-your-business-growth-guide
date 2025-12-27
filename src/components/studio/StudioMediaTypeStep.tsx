@@ -8,11 +8,12 @@ import {
   Layers,
   Megaphone,
   Check,
-  RectangleHorizontal
+  RectangleHorizontal,
+  Share2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type MediaType = 'ad' | 'radio' | 'banner' | 'billboard' | 'all';
+export type MediaType = 'ad' | 'radio' | 'banner' | 'billboard' | 'social' | 'all';
 
 export interface MediaTypeSelection {
   type: MediaType | null;
@@ -57,6 +58,13 @@ const MEDIA_OPTIONS: {
     description: 'שילוט חוצות, ביגבורד ושלטים בתחנות אוטובוס', 
     icon: RectangleHorizontal,
     tags: ['חוצות', 'OOH']
+  },
+  { 
+    id: 'social', 
+    label: 'סושיאל מדיה', 
+    description: 'פוסטים לרשתות חברתיות, וואטסאפ וניוזלטר', 
+    icon: Share2,
+    tags: ['דיגיטלי', 'וירלי']
   },
   { 
     id: 'all', 
@@ -148,6 +156,8 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
               ? '💡 ניצור לך תסריט ספוט רדיו מותאם לקהל היעד שלך.'
               : value === 'billboard'
               ? '💡 נעצב שלט חוצות בולט ומרשים שייתפס מרחוק.'
+              : value === 'social'
+              ? '💡 ניצור תוכן מושך לרשתות חברתיות, וואטסאפ וניוזלטר שיניע לפעולה.'
               : '💡 נעצב באנר דיגיטלי בממדים המתאימים לפלטפורמות המובילות.'}
           </p>
         </div>
