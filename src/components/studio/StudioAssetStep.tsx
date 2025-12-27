@@ -1,7 +1,7 @@
-import { Upload, Wand2 } from 'lucide-react';
+import { Upload, Wand2, Type } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
-type AssetChoice = 'has-product' | 'no-product';
+export type AssetChoice = 'has-product' | 'no-product' | 'text-only';
 
 interface StudioAssetStepProps {
   value: AssetChoice | null;
@@ -20,6 +20,12 @@ const ASSET_OPTIONS: { id: AssetChoice; label: string; sublabel: string; icon: R
     label: 'אין לי תמונה / זה שירות',
     sublabel: 'אל דאגה, אנחנו ניצור את התמונה מאפס',
     icon: <Wand2 className="h-8 w-8" />,
+  },
+  {
+    id: 'text-only',
+    label: 'מודעה טקסטואלית בלבד',
+    sublabel: 'ללא ויז\'ואל - רק טקסט וכותרות',
+    icon: <Type className="h-8 w-8" />,
   },
 ];
 
@@ -63,6 +69,14 @@ export const StudioAssetStep = ({ value, onChange }: StudioAssetStepProps) => {
         <div className="text-center mt-6 p-4 bg-success/10 rounded-lg border border-success/20 animate-scale-in">
           <p className="text-success font-medium">
             קטן עלינו. הרובוט כבר יצייר משהו גישמאק 🎨
+          </p>
+        </div>
+      )}
+
+      {value === 'text-only' && (
+        <div className="text-center mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20 animate-scale-in">
+          <p className="text-primary font-medium">
+            מושלם למודעות עיתונות, סיווגית ופרסומות טקסטואליות 📝
           </p>
         </div>
       )}

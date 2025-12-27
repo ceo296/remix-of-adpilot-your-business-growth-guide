@@ -19,7 +19,7 @@ import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/
 import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaTypeStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 
-type AssetChoice = 'has-product' | 'no-product';
+type AssetChoice = 'has-product' | 'no-product' | 'text-only';
 type TreatmentChoice = 'as-is' | 'ai-magic';
 type FeedbackMode = 'none' | 'another-round' | 'small-fixes';
 
