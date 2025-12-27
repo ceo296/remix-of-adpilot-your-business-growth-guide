@@ -3,7 +3,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Sparkles, PenLine, Mic, Clock, Volume2 } from 'lucide-react';
+import { Lightbulb, Sparkles, PenLine, Mic, Clock, Volume2, Play, User, UserRound } from 'lucide-react';
 import { StyleChoice } from './StudioStyleStep';
 import { MediaType } from './StudioMediaTypeStep';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 // AspectRatio is kept for API compatibility but not user-selectable
 export type AspectRatio = 'square' | 'portrait' | 'landscape';
 export type PromptMode = 'surprise' | 'idea' | null;
+export type VoiceType = 'male-young' | 'male-mature' | 'female-young' | 'female-mature' | null;
 
 interface StudioPromptStepProps {
   visualPrompt: string;
@@ -56,6 +57,43 @@ const RADIO_DURATIONS = [
   { id: '60', label: 'דקה', description: 'מלא' },
 ];
 
+const VOICE_OPTIONS: {
+  id: VoiceType;
+  label: string;
+  description: string;
+  gender: 'male' | 'female';
+  sampleText: string;
+}[] = [
+  { 
+    id: 'male-young', 
+    label: 'גברי צעיר', 
+    description: 'קול אנרגטי ודינמי',
+    gender: 'male',
+    sampleText: 'שלום! אני הקול שלכם לספוט הבא'
+  },
+  { 
+    id: 'male-mature', 
+    label: 'גברי בוגר', 
+    description: 'קול סמכותי ומכובד',
+    gender: 'male',
+    sampleText: 'שלום! אני הקול שלכם לספוט הבא'
+  },
+  { 
+    id: 'female-young', 
+    label: 'נשי צעיר', 
+    description: 'קול רענן ומזמין',
+    gender: 'female',
+    sampleText: 'שלום! אני הקול שלכם לספוט הבא'
+  },
+  { 
+    id: 'female-mature', 
+    label: 'נשי בוגר', 
+    description: 'קול חם ומקצועי',
+    gender: 'female',
+    sampleText: 'שלום! אני הקול שלכם לספוט הבא'
+  },
+];
+
 export const StudioPromptStep = ({
   visualPrompt,
   onVisualPromptChange,
@@ -69,6 +107,8 @@ export const StudioPromptStep = ({
 }: StudioPromptStepProps) => {
   const [internalPromptMode, setInternalPromptMode] = useState<PromptMode>(null);
   const [radioDuration, setRadioDuration] = useState<string>('30');
+  const [selectedVoice, setSelectedVoice] = useState<VoiceType>(null);
+  const [playingVoice, setPlayingVoice] = useState<VoiceType>(null);
   
   // Use external state if provided, otherwise use internal
   const promptMode = externalPromptMode !== undefined ? externalPromptMode : internalPromptMode;
@@ -146,18 +186,66 @@ export const StudioPromptStep = ({
             </p>
           </div>
 
-          {/* Voice Style */}
+          {/* Voice Selection */}
           <div>
-            <Label className="font-medium mb-2 flex items-center gap-2">
+            <Label className="font-medium mb-3 flex items-center gap-2">
               <Volume2 className="w-4 h-4 text-muted-foreground" />
-              סגנון קריינות
+              בחר קול קריין
             </Label>
-            <Input
-              value={visualPrompt}
-              onChange={(e) => onVisualPromptChange(e.target.value)}
-              placeholder="למשל: קול גברי אנרגטי, קול נשי חם ומזמין..."
-              className="text-base h-12"
-            />
+            <div className="grid grid-cols-2 gap-3">
+              {VOICE_OPTIONS.map((voice) => (
+                <button
+                  key={voice.id}
+                  onClick={() => {
+                    setSelectedVoice(voice.id);
+                    onVisualPromptChange(voice.label);
+                  }}
+                  className={cn(
+                    "p-4 rounded-xl border-2 transition-all text-right relative",
+                    selectedVoice === voice.id
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
+                      voice.gender === 'male' ? "bg-blue-100" : "bg-pink-100"
+                    )}>
+                      {voice.gender === 'male' 
+                        ? <User className={cn("w-5 h-5", voice.gender === 'male' ? "text-blue-600" : "text-pink-600")} />
+                        : <UserRound className="w-5 h-5 text-pink-600" />
+                      }
+                    </div>
+                    <div className="flex-1">
+                      <span className="block font-bold text-foreground">{voice.label}</span>
+                      <span className="text-xs text-muted-foreground">{voice.description}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Play Sample Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPlayingVoice(voice.id);
+                      // Simulate audio playback
+                      setTimeout(() => setPlayingVoice(null), 2000);
+                    }}
+                    className={cn(
+                      "absolute bottom-3 left-3 w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                      playingVoice === voice.id 
+                        ? "bg-primary text-primary-foreground animate-pulse" 
+                        : "bg-muted hover:bg-primary/20"
+                    )}
+                  >
+                    <Play className="w-4 h-4" />
+                  </button>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              לחץ על ▶ לשמיעת דוגמה
+            </p>
           </div>
 
           {/* Tips Card */}
