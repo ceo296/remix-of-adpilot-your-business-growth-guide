@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   Clock,
   Image,
-  Newspaper
+  Newspaper,
+  Building2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CampaignHistory from './CampaignHistory';
@@ -90,9 +91,11 @@ const DashboardHub = () => {
     fetchActiveCampaign();
   }, [user]);
 
-  const handleNewCampaign = (type: 'create' | 'upload') => {
+  const handleNewCampaign = (type: 'create' | 'upload' | 'internal') => {
     if (type === 'create') {
       navigate('/studio');
+    } else if (type === 'internal') {
+      navigate('/studio?mode=internal');
     } else {
       navigate('/studio?mode=upload');
     }
@@ -182,21 +185,21 @@ const DashboardHub = () => {
         <p className="text-muted-foreground">איך תרצה להתחיל?</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+      <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {/* Create with AI */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-primary bg-primary/5 hover:bg-primary/10"
           onClick={() => handleNewCampaign('create')}
         >
-          <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-4">
-              <Sparkles className="w-10 h-10 text-primary-foreground" />
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-4">
+              <Sparkles className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-2">קמפיין חדש</h3>
-            <p className="text-muted-foreground mb-4">
+            <h3 className="text-xl font-bold text-foreground mb-2">קמפיין חדש</h3>
+            <p className="text-muted-foreground mb-3 text-sm">
               יצירה עם AI
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               נבנה יחד את המסר הפרסומי, נבחר סגנון ונייצר קריאייטיבים
             </p>
           </CardContent>
@@ -207,16 +210,35 @@ const DashboardHub = () => {
           className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 hover:border-primary/50"
           onClick={() => handleNewCampaign('upload')}
         >
-          <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-muted flex items-center justify-center mb-4">
-              <FileUp className="w-10 h-10 text-muted-foreground" />
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-muted flex items-center justify-center mb-4">
+              <FileUp className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-2">העלאת קמפיין</h3>
-            <p className="text-muted-foreground mb-4">
+            <h3 className="text-xl font-bold text-foreground mb-2">העלאת קמפיין</h3>
+            <p className="text-muted-foreground mb-3 text-sm">
               חומרים קיימים
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               יש לי קריאייטיבים מוכנים ואני רוצה להפיץ אותם
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Internal Materials */}
+        <Card 
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 hover:border-secondary"
+          onClick={() => handleNewCampaign('internal')}
+        >
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-secondary flex items-center justify-center mb-4">
+              <Building2 className="w-8 h-8 text-secondary-foreground" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-2">חומרים פנימיים</h3>
+            <p className="text-muted-foreground mb-3 text-sm">
+              לשימוש עסקי
+            </p>
+            <p className="text-xs text-muted-foreground">
+              מצגות, פרוספקטים, ניוזלטרים וחומרי שיווק פנימיים
             </p>
           </CardContent>
         </Card>
