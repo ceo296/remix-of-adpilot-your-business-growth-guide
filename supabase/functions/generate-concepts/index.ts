@@ -5,28 +5,69 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Media type specific instructions
+const MEDIA_TYPE_INSTRUCTIONS: Record<string, { name: string; format: string; example: string }> = {
+  radio: {
+    name: 'רדיו',
+    format: 'תסריט ספוט רדיו של 30 שניות עם הנחיות לקריין',
+    example: 'תסריט קצר וקליט עם הנחיות להטעמה, קצב ומוזיקה מומלצת'
+  },
+  ad: {
+    name: 'מודעות עיתונות',
+    format: 'כותרת + תת-כותרת + גוף טקסט קצר + קריאה לפעולה',
+    example: 'טקסט מודעה עם היררכיה ברורה לפרסום בעיתונים ומגזינים'
+  },
+  banner: {
+    name: 'באנר דיגיטלי',
+    format: 'כותרת קצרה וקליטה + קריאה לפעולה',
+    example: 'טקסט מינימלי ותמציתי שעובד בגדלים קטנים'
+  },
+  billboard: {
+    name: 'שלט חוצות',
+    format: 'משפט אחד חזק ובולט + לוגו',
+    example: 'מסר קצר שנקרא ב-3 שניות מרכב נוסע'
+  },
+  social: {
+    name: 'סושיאל מדיה',
+    format: 'כיתוב לפוסט + האשטגים + קריאה לפעולה',
+    example: 'טקסט מעורר עניין שמתאים לוואטסאפ, פייסבוק וניוזלטר'
+  },
+  all: {
+    name: 'קמפיין 360°',
+    format: 'מסר מרכזי שמתאים לכל הפלטפורמות',
+    example: 'רעיון שיכול להתפרש למודעה, באנר, שלט חוצות ורדיו'
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { profile } = await req.json();
+    const { profile, mediaType } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    const mediaInfo = MEDIA_TYPE_INSTRUCTIONS[mediaType || 'ad'];
+    const isRadio = mediaType === 'radio';
+
     const systemPrompt = `You are a creative director for a Haredi/Orthodox Jewish advertising agency. 
 You create advertising concepts that are culturally appropriate, modest, and effective for this community.
 You always respond in Hebrew.
 Your concepts should be warm, family-oriented, and avoid immodest imagery.
 
-Generate exactly 3 creative concepts for advertising campaigns. Each concept should have:
+You are creating concepts specifically for: ${mediaInfo.name}
+Format required: ${mediaInfo.format}
+Example: ${mediaInfo.example}
+
+Generate exactly 3 creative concepts for ${isRadio ? 'radio spots' : 'advertising campaigns'}. Each concept should have:
 1. A distinct angle (emotional, hard-sale, or pain-point)
-2. A visual idea description (what the image should show)
-3. A short copy/slogan in Hebrew
+2. ${isRadio ? 'A radio script with narration instructions' : 'A visual idea description (what the image should show)'}
+3. ${isRadio ? 'The complete radio script in Hebrew (30 seconds)' : 'A short copy/slogan in Hebrew'}
 
 Respond ONLY with valid JSON in this exact format:
 {
@@ -34,25 +75,25 @@ Respond ONLY with valid JSON in this exact format:
     {
       "type": "emotional",
       "headline": "הזווית המרגשת",
-      "idea": "תיאור הויזואל בעברית...",
-      "copy": "הקופי בעברית..."
+      "idea": "${isRadio ? 'תיאור הספוט והאווירה...' : 'תיאור הויזואל בעברית...'}",
+      "copy": "${isRadio ? 'התסריט המלא לקריין...' : 'הקופי בעברית...'}"
     },
     {
       "type": "hard-sale",
       "headline": "הזווית המכירתית", 
-      "idea": "תיאור הויזואל בעברית...",
-      "copy": "הקופי בעברית..."
+      "idea": "${isRadio ? 'תיאור הספוט והאווירה...' : 'תיאור הויזואל בעברית...'}",
+      "copy": "${isRadio ? 'התסריט המלא לקריין...' : 'הקופי בעברית...'}"
     },
     {
       "type": "pain-point",
       "headline": "פתרון הבעיה",
-      "idea": "תיאור הויזואל בעברית...",
-      "copy": "הקופי בעברית..."
+      "idea": "${isRadio ? 'תיאור הספוט והאווירה...' : 'תיאור הויזואל בעברית...'}",
+      "copy": "${isRadio ? 'התסריט המלא לקריין...' : 'הקופי בעברית...'}"
     }
   ]
 }`;
 
-    const userPrompt = `Create 3 creative advertising concepts for this business:
+    const userPrompt = `Create 3 creative ${isRadio ? 'radio spot' : 'advertising'} concepts for this business:
 
 Business Name: ${profile.business_name || 'עסק כללי'}
 Target Audience: ${profile.target_audience || 'משפחות חרדיות'}
@@ -61,10 +102,23 @@ Winning Feature: ${profile.winning_feature || 'מקצועיות'}
 Advantage Type: ${profile.advantage_type || 'שירות'}
 All X-Factors: ${profile.x_factors?.join(', ') || 'איכות, מחיר, שירות'}
 
-The concepts should speak directly to this audience and highlight what makes this business special.
+Media Type: ${mediaInfo.name}
+Format: ${mediaInfo.format}
+
+${isRadio ? `
+IMPORTANT: For radio spots:
+- Write complete 30-second scripts with clear narration text
+- Include notes for the narrator (tone, emphasis, pacing)
+- Suggest background music style if relevant
+- Include a catchy opening and strong call-to-action ending
+` : `
+The visual concepts should speak directly to this audience and highlight what makes this business special.
+Tailor the text length and style to fit ${mediaInfo.name}.
+`}
+
 Remember: Each concept needs a different angle - one emotional, one hard-sale focused, and one addressing a pain point the audience has.`;
 
-    console.log('Generating concepts for:', profile.business_name);
+    console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -117,35 +171,48 @@ Remember: Each concept needs a different angle - one emotional, one hard-sale fo
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
-      // Return fallback concepts
+      // Return fallback concepts based on media type
       concepts = {
         concepts: [
           {
             type: 'emotional',
             headline: 'הזווית המרגשת',
-            idea: `תמונה חמימה של משפחה נהנית מ${profile.business_name || 'השירות'}`,
-            copy: 'כי המשפחה שלכם מגיעה את הכי טוב'
+            idea: isRadio 
+              ? `ספוט רדיו חם ומשפחתי עבור ${profile.business_name || 'העסק'}` 
+              : `תמונה חמימה של משפחה נהנית מ${profile.business_name || 'השירות'}`,
+            copy: isRadio 
+              ? `(קול קריין חם) "${profile.business_name || 'אנחנו'} - כי המשפחה שלכם מגיעה את הכי טוב. התקשרו עכשיו!"` 
+              : 'כי המשפחה שלכם מגיעה את הכי טוב'
           },
           {
             type: 'hard-sale',
             headline: 'הזווית המכירתית',
-            idea: `תקריב על המוצר/שירות של ${profile.business_name || 'העסק'} עם רקע יוקרתי`,
-            copy: 'הזדמנות מיוחדת - למהר לפני שנגמר!'
+            idea: isRadio 
+              ? `ספוט אנרגטי עם מבצע מיוחד` 
+              : `תקריב על המוצר/שירות של ${profile.business_name || 'העסק'} עם רקע יוקרתי`,
+            copy: isRadio 
+              ? `(קול קריין נמרץ) "מבצע מיוחד ב${profile.business_name || 'העסק'}! רק השבוע - מחירים שלא תאמינו! התקשרו עכשיו!"` 
+              : 'הזדמנות מיוחדת - למהר לפני שנגמר!'
           },
           {
             type: 'pain-point',
             headline: 'פתרון הבעיה',
-            idea: 'אדם רגוע ומחייך אחרי שמצא את הפתרון המושלם',
-            copy: `${profile.primary_x_factor || 'השירות המושלם'} - סוף סוף מישהו שמבין`
+            idea: isRadio 
+              ? `ספוט שמתחיל מהבעיה ומציע פתרון` 
+              : 'אדם רגוע ומחייך אחרי שמצא את הפתרון המושלם',
+            copy: isRadio 
+              ? `(קול קריין מבין) "נמאס לחפש? ${profile.business_name || 'אנחנו כאן'} - ${profile.primary_x_factor || 'הפתרון המושלם'}. סוף סוף מישהו שמבין!"` 
+              : `${profile.primary_x_factor || 'השירות המושלם'} - סוף סוף מישהו שמבין`
           }
         ]
       };
     }
 
-    // Add IDs to concepts
+    // Add IDs and media type to concepts
     const conceptsWithIds = concepts.concepts.map((c: any, i: number) => ({
       ...c,
-      id: `${c.type}-${Date.now()}-${i}`
+      id: `${c.type}-${Date.now()}-${i}`,
+      mediaType: mediaType || 'ad'
     }));
 
     return new Response(JSON.stringify({ concepts: conceptsWithIds }), {
