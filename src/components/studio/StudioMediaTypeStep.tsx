@@ -32,18 +32,18 @@ const MEDIA_OPTIONS: {
   tags: string[];
 }[] = [
   { 
-    id: 'ad', 
-    label: 'מודעות', 
-    description: 'פרסום בעיתונות, מגזינים ועלוני קהילה', 
-    icon: Newspaper,
-    tags: ['עיתונות', 'מגזינים']
-  },
-  { 
     id: 'radio', 
     label: 'רדיו', 
     description: 'ספוט פרסומי לשידור בתחנות רדיו', 
     icon: Radio,
     tags: ['אודיו', 'ספוטים']
+  },
+  { 
+    id: 'ad', 
+    label: 'מודעות', 
+    description: 'פרסום בעיתונות, מגזינים ועלוני קהילה', 
+    icon: Newspaper,
+    tags: ['עיתונות', 'מגזינים']
   },
   { 
     id: 'banner', 
@@ -84,7 +84,7 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
           <Megaphone className="w-8 h-8 text-primary" />
         </div>
         <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-          איפה נפרסם?
+          אלו חומרים הולכים להיות בקמפיין?
         </h2>
         <p className="text-muted-foreground">
           בחר את סוג המדיה לקמפיין שלך
