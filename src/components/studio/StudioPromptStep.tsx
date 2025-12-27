@@ -3,7 +3,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Sparkles, PenLine, Mic, Clock, Volume2, Play, User, UserRound } from 'lucide-react';
+import { Lightbulb, Sparkles, PenLine, Mic, Clock, Volume2, Play, User, UserRound, Upload, Square, MicOff } from 'lucide-react';
 import { StyleChoice } from './StudioStyleStep';
 import { MediaType } from './StudioMediaTypeStep';
 import { cn } from '@/lib/utils';
@@ -109,6 +109,10 @@ export const StudioPromptStep = ({
   const [radioDuration, setRadioDuration] = useState<string>('30');
   const [selectedVoice, setSelectedVoice] = useState<VoiceType>(null);
   const [playingVoice, setPlayingVoice] = useState<VoiceType>(null);
+  const [voiceMode, setVoiceMode] = useState<'select' | 'record' | 'upload'>('select');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedAudio, setRecordedAudio] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   
   // Use external state if provided, otherwise use internal
   const promptMode = externalPromptMode !== undefined ? externalPromptMode : internalPromptMode;
@@ -186,66 +190,222 @@ export const StudioPromptStep = ({
             </p>
           </div>
 
-          {/* Voice Selection */}
+          {/* Voice Mode Selection */}
           <div>
             <Label className="font-medium mb-3 flex items-center gap-2">
               <Volume2 className="w-4 h-4 text-muted-foreground" />
-              בחר קול קריין
+              מקור הקריינות
             </Label>
-            <div className="grid grid-cols-2 gap-3">
-              {VOICE_OPTIONS.map((voice) => (
-                <button
-                  key={voice.id}
-                  onClick={() => {
-                    setSelectedVoice(voice.id);
-                    onVisualPromptChange(voice.label);
-                  }}
-                  className={cn(
-                    "p-4 rounded-xl border-2 transition-all text-right relative",
-                    selectedVoice === voice.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
-                      voice.gender === 'male' ? "bg-blue-100" : "bg-pink-100"
-                    )}>
-                      {voice.gender === 'male' 
-                        ? <User className={cn("w-5 h-5", voice.gender === 'male' ? "text-blue-600" : "text-pink-600")} />
-                        : <UserRound className="w-5 h-5 text-pink-600" />
-                      }
-                    </div>
-                    <div className="flex-1">
-                      <span className="block font-bold text-foreground">{voice.label}</span>
-                      <span className="text-xs text-muted-foreground">{voice.description}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Play Sample Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPlayingVoice(voice.id);
-                      // Simulate audio playback
-                      setTimeout(() => setPlayingVoice(null), 2000);
-                    }}
-                    className={cn(
-                      "absolute bottom-3 left-3 w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                      playingVoice === voice.id 
-                        ? "bg-primary text-primary-foreground animate-pulse" 
-                        : "bg-muted hover:bg-primary/20"
-                    )}
-                  >
-                    <Play className="w-4 h-4" />
-                  </button>
-                </button>
-              ))}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <button
+                onClick={() => setVoiceMode('select')}
+                className={cn(
+                  "p-3 rounded-xl border-2 transition-all text-center",
+                  voiceMode === 'select'
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <User className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                <span className="block text-sm font-medium">קריין מוכן</span>
+              </button>
+              <button
+                onClick={() => setVoiceMode('record')}
+                className={cn(
+                  "p-3 rounded-xl border-2 transition-all text-center",
+                  voiceMode === 'record'
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <Mic className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                <span className="block text-sm font-medium">הקלטה עצמית</span>
+              </button>
+              <button
+                onClick={() => setVoiceMode('upload')}
+                className={cn(
+                  "p-3 rounded-xl border-2 transition-all text-center",
+                  voiceMode === 'upload'
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                <span className="block text-sm font-medium">העלאת תשדיר</span>
+              </button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              לחץ על ▶ לשמיעת דוגמה
-            </p>
+
+            {/* Voice Selection Grid */}
+            {voiceMode === 'select' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  {VOICE_OPTIONS.map((voice) => (
+                    <button
+                      key={voice.id}
+                      onClick={() => {
+                        setSelectedVoice(voice.id);
+                        onVisualPromptChange(voice.label);
+                      }}
+                      className={cn(
+                        "p-4 rounded-xl border-2 transition-all text-right relative",
+                        selectedVoice === voice.id
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
+                          voice.gender === 'male' ? "bg-blue-100" : "bg-pink-100"
+                        )}>
+                          {voice.gender === 'male' 
+                            ? <User className="w-5 h-5 text-blue-600" />
+                            : <UserRound className="w-5 h-5 text-pink-600" />
+                          }
+                        </div>
+                        <div className="flex-1">
+                          <span className="block font-bold text-foreground">{voice.label}</span>
+                          <span className="text-xs text-muted-foreground">{voice.description}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Play Sample Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPlayingVoice(voice.id);
+                          setTimeout(() => setPlayingVoice(null), 2000);
+                        }}
+                        className={cn(
+                          "absolute bottom-3 left-3 w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                          playingVoice === voice.id 
+                            ? "bg-primary text-primary-foreground animate-pulse" 
+                            : "bg-muted hover:bg-primary/20"
+                        )}
+                      >
+                        <Play className="w-4 h-4" />
+                      </button>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  לחץ על ▶ לשמיעת דוגמה
+                </p>
+              </div>
+            )}
+
+            {/* Recording Interface */}
+            {voiceMode === 'record' && (
+              <Card className="border-2 border-dashed">
+                <CardContent className="p-6 text-center">
+                  {!recordedAudio ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          if (isRecording) {
+                            setIsRecording(false);
+                            setRecordedAudio('recorded-audio-placeholder');
+                          } else {
+                            setIsRecording(true);
+                          }
+                        }}
+                        className={cn(
+                          "w-20 h-20 mx-auto rounded-full flex items-center justify-center transition-all mb-4",
+                          isRecording 
+                            ? "bg-destructive text-destructive-foreground animate-pulse" 
+                            : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        )}
+                      >
+                        {isRecording ? (
+                          <Square className="w-8 h-8" />
+                        ) : (
+                          <Mic className="w-8 h-8" />
+                        )}
+                      </button>
+                      <p className="font-medium text-foreground">
+                        {isRecording ? 'מקליט... לחץ לעצירה' : 'לחץ להתחלת הקלטה'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        הקלט את הספוט בקולך שלך
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 mx-auto rounded-full bg-success/20 flex items-center justify-center mb-4">
+                        <Mic className="w-8 h-8 text-success" />
+                      </div>
+                      <p className="font-medium text-foreground mb-2">ההקלטה נשמרה!</p>
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => {/* Play recorded audio */}}
+                          className="px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-sm flex items-center gap-2"
+                        >
+                          <Play className="w-4 h-4" /> השמע
+                        </button>
+                        <button
+                          onClick={() => setRecordedAudio(null)}
+                          className="px-4 py-2 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive text-sm"
+                        >
+                          הקלט מחדש
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Upload Interface */}
+            {voiceMode === 'upload' && (
+              <Card className="border-2 border-dashed">
+                <CardContent className="p-6 text-center">
+                  {!uploadedFile ? (
+                    <label className="cursor-pointer block">
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) setUploadedFile(file);
+                        }}
+                      />
+                      <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
+                        <Upload className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <p className="font-medium text-foreground">לחץ להעלאת קובץ אודיו</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        MP3, WAV, M4A עד 10MB
+                      </p>
+                    </label>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 mx-auto rounded-full bg-success/20 flex items-center justify-center mb-4">
+                        <Volume2 className="w-8 h-8 text-success" />
+                      </div>
+                      <p className="font-medium text-foreground mb-1">{uploadedFile.name}</p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => {/* Play uploaded audio */}}
+                          className="px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-sm flex items-center gap-2"
+                        >
+                          <Play className="w-4 h-4" /> השמע
+                        </button>
+                        <button
+                          onClick={() => setUploadedFile(null)}
+                          className="px-4 py-2 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive text-sm"
+                        >
+                          הסר קובץ
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Tips Card */}
