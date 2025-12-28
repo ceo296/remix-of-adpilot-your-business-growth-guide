@@ -169,6 +169,7 @@ const CreativeStudio = () => {
   const [visualPrompt, setVisualPrompt] = useState('');
   const [textPrompt, setTextPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('square');
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   
   // Generation state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -311,11 +312,15 @@ const CreativeStudio = () => {
       for (let i = 0; i < 4; i++) {
         toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
         
-        const { data, error } = await supabase.functions.invoke('generate-creative', {
+        const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
-            prompt: `${visualPrompt}. טקסט: ${textPrompt || 'ללא טקסט'}`,
-            style: style || 'default',
-            aspectRatio,
+            visualPrompt,
+            textPrompt: textPrompt || null,
+            style: style || 'ultra-realistic',
+            engine: config.engine === 'nano-banana' ? 'nano-banana' : 'flux-realism',
+            templateId: selectedTemplate?.id || null,
+            templateHints: selectedTemplate?.promptHints || null,
+            dimensions: selectedTemplate?.dimensions || null,
           }
         });
 
@@ -722,6 +727,8 @@ const CreativeStudio = () => {
             aspectRatio={aspectRatio}
             onAspectRatioChange={setAspectRatio}
             mediaType={mediaType}
+            selectedTemplate={selectedTemplate}
+            onTemplateChange={setSelectedTemplate}
           />
         );
       default:

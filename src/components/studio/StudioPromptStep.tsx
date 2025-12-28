@@ -3,9 +3,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Sparkles, PenLine, Mic, Clock, Volume2, Play, User, UserRound, Upload, Square, MicOff } from 'lucide-react';
+import { Lightbulb, Sparkles, PenLine, Mic, Clock, Volume2, Play, User, UserRound, Upload, Square, MicOff, LayoutTemplate } from 'lucide-react';
 import { StyleChoice } from './StudioStyleStep';
 import { MediaType } from './StudioMediaTypeStep';
+import { AdTemplates, AdTemplate } from './AdTemplates';
 import { cn } from '@/lib/utils';
 
 // AspectRatio is kept for API compatibility but not user-selectable
@@ -25,6 +26,8 @@ interface StudioPromptStepProps {
   promptMode?: PromptMode;
   onPromptModeChange?: (mode: PromptMode) => void;
   mediaType?: MediaType | null;
+  selectedTemplate?: AdTemplate | null;
+  onTemplateChange?: (template: AdTemplate | null) => void;
 }
 
 const PROMPT_SUGGESTIONS: Record<StyleChoice, string[]> = {
@@ -104,6 +107,8 @@ export const StudioPromptStep = ({
   promptMode: externalPromptMode,
   onPromptModeChange,
   mediaType,
+  selectedTemplate,
+  onTemplateChange,
 }: StudioPromptStepProps) => {
   const [internalPromptMode, setInternalPromptMode] = useState<PromptMode>(null);
   const [radioDuration, setRadioDuration] = useState<string>('30');
@@ -113,6 +118,7 @@ export const StudioPromptStep = ({
   const [isRecording, setIsRecording] = useState(false);
   const [recordedAudio, setRecordedAudio] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
   
   // Use external state if provided, otherwise use internal
   const promptMode = externalPromptMode !== undefined ? externalPromptMode : internalPromptMode;
@@ -515,6 +521,51 @@ export const StudioPromptStep = ({
       </div>
 
       <div className="max-w-xl mx-auto space-y-6">
+
+        {/* Template Selection Button */}
+        {onTemplateChange && (
+          <div>
+            <button
+              onClick={() => setShowTemplates(!showTemplates)}
+              className={cn(
+                "w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between",
+                selectedTemplate 
+                  ? "border-primary bg-primary/5" 
+                  : "border-dashed border-muted-foreground/30 hover:border-primary/50"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <LayoutTemplate className="w-5 h-5 text-primary" />
+                <div className="text-right">
+                  <span className="font-medium">
+                    {selectedTemplate ? selectedTemplate.name : 'בחר תבנית מוכנה'}
+                  </span>
+                  {selectedTemplate && (
+                    <span className="text-xs text-muted-foreground block">
+                      {selectedTemplate.description} • {selectedTemplate.dimensions.width}×{selectedTemplate.dimensions.height}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span className="text-sm text-primary">
+                {showTemplates ? 'סגור' : 'בחר'}
+              </span>
+            </button>
+            
+            {showTemplates && (
+              <Card className="mt-3 p-4">
+                <AdTemplates
+                  selectedTemplate={selectedTemplate || null}
+                  onSelect={(template) => {
+                    onTemplateChange(template);
+                    setShowTemplates(false);
+                  }}
+                  mediaType={mediaType || undefined}
+                />
+              </Card>
+            )}
+          </div>
+        )}
 
         {/* Visual Prompt */}
         <div>
