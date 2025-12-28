@@ -148,13 +148,22 @@ const MediaDatabaseAdmin = () => {
     { id: 7, category: 'print', name: 'הציבור החרדי', size: 'עמוד A4, חצי עמוד חצי מ-A4', notes: '', pubDay: 'חמישי' },
     { id: 8, category: 'print', name: 'מגזין הבית', size: 'רוחב 17.5 × גובה 25 ס"מ', notes: '', pubDay: '' },
     
-    // דיגיטל
-    { id: 20, category: 'digital', name: 'כיכר השבת - באנר עליון', size: '970×250 פיקסלים', notes: 'מיקום פרימיום', pubDay: '' },
-    { id: 21, category: 'digital', name: 'כיכר השבת - באנר צד', size: '300×600 פיקסלים', notes: '', pubDay: '' },
-    { id: 22, category: 'digital', name: 'כיכר השבת - באנר מובייל', size: '320×100 פיקסלים', notes: '', pubDay: '' },
-    { id: 23, category: 'digital', name: 'כיכר השבת - מודעת תוכן', size: '600×400 פיקסלים', notes: 'Native Ad', pubDay: '' },
-    { id: 24, category: 'digital', name: 'בחדרי חרדים - באנר', size: '728×90 פיקסלים', notes: '', pubDay: '' },
-    { id: 25, category: 'digital', name: 'כל רגע', size: 'באנרים או מדמי תוכן', notes: 'לא צריך', pubDay: '' },
+    // דיגיטל - כיכר השבת
+    { id: 20, category: 'digital', name: 'כיכר השבת - 970×300', size: '970×300 px', notes: '', pubDay: '' },
+    { id: 21, category: 'digital', name: 'כיכר השבת - 970×200', size: '970×200 px', notes: '', pubDay: '' },
+    { id: 22, category: 'digital', name: 'כיכר השבת - 970×100', size: '970×100 px', notes: '', pubDay: '' },
+    { id: 23, category: 'digital', name: 'כיכר השבת - 970×600', size: '970×600 px', notes: '', pubDay: '' },
+    { id: 24, category: 'digital', name: 'כיכר השבת - סקייסקרייפר', size: '160×970 px', notes: '', pubDay: '' },
+    { id: 25, category: 'digital', name: 'כיכר השבת - מלבן בינוני', size: '300×250 px', notes: 'משותף לבחדרי חרדים', pubDay: '' },
+    { id: 26, category: 'digital', name: 'כיכר השבת - חצי עמוד', size: '300×600 px', notes: '', pubDay: '' },
+    { id: 27, category: 'digital', name: 'כיכר השבת - מובייל גדול', size: '320×480 px', notes: '', pubDay: '' },
+    { id: 28, category: 'digital', name: 'כיכר השבת - מובייל בינוני', size: '320×100 px', notes: '', pubDay: '' },
+    { id: 29, category: 'digital', name: 'כיכר השבת - מובייל קטן', size: '320×50 px', notes: 'משותף לבחדרי חרדים', pubDay: '' },
+    { id: 60, category: 'digital', name: 'כיכר השבת - באנר תחתון', size: '970×60 px', notes: '', pubDay: '' },
+    
+    // דיגיטל - אחרים
+    { id: 61, category: 'digital', name: 'בחדרי חרדים - באנר', size: '728×90 px', notes: '', pubDay: '' },
+    { id: 62, category: 'digital', name: 'כל רגע', size: 'באנרים או מדמי תוכן', notes: 'לא צריך', pubDay: '' },
     
     // פרסום חוצות
     { id: 30, category: 'outdoor', name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
