@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import OutletRow from './OutletRow';
 
 // Types
 interface Category {
@@ -582,146 +583,183 @@ const MediaDatabaseAdmin = () => {
                           <div className="text-muted-foreground text-sm pr-8">אין ערוצים בקטגוריה זו</div>
                         ) : (
                           <div className="space-y-2 pr-6">
-                            {categoryOutlets.map(outlet => {
-                              const outletProducts = products.filter(p => p.outlet_id === outlet.id);
-                              const isOutletExpanded = expandedOutlets.has(outlet.id);
-                              
-                              return (
-                                <Collapsible 
-                                  key={outlet.id} 
-                                  open={isOutletExpanded} 
-                                  onOpenChange={() => toggleOutlet(outlet.id)}
-                                >
-                                  <div className="border rounded-lg">
-                                    <CollapsibleTrigger asChild>
-                                      <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/30 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                          {isOutletExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                          {/* Brand Icon / Logo */}
-                                          {outlet.logo_url ? (
-                                            <img 
-                                              src={outlet.logo_url} 
-                                              alt={outlet.name}
-                                              className="w-8 h-8 rounded object-contain bg-white flex-shrink-0"
-                                            />
-                                          ) : (
-                                            <div 
-                                              className="w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                                              style={{ backgroundColor: outlet.brand_color || '#E31E24' }}
-                                            >
-                                              {(outlet.name_he || outlet.name).split(' ').slice(0, 2).map(w => w[0]).join('')}
+                            {/* For local_print and street categories, group by city */}
+                            {(category.name === 'local_print' || category.name === 'street') ? (
+                              <>
+                                {/* Group outlets by city */}
+                                {(() => {
+                                  const outletsWithCity = categoryOutlets.filter(o => o.city);
+                                  const outletsWithoutCity = categoryOutlets.filter(o => !o.city);
+                                  const citiesWithOutlets = [...new Set(outletsWithCity.map(o => o.city))];
+                                  
+                                  return (
+                                    <>
+                                      {citiesWithOutlets.map(cityName => {
+                                        const cityOutlets = outletsWithCity.filter(o => o.city === cityName);
+                                        const cityData = cities.find(c => c.name === cityName || c.name_he === cityName);
+                                        const cityHebrewName = cityData?.name_he || cityName || 'לא ידוע';
+                                        
+                                        return (
+                                          <div key={cityName} className="border rounded-lg overflow-hidden">
+                                            <div className="bg-muted/50 px-3 py-2 flex items-center gap-2 border-b">
+                                              <MapPin className="h-4 w-4 text-primary" />
+                                              <span className="font-medium">{cityHebrewName}</span>
+                                              <Badge variant="secondary" className="text-xs">{cityOutlets.length} ערוצים</Badge>
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="mr-auto h-7"
+                                                onClick={() => {
+                                                  setOutletForm({
+                                                    name: '', name_he: '', sector: 'general', city: cityName || '', is_active: true,
+                                                    vibe: '', vibe_he: '', warning_text: '', reach_info: '', brand_color: '#E31E24', logo_url: ''
+                                                  });
+                                                  setSelectedCategoryId(category.id);
+                                                  setEditingOutlet(null);
+                                                  setOutletDialog(true);
+                                                }}
+                                              >
+                                                <Plus className="h-3 w-3 ml-1" />
+                                                הוסף ערוץ
+                                              </Button>
                                             </div>
-                                          )}
-                                          <span className="font-medium">{outlet.name_he || outlet.name}</span>
-                                          {outlet.sector && (
-                                            <Badge variant="outline" className="text-xs">{getSectorLabel(outlet.sector)}</Badge>
-                                          )}
-                                          {outlet.city && (
-                                            <Badge variant="outline" className="text-xs">
-                                              <MapPin className="h-3 w-3 ml-1" />
-                                              {cities.find(c => c.name === outlet.city)?.name_he || outlet.city}
-                                            </Badge>
-                                          )}
-                                          <Badge variant="secondary" className="text-xs">{outletProducts.length} מוצרים</Badge>
-                                        </div>
-                                        <div className="flex gap-1">
-                                          <Button size="icon" variant="ghost" className="h-7 w-7"
-                                            onClick={(e) => { e.stopPropagation(); openAddProduct(outlet.id); }}>
-                                            <Plus className="h-3 w-3" />
-                                          </Button>
-                                          <Button size="icon" variant="ghost" className="h-7 w-7"
-                                            onClick={(e) => { e.stopPropagation(); openEditOutlet(outlet); }}>
-                                            <Pencil className="h-3 w-3" />
-                                          </Button>
-                                          <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive"
-                                            onClick={(e) => { e.stopPropagation(); deleteOutlet(outlet.id); }}>
-                                            <Trash2 className="h-3 w-3" />
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </CollapsibleTrigger>
-                                    
-                                    <CollapsibleContent>
-                                      <div className="border-t p-3 pr-10 space-y-2 bg-muted/20">
-                                        {outletProducts.length === 0 ? (
-                                          <div className="text-muted-foreground text-sm">אין מוצרים</div>
-                                        ) : outletProducts.map(product => {
-                                          const productSpecs = specs.filter(s => s.product_id === product.id);
-                                          const isProductExpanded = expandedProducts.has(product.id);
-                                          
-                                          return (
-                                            <Collapsible 
-                                              key={product.id}
-                                              open={isProductExpanded}
-                                              onOpenChange={() => toggleProduct(product.id)}
-                                            >
-                                              <div className="border rounded bg-card">
-                                                <CollapsibleTrigger asChild>
-                                                  <div className="flex items-center justify-between p-2 cursor-pointer hover:bg-muted/30 transition-colors">
-                                                    <div className="flex items-center gap-2">
-                                                      {isProductExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                                                      <Package className="h-4 w-4 text-green-400" />
-                                                      <span className="text-sm">{product.name_he || product.name}</span>
-                                                      {product.requires_text && <Badge className="text-xs bg-purple-500/20 text-purple-300">טקסט</Badge>}
-                                                      {product.requires_image && <Badge className="text-xs bg-orange-500/20 text-orange-300">תמונה</Badge>}
-                                                      <Badge variant="secondary" className="text-xs">{productSpecs.length} מפרטים</Badge>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                      <span className="text-xs text-muted-foreground">₪{product.client_price}</span>
-                                                      <Button size="icon" variant="ghost" className="h-6 w-6"
-                                                        onClick={(e) => { e.stopPropagation(); openAddSpec(product.id); }}>
-                                                        <Plus className="h-3 w-3" />
-                                                      </Button>
-                                                      <Button size="icon" variant="ghost" className="h-6 w-6"
-                                                        onClick={(e) => { e.stopPropagation(); openEditProduct(product); }}>
-                                                        <Pencil className="h-3 w-3" />
-                                                      </Button>
-                                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive"
-                                                        onClick={(e) => { e.stopPropagation(); deleteProduct(product.id); }}>
-                                                        <Trash2 className="h-3 w-3" />
-                                                      </Button>
-                                                    </div>
-                                                  </div>
-                                                </CollapsibleTrigger>
+                                            <div className="p-2 space-y-2">
+                                              {cityOutlets.map(outlet => {
+                                                const outletProducts = products.filter(p => p.outlet_id === outlet.id);
+                                                const isOutletExpanded = expandedOutlets.has(outlet.id);
                                                 
-                                                <CollapsibleContent>
-                                                  <div className="border-t p-2 pr-8 bg-muted/10">
-                                                    {productSpecs.length === 0 ? (
-                                                      <div className="text-muted-foreground text-xs">אין מפרטים</div>
-                                                    ) : (
-                                                      <div className="flex flex-wrap gap-2">
-                                                        {productSpecs.map(spec => (
-                                                          <div key={spec.id} className="flex items-center gap-1 bg-muted rounded px-2 py-1">
-                                                            <Ruler className="h-3 w-3 text-yellow-400" />
-                                                            <span className="text-xs">{spec.name_he || spec.name}</span>
-                                                            {spec.dimensions && (
-                                                              <span className="text-xs text-muted-foreground">({spec.dimensions})</span>
-                                                            )}
-                                                            <span className="text-xs text-primary">₪{spec.client_price}</span>
-                                                            <Button size="icon" variant="ghost" className="h-5 w-5"
-                                                              onClick={() => openEditSpec(spec)}>
-                                                              <Pencil className="h-2 w-2" />
-                                                            </Button>
-                                                            <Button size="icon" variant="ghost" className="h-5 w-5 text-destructive"
-                                                              onClick={() => deleteSpec(spec.id)}>
-                                                              <Trash2 className="h-2 w-2" />
-                                                            </Button>
-                                                          </div>
-                                                        ))}
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                </CollapsibleContent>
-                                              </div>
-                                            </Collapsible>
-                                          );
-                                        })}
-                                      </div>
-                                    </CollapsibleContent>
-                                  </div>
-                                </Collapsible>
-                              );
-                            })}
+                                                return (
+                                                  <OutletRow 
+                                                    key={outlet.id}
+                                                    outlet={outlet}
+                                                    outletProducts={outletProducts}
+                                                    isOutletExpanded={isOutletExpanded}
+                                                    toggleOutlet={toggleOutlet}
+                                                    openAddProduct={openAddProduct}
+                                                    openEditOutlet={openEditOutlet}
+                                                    deleteOutlet={deleteOutlet}
+                                                    getSectorLabel={getSectorLabel}
+                                                    cities={cities}
+                                                    specs={specs}
+                                                    expandedProducts={expandedProducts}
+                                                    toggleProduct={toggleProduct}
+                                                    openAddSpec={openAddSpec}
+                                                    openEditProduct={openEditProduct}
+                                                    deleteProduct={deleteProduct}
+                                                    openEditSpec={openEditSpec}
+                                                    deleteSpec={deleteSpec}
+                                                    showCity={false}
+                                                  />
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                      
+                                      {/* Cities without outlets */}
+                                      {cities.filter(c => c.is_active && !citiesWithOutlets.includes(c.name)).map(city => (
+                                        <div key={city.id} className="border rounded-lg overflow-hidden border-dashed opacity-60">
+                                          <div className="bg-muted/30 px-3 py-2 flex items-center gap-2">
+                                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                                            <span className="font-medium text-muted-foreground">{city.name_he}</span>
+                                            <Badge variant="outline" className="text-xs">אין ערוצים</Badge>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              className="mr-auto h-7"
+                                              onClick={() => {
+                                                setOutletForm({
+                                                  name: '', name_he: '', sector: 'general', city: city.name, is_active: true,
+                                                  vibe: '', vibe_he: '', warning_text: '', reach_info: '', brand_color: '#E31E24', logo_url: ''
+                                                });
+                                                setSelectedCategoryId(category.id);
+                                                setEditingOutlet(null);
+                                                setOutletDialog(true);
+                                              }}
+                                            >
+                                              <Plus className="h-3 w-3 ml-1" />
+                                              הוסף ערוץ
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      
+                                      {/* Outlets without city */}
+                                      {outletsWithoutCity.length > 0 && (
+                                        <div className="border rounded-lg overflow-hidden">
+                                          <div className="bg-muted/50 px-3 py-2 flex items-center gap-2 border-b">
+                                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                                            <span className="font-medium text-muted-foreground">ללא עיר</span>
+                                            <Badge variant="secondary" className="text-xs">{outletsWithoutCity.length} ערוצים</Badge>
+                                          </div>
+                                          <div className="p-2 space-y-2">
+                                            {outletsWithoutCity.map(outlet => {
+                                              const outletProducts = products.filter(p => p.outlet_id === outlet.id);
+                                              const isOutletExpanded = expandedOutlets.has(outlet.id);
+                                              
+                                              return (
+                                                <OutletRow 
+                                                  key={outlet.id}
+                                                  outlet={outlet}
+                                                  outletProducts={outletProducts}
+                                                  isOutletExpanded={isOutletExpanded}
+                                                  toggleOutlet={toggleOutlet}
+                                                  openAddProduct={openAddProduct}
+                                                  openEditOutlet={openEditOutlet}
+                                                  deleteOutlet={deleteOutlet}
+                                                  getSectorLabel={getSectorLabel}
+                                                  cities={cities}
+                                                  specs={specs}
+                                                  expandedProducts={expandedProducts}
+                                                  toggleProduct={toggleProduct}
+                                                  openAddSpec={openAddSpec}
+                                                  openEditProduct={openEditProduct}
+                                                  deleteProduct={deleteProduct}
+                                                  openEditSpec={openEditSpec}
+                                                  deleteSpec={deleteSpec}
+                                                  showCity={true}
+                                                />
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+                              </>
+                            ) : (
+                              /* Regular display for other categories */
+                              categoryOutlets.map(outlet => {
+                                const outletProducts = products.filter(p => p.outlet_id === outlet.id);
+                                const isOutletExpanded = expandedOutlets.has(outlet.id);
+                              
+                                return (
+                                  <OutletRow 
+                                    key={outlet.id}
+                                    outlet={outlet}
+                                    outletProducts={outletProducts}
+                                    isOutletExpanded={isOutletExpanded}
+                                    toggleOutlet={toggleOutlet}
+                                    openAddProduct={openAddProduct}
+                                    openEditOutlet={openEditOutlet}
+                                    deleteOutlet={deleteOutlet}
+                                    getSectorLabel={getSectorLabel}
+                                    cities={cities}
+                                    specs={specs}
+                                    expandedProducts={expandedProducts}
+                                    toggleProduct={toggleProduct}
+                                    openAddSpec={openAddSpec}
+                                    openEditProduct={openEditProduct}
+                                    deleteProduct={deleteProduct}
+                                    openEditSpec={openEditSpec}
+                                    deleteSpec={deleteSpec}
+                                    showCity={true}
+                                  />
+                                );
+                              })
+                            )}
                           </div>
                         )}
                       </CardContent>
