@@ -138,125 +138,169 @@ const MediaDatabaseAdmin = () => {
   ];
 
   const [mediaSizes, setMediaSizes] = useState([
-    // עיתונות מודפסת ארצית
-    { id: 1, category: 'print', name: 'יתד נאמן (יותר מרבע)', size: 'רוחב 14.7 × גובה 20 ס"מ', notes: '', pubDay: '' },
-    { id: 2, category: 'print', name: 'המבשר סטריפ', size: 'גובה 7.5 × רוחב 232.167 מ"מ', notes: '', pubDay: '' },
-    { id: 3, category: 'print', name: 'המודיע אנגלית ישראל ואירופה', size: 'רוחב 25 × גובה 32 ס"מ', notes: '', pubDay: '' },
-    { id: 4, category: 'print', name: 'המודיע אנגלית ארצות הברית', size: 'רוחב 24 × גובה 27.5 ס"מ', notes: '', pubDay: '' },
-    { id: 5, category: 'print', name: 'משפחה', size: '29.7×20.5 ס"מ', notes: '', pubDay: '' },
-    { id: 6, category: 'print', name: 'קטיפה', size: '307×215 מ"מ', notes: '', pubDay: '' },
-    { id: 7, category: 'print', name: 'הציבור החרדי', size: 'עמוד A4, חצי עמוד חצי מ-A4', notes: '', pubDay: 'חמישי' },
-    { id: 8, category: 'print', name: 'מגזין הבית', size: 'רוחב 17.5 × גובה 25 ס"מ', notes: '', pubDay: '' },
+    // עיתונות מודפסת - יתד נאמן
+    { id: 1, category: 'print', outlet: 'יתד נאמן', name: 'יותר מרבע', size: 'רוחב 14.7 × גובה 20 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מודפסת - המבשר
+    { id: 2, category: 'print', outlet: 'המבשר', name: 'סטריפ', size: 'גובה 7.5 × רוחב 232.167 מ"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מודפסת - המודיע
+    { id: 3, category: 'print', outlet: 'המודיע', name: 'אנגלית ישראל ואירופה', size: 'רוחב 25 × גובה 32 ס"מ', notes: '', pubDay: '' },
+    { id: 4, category: 'print', outlet: 'המודיע', name: 'אנגלית ארצות הברית', size: 'רוחב 24 × גובה 27.5 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מודפסת - משפחה
+    { id: 5, category: 'print', outlet: 'משפחה', name: 'עמוד', size: '29.7×20.5 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מודפסת - קטיפה
+    { id: 6, category: 'print', outlet: 'קטיפה', name: 'עמוד', size: '307×215 מ"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מודפסת - הציבור החרדי
+    { id: 7, category: 'print', outlet: 'הציבור החרדי', name: 'עמוד A4', size: 'עמוד A4, חצי עמוד חצי מ-A4', notes: '', pubDay: 'חמישי' },
+    
+    // עיתונות מודפסת - מגזין הבית
+    { id: 8, category: 'print', outlet: 'מגזין הבית', name: 'עמוד', size: 'רוחב 17.5 × גובה 25 ס"מ', notes: '', pubDay: '' },
     
     // דיגיטל - כיכר השבת
-    { id: 20, category: 'digital', name: 'כיכר השבת - 970×300', size: '970×300 px', notes: '', pubDay: '' },
-    { id: 21, category: 'digital', name: 'כיכר השבת - 970×200', size: '970×200 px', notes: '', pubDay: '' },
-    { id: 22, category: 'digital', name: 'כיכר השבת - 970×100', size: '970×100 px', notes: '', pubDay: '' },
-    { id: 23, category: 'digital', name: 'כיכר השבת - 970×600', size: '970×600 px', notes: '', pubDay: '' },
-    { id: 24, category: 'digital', name: 'כיכר השבת - סקייסקרייפר', size: '160×970 px', notes: '', pubDay: '' },
-    { id: 25, category: 'digital', name: 'כיכר השבת - מלבן בינוני', size: '300×250 px', notes: 'משותף לבחדרי חרדים', pubDay: '' },
-    { id: 26, category: 'digital', name: 'כיכר השבת - חצי עמוד', size: '300×600 px', notes: '', pubDay: '' },
-    { id: 27, category: 'digital', name: 'כיכר השבת - מובייל גדול', size: '320×480 px', notes: '', pubDay: '' },
-    { id: 28, category: 'digital', name: 'כיכר השבת - מובייל בינוני', size: '320×100 px', notes: '', pubDay: '' },
-    { id: 29, category: 'digital', name: 'כיכר השבת - מובייל קטן', size: '320×50 px', notes: 'משותף לבחדרי חרדים', pubDay: '' },
-    { id: 60, category: 'digital', name: 'כיכר השבת - באנר תחתון', size: '970×60 px', notes: '', pubDay: '' },
+    { id: 20, category: 'digital', outlet: 'כיכר השבת', name: '970×300', size: '970×300 px', notes: '', pubDay: '' },
+    { id: 21, category: 'digital', outlet: 'כיכר השבת', name: '970×200', size: '970×200 px', notes: '', pubDay: '' },
+    { id: 22, category: 'digital', outlet: 'כיכר השבת', name: '970×100', size: '970×100 px', notes: '', pubDay: '' },
+    { id: 23, category: 'digital', outlet: 'כיכר השבת', name: '970×600', size: '970×600 px', notes: '', pubDay: '' },
+    { id: 24, category: 'digital', outlet: 'כיכר השבת', name: 'סקייסקרייפר', size: '160×970 px', notes: '', pubDay: '' },
+    { id: 25, category: 'digital', outlet: 'כיכר השבת', name: 'מלבן בינוני', size: '300×250 px', notes: 'משותף לבחדרי חרדים', pubDay: '' },
+    { id: 26, category: 'digital', outlet: 'כיכר השבת', name: 'חצי עמוד', size: '300×600 px', notes: '', pubDay: '' },
+    { id: 27, category: 'digital', outlet: 'כיכר השבת', name: 'מובייל גדול', size: '320×480 px', notes: '', pubDay: '' },
+    { id: 28, category: 'digital', outlet: 'כיכר השבת', name: 'מובייל בינוני', size: '320×100 px', notes: '', pubDay: '' },
+    { id: 29, category: 'digital', outlet: 'כיכר השבת', name: 'מובייל קטן', size: '320×50 px', notes: 'משותף לבחדרי חרדים', pubDay: '' },
+    { id: 60, category: 'digital', outlet: 'כיכר השבת', name: 'באנר תחתון', size: '970×60 px', notes: '', pubDay: '' },
     
-    // דיגיטל - בחדרי חרדים (72 DPI)
-    { id: 100, category: 'digital', name: 'בחדרי חרדים - פלזמה', size: '1200×200 px', notes: 'עמוד הבית, 72 DPI', pubDay: '' },
-    { id: 101, category: 'digital', name: 'בחדרי חרדים - באנר צף', size: '1200×60 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 102, category: 'digital', name: 'בחדרי חרדים - אוזן ימין/שמאל', size: '160×600 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 103, category: 'digital', name: 'בחדרי חרדים - אוזן צרה', size: '120×500 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 104, category: 'digital', name: 'בחדרי חרדים - אוזן רחבה', size: '300×600 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 105, category: 'digital', name: 'בחדרי חרדים - סנטרל', size: '895×80 px', notes: 'עמוד הבית', pubDay: '' },
-    { id: 106, category: 'digital', name: 'בחדרי חרדים - פוטר', size: '1200×200 px', notes: 'כל עמודי האתר', pubDay: '' },
-    { id: 107, category: 'digital', name: 'בחדרי חרדים - מגדל קטן', size: '290×350 px', notes: 'עמוד הבית ועמודי כתבות', pubDay: '' },
-    { id: 108, category: 'digital', name: 'בחדרי חרדים - מגדל כתבה', size: '290×346 px', notes: 'עמוד הבית ועמודי כתבות', pubDay: '' },
-    { id: 109, category: 'digital', name: 'בחדרי חרדים - מגדלון', size: '290×300 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 110, category: 'digital', name: 'בחדרי חרדים - מגדל גדול', size: '290×500 px', notes: 'עמוד הבית ועמודי כתבות', pubDay: '' },
-    { id: 111, category: 'digital', name: 'בחדרי חרדים - באנר סוף כתבה', size: '800×60 px', notes: 'כתבה', pubDay: '' },
-    { id: 112, category: 'digital', name: 'בחדרי חרדים - VTR', size: '1200×300 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 113, category: 'digital', name: 'בחדרי חרדים - סופר VTR', size: '1200×500 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 114, category: 'digital', name: 'בחדרי חרדים - מתפרץ', size: '800×600 px', notes: 'עמוד הבית', pubDay: '' },
-    { id: 115, category: 'digital', name: 'בחדרי חרדים - סטריפ מובייל', size: '320×70 px', notes: 'האתר הסלולארי', pubDay: '' },
-    { id: 116, category: 'digital', name: 'בחדרי חרדים - מעברון מובייל', size: '360×520 / 360×400 px', notes: 'קובץ תמונה בלבד', pubDay: '' },
-    { id: 117, category: 'digital', name: 'בחדרי חרדים - פלזמה מובייל', size: '360×125 px', notes: 'האתר הסלולארי', pubDay: '' },
-    { id: 118, category: 'digital', name: 'בחדרי חרדים - אינריד דסקטופ', size: '800×200 px', notes: 'דסקטופ', pubDay: '' },
-    { id: 119, category: 'digital', name: 'בחדרי חרדים - אינריד מובייל', size: '320×320 px', notes: 'מובייל', pubDay: '' },
-    { id: 120, category: 'digital', name: 'בחדרי חרדים - באנר חסות עליון', size: '372×60 px', notes: 'דסקטופ', pubDay: '' },
-    { id: 121, category: 'digital', name: 'בחדרי חרדים - טייק אובר', size: '1260×1000 px', notes: 'דסקטופ', pubDay: '' },
-    { id: 122, category: 'digital', name: 'בחדרי חרדים - טייק אובר דינאמי', size: '1800×980 px', notes: 'דסקטופ', pubDay: '' },
-    { id: 123, category: 'digital', name: 'בחדרי חרדים - קוביה קבועה', size: '290×165 px', notes: 'דסקטופ', pubDay: '' },
-    { id: 124, category: 'digital', name: 'בחדרי חרדים - קוביה קבועה ג\'וביק', size: '290×346 px', notes: 'דסקטופ', pubDay: '' },
-    { id: 125, category: 'digital', name: 'בחדרי חרדים - מיקום רמי לוי', size: '895×240 px', notes: 'דסקטופ', pubDay: '' },
+    // דיגיטל - בחדרי חרדים
+    { id: 100, category: 'digital', outlet: 'בחדרי חרדים', name: 'פלזמה', size: '1200×200 px', notes: 'עמוד הבית, 72 DPI', pubDay: '' },
+    { id: 101, category: 'digital', outlet: 'בחדרי חרדים', name: 'באנר צף', size: '1200×60 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 102, category: 'digital', outlet: 'בחדרי חרדים', name: 'אוזן ימין/שמאל', size: '160×600 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 103, category: 'digital', outlet: 'בחדרי חרדים', name: 'אוזן צרה', size: '120×500 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 104, category: 'digital', outlet: 'בחדרי חרדים', name: 'אוזן רחבה', size: '300×600 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 105, category: 'digital', outlet: 'בחדרי חרדים', name: 'סנטרל', size: '895×80 px', notes: 'עמוד הבית', pubDay: '' },
+    { id: 106, category: 'digital', outlet: 'בחדרי חרדים', name: 'פוטר', size: '1200×200 px', notes: 'כל עמודי האתר', pubDay: '' },
+    { id: 107, category: 'digital', outlet: 'בחדרי חרדים', name: 'מגדל קטן', size: '290×350 px', notes: 'עמוד הבית ועמודי כתבות', pubDay: '' },
+    { id: 108, category: 'digital', outlet: 'בחדרי חרדים', name: 'מגדל כתבה', size: '290×346 px', notes: 'עמוד הבית ועמודי כתבות', pubDay: '' },
+    { id: 109, category: 'digital', outlet: 'בחדרי חרדים', name: 'מגדלון', size: '290×300 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 110, category: 'digital', outlet: 'בחדרי חרדים', name: 'מגדל גדול', size: '290×500 px', notes: 'עמוד הבית ועמודי כתבות', pubDay: '' },
+    { id: 111, category: 'digital', outlet: 'בחדרי חרדים', name: 'באנר סוף כתבה', size: '800×60 px', notes: 'כתבה', pubDay: '' },
+    { id: 112, category: 'digital', outlet: 'בחדרי חרדים', name: 'VTR', size: '1200×300 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 113, category: 'digital', outlet: 'בחדרי חרדים', name: 'סופר VTR', size: '1200×500 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 114, category: 'digital', outlet: 'בחדרי חרדים', name: 'מתפרץ', size: '800×600 px', notes: 'עמוד הבית', pubDay: '' },
+    { id: 115, category: 'digital', outlet: 'בחדרי חרדים', name: 'סטריפ מובייל', size: '320×70 px', notes: 'האתר הסלולארי', pubDay: '' },
+    { id: 116, category: 'digital', outlet: 'בחדרי חרדים', name: 'מעברון מובייל', size: '360×520 / 360×400 px', notes: 'קובץ תמונה בלבד', pubDay: '' },
+    { id: 117, category: 'digital', outlet: 'בחדרי חרדים', name: 'פלזמה מובייל', size: '360×125 px', notes: 'האתר הסלולארי', pubDay: '' },
+    { id: 118, category: 'digital', outlet: 'בחדרי חרדים', name: 'אינריד דסקטופ', size: '800×200 px', notes: 'דסקטופ', pubDay: '' },
+    { id: 119, category: 'digital', outlet: 'בחדרי חרדים', name: 'אינריד מובייל', size: '320×320 px', notes: 'מובייל', pubDay: '' },
+    { id: 120, category: 'digital', outlet: 'בחדרי חרדים', name: 'באנר חסות עליון', size: '372×60 px', notes: 'דסקטופ', pubDay: '' },
+    { id: 121, category: 'digital', outlet: 'בחדרי חרדים', name: 'טייק אובר', size: '1260×1000 px', notes: 'דסקטופ', pubDay: '' },
+    { id: 122, category: 'digital', outlet: 'בחדרי חרדים', name: 'טייק אובר דינאמי', size: '1800×980 px', notes: 'דסקטופ', pubDay: '' },
+    { id: 123, category: 'digital', outlet: 'בחדרי חרדים', name: 'קוביה קבועה', size: '290×165 px', notes: 'דסקטופ', pubDay: '' },
+    { id: 124, category: 'digital', outlet: 'בחדרי חרדים', name: 'קוביה קבועה ג\'וביק', size: '290×346 px', notes: 'דסקטופ', pubDay: '' },
+    { id: 125, category: 'digital', outlet: 'בחדרי חרדים', name: 'מיקום רמי לוי', size: '895×240 px', notes: 'דסקטופ', pubDay: '' },
     
     // דיגיטל - כל רגע
-    { id: 130, category: 'digital', name: 'כל רגע - באנר צף', size: '1140×60 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 131, category: 'digital', name: 'כל רגע - אוזן ימין/שמאל', size: '160×600 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 132, category: 'digital', name: 'כל רגע - אינריד דסקטופ', size: '725×200 px', notes: 'דסקטופ', pubDay: '' },
-    { id: 133, category: 'digital', name: 'כל רגע - מעברון מובייל', size: '360×520 px', notes: 'מובייל', pubDay: '' },
-    { id: 134, category: 'digital', name: 'כל רגע - סטריפ מובייל', size: '320×70 px', notes: 'האתר הסלולארי', pubDay: '' },
-    { id: 135, category: 'digital', name: 'כל רגע - אינריד מובייל', size: '320×320 px', notes: 'מובייל', pubDay: '' },
-    { id: 136, category: 'digital', name: 'כל רגע - קוביה קבועה', size: '360×180 px', notes: 'דסקטופ', pubDay: '' },
+    { id: 130, category: 'digital', outlet: 'כל רגע', name: 'באנר צף', size: '1140×60 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 131, category: 'digital', outlet: 'כל רגע', name: 'אוזן ימין/שמאל', size: '160×600 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 132, category: 'digital', outlet: 'כל רגע', name: 'אינריד דסקטופ', size: '725×200 px', notes: 'דסקטופ', pubDay: '' },
+    { id: 133, category: 'digital', outlet: 'כל רגע', name: 'מעברון מובייל', size: '360×520 px', notes: 'מובייל', pubDay: '' },
+    { id: 134, category: 'digital', outlet: 'כל רגע', name: 'סטריפ מובייל', size: '320×70 px', notes: 'האתר הסלולארי', pubDay: '' },
+    { id: 135, category: 'digital', outlet: 'כל רגע', name: 'אינריד מובייל', size: '320×320 px', notes: 'מובייל', pubDay: '' },
+    { id: 136, category: 'digital', outlet: 'כל רגע', name: 'קוביה קבועה', size: '360×180 px', notes: 'דסקטופ', pubDay: '' },
     
     // דיגיטל - כל כבוד
-    { id: 140, category: 'digital', name: 'כל כבוד - אוזן', size: '160×600 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 141, category: 'digital', name: 'כל כבוד - אינריד דסקטופ', size: '690×200 px', notes: 'דסקטופ', pubDay: '' },
-    { id: 142, category: 'digital', name: 'כל כבוד - אוזן רחבה', size: '300×600 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 143, category: 'digital', name: 'כל כבוד - באנר צף', size: '1200×60 px', notes: 'ברחבי האתר', pubDay: '' },
-    { id: 144, category: 'digital', name: 'כל כבוד - פלזמה', size: '1200×200 px', notes: 'עמוד הבית', pubDay: '' },
-    { id: 145, category: 'digital', name: 'כל כבוד - פלזמה מובייל', size: '360×125 px', notes: 'האתר הסלולארי', pubDay: '' },
-    { id: 146, category: 'digital', name: 'כל כבוד - מעברון מובייל', size: '360×520 px', notes: 'מובייל', pubDay: '' },
-    { id: 147, category: 'digital', name: 'כל כבוד - סטריפ מובייל', size: '320×70 px', notes: 'האתר הסלולארי', pubDay: '' },
-    { id: 148, category: 'digital', name: 'כל כבוד - אינריד מובייל', size: '320×320 px', notes: 'מובייל', pubDay: '' },
+    { id: 140, category: 'digital', outlet: 'כל כבוד', name: 'אוזן', size: '160×600 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 141, category: 'digital', outlet: 'כל כבוד', name: 'אינריד דסקטופ', size: '690×200 px', notes: 'דסקטופ', pubDay: '' },
+    { id: 142, category: 'digital', outlet: 'כל כבוד', name: 'אוזן רחבה', size: '300×600 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 143, category: 'digital', outlet: 'כל כבוד', name: 'באנר צף', size: '1200×60 px', notes: 'ברחבי האתר', pubDay: '' },
+    { id: 144, category: 'digital', outlet: 'כל כבוד', name: 'פלזמה', size: '1200×200 px', notes: 'עמוד הבית', pubDay: '' },
+    { id: 145, category: 'digital', outlet: 'כל כבוד', name: 'פלזמה מובייל', size: '360×125 px', notes: 'האתר הסלולארי', pubDay: '' },
+    { id: 146, category: 'digital', outlet: 'כל כבוד', name: 'מעברון מובייל', size: '360×520 px', notes: 'מובייל', pubDay: '' },
+    { id: 147, category: 'digital', outlet: 'כל כבוד', name: 'סטריפ מובייל', size: '320×70 px', notes: 'האתר הסלולארי', pubDay: '' },
+    { id: 148, category: 'digital', outlet: 'כל כבוד', name: 'אינריד מובייל', size: '320×320 px', notes: 'מובייל', pubDay: '' },
     
-    // דיגיטל - גוגל (מודעות סטנדרטיות - עד 150KB, PNG/GIF, עם לוגו)
-    { id: 200, category: 'digital', name: 'גוגל - Skyscraper', size: '120×600 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 201, category: 'digital', name: 'גוגל - Square', size: '250×250 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 202, category: 'digital', name: 'גוגל - Wide Skyscraper', size: '160×600 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 203, category: 'digital', name: 'גוגל - Medium Rectangle', size: '300×250 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 204, category: 'digital', name: 'גוגל - Half Page', size: '300×600 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 205, category: 'digital', name: 'גוגל - Small Square', size: '200×200 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 206, category: 'digital', name: 'גוגל - Large Rectangle', size: '336×280 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 207, category: 'digital', name: 'גוגל - Banner', size: '468×60 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 208, category: 'digital', name: 'גוגל - Leaderboard', size: '728×90 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 209, category: 'digital', name: 'גוגל - Large Leaderboard', size: '970×70 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 210, category: 'digital', name: 'גוגל - Mobile Banner', size: '320×100 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 211, category: 'digital', name: 'גוגל - Mobile Leaderboard', size: '320×50 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 212, category: 'digital', name: 'גוגל - Billboard', size: '970×250 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
-    { id: 213, category: 'digital', name: 'גוגל - Top Banner', size: '970×90 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    // דיגיטל - גוגל סטנדרטי
+    { id: 200, category: 'digital', outlet: 'גוגל', name: 'Skyscraper', size: '120×600 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 201, category: 'digital', outlet: 'גוגל', name: 'Square', size: '250×250 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 202, category: 'digital', outlet: 'גוגל', name: 'Wide Skyscraper', size: '160×600 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 203, category: 'digital', outlet: 'גוגל', name: 'Medium Rectangle', size: '300×250 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 204, category: 'digital', outlet: 'גוגל', name: 'Half Page', size: '300×600 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 205, category: 'digital', outlet: 'גוגל', name: 'Small Square', size: '200×200 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 206, category: 'digital', outlet: 'גוגל', name: 'Large Rectangle', size: '336×280 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 207, category: 'digital', outlet: 'גוגל', name: 'Banner', size: '468×60 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 208, category: 'digital', outlet: 'גוגל', name: 'Leaderboard', size: '728×90 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 209, category: 'digital', outlet: 'גוגל', name: 'Large Leaderboard', size: '970×70 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 210, category: 'digital', outlet: 'גוגל', name: 'Mobile Banner', size: '320×100 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 211, category: 'digital', outlet: 'גוגל', name: 'Mobile Leaderboard', size: '320×50 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 212, category: 'digital', outlet: 'גוגל', name: 'Billboard', size: '970×250 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 213, category: 'digital', outlet: 'גוגל', name: 'Top Banner', size: '970×90 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
     
-    // דיגיטל - גוגל רספונסיבי (עד 5MB, ללא לוגו ברקע)
-    { id: 220, category: 'digital', name: 'גוגל רספונסיבי - תמונה לרוחב', size: '1200×628 px', notes: 'עד 5MB, פרופורציה 1.91:1', pubDay: '' },
-    { id: 221, category: 'digital', name: 'גוגל רספונסיבי - תמונת ריבוע', size: '1200×1200 px', notes: 'עד 5MB, פרופורציה 1:1', pubDay: '' },
-    { id: 222, category: 'digital', name: 'גוגל רספונסיבי - תמונה לאורך', size: '900×1600 px', notes: 'עד 5MB, פרופורציה 9:16', pubDay: '' },
-    { id: 223, category: 'digital', name: 'גוגל רספונסיבי - לוגו', size: '1200×1200 px', notes: 'לוגו ריבועי', pubDay: '' },
-    { id: 224, category: 'digital', name: 'גוגל רספונסיבי - לוגו לרוחב', size: '1200×300 px', notes: 'לוגו אופקי', pubDay: '' },
+    // דיגיטל - גוגל רספונסיבי
+    { id: 220, category: 'digital', outlet: 'גוגל רספונסיבי', name: 'תמונה לרוחב', size: '1200×628 px', notes: 'עד 5MB, פרופורציה 1.91:1', pubDay: '' },
+    { id: 221, category: 'digital', outlet: 'גוגל רספונסיבי', name: 'תמונת ריבוע', size: '1200×1200 px', notes: 'עד 5MB, פרופורציה 1:1', pubDay: '' },
+    { id: 222, category: 'digital', outlet: 'גוגל רספונסיבי', name: 'תמונה לאורך', size: '900×1600 px', notes: 'עד 5MB, פרופורציה 9:16', pubDay: '' },
+    { id: 223, category: 'digital', outlet: 'גוגל רספונסיבי', name: 'לוגו ריבועי', size: '1200×1200 px', notes: 'לוגו ריבועי', pubDay: '' },
+    { id: 224, category: 'digital', outlet: 'גוגל רספונסיבי', name: 'לוגו אופקי', size: '1200×300 px', notes: 'לוגו אופקי', pubDay: '' },
     
-    // פרסום חוצות
-    { id: 30, category: 'outdoor', name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
-    { id: 31, category: 'outdoor', name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
-    { id: 32, category: 'outdoor', name: 'בלוברי', size: 'גובה 26.5 × רוחב 8 ס"מ', notes: '', pubDay: '' },
-    { id: 33, category: 'outdoor', name: 'מטר על מטר לחנות', size: '100×100 ס"מ', notes: 'להוסיף גלישה וחיתוך', pubDay: '' },
+    // פרסום חוצות - לוחות קיר
+    { id: 30, category: 'outdoor', outlet: 'לוחות קיר', name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
+    { id: 31, category: 'outdoor', outlet: 'לוחות קיר', name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
+    { id: 32, category: 'outdoor', outlet: 'לוחות קיר', name: 'בלוברי', size: 'גובה 26.5 × רוחב 8 ס"מ', notes: '', pubDay: '' },
+    { id: 33, category: 'outdoor', outlet: 'שילוט חנויות', name: 'מטר על מטר', size: '100×100 ס"מ', notes: 'להוסיף גלישה וחיתוך', pubDay: '' },
     
-    // עיתונות מקומית
-    { id: 40, category: 'local', name: 'קוראים אלעד', size: 'A4', notes: '', pubDay: '' },
-    { id: 41, category: 'local', name: 'קהילות רמות', size: '14.5X21.5 ס"מ', notes: '', pubDay: '' },
-    { id: 42, category: 'local', name: 'מקור מוסמך', size: '220X145 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
-    { id: 43, category: 'local', name: 'חזק', size: '274X189 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
-    { id: 44, category: 'local', name: 'בקהילה', size: '', notes: '', pubDay: 'חמישי' },
-    { id: 45, category: 'local', name: 'הדרך', size: 'רוחב 19.5 ס"מ × גובה 29 ס"מ', notes: '', pubDay: '' },
-    { id: 46, category: 'local', name: 'ידיעון קולינו נתניה', size: 'גובה 22 × רוחב 14.5 ס"מ', notes: 'להתקשר כדי לשריין מקום', pubDay: 'נסגר ברביעי' },
-    { id: 47, category: 'local', name: 'כח הפרסום', size: 'גובה 27 × רוחב 17 ס"מ', notes: 'בגלישה צריך להשאיר ס"מ וחצי רווח', pubDay: 'מוצ"ש - ראשון' },
-    { id: 48, category: 'local', name: 'לעניין בני ברק - עמוד', size: '26.5X16.5 ס"מ', notes: '', pubDay: '' },
-    { id: 49, category: 'local', name: 'לעניין בני ברק - חצי לגובה', size: '', notes: '', pubDay: 'רביעי' },
-    { id: 50, category: 'local', name: 'מרכז העניינים רבע עמוד', size: 'רוחב 12.6 × גובה 16.3 ס"מ', notes: '', pubDay: '' },
-    { id: 51, category: 'local', name: 'השבועון פ"ת / אלעד', size: '14.5×21.6 ס"מ', notes: '', pubDay: '' },
-    { id: 52, category: 'local', name: 'גבעת זאב', size: '22×15.5 ס"מ', notes: '', pubDay: '' },
-    { id: 53, category: 'local', name: 'לעניין (שער)', size: '20×13.5 ס"מ', notes: '', pubDay: '' },
-    { id: 54, category: 'local', name: 'העיתון של השכונה', size: 'גובה 26.5 × רוחב 16.7 ס"מ', notes: '', pubDay: '' },
-    { id: 55, category: 'local', name: 'רב מכר מודיעין עילית', size: '14.5×22 ס"מ', notes: '', pubDay: '' },
-    { id: 56, category: 'local', name: 'מידע ירושלים', size: 'גובה 27.4 ס"מ (+5מ"מ גלישה) × רוחב 18 ס"מ (+5מ"מ גלישה)', notes: '', pubDay: '' },
-    { id: 57, category: 'local', name: 'בעניינים בית שמש', size: 'גובה 226 × רוחב 153 מ"מ', notes: 'מודעה גולשת להוסיף 1 ס"מ מכל צד', pubDay: '' },
+    // עיתונות מקומית - קוראים אלעד
+    { id: 40, category: 'local', outlet: 'קוראים אלעד', name: 'עמוד', size: 'A4', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - קהילות רמות
+    { id: 41, category: 'local', outlet: 'קהילות רמות', name: 'עמוד', size: '14.5X21.5 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - מקור מוסמך
+    { id: 42, category: 'local', outlet: 'מקור מוסמך', name: 'עמוד', size: '220X145 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
+    
+    // עיתונות מקומית - חזק
+    { id: 43, category: 'local', outlet: 'חזק', name: 'עמוד', size: '274X189 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
+    
+    // עיתונות מקומית - בקהילה
+    { id: 44, category: 'local', outlet: 'בקהילה', name: 'עמוד', size: '', notes: '', pubDay: 'חמישי' },
+    
+    // עיתונות מקומית - הדרך
+    { id: 45, category: 'local', outlet: 'הדרך', name: 'עמוד', size: 'רוחב 19.5 ס"מ × גובה 29 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - ידיעון קולינו
+    { id: 46, category: 'local', outlet: 'ידיעון קולינו נתניה', name: 'עמוד', size: 'גובה 22 × רוחב 14.5 ס"מ', notes: 'להתקשר כדי לשריין מקום', pubDay: 'נסגר ברביעי' },
+    
+    // עיתונות מקומית - כח הפרסום
+    { id: 47, category: 'local', outlet: 'כח הפרסום', name: 'עמוד', size: 'גובה 27 × רוחב 17 ס"מ', notes: 'בגלישה צריך להשאיר ס"מ וחצי רווח', pubDay: 'מוצ"ש - ראשון' },
+    
+    // עיתונות מקומית - לעניין בני ברק
+    { id: 48, category: 'local', outlet: 'לעניין בני ברק', name: 'עמוד', size: '26.5X16.5 ס"מ', notes: '', pubDay: '' },
+    { id: 49, category: 'local', outlet: 'לעניין בני ברק', name: 'חצי לגובה', size: '', notes: '', pubDay: 'רביעי' },
+    
+    // עיתונות מקומית - מרכז העניינים
+    { id: 50, category: 'local', outlet: 'מרכז העניינים', name: 'רבע עמוד', size: 'רוחב 12.6 × גובה 16.3 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - השבועון
+    { id: 51, category: 'local', outlet: 'השבועון פ"ת / אלעד', name: 'עמוד', size: '14.5×21.6 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - גבעת זאב
+    { id: 52, category: 'local', outlet: 'גבעת זאב', name: 'עמוד', size: '22×15.5 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - לעניין שער
+    { id: 53, category: 'local', outlet: 'לעניין', name: 'שער', size: '20×13.5 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - העיתון של השכונה
+    { id: 54, category: 'local', outlet: 'העיתון של השכונה', name: 'עמוד', size: 'גובה 26.5 × רוחב 16.7 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - רב מכר
+    { id: 55, category: 'local', outlet: 'רב מכר מודיעין עילית', name: 'עמוד', size: '14.5×22 ס"מ', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - מידע ירושלים
+    { id: 56, category: 'local', outlet: 'מידע ירושלים', name: 'עמוד', size: 'גובה 27.4 ס"מ (+5מ"מ גלישה) × רוחב 18 ס"מ (+5מ"מ גלישה)', notes: '', pubDay: '' },
+    
+    // עיתונות מקומית - בעניינים בית שמש
+    { id: 57, category: 'local', outlet: 'בעניינים בית שמש', name: 'עמוד', size: 'גובה 226 × רוחב 153 מ"מ', notes: 'מודעה גולשת להוסיף 1 ס"מ מכל צד', pubDay: '' },
   ]);
   const [editingSizeId, setEditingSizeId] = useState<number | null>(null);
   const [sizeSearchQuery, setSizeSearchQuery] = useState('');
@@ -268,9 +312,9 @@ const MediaDatabaseAdmin = () => {
     ));
   };
 
-  const addNewMediaSize = (category: string = 'print') => {
+  const addNewMediaSize = (category: string = 'print', outlet: string = '') => {
     const newId = Math.max(...mediaSizes.map(s => s.id)) + 1;
-    setMediaSizes(prev => [...prev, { id: newId, category, name: '', size: '', notes: '', pubDay: '' }]);
+    setMediaSizes(prev => [...prev, { id: newId, category, outlet, name: '', size: '', notes: '', pubDay: '' }]);
     setEditingSizeId(newId);
   };
 
@@ -989,9 +1033,9 @@ const MediaDatabaseAdmin = () => {
                   <Ruler className="h-5 w-5" />
                   מדריך גדלים לפי ערוץ מדיה
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">לחץ על שורה לעריכה ישירה</p>
+                <p className="text-sm text-muted-foreground mt-1">מסודר לפי קטגוריות ואתרים/עיתונים</p>
               </div>
-              <Button onClick={() => addNewMediaSize(selectedSizeCategory === 'all' ? 'print' : selectedSizeCategory)} size="sm">
+              <Button onClick={() => addNewMediaSize(selectedSizeCategory === 'all' ? 'print' : selectedSizeCategory, '')} size="sm">
                 <Plus className="h-4 w-4 ml-2" />
                 הוסף גודל
               </Button>
@@ -1004,7 +1048,7 @@ const MediaDatabaseAdmin = () => {
                   <Input
                     value={sizeSearchQuery}
                     onChange={(e) => setSizeSearchQuery(e.target.value)}
-                    placeholder="חיפוש לפי שם או גודל..."
+                    placeholder="חיפוש לפי שם, אתר או גודל..."
                     className="pr-10"
                   />
                 </div>
@@ -1024,7 +1068,8 @@ const MediaDatabaseAdmin = () => {
               {/* Category Summary Cards */}
               <div className="grid grid-cols-4 gap-3 mb-4">
                 {SIZE_CATEGORIES.map(cat => {
-                  const count = mediaSizes.filter(s => s.category === cat.id).length;
+                  const catSizes = mediaSizes.filter(s => s.category === cat.id);
+                  const uniqueOutlets = [...new Set(catSizes.map(s => s.outlet))].length;
                   const isActive = selectedSizeCategory === cat.id;
                   return (
                     <Card 
@@ -1033,210 +1078,213 @@ const MediaDatabaseAdmin = () => {
                       onClick={() => setSelectedSizeCategory(isActive ? 'all' : cat.id)}
                     >
                       <CardContent className="p-3 text-center">
-                        <div className="text-2xl font-bold text-primary">{count}</div>
+                        <div className="text-2xl font-bold text-primary">{catSizes.length}</div>
                         <div className="text-xs text-muted-foreground">{cat.label}</div>
+                        <div className="text-[10px] text-muted-foreground mt-1">{uniqueOutlets} ערוצים</div>
                       </CardContent>
                     </Card>
                   );
                 })}
               </div>
               
-              <div className="border rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="p-3 text-right font-medium text-sm w-[100px]">קטגוריה</th>
-                      <th className="p-3 text-right font-medium text-sm">שם העיתון/ערוץ</th>
-                      <th className="p-3 text-right font-medium text-sm">גדלים</th>
-                      <th className="p-3 text-right font-medium text-sm">הערות</th>
-                      <th className="p-3 text-right font-medium text-sm">יום פרסום</th>
-                      <th className="p-3 text-center font-medium text-sm w-[180px]">פעולות</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredMediaSizes.map((item) => {
-                      const matchedOutlet = outlets.find(o => 
-                        o.name_he?.includes(item.name.split(' ')[0]) || 
-                        item.name.includes(o.name_he?.split(' ')[0] || '')
-                      );
-                      const isEditing = editingSizeId === item.id;
-                      const categoryInfo = SIZE_CATEGORIES.find(c => c.id === item.category);
-                      
-                      return (
-                        <tr 
-                          key={item.id} 
-                          className={`border-b hover:bg-muted/30 transition-colors ${isEditing ? 'bg-primary/5' : ''}`}
-                          onClick={() => !isEditing && setEditingSizeId(item.id)}
-                        >
-                          <td className="p-2">
-                            {isEditing ? (
-                              <Select 
-                                value={item.category} 
-                                onValueChange={(v) => updateMediaSize(item.id, 'category', v)}
-                              >
-                                <SelectTrigger className="h-8 text-xs" onClick={(e) => e.stopPropagation()}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {SIZE_CATEGORIES.map(cat => (
-                                    <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <Badge 
-                                variant="outline" 
-                                className={`text-[10px] ${
-                                  item.category === 'print' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                  item.category === 'digital' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                  item.category === 'outdoor' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                  'bg-green-50 text-green-700 border-green-200'
-                                }`}
-                              >
-                                {categoryInfo?.label || item.category}
-                              </Badge>
-                            )}
-                          </td>
-                          <td className="p-2">
-                            {isEditing ? (
-                              <Input
-                                value={item.name}
-                                onChange={(e) => updateMediaSize(item.id, 'name', e.target.value)}
-                                className="h-8 text-sm"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : (
-                              <div className="flex items-center gap-2 px-1">
-                                <span className="font-medium text-sm">{item.name || <span className="text-muted-foreground italic">ללא שם</span>}</span>
-                                {matchedOutlet && (
-                                  <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">
-                                    קיים
-                                  </Badge>
-                                )}
+              {/* Grouped by Category and Outlet */}
+              <div className="space-y-6">
+                {SIZE_CATEGORIES
+                  .filter(cat => selectedSizeCategory === 'all' || selectedSizeCategory === cat.id)
+                  .map(cat => {
+                    const categorySizes = mediaSizes.filter(s => s.category === cat.id);
+                    const filteredCategorySizes = categorySizes.filter(item => {
+                      if (!sizeSearchQuery) return true;
+                      const query = sizeSearchQuery.toLowerCase();
+                      return item.name.toLowerCase().includes(query) || 
+                             item.outlet.toLowerCase().includes(query) || 
+                             item.size.toLowerCase().includes(query);
+                    });
+                    
+                    if (filteredCategorySizes.length === 0) return null;
+                    
+                    // Group by outlet
+                    const outletGroups = filteredCategorySizes.reduce((acc, item) => {
+                      const outlet = item.outlet || 'ללא ערוץ';
+                      if (!acc[outlet]) acc[outlet] = [];
+                      acc[outlet].push(item);
+                      return acc;
+                    }, {} as Record<string, typeof filteredCategorySizes>);
+                    
+                    return (
+                      <div key={cat.id} className="border rounded-lg overflow-hidden">
+                        <div className={`p-3 font-semibold flex items-center justify-between ${
+                          cat.id === 'print' ? 'bg-blue-50 text-blue-800' :
+                          cat.id === 'digital' ? 'bg-purple-50 text-purple-800' :
+                          cat.id === 'outdoor' ? 'bg-orange-50 text-orange-800' :
+                          'bg-green-50 text-green-800'
+                        }`}>
+                          <span>{cat.label}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {Object.keys(outletGroups).length} ערוצים | {filteredCategorySizes.length} גדלים
+                          </Badge>
+                        </div>
+                        
+                        {Object.entries(outletGroups).map(([outletName, items]) => (
+                          <Collapsible key={outletName} defaultOpen={true}>
+                            <CollapsibleTrigger className="w-full p-2 px-4 bg-muted/30 hover:bg-muted/50 flex items-center justify-between border-t">
+                              <div className="flex items-center gap-2">
+                                <ChevronDown className="h-4 w-4" />
+                                <span className="font-medium">{outletName}</span>
+                                <Badge variant="outline" className="text-[10px]">{items.length} גדלים</Badge>
                               </div>
-                            )}
-                          </td>
-                          <td className="p-2">
-                            {isEditing ? (
-                              <Input
-                                value={item.size}
-                                onChange={(e) => updateMediaSize(item.id, 'size', e.target.value)}
-                                className="h-8 text-sm font-mono"
-                                placeholder="לדוגמה: 14.5×21.5 ס״מ"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : (
-                              item.size ? (
-                                <Badge variant="secondary" className="font-mono text-xs">
-                                  {item.size}
-                                </Badge>
-                              ) : (
-                                <span className="text-muted-foreground text-sm px-1">לא זמין</span>
-                              )
-                            )}
-                          </td>
-                          <td className="p-2">
-                            {isEditing ? (
-                              <Input
-                                value={item.notes}
-                                onChange={(e) => updateMediaSize(item.id, 'notes', e.target.value)}
-                                className="h-8 text-sm"
-                                placeholder="הערות..."
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : (
-                              <span className="text-sm text-muted-foreground px-1">{item.notes || '-'}</span>
-                            )}
-                          </td>
-                          <td className="p-2">
-                            {isEditing ? (
-                              <Input
-                                value={item.pubDay}
-                                onChange={(e) => updateMediaSize(item.id, 'pubDay', e.target.value)}
-                                className="h-8 text-sm"
-                                placeholder="יום פרסום..."
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : (
-                              <span className="text-sm px-1">{item.pubDay || '-'}</span>
-                            )}
-                          </td>
-                          <td className="p-2">
-                            <div className="flex justify-center gap-1" onClick={(e) => e.stopPropagation()}>
-                              {isEditing ? (
-                                <Button
-                                  size="sm"
-                                  variant="default"
-                                  className="h-7 text-xs"
-                                  onClick={() => {
-                                    setEditingSizeId(null);
-                                    toast.success('נשמר');
-                                  }}
-                                >
-                                  סיום עריכה
-                                </Button>
-                              ) : (
-                                <>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-7 w-7"
-                                    onClick={() => setEditingSizeId(item.id)}
-                                  >
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                  {matchedOutlet && item.size && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-7 text-xs"
-                                      onClick={async () => {
-                                        const outletProducts = products.filter(p => p.outlet_id === matchedOutlet.id);
-                                        if (outletProducts.length === 0) {
-                                          toast.error('אין מוצרים לערוץ זה. הוסף מוצר תחילה.');
-                                          return;
-                                        }
-                                        const targetProduct = outletProducts[0];
-                                        const { error } = await supabase.from('product_specs').insert({
-                                          product_id: targetProduct.id,
-                                          name: 'Full Page',
-                                          name_he: 'עמוד מלא',
-                                          dimensions: item.size,
-                                          is_active: true
-                                        });
-                                        if (error) {
-                                          toast.error('שגיאה בייבוא: ' + error.message);
-                                        } else {
-                                          toast.success(`גודל יובא למוצר "${targetProduct.name_he || targetProduct.name}"`);
-                                          loadAllData();
-                                        }
-                                      }}
-                                    >
-                                      <Plus className="h-3 w-3 ml-1" />
-                                      ייבא
-                                    </Button>
-                                  )}
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-7 w-7 text-destructive"
-                                    onClick={() => deleteMediaSize(item.id)}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                {filteredMediaSizes.length === 0 && (
-                  <div className="p-8 text-center text-muted-foreground">אין גדלים להצגה</div>
-                )}
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-6 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addNewMediaSize(cat.id, outletName);
+                                }}
+                              >
+                                <Plus className="h-3 w-3 ml-1" />
+                                הוסף
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="border-b bg-muted/20">
+                                    <th className="p-2 text-right font-medium text-xs w-[180px]">שם הגודל</th>
+                                    <th className="p-2 text-right font-medium text-xs">מידות</th>
+                                    <th className="p-2 text-right font-medium text-xs">הערות</th>
+                                    <th className="p-2 text-right font-medium text-xs w-[100px]">יום פרסום</th>
+                                    <th className="p-2 text-center font-medium text-xs w-[120px]">פעולות</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {items.map((item) => {
+                                    const isEditing = editingSizeId === item.id;
+                                    return (
+                                      <tr 
+                                        key={item.id} 
+                                        className={`border-b hover:bg-muted/30 transition-colors ${isEditing ? 'bg-primary/5' : ''}`}
+                                        onClick={() => !isEditing && setEditingSizeId(item.id)}
+                                      >
+                                        <td className="p-2">
+                                          {isEditing ? (
+                                            <div className="space-y-1">
+                                              <Input
+                                                value={item.outlet}
+                                                onChange={(e) => updateMediaSize(item.id, 'outlet', e.target.value)}
+                                                className="h-7 text-xs"
+                                                placeholder="שם הערוץ/אתר"
+                                                onClick={(e) => e.stopPropagation()}
+                                              />
+                                              <Input
+                                                value={item.name}
+                                                onChange={(e) => updateMediaSize(item.id, 'name', e.target.value)}
+                                                className="h-7 text-xs"
+                                                placeholder="שם הגודל"
+                                                onClick={(e) => e.stopPropagation()}
+                                              />
+                                            </div>
+                                          ) : (
+                                            <span className="text-sm font-medium">{item.name || <span className="text-muted-foreground italic">ללא שם</span>}</span>
+                                          )}
+                                        </td>
+                                        <td className="p-2">
+                                          {isEditing ? (
+                                            <Input
+                                              value={item.size}
+                                              onChange={(e) => updateMediaSize(item.id, 'size', e.target.value)}
+                                              className="h-7 text-xs font-mono"
+                                              placeholder="לדוגמה: 14.5×21.5 ס״מ"
+                                              onClick={(e) => e.stopPropagation()}
+                                            />
+                                          ) : (
+                                            item.size ? (
+                                              <Badge variant="secondary" className="font-mono text-xs">
+                                                {item.size}
+                                              </Badge>
+                                            ) : (
+                                              <span className="text-muted-foreground text-xs">לא זמין</span>
+                                            )
+                                          )}
+                                        </td>
+                                        <td className="p-2">
+                                          {isEditing ? (
+                                            <Input
+                                              value={item.notes}
+                                              onChange={(e) => updateMediaSize(item.id, 'notes', e.target.value)}
+                                              className="h-7 text-xs"
+                                              placeholder="הערות..."
+                                              onClick={(e) => e.stopPropagation()}
+                                            />
+                                          ) : (
+                                            <span className="text-xs text-muted-foreground">{item.notes || '-'}</span>
+                                          )}
+                                        </td>
+                                        <td className="p-2">
+                                          {isEditing ? (
+                                            <Input
+                                              value={item.pubDay}
+                                              onChange={(e) => updateMediaSize(item.id, 'pubDay', e.target.value)}
+                                              className="h-7 text-xs"
+                                              placeholder="יום..."
+                                              onClick={(e) => e.stopPropagation()}
+                                            />
+                                          ) : (
+                                            <span className="text-xs">{item.pubDay || '-'}</span>
+                                          )}
+                                        </td>
+                                        <td className="p-2">
+                                          <div className="flex justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                            {isEditing ? (
+                                              <Button
+                                                size="sm"
+                                                variant="default"
+                                                className="h-6 text-xs"
+                                                onClick={() => {
+                                                  setEditingSizeId(null);
+                                                  toast.success('נשמר');
+                                                }}
+                                              >
+                                                סיום
+                                              </Button>
+                                            ) : (
+                                              <>
+                                                <Button
+                                                  size="icon"
+                                                  variant="ghost"
+                                                  className="h-6 w-6"
+                                                  onClick={() => setEditingSizeId(item.id)}
+                                                >
+                                                  <Pencil className="h-3 w-3" />
+                                                </Button>
+                                                <Button
+                                                  size="icon"
+                                                  variant="ghost"
+                                                  className="h-6 w-6 text-destructive"
+                                                  onClick={() => deleteMediaSize(item.id)}
+                                                >
+                                                  <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                              </>
+                                            )}
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        ))}
+                      </div>
+                    );
+                  })}
               </div>
+              
+              {filteredMediaSizes.length === 0 && (
+                <div className="p-8 text-center text-muted-foreground border rounded-lg">אין גדלים להצגה</div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
