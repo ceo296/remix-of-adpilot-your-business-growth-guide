@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, ZoomIn, Type, RefreshCw, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { AIChatWidget } from '@/components/chat/AIChatWidget';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -1082,6 +1083,16 @@ const CreativeStudio = () => {
           </div>
         )}
       </div>
+      
+      {/* AI Chat Widget */}
+      <AIChatWidget 
+        context={clientProfile ? {
+          businessName: clientProfile.business_name,
+          targetAudience: clientProfile.target_audience,
+          xFactor: clientProfile.primary_x_factor,
+          winningFeature: clientProfile.winning_feature,
+        } : undefined}
+      />
     </div>
   );
 };
