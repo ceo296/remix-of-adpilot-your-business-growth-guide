@@ -129,41 +129,62 @@ const MediaDatabaseAdmin = () => {
   const [cityForm, setCityForm] = useState({ name: '', name_he: '', is_active: true });
   const [categoryForm, setCategoryForm] = useState({ name: '', name_he: '', sort_order: 0 });
 
-  // Media sizes data with editable state
+  // Media sizes data with editable state - organized by category
+  const SIZE_CATEGORIES = [
+    { id: 'print', label: 'עיתונות מודפסת', icon: 'Newspaper' },
+    { id: 'digital', label: 'דיגיטל', icon: 'Globe' },
+    { id: 'outdoor', label: 'פרסום חוצות', icon: 'Megaphone' },
+    { id: 'local', label: 'עיתונות מקומית', icon: 'MapPin' },
+  ];
+
   const [mediaSizes, setMediaSizes] = useState([
-    { id: 1, name: 'קוראים אלעד', size: 'A4', notes: '', pubDay: '' },
-    { id: 2, name: 'קהילות רמות', size: '14.5X21.5 ס"מ', notes: '', pubDay: '' },
-    { id: 3, name: 'מקור מוסמך', size: '220X145 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
-    { id: 4, name: 'חזק', size: '274X189 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
-    { id: 5, name: 'בקהילה', size: '', notes: '', pubDay: 'חמישי' },
-    { id: 6, name: 'הדרך', size: 'רוחב 19.5 ס"מ × גובה 29 ס"מ', notes: '', pubDay: '' },
-    { id: 7, name: 'ידיעון קולינו נתניה', size: 'גובה 22 × רוחב 14.5 ס"מ', notes: 'להתקשר כדי לשריין מקום', pubDay: 'נסגר ברביעי' },
-    { id: 8, name: 'כח הפרסום', size: 'גובה 27 × רוחב 17 ס"מ', notes: 'בגלישה צריך להשאיר ס"מ וחצי רווח', pubDay: 'מוצ"ש - ראשון' },
-    { id: 9, name: 'כל רגע', size: 'באנרים או מדמי תוכן', notes: 'לא צריך', pubDay: '' },
-    { id: 10, name: 'יתד נאמן (יותר מרבע)', size: 'רוחב 14.7 × גובה 20 ס"מ', notes: '', pubDay: '' },
-    { id: 11, name: 'הציבור החרדי', size: 'עמוד A4, חצי עמוד חצי מ-A4', notes: '', pubDay: 'חמישי' },
-    { id: 12, name: 'לעניין בני ברק - עמוד', size: '26.5X16.5 ס"מ', notes: '', pubDay: '' },
-    { id: 13, name: 'לעניין בני ברק - חצי לגובה', size: '', notes: '', pubDay: 'רביעי' },
-    { id: 14, name: 'מגזין הבית', size: 'רוחב 17.5 × גובה 25 ס"מ', notes: '', pubDay: '' },
-    { id: 15, name: 'מרכז העניינים רבע עמוד', size: 'רוחב 12.6 × גובה 16.3 ס"מ', notes: '', pubDay: '' },
-    { id: 16, name: 'המבשר סטריפ', size: 'גובה 7.5 × רוחב 232.167 מ"מ', notes: '', pubDay: '' },
-    { id: 17, name: 'המודיע אנגלית ישראל ואירופה', size: 'רוחב 25 × גובה 32 ס"מ', notes: '', pubDay: '' },
-    { id: 18, name: 'המודיע אנגלית ארצות הברית', size: 'רוחב 24 × גובה 27.5 ס"מ', notes: '', pubDay: '' },
-    { id: 19, name: 'השבועון פ"ת / אלעד', size: '14.5×21.6 ס"מ', notes: '', pubDay: '' },
-    { id: 20, name: 'בלוברי', size: 'גובה 26.5 × רוחב 8 ס"מ', notes: '', pubDay: '' },
-    { id: 21, name: 'גבעת זאב', size: '22×15.5 ס"מ', notes: '', pubDay: '' },
-    { id: 22, name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
-    { id: 23, name: 'לעניין (שער)', size: '20×13.5 ס"מ', notes: '', pubDay: '' },
-    { id: 24, name: 'העיתון של השכונה', size: 'גובה 26.5 × רוחב 16.7 ס"מ', notes: '', pubDay: '' },
-    { id: 25, name: 'משפחה', size: '29.7×20.5 ס"מ', notes: '', pubDay: '' },
-    { id: 26, name: 'קטיפה', size: '307×215 מ"מ', notes: '', pubDay: '' },
-    { id: 27, name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
-    { id: 28, name: 'רב מכר מודיעין עילית', size: '14.5×22 ס"מ', notes: '', pubDay: '' },
-    { id: 29, name: 'מידע ירושלים', size: 'גובה 27.4 ס"מ (+5מ"מ גלישה) × רוחב 18 ס"מ (+5מ"מ גלישה)', notes: '', pubDay: '' },
-    { id: 30, name: 'בעניינים בית שמש', size: 'גובה 226 × רוחב 153 מ"מ', notes: 'מודעה גולשת להוסיף 1 ס"מ מכל צד', pubDay: '' },
+    // עיתונות מודפסת ארצית
+    { id: 1, category: 'print', name: 'יתד נאמן (יותר מרבע)', size: 'רוחב 14.7 × גובה 20 ס"מ', notes: '', pubDay: '' },
+    { id: 2, category: 'print', name: 'המבשר סטריפ', size: 'גובה 7.5 × רוחב 232.167 מ"מ', notes: '', pubDay: '' },
+    { id: 3, category: 'print', name: 'המודיע אנגלית ישראל ואירופה', size: 'רוחב 25 × גובה 32 ס"מ', notes: '', pubDay: '' },
+    { id: 4, category: 'print', name: 'המודיע אנגלית ארצות הברית', size: 'רוחב 24 × גובה 27.5 ס"מ', notes: '', pubDay: '' },
+    { id: 5, category: 'print', name: 'משפחה', size: '29.7×20.5 ס"מ', notes: '', pubDay: '' },
+    { id: 6, category: 'print', name: 'קטיפה', size: '307×215 מ"מ', notes: '', pubDay: '' },
+    { id: 7, category: 'print', name: 'הציבור החרדי', size: 'עמוד A4, חצי עמוד חצי מ-A4', notes: '', pubDay: 'חמישי' },
+    { id: 8, category: 'print', name: 'מגזין הבית', size: 'רוחב 17.5 × גובה 25 ס"מ', notes: '', pubDay: '' },
+    
+    // דיגיטל
+    { id: 20, category: 'digital', name: 'כיכר השבת - באנר עליון', size: '970×250 פיקסלים', notes: 'מיקום פרימיום', pubDay: '' },
+    { id: 21, category: 'digital', name: 'כיכר השבת - באנר צד', size: '300×600 פיקסלים', notes: '', pubDay: '' },
+    { id: 22, category: 'digital', name: 'כיכר השבת - באנר מובייל', size: '320×100 פיקסלים', notes: '', pubDay: '' },
+    { id: 23, category: 'digital', name: 'כיכר השבת - מודעת תוכן', size: '600×400 פיקסלים', notes: 'Native Ad', pubDay: '' },
+    { id: 24, category: 'digital', name: 'בחדרי חרדים - באנר', size: '728×90 פיקסלים', notes: '', pubDay: '' },
+    { id: 25, category: 'digital', name: 'כל רגע', size: 'באנרים או מדמי תוכן', notes: 'לא צריך', pubDay: '' },
+    
+    // פרסום חוצות
+    { id: 30, category: 'outdoor', name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
+    { id: 31, category: 'outdoor', name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
+    { id: 32, category: 'outdoor', name: 'בלוברי', size: 'גובה 26.5 × רוחב 8 ס"מ', notes: '', pubDay: '' },
+    { id: 33, category: 'outdoor', name: 'מטר על מטר לחנות', size: '100×100 ס"מ', notes: 'להוסיף גלישה וחיתוך', pubDay: '' },
+    
+    // עיתונות מקומית
+    { id: 40, category: 'local', name: 'קוראים אלעד', size: 'A4', notes: '', pubDay: '' },
+    { id: 41, category: 'local', name: 'קהילות רמות', size: '14.5X21.5 ס"מ', notes: '', pubDay: '' },
+    { id: 42, category: 'local', name: 'מקור מוסמך', size: '220X145 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
+    { id: 43, category: 'local', name: 'חזק', size: '274X189 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
+    { id: 44, category: 'local', name: 'בקהילה', size: '', notes: '', pubDay: 'חמישי' },
+    { id: 45, category: 'local', name: 'הדרך', size: 'רוחב 19.5 ס"מ × גובה 29 ס"מ', notes: '', pubDay: '' },
+    { id: 46, category: 'local', name: 'ידיעון קולינו נתניה', size: 'גובה 22 × רוחב 14.5 ס"מ', notes: 'להתקשר כדי לשריין מקום', pubDay: 'נסגר ברביעי' },
+    { id: 47, category: 'local', name: 'כח הפרסום', size: 'גובה 27 × רוחב 17 ס"מ', notes: 'בגלישה צריך להשאיר ס"מ וחצי רווח', pubDay: 'מוצ"ש - ראשון' },
+    { id: 48, category: 'local', name: 'לעניין בני ברק - עמוד', size: '26.5X16.5 ס"מ', notes: '', pubDay: '' },
+    { id: 49, category: 'local', name: 'לעניין בני ברק - חצי לגובה', size: '', notes: '', pubDay: 'רביעי' },
+    { id: 50, category: 'local', name: 'מרכז העניינים רבע עמוד', size: 'רוחב 12.6 × גובה 16.3 ס"מ', notes: '', pubDay: '' },
+    { id: 51, category: 'local', name: 'השבועון פ"ת / אלעד', size: '14.5×21.6 ס"מ', notes: '', pubDay: '' },
+    { id: 52, category: 'local', name: 'גבעת זאב', size: '22×15.5 ס"מ', notes: '', pubDay: '' },
+    { id: 53, category: 'local', name: 'לעניין (שער)', size: '20×13.5 ס"מ', notes: '', pubDay: '' },
+    { id: 54, category: 'local', name: 'העיתון של השכונה', size: 'גובה 26.5 × רוחב 16.7 ס"מ', notes: '', pubDay: '' },
+    { id: 55, category: 'local', name: 'רב מכר מודיעין עילית', size: '14.5×22 ס"מ', notes: '', pubDay: '' },
+    { id: 56, category: 'local', name: 'מידע ירושלים', size: 'גובה 27.4 ס"מ (+5מ"מ גלישה) × רוחב 18 ס"מ (+5מ"מ גלישה)', notes: '', pubDay: '' },
+    { id: 57, category: 'local', name: 'בעניינים בית שמש', size: 'גובה 226 × רוחב 153 מ"מ', notes: 'מודעה גולשת להוסיף 1 ס"מ מכל צד', pubDay: '' },
   ]);
   const [editingSizeId, setEditingSizeId] = useState<number | null>(null);
   const [sizeSearchQuery, setSizeSearchQuery] = useState('');
+  const [selectedSizeCategory, setSelectedSizeCategory] = useState<string>('all');
 
   const updateMediaSize = (id: number, field: string, value: string) => {
     setMediaSizes(prev => prev.map(item => 
@@ -171,9 +192,9 @@ const MediaDatabaseAdmin = () => {
     ));
   };
 
-  const addNewMediaSize = () => {
+  const addNewMediaSize = (category: string = 'print') => {
     const newId = Math.max(...mediaSizes.map(s => s.id)) + 1;
-    setMediaSizes(prev => [...prev, { id: newId, name: '', size: '', notes: '', pubDay: '' }]);
+    setMediaSizes(prev => [...prev, { id: newId, category, name: '', size: '', notes: '', pubDay: '' }]);
     setEditingSizeId(newId);
   };
 
@@ -184,9 +205,11 @@ const MediaDatabaseAdmin = () => {
   };
 
   const filteredMediaSizes = mediaSizes.filter(item => {
-    if (!sizeSearchQuery) return true;
-    const q = sizeSearchQuery.toLowerCase();
-    return item.name.toLowerCase().includes(q) || item.size.toLowerCase().includes(q);
+    const matchesSearch = !sizeSearchQuery || 
+      item.name.toLowerCase().includes(sizeSearchQuery.toLowerCase()) || 
+      item.size.toLowerCase().includes(sizeSearchQuery.toLowerCase());
+    const matchesCategory = selectedSizeCategory === 'all' || item.category === selectedSizeCategory;
+    return matchesSearch && matchesCategory;
   });
 
   useEffect(() => {
@@ -892,27 +915,61 @@ const MediaDatabaseAdmin = () => {
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">לחץ על שורה לעריכה ישירה</p>
               </div>
-              <Button onClick={addNewMediaSize} size="sm">
+              <Button onClick={() => addNewMediaSize(selectedSizeCategory === 'all' ? 'print' : selectedSizeCategory)} size="sm">
                 <Plus className="h-4 w-4 ml-2" />
                 הוסף גודל
               </Button>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-              {/* Search */}
-              <div className="relative mb-4">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={sizeSearchQuery}
-                  onChange={(e) => setSizeSearchQuery(e.target.value)}
-                  placeholder="חיפוש לפי שם או גודל..."
-                  className="pr-10"
-                />
+              {/* Category Filter & Search */}
+              <div className="flex gap-4 mb-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={sizeSearchQuery}
+                    onChange={(e) => setSizeSearchQuery(e.target.value)}
+                    placeholder="חיפוש לפי שם או גודל..."
+                    className="pr-10"
+                  />
+                </div>
+                <Select value={selectedSizeCategory} onValueChange={setSelectedSizeCategory}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="כל הקטגוריות" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">כל הקטגוריות</SelectItem>
+                    {SIZE_CATEGORIES.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Category Summary Cards */}
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                {SIZE_CATEGORIES.map(cat => {
+                  const count = mediaSizes.filter(s => s.category === cat.id).length;
+                  const isActive = selectedSizeCategory === cat.id;
+                  return (
+                    <Card 
+                      key={cat.id} 
+                      className={`cursor-pointer transition-all hover:shadow-md ${isActive ? 'ring-2 ring-primary bg-primary/5' : ''}`}
+                      onClick={() => setSelectedSizeCategory(isActive ? 'all' : cat.id)}
+                    >
+                      <CardContent className="p-3 text-center">
+                        <div className="text-2xl font-bold text-primary">{count}</div>
+                        <div className="text-xs text-muted-foreground">{cat.label}</div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
               
               <div className="border rounded-lg overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b bg-muted/50">
+                      <th className="p-3 text-right font-medium text-sm w-[100px]">קטגוריה</th>
                       <th className="p-3 text-right font-medium text-sm">שם העיתון/ערוץ</th>
                       <th className="p-3 text-right font-medium text-sm">גדלים</th>
                       <th className="p-3 text-right font-medium text-sm">הערות</th>
@@ -927,6 +984,7 @@ const MediaDatabaseAdmin = () => {
                         item.name.includes(o.name_he?.split(' ')[0] || '')
                       );
                       const isEditing = editingSizeId === item.id;
+                      const categoryInfo = SIZE_CATEGORIES.find(c => c.id === item.category);
                       
                       return (
                         <tr 
@@ -934,6 +992,35 @@ const MediaDatabaseAdmin = () => {
                           className={`border-b hover:bg-muted/30 transition-colors ${isEditing ? 'bg-primary/5' : ''}`}
                           onClick={() => !isEditing && setEditingSizeId(item.id)}
                         >
+                          <td className="p-2">
+                            {isEditing ? (
+                              <Select 
+                                value={item.category} 
+                                onValueChange={(v) => updateMediaSize(item.id, 'category', v)}
+                              >
+                                <SelectTrigger className="h-8 text-xs" onClick={(e) => e.stopPropagation()}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {SIZE_CATEGORIES.map(cat => (
+                                    <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Badge 
+                                variant="outline" 
+                                className={`text-[10px] ${
+                                  item.category === 'print' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                  item.category === 'digital' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                  item.category === 'outdoor' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                  'bg-green-50 text-green-700 border-green-200'
+                                }`}
+                              >
+                                {categoryInfo?.label || item.category}
+                              </Badge>
+                            )}
+                          </td>
                           <td className="p-2">
                             {isEditing ? (
                               <Input
