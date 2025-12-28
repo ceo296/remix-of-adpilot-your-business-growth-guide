@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, ZoomIn, Type, RefreshCw, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, ZoomIn, Type, RefreshCw, MessageSquare, CheckCircle2, Pencil } from 'lucide-react';
 import { AIChatWidget } from '@/components/chat/AIChatWidget';
+import { ImageEditor } from '@/components/studio/ImageEditor';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -179,6 +180,7 @@ const CreativeStudio = () => {
   const [showQuote, setShowQuote] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
+  const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
@@ -979,17 +981,17 @@ const CreativeStudio = () => {
                         )}
                         {image.status !== 'rejected' && image.status !== 'pending' && (
                           <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <Button size="sm" variant="secondary">
-                              <Wand2 className="h-4 w-4 ml-1" />
+                            <Button 
+                              size="sm" 
+                              variant="secondary"
+                              onClick={() => setEditingImageUrl(image.url)}
+                            >
+                              <Pencil className="h-4 w-4 ml-1" />
                               עריכה
                             </Button>
                             <Button size="sm" variant="secondary">
                               <ZoomIn className="h-4 w-4 ml-1" />
                               הגדלה
-                            </Button>
-                            <Button size="sm" variant="secondary">
-                              <Type className="h-4 w-4 ml-1" />
-                              טקסט
                             </Button>
                           </div>
                         )}
@@ -1100,6 +1102,25 @@ const CreativeStudio = () => {
           winningFeature: clientProfile.winning_feature,
         } : undefined}
       />
+      
+      {/* Image Editor Modal */}
+      {editingImageUrl && (
+        <ImageEditor
+          imageUrl={editingImageUrl}
+          onClose={() => setEditingImageUrl(null)}
+          onSave={(dataUrl) => {
+            // Update the image in generatedImages
+            setGeneratedImages(prev => 
+              prev.map(img => 
+                img.url === editingImageUrl 
+                  ? { ...img, url: dataUrl }
+                  : img
+              )
+            );
+            setEditingImageUrl(null);
+          }}
+        />
+      )}
     </div>
   );
 };
