@@ -209,6 +209,29 @@ const MediaDatabaseAdmin = () => {
     { id: 147, category: 'digital', name: 'כל כבוד - סטריפ מובייל', size: '320×70 px', notes: 'האתר הסלולארי', pubDay: '' },
     { id: 148, category: 'digital', name: 'כל כבוד - אינריד מובייל', size: '320×320 px', notes: 'מובייל', pubDay: '' },
     
+    // דיגיטל - גוגל (מודעות סטנדרטיות - עד 150KB, PNG/GIF, עם לוגו)
+    { id: 200, category: 'digital', name: 'גוגל - Skyscraper', size: '120×600 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 201, category: 'digital', name: 'גוגל - Square', size: '250×250 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 202, category: 'digital', name: 'גוגל - Wide Skyscraper', size: '160×600 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 203, category: 'digital', name: 'גוגל - Medium Rectangle', size: '300×250 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 204, category: 'digital', name: 'גוגל - Half Page', size: '300×600 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 205, category: 'digital', name: 'גוגל - Small Square', size: '200×200 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 206, category: 'digital', name: 'גוגל - Large Rectangle', size: '336×280 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 207, category: 'digital', name: 'גוגל - Banner', size: '468×60 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 208, category: 'digital', name: 'גוגל - Leaderboard', size: '728×90 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 209, category: 'digital', name: 'גוגל - Large Leaderboard', size: '970×70 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 210, category: 'digital', name: 'גוגל - Mobile Banner', size: '320×100 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 211, category: 'digital', name: 'גוגל - Mobile Leaderboard', size: '320×50 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 212, category: 'digital', name: 'גוגל - Billboard', size: '970×250 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    { id: 213, category: 'digital', name: 'גוגל - Top Banner', size: '970×90 px', notes: 'עד 150KB, PNG/GIF, עם לוגו', pubDay: '' },
+    
+    // דיגיטל - גוגל רספונסיבי (עד 5MB, ללא לוגו ברקע)
+    { id: 220, category: 'digital', name: 'גוגל רספונסיבי - תמונה לרוחב', size: '1200×628 px', notes: 'עד 5MB, פרופורציה 1.91:1', pubDay: '' },
+    { id: 221, category: 'digital', name: 'גוגל רספונסיבי - תמונת ריבוע', size: '1200×1200 px', notes: 'עד 5MB, פרופורציה 1:1', pubDay: '' },
+    { id: 222, category: 'digital', name: 'גוגל רספונסיבי - תמונה לאורך', size: '900×1600 px', notes: 'עד 5MB, פרופורציה 9:16', pubDay: '' },
+    { id: 223, category: 'digital', name: 'גוגל רספונסיבי - לוגו', size: '1200×1200 px', notes: 'לוגו ריבועי', pubDay: '' },
+    { id: 224, category: 'digital', name: 'גוגל רספונסיבי - לוגו לרוחב', size: '1200×300 px', notes: 'לוגו אופקי', pubDay: '' },
+    
     // פרסום חוצות
     { id: 30, category: 'outdoor', name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
     { id: 31, category: 'outdoor', name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
