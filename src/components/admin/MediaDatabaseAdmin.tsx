@@ -512,6 +512,7 @@ const MediaDatabaseAdmin = () => {
         <TabsList className="mb-6">
           <TabsTrigger value="outlets">ערוצי מדיה</TabsTrigger>
           <TabsTrigger value="cities">ערים</TabsTrigger>
+          <TabsTrigger value="sizes">גדלים</TabsTrigger>
         </TabsList>
 
         <TabsContent value="outlets">
@@ -817,6 +818,139 @@ const MediaDatabaseAdmin = () => {
               {cities.length === 0 && (
                 <div className="p-8 text-center text-muted-foreground">אין ערים</div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sizes">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Ruler className="h-5 w-5" />
+                מדריך גדלים לפי ערוץ מדיה
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">נתוני גדלים מהגיליון - ניתן לייבא ישירות למפרטי המוצרים</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="p-4 text-right font-medium">שם העיתון/ערוץ</th>
+                    <th className="p-4 text-right font-medium">גדלים</th>
+                    <th className="p-4 text-right font-medium">הערות</th>
+                    <th className="p-4 text-right font-medium">יום פרסום</th>
+                    <th className="p-4 text-center font-medium">פעולות</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { name: 'קוראים אלעד', size: 'A4', notes: '', pubDay: '' },
+                    { name: 'קהילות רמות', size: '14.5X21.5 ס"מ', notes: '', pubDay: '' },
+                    { name: 'מקור מוסמך', size: '220X145 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
+                    { name: 'חזק', size: '274X189 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
+                    { name: 'בקהילה', size: '', notes: '', pubDay: 'חמישי' },
+                    { name: 'הדרך', size: 'רוחב 19.5 ס"מ × גובה 29 ס"מ', notes: '', pubDay: '' },
+                    { name: 'ידיעון קולינו נתניה', size: 'גובה 22 × רוחב 14.5 ס"מ', notes: 'להתקשר כדי לשריין מקום', pubDay: 'נסגר ברביעי' },
+                    { name: 'כח הפרסום', size: 'גובה 27 × רוחב 17 ס"מ', notes: 'בגלישה צריך להשאיר ס"מ וחצי רווח', pubDay: 'מוצ"ש - ראשון' },
+                    { name: 'כל רגע', size: 'באנרים או מדמי תוכן', notes: 'לא צריך', pubDay: '' },
+                    { name: 'יתד נאמן (יותר מרבע)', size: 'רוחב 14.7 × גובה 20 ס"מ', notes: '', pubDay: '' },
+                    { name: 'הציבור החרדי', size: 'עמוד A4, חצי עמוד חצי מ-A4', notes: '', pubDay: 'חמישי' },
+                    { name: 'לעניין בני ברק - עמוד', size: '26.5X16.5 ס"מ', notes: '', pubDay: '' },
+                    { name: 'לעניין בני ברק - חצי לגובה', size: '', notes: '', pubDay: 'רביעי' },
+                    { name: 'מגזין הבית', size: 'רוחב 17.5 × גובה 25 ס"מ', notes: '', pubDay: '' },
+                    { name: 'מרכז העניינים רבע עמוד', size: 'רוחב 12.6 × גובה 16.3 ס"מ', notes: '', pubDay: '' },
+                    { name: 'המבשר סטריפ', size: 'גובה 7.5 × רוחב 232.167 מ"מ', notes: '', pubDay: '' },
+                    { name: 'המודיע אנגלית ישראל ואירופה', size: 'רוחב 25 × גובה 32 ס"מ', notes: '', pubDay: '' },
+                    { name: 'המודיע אנגלית ארצות הברית', size: 'רוחב 24 × גובה 27.5 ס"מ', notes: '', pubDay: '' },
+                    { name: 'השבועון פ"ת / אלעד', size: '14.5×21.6 ס"מ', notes: '', pubDay: '' },
+                    { name: 'בלוברי', size: 'גובה 26.5 × רוחב 8 ס"מ', notes: '', pubDay: '' },
+                    { name: 'גבעת זאב', size: '22×15.5 ס"מ', notes: '', pubDay: '' },
+                    { name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
+                    { name: 'לעניין (שער)', size: '20×13.5 ס"מ', notes: '', pubDay: '' },
+                    { name: 'העיתון של השכונה', size: 'גובה 26.5 × רוחב 16.7 ס"מ', notes: '', pubDay: '' },
+                    { name: 'משפחה', size: '29.7×20.5 ס"מ', notes: '', pubDay: '' },
+                    { name: 'קטיפה', size: '307×215 מ"מ', notes: '', pubDay: '' },
+                    { name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
+                    { name: 'רב מכר מודיעין עילית', size: '14.5×22 ס"מ', notes: '', pubDay: '' },
+                    { name: 'מידע ירושלים', size: 'גובה 27.4 ס"מ (+5מ"מ גלישה) × רוחב 18 ס"מ (+5מ"מ גלישה)', notes: '', pubDay: '' },
+                    { name: 'בעניינים בית שמש', size: 'גובה 226 × רוחב 153 מ"מ', notes: 'מודעה גולשת להוסיף 1 ס"מ מכל צד', pubDay: '' },
+                  ].map((item, idx) => {
+                    const matchedOutlet = outlets.find(o => 
+                      o.name_he?.includes(item.name.split(' ')[0]) || 
+                      item.name.includes(o.name_he?.split(' ')[0] || '')
+                    );
+                    
+                    return (
+                      <tr key={idx} className="border-b hover:bg-muted/30">
+                        <td className="p-4 font-medium">
+                          <div className="flex items-center gap-2">
+                            {item.name}
+                            {matchedOutlet && (
+                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                קיים במערכת
+                              </Badge>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          {item.size ? (
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              {item.size}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">לא זמין</span>
+                          )}
+                        </td>
+                        <td className="p-4 text-sm text-muted-foreground max-w-[200px]">
+                          {item.notes || '-'}
+                        </td>
+                        <td className="p-4 text-sm">
+                          {item.pubDay || '-'}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex justify-center gap-1">
+                            {matchedOutlet && item.size && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={async () => {
+                                  // Find or create a product for this outlet
+                                  const outletProducts = products.filter(p => p.outlet_id === matchedOutlet.id);
+                                  if (outletProducts.length === 0) {
+                                    toast.error('אין מוצרים לערוץ זה. הוסף מוצר תחילה.');
+                                    return;
+                                  }
+                                  // Add spec to first product
+                                  const targetProduct = outletProducts[0];
+                                  const { error } = await supabase.from('product_specs').insert({
+                                    product_id: targetProduct.id,
+                                    name: 'Full Page',
+                                    name_he: 'עמוד מלא',
+                                    dimensions: item.size,
+                                    is_active: true
+                                  });
+                                  if (error) {
+                                    toast.error('שגיאה בייבוא: ' + error.message);
+                                  } else {
+                                    toast.success(`גודל יובא למוצר "${targetProduct.name_he || targetProduct.name}"`);
+                                    loadAllData();
+                                  }
+                                }}
+                              >
+                                <Plus className="h-3 w-3 ml-1" />
+                                ייבא למפרט
+                              </Button>
+                            )}
+                            {!matchedOutlet && (
+                              <span className="text-xs text-muted-foreground">הוסף ערוץ קודם</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </CardContent>
           </Card>
         </TabsContent>
