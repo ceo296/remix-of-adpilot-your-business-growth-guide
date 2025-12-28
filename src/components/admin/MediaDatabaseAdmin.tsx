@@ -129,6 +129,66 @@ const MediaDatabaseAdmin = () => {
   const [cityForm, setCityForm] = useState({ name: '', name_he: '', is_active: true });
   const [categoryForm, setCategoryForm] = useState({ name: '', name_he: '', sort_order: 0 });
 
+  // Media sizes data with editable state
+  const [mediaSizes, setMediaSizes] = useState([
+    { id: 1, name: 'קוראים אלעד', size: 'A4', notes: '', pubDay: '' },
+    { id: 2, name: 'קהילות רמות', size: '14.5X21.5 ס"מ', notes: '', pubDay: '' },
+    { id: 3, name: 'מקור מוסמך', size: '220X145 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
+    { id: 4, name: 'חזק', size: '274X189 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
+    { id: 5, name: 'בקהילה', size: '', notes: '', pubDay: 'חמישי' },
+    { id: 6, name: 'הדרך', size: 'רוחב 19.5 ס"מ × גובה 29 ס"מ', notes: '', pubDay: '' },
+    { id: 7, name: 'ידיעון קולינו נתניה', size: 'גובה 22 × רוחב 14.5 ס"מ', notes: 'להתקשר כדי לשריין מקום', pubDay: 'נסגר ברביעי' },
+    { id: 8, name: 'כח הפרסום', size: 'גובה 27 × רוחב 17 ס"מ', notes: 'בגלישה צריך להשאיר ס"מ וחצי רווח', pubDay: 'מוצ"ש - ראשון' },
+    { id: 9, name: 'כל רגע', size: 'באנרים או מדמי תוכן', notes: 'לא צריך', pubDay: '' },
+    { id: 10, name: 'יתד נאמן (יותר מרבע)', size: 'רוחב 14.7 × גובה 20 ס"מ', notes: '', pubDay: '' },
+    { id: 11, name: 'הציבור החרדי', size: 'עמוד A4, חצי עמוד חצי מ-A4', notes: '', pubDay: 'חמישי' },
+    { id: 12, name: 'לעניין בני ברק - עמוד', size: '26.5X16.5 ס"מ', notes: '', pubDay: '' },
+    { id: 13, name: 'לעניין בני ברק - חצי לגובה', size: '', notes: '', pubDay: 'רביעי' },
+    { id: 14, name: 'מגזין הבית', size: 'רוחב 17.5 × גובה 25 ס"מ', notes: '', pubDay: '' },
+    { id: 15, name: 'מרכז העניינים רבע עמוד', size: 'רוחב 12.6 × גובה 16.3 ס"מ', notes: '', pubDay: '' },
+    { id: 16, name: 'המבשר סטריפ', size: 'גובה 7.5 × רוחב 232.167 מ"מ', notes: '', pubDay: '' },
+    { id: 17, name: 'המודיע אנגלית ישראל ואירופה', size: 'רוחב 25 × גובה 32 ס"מ', notes: '', pubDay: '' },
+    { id: 18, name: 'המודיע אנגלית ארצות הברית', size: 'רוחב 24 × גובה 27.5 ס"מ', notes: '', pubDay: '' },
+    { id: 19, name: 'השבועון פ"ת / אלעד', size: '14.5×21.6 ס"מ', notes: '', pubDay: '' },
+    { id: 20, name: 'בלוברי', size: 'גובה 26.5 × רוחב 8 ס"מ', notes: '', pubDay: '' },
+    { id: 21, name: 'גבעת זאב', size: '22×15.5 ס"מ', notes: '', pubDay: '' },
+    { id: 22, name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
+    { id: 23, name: 'לעניין (שער)', size: '20×13.5 ס"מ', notes: '', pubDay: '' },
+    { id: 24, name: 'העיתון של השכונה', size: 'גובה 26.5 × רוחב 16.7 ס"מ', notes: '', pubDay: '' },
+    { id: 25, name: 'משפחה', size: '29.7×20.5 ס"מ', notes: '', pubDay: '' },
+    { id: 26, name: 'קטיפה', size: '307×215 מ"מ', notes: '', pubDay: '' },
+    { id: 27, name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
+    { id: 28, name: 'רב מכר מודיעין עילית', size: '14.5×22 ס"מ', notes: '', pubDay: '' },
+    { id: 29, name: 'מידע ירושלים', size: 'גובה 27.4 ס"מ (+5מ"מ גלישה) × רוחב 18 ס"מ (+5מ"מ גלישה)', notes: '', pubDay: '' },
+    { id: 30, name: 'בעניינים בית שמש', size: 'גובה 226 × רוחב 153 מ"מ', notes: 'מודעה גולשת להוסיף 1 ס"מ מכל צד', pubDay: '' },
+  ]);
+  const [editingSizeId, setEditingSizeId] = useState<number | null>(null);
+  const [sizeSearchQuery, setSizeSearchQuery] = useState('');
+
+  const updateMediaSize = (id: number, field: string, value: string) => {
+    setMediaSizes(prev => prev.map(item => 
+      item.id === id ? { ...item, [field]: value } : item
+    ));
+  };
+
+  const addNewMediaSize = () => {
+    const newId = Math.max(...mediaSizes.map(s => s.id)) + 1;
+    setMediaSizes(prev => [...prev, { id: newId, name: '', size: '', notes: '', pubDay: '' }]);
+    setEditingSizeId(newId);
+  };
+
+  const deleteMediaSize = (id: number) => {
+    if (!confirm('בטוח למחוק?')) return;
+    setMediaSizes(prev => prev.filter(item => item.id !== id));
+    toast.success('נמחק');
+  };
+
+  const filteredMediaSizes = mediaSizes.filter(item => {
+    if (!sizeSearchQuery) return true;
+    const q = sizeSearchQuery.toLowerCase();
+    return item.name.toLowerCase().includes(q) || item.size.toLowerCase().includes(q);
+  });
+
   useEffect(() => {
     loadAllData();
   }, []);
@@ -824,133 +884,196 @@ const MediaDatabaseAdmin = () => {
 
         <TabsContent value="sizes">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Ruler className="h-5 w-5" />
-                מדריך גדלים לפי ערוץ מדיה
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">נתוני גדלים מהגיליון - ניתן לייבא ישירות למפרטי המוצרים</p>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Ruler className="h-5 w-5" />
+                  מדריך גדלים לפי ערוץ מדיה
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">לחץ על שורה לעריכה ישירה</p>
+              </div>
+              <Button onClick={addNewMediaSize} size="sm">
+                <Plus className="h-4 w-4 ml-2" />
+                הוסף גודל
+              </Button>
             </CardHeader>
-            <CardContent className="p-0">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="p-4 text-right font-medium">שם העיתון/ערוץ</th>
-                    <th className="p-4 text-right font-medium">גדלים</th>
-                    <th className="p-4 text-right font-medium">הערות</th>
-                    <th className="p-4 text-right font-medium">יום פרסום</th>
-                    <th className="p-4 text-center font-medium">פעולות</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { name: 'קוראים אלעד', size: 'A4', notes: '', pubDay: '' },
-                    { name: 'קהילות רמות', size: '14.5X21.5 ס"מ', notes: '', pubDay: '' },
-                    { name: 'מקור מוסמך', size: '220X145 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
-                    { name: 'חזק', size: '274X189 מ"מ', notes: '', pubDay: 'מוצ"ש - ראשון' },
-                    { name: 'בקהילה', size: '', notes: '', pubDay: 'חמישי' },
-                    { name: 'הדרך', size: 'רוחב 19.5 ס"מ × גובה 29 ס"מ', notes: '', pubDay: '' },
-                    { name: 'ידיעון קולינו נתניה', size: 'גובה 22 × רוחב 14.5 ס"מ', notes: 'להתקשר כדי לשריין מקום', pubDay: 'נסגר ברביעי' },
-                    { name: 'כח הפרסום', size: 'גובה 27 × רוחב 17 ס"מ', notes: 'בגלישה צריך להשאיר ס"מ וחצי רווח', pubDay: 'מוצ"ש - ראשון' },
-                    { name: 'כל רגע', size: 'באנרים או מדמי תוכן', notes: 'לא צריך', pubDay: '' },
-                    { name: 'יתד נאמן (יותר מרבע)', size: 'רוחב 14.7 × גובה 20 ס"מ', notes: '', pubDay: '' },
-                    { name: 'הציבור החרדי', size: 'עמוד A4, חצי עמוד חצי מ-A4', notes: '', pubDay: 'חמישי' },
-                    { name: 'לעניין בני ברק - עמוד', size: '26.5X16.5 ס"מ', notes: '', pubDay: '' },
-                    { name: 'לעניין בני ברק - חצי לגובה', size: '', notes: '', pubDay: 'רביעי' },
-                    { name: 'מגזין הבית', size: 'רוחב 17.5 × גובה 25 ס"מ', notes: '', pubDay: '' },
-                    { name: 'מרכז העניינים רבע עמוד', size: 'רוחב 12.6 × גובה 16.3 ס"מ', notes: '', pubDay: '' },
-                    { name: 'המבשר סטריפ', size: 'גובה 7.5 × רוחב 232.167 מ"מ', notes: '', pubDay: '' },
-                    { name: 'המודיע אנגלית ישראל ואירופה', size: 'רוחב 25 × גובה 32 ס"מ', notes: '', pubDay: '' },
-                    { name: 'המודיע אנגלית ארצות הברית', size: 'רוחב 24 × גובה 27.5 ס"מ', notes: '', pubDay: '' },
-                    { name: 'השבועון פ"ת / אלעד', size: '14.5×21.6 ס"מ', notes: '', pubDay: '' },
-                    { name: 'בלוברי', size: 'גובה 26.5 × רוחב 8 ס"מ', notes: '', pubDay: '' },
-                    { name: 'גבעת זאב', size: '22×15.5 ס"מ', notes: '', pubDay: '' },
-                    { name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
-                    { name: 'לעניין (שער)', size: '20×13.5 ס"מ', notes: '', pubDay: '' },
-                    { name: 'העיתון של השכונה', size: 'גובה 26.5 × רוחב 16.7 ס"מ', notes: '', pubDay: '' },
-                    { name: 'משפחה', size: '29.7×20.5 ס"מ', notes: '', pubDay: '' },
-                    { name: 'קטיפה', size: '307×215 מ"מ', notes: '', pubDay: '' },
-                    { name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
-                    { name: 'רב מכר מודיעין עילית', size: '14.5×22 ס"מ', notes: '', pubDay: '' },
-                    { name: 'מידע ירושלים', size: 'גובה 27.4 ס"מ (+5מ"מ גלישה) × רוחב 18 ס"מ (+5מ"מ גלישה)', notes: '', pubDay: '' },
-                    { name: 'בעניינים בית שמש', size: 'גובה 226 × רוחב 153 מ"מ', notes: 'מודעה גולשת להוסיף 1 ס"מ מכל צד', pubDay: '' },
-                  ].map((item, idx) => {
-                    const matchedOutlet = outlets.find(o => 
-                      o.name_he?.includes(item.name.split(' ')[0]) || 
-                      item.name.includes(o.name_he?.split(' ')[0] || '')
-                    );
-                    
-                    return (
-                      <tr key={idx} className="border-b hover:bg-muted/30">
-                        <td className="p-4 font-medium">
-                          <div className="flex items-center gap-2">
-                            {item.name}
-                            {matchedOutlet && (
-                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                                קיים במערכת
-                              </Badge>
+            <CardContent className="p-4 pt-0">
+              {/* Search */}
+              <div className="relative mb-4">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={sizeSearchQuery}
+                  onChange={(e) => setSizeSearchQuery(e.target.value)}
+                  placeholder="חיפוש לפי שם או גודל..."
+                  className="pr-10"
+                />
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="p-3 text-right font-medium text-sm">שם העיתון/ערוץ</th>
+                      <th className="p-3 text-right font-medium text-sm">גדלים</th>
+                      <th className="p-3 text-right font-medium text-sm">הערות</th>
+                      <th className="p-3 text-right font-medium text-sm">יום פרסום</th>
+                      <th className="p-3 text-center font-medium text-sm w-[180px]">פעולות</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredMediaSizes.map((item) => {
+                      const matchedOutlet = outlets.find(o => 
+                        o.name_he?.includes(item.name.split(' ')[0]) || 
+                        item.name.includes(o.name_he?.split(' ')[0] || '')
+                      );
+                      const isEditing = editingSizeId === item.id;
+                      
+                      return (
+                        <tr 
+                          key={item.id} 
+                          className={`border-b hover:bg-muted/30 transition-colors ${isEditing ? 'bg-primary/5' : ''}`}
+                          onClick={() => !isEditing && setEditingSizeId(item.id)}
+                        >
+                          <td className="p-2">
+                            {isEditing ? (
+                              <Input
+                                value={item.name}
+                                onChange={(e) => updateMediaSize(item.id, 'name', e.target.value)}
+                                className="h-8 text-sm"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : (
+                              <div className="flex items-center gap-2 px-1">
+                                <span className="font-medium text-sm">{item.name || <span className="text-muted-foreground italic">ללא שם</span>}</span>
+                                {matchedOutlet && (
+                                  <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">
+                                    קיים
+                                  </Badge>
+                                )}
+                              </div>
                             )}
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          {item.size ? (
-                            <Badge variant="secondary" className="font-mono text-xs">
-                              {item.size}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">לא זמין</span>
-                          )}
-                        </td>
-                        <td className="p-4 text-sm text-muted-foreground max-w-[200px]">
-                          {item.notes || '-'}
-                        </td>
-                        <td className="p-4 text-sm">
-                          {item.pubDay || '-'}
-                        </td>
-                        <td className="p-4">
-                          <div className="flex justify-center gap-1">
-                            {matchedOutlet && item.size && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={async () => {
-                                  // Find or create a product for this outlet
-                                  const outletProducts = products.filter(p => p.outlet_id === matchedOutlet.id);
-                                  if (outletProducts.length === 0) {
-                                    toast.error('אין מוצרים לערוץ זה. הוסף מוצר תחילה.');
-                                    return;
-                                  }
-                                  // Add spec to first product
-                                  const targetProduct = outletProducts[0];
-                                  const { error } = await supabase.from('product_specs').insert({
-                                    product_id: targetProduct.id,
-                                    name: 'Full Page',
-                                    name_he: 'עמוד מלא',
-                                    dimensions: item.size,
-                                    is_active: true
-                                  });
-                                  if (error) {
-                                    toast.error('שגיאה בייבוא: ' + error.message);
-                                  } else {
-                                    toast.success(`גודל יובא למוצר "${targetProduct.name_he || targetProduct.name}"`);
-                                    loadAllData();
-                                  }
-                                }}
-                              >
-                                <Plus className="h-3 w-3 ml-1" />
-                                ייבא למפרט
-                              </Button>
+                          </td>
+                          <td className="p-2">
+                            {isEditing ? (
+                              <Input
+                                value={item.size}
+                                onChange={(e) => updateMediaSize(item.id, 'size', e.target.value)}
+                                className="h-8 text-sm font-mono"
+                                placeholder="לדוגמה: 14.5×21.5 ס״מ"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : (
+                              item.size ? (
+                                <Badge variant="secondary" className="font-mono text-xs">
+                                  {item.size}
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-sm px-1">לא זמין</span>
+                              )
                             )}
-                            {!matchedOutlet && (
-                              <span className="text-xs text-muted-foreground">הוסף ערוץ קודם</span>
+                          </td>
+                          <td className="p-2">
+                            {isEditing ? (
+                              <Input
+                                value={item.notes}
+                                onChange={(e) => updateMediaSize(item.id, 'notes', e.target.value)}
+                                className="h-8 text-sm"
+                                placeholder="הערות..."
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : (
+                              <span className="text-sm text-muted-foreground px-1">{item.notes || '-'}</span>
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="p-2">
+                            {isEditing ? (
+                              <Input
+                                value={item.pubDay}
+                                onChange={(e) => updateMediaSize(item.id, 'pubDay', e.target.value)}
+                                className="h-8 text-sm"
+                                placeholder="יום פרסום..."
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : (
+                              <span className="text-sm px-1">{item.pubDay || '-'}</span>
+                            )}
+                          </td>
+                          <td className="p-2">
+                            <div className="flex justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                              {isEditing ? (
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  className="h-7 text-xs"
+                                  onClick={() => {
+                                    setEditingSizeId(null);
+                                    toast.success('נשמר');
+                                  }}
+                                >
+                                  סיום עריכה
+                                </Button>
+                              ) : (
+                                <>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7"
+                                    onClick={() => setEditingSizeId(item.id)}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  {matchedOutlet && item.size && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 text-xs"
+                                      onClick={async () => {
+                                        const outletProducts = products.filter(p => p.outlet_id === matchedOutlet.id);
+                                        if (outletProducts.length === 0) {
+                                          toast.error('אין מוצרים לערוץ זה. הוסף מוצר תחילה.');
+                                          return;
+                                        }
+                                        const targetProduct = outletProducts[0];
+                                        const { error } = await supabase.from('product_specs').insert({
+                                          product_id: targetProduct.id,
+                                          name: 'Full Page',
+                                          name_he: 'עמוד מלא',
+                                          dimensions: item.size,
+                                          is_active: true
+                                        });
+                                        if (error) {
+                                          toast.error('שגיאה בייבוא: ' + error.message);
+                                        } else {
+                                          toast.success(`גודל יובא למוצר "${targetProduct.name_he || targetProduct.name}"`);
+                                          loadAllData();
+                                        }
+                                      }}
+                                    >
+                                      <Plus className="h-3 w-3 ml-1" />
+                                      ייבא
+                                    </Button>
+                                  )}
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7 text-destructive"
+                                    onClick={() => deleteMediaSize(item.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {filteredMediaSizes.length === 0 && (
+                  <div className="p-8 text-center text-muted-foreground">אין גדלים להצגה</div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
