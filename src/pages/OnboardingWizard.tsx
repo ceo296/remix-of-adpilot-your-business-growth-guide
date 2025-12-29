@@ -100,15 +100,68 @@ const OnboardingWizard = () => {
     }
   };
 
-  const handleWelcomeComplete = (userName: string, brandName: string, logo: string | null, isAgencyUser: boolean) => {
+  const uploadLogoToStorage = async (dataUrl: string, userId: string): Promise<string | null> => {
+    try {
+      // Extract the file type and base64 data
+      const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (!match) return null;
+
+      const mimeType = match[1];
+      const base64Data = match[2];
+      const isPdf = mimeType === 'application/pdf';
+      const extension = isPdf ? 'pdf' : mimeType.split('/')[1] || 'png';
+      const fileName = `${userId}/logo-${Date.now()}.${extension}`;
+
+      // Convert base64 to blob
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: mimeType });
+
+      // Upload to storage
+      const { data, error } = await supabase.storage
+        .from('brand-assets')
+        .upload(fileName, blob, {
+          contentType: mimeType,
+          upsert: true,
+        });
+
+      if (error) {
+        console.error('Error uploading logo:', error);
+        return null;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('brand-assets')
+        .getPublicUrl(data.path);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error processing logo upload:', error);
+      return null;
+    }
+  };
+
+  const handleWelcomeComplete = async (userName: string, brandName: string, logo: string | null, isAgencyUser: boolean) => {
     setIsAgency(isAgencyUser);
+    
+    // Upload logo to storage if provided
+    let logoUrl: string | null = null;
+    if (logo && user) {
+      logoUrl = await uploadLogoToStorage(logo, user.id);
+    }
+    
     setWizardData((prev) => ({
       ...prev,
       userName,
       brand: {
         ...prev.brand,
         name: brandName,
-        logo: logo,
+        logo: logoUrl || logo, // Use uploaded URL or fallback to data URL
       },
     }));
     toast.success(`שלום ${userName}! נעים להכיר`);
@@ -221,6 +274,7 @@ const OnboardingWizard = () => {
             .from('client_profiles')
             .update({
               business_name: wizardData.brand.name,
+              logo_url: wizardData.brand.logo || null,
               website_url: wizardData.websiteUrl || null,
               primary_color: wizardData.brand.colors.primary,
               secondary_color: wizardData.brand.colors.secondary,
@@ -260,6 +314,7 @@ const OnboardingWizard = () => {
             .insert([{
               user_id: user.id,
               business_name: wizardData.brand.name,
+              logo_url: wizardData.brand.logo || null,
               website_url: wizardData.websiteUrl || null,
               primary_color: wizardData.brand.colors.primary,
               secondary_color: wizardData.brand.colors.secondary,
