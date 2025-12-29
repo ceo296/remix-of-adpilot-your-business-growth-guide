@@ -107,7 +107,7 @@ export const MediaSelector = ({ onSelect, selectedMedia }: MediaSelectorProps) =
 
   // Selection state
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
   const [selectedOutlet, setSelectedOutlet] = useState<Outlet | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedSpec, setSelectedSpec] = useState<Spec | null>(null);
@@ -216,7 +216,7 @@ export const MediaSelector = ({ onSelect, selectedMedia }: MediaSelectorProps) =
   const filteredOutlets = outlets.filter(o => {
     if (!selectedCategory) return false;
     const matchesCategory = o.category_id === selectedCategory.id;
-    const matchesCity = !requiresCitySelection || !selectedCity || o.city === selectedCity || !o.city;
+    const matchesCity = !requiresCitySelection || selectedCity === 'all' || o.city === selectedCity || !o.city;
     return matchesCategory && matchesCity;
   });
 
@@ -257,7 +257,7 @@ export const MediaSelector = ({ onSelect, selectedMedia }: MediaSelectorProps) =
                 <SelectValue placeholder="בחר עיר" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">כל הערים</SelectItem>
+                <SelectItem value="all">כל הערים</SelectItem>
                 {cities.map(city => (
                   <SelectItem key={city.id} value={city.name}>
                     <div className="flex items-center gap-2">
