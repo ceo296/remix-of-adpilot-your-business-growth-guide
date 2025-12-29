@@ -135,6 +135,7 @@ const MediaDatabaseAdmin = () => {
     { id: 'digital', label: 'דיגיטל', icon: 'Globe' },
     { id: 'outdoor', label: 'פרסום חוצות', icon: 'Megaphone' },
     { id: 'local', label: 'עיתונות מקומית', icon: 'MapPin' },
+    { id: 'social', label: 'סושיאל מדיה', icon: 'Share2' },
   ];
 
   const [mediaSizes, setMediaSizes] = useState([
@@ -301,6 +302,11 @@ const MediaDatabaseAdmin = () => {
     
     // עיתונות מקומית - בעניינים בית שמש
     { id: 57, category: 'local', outlet: 'בעניינים בית שמש', name: 'עמוד', size: 'גובה 226 × רוחב 153 מ"מ', notes: 'מודעה גולשת להוסיף 1 ס"מ מכל צד', pubDay: '' },
+    
+    // סושיאל מדיה - וואצאפ
+    { id: 300, category: 'social', outlet: 'וואצאפ', name: 'קוביה', size: '1080×1080 px', notes: '', pubDay: '' },
+    { id: 301, category: 'social', outlet: 'וואצאפ', name: 'סטטוס', size: '1080×1920 px', notes: '', pubDay: '' },
+    { id: 302, category: 'social', outlet: 'וואצאפ', name: 'סטורי', size: '1080×1920 px', notes: '', pubDay: '' },
   ]);
   const [editingSizeId, setEditingSizeId] = useState<number | null>(null);
   const [sizeSearchQuery, setSizeSearchQuery] = useState('');
