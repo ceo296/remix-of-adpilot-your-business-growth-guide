@@ -16,6 +16,7 @@ import { useAgencyClients } from '@/hooks/useAgencyClients';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import ClientSelector from './ClientSelector';
+import AdminClientSelector from './AdminClientSelector';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -96,9 +97,14 @@ const TopNavbar = () => {
           ))}
         </nav>
 
-        {/* Right side - Agency selector & Actions */}
+        {/* Right side - Admin selector, Agency selector & Actions */}
         <div className="flex items-center gap-2">
-          {isAgency && (
+          {isAdmin && (
+            <div className="hidden md:block">
+              <AdminClientSelector />
+            </div>
+          )}
+          {isAgency && !isAdmin && (
             <div className="hidden lg:block">
               <ClientSelector />
             </div>
