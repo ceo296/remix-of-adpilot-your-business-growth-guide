@@ -6,20 +6,18 @@ import { Sparkles, Heart, Upload, User, Building2, AlertCircle, FileText } from 
 import { BrandingStudio } from './BrandingStudio';
 
 interface StepWelcomeProps {
-  onNext: (userName: string, brandName: string, logo: string | null, isAgency: boolean, brandBook?: string | null) => void;
+  onNext: (userName: string, brandName: string, logo: string | null, isAgency: boolean) => void;
 }
 
 const StepWelcome = ({ onNext }: StepWelcomeProps) => {
   const [userName, setUserName] = useState('');
   const [brandName, setBrandName] = useState('');
   const [logo, setLogo] = useState<string | null>(null);
-  const [brandBook, setBrandBook] = useState<string | null>(null);
   const [isAgency, setIsAgency] = useState<boolean | null>(null);
   const [showBrandingStudio, setShowBrandingStudio] = useState(false);
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const brandBookInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -30,22 +28,11 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
     }
   };
 
-  const handleBrandBookUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setBrandBook(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleContinue = () => {
     // Agencies don't need logo at this stage
     const logoRequired = isAgency === false;
     if (userName.trim() && brandName.trim() && isAgency !== null && (!logoRequired || logo)) {
-      onNext(userName.trim(), brandName.trim(), logo, isAgency, brandBook);
+      onNext(userName.trim(), brandName.trim(), logo, isAgency);
     }
   };
 
@@ -138,101 +125,64 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
               />
             </div>
 
-            {/* Logo & Brand Book Upload - Only required for private clients */}
+            {/* Logo/Brand Book Upload - Only required for private clients */}
             {isAgency === false && (
-              <div className="space-y-4">
-                {/* Logo Upload */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground flex items-center gap-1">
-                    לוגו
-                    <span className="text-destructive">*</span>
-                  </label>
-                  
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                    className="hidden"
-                  />
-                  
-                  <div
-                    onClick={() => logoInputRef.current?.click()}
-                    className={`w-full h-20 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors cursor-pointer group ${
-                      logo 
-                        ? 'border-primary/50 bg-primary/5' 
-                        : 'border-muted-foreground/30 hover:border-primary/50'
-                    }`}
-                  >
-                    {logo ? (
-                      <div className="flex items-center gap-4 px-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground flex items-center gap-1">
+                  העלה לוגו / ספר מותג
+                  <span className="text-destructive">*</span>
+                </label>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf,application/pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`w-full h-24 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors cursor-pointer group ${
+                    logo 
+                      ? 'border-primary/50 bg-primary/5' 
+                      : 'border-muted-foreground/30 hover:border-primary/50'
+                  }`}
+                >
+                  {logo ? (
+                    <div className="flex items-center gap-4 px-4">
+                      {logo.startsWith('data:application/pdf') ? (
+                        <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-primary" />
+                        </div>
+                      ) : (
                         <img 
                           src={logo} 
                           alt="Logo" 
-                          className="h-14 w-14 object-contain rounded-lg"
+                          className="h-16 w-16 object-contain rounded-lg"
                         />
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-foreground">הלוגו נטען בהצלחה</p>
-                          <p className="text-xs text-muted-foreground">לחץ להחלפה</p>
-                        </div>
+                      )}
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-foreground">
+                          {logo.startsWith('data:application/pdf') ? 'ספר מותג נטען' : 'הלוגו נטען בהצלחה'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">לחץ להחלפה</p>
                       </div>
-                    ) : (
-                      <div className="text-center p-3 group-hover:scale-105 transition-transform">
-                        <Upload className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
-                        <span className="text-sm text-muted-foreground">העלה לוגו (תמונה)</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {!logo && (
-                    <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 p-2 rounded-lg">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>חובה להעלות לוגו כדי ליצור קמפיינים מותאמים</span>
+                    </div>
+                  ) : (
+                    <div className="text-center p-4 group-hover:scale-105 transition-transform">
+                      <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
+                      <span className="text-sm text-muted-foreground">לחץ להעלאה (תמונה או PDF)</span>
                     </div>
                   )}
                 </div>
 
-                {/* Brand Book Upload (Optional) */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground flex items-center gap-1">
-                    ספר מותג
-                    <span className="text-xs text-muted-foreground mr-1">(אופציונלי)</span>
-                  </label>
-                  
-                  <input
-                    ref={brandBookInputRef}
-                    type="file"
-                    accept=".pdf,application/pdf"
-                    onChange={handleBrandBookUpload}
-                    className="hidden"
-                  />
-                  
-                  <div
-                    onClick={() => brandBookInputRef.current?.click()}
-                    className={`w-full h-16 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors cursor-pointer group ${
-                      brandBook 
-                        ? 'border-green-500/50 bg-green-50' 
-                        : 'border-muted-foreground/30 hover:border-primary/50'
-                    }`}
-                  >
-                    {brandBook ? (
-                      <div className="flex items-center gap-3 px-4">
-                        <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-green-700">ספר מותג נטען</p>
-                          <p className="text-xs text-green-600">לחץ להחלפה</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center p-2 group-hover:scale-105 transition-transform">
-                        <FileText className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
-                        <span className="text-sm text-muted-foreground">העלה ספר מותג (PDF)</span>
-                      </div>
-                    )}
+                {!logo && (
+                  <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 p-2 rounded-lg">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>חובה להעלות לוגו או ספר מותג כדי ליצור קמפיינים מותאמים</span>
                   </div>
-                </div>
+                )}
 
                 {/* No branding link - opens Branding Studio */}
                 <button
