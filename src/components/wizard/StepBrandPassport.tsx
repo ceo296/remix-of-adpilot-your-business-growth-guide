@@ -17,6 +17,7 @@ interface StepBrandPassportProps {
 
 const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPassportProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExtractingColors, setIsExtractingColors] = useState(false);
   const [editMode, setEditMode] = useState<'fonts' | 'business' | null>(null);
   
   // Editable local state
@@ -30,6 +31,54 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
     audience: data.websiteInsights?.audience || '',
     coreOffering: data.websiteInsights?.coreOffering || '',
   });
+
+  const handleExtractColorsFromLogo = async () => {
+    const logoUrl = data.brand.logo;
+    if (!logoUrl) {
+      toast.error('אין לוגו בפרופיל');
+      return;
+    }
+
+    if (logoUrl.toLowerCase().endsWith('.pdf')) {
+      toast.error('לא ניתן לחלץ צבעים מקובץ PDF. נא להעלות לוגו כתמונה.');
+      return;
+    }
+
+    setIsExtractingColors(true);
+    toast.loading('מנתח צבעים מהלוגו...', { id: 'passport-color-extract' });
+
+    try {
+      const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
+        body: { imageUrl: logoUrl },
+      });
+
+      if (error) throw error;
+
+      const colors = result?.colors as { primary: string; secondary: string; background: string } | undefined;
+      if (!colors?.primary || !colors?.secondary || !colors?.background) {
+        throw new Error('לא התקבלו צבעים מהניתוח');
+      }
+
+      updateData({
+        brand: {
+          ...data.brand,
+          colors: {
+            primary: colors.primary,
+            secondary: colors.secondary,
+            background: colors.background,
+          },
+        },
+      });
+
+      toast.success('צבעי המותג עודכנו לפי הלוגו');
+    } catch (e: any) {
+      const msg = typeof e?.message === 'string' ? e.message : 'שגיאה בחילוץ צבעים מהלוגו';
+      toast.error(msg);
+    } finally {
+      toast.dismiss('passport-color-extract');
+      setIsExtractingColors(false);
+    }
+  };
 
   const handleSaveFonts = () => {
     updateData({
@@ -162,9 +211,27 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
             <div className="grid md:grid-cols-2 gap-6">
               {/* Colors */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-foreground flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-primary" />
-                  פלטת הצבעים
+                <h4 className="font-semibold text-foreground flex items-center gap-2 justify-between">
+                  <span className="flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-primary" />
+                    פלטת הצבעים
+                  </span>
+                  {data.brand.logo && !data.brand.logo.toLowerCase().endsWith('.pdf') && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs gap-1"
+                      onClick={handleExtractColorsFromLogo}
+                      disabled={isExtractingColors}
+                    >
+                      {isExtractingColors ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-3 h-3" />
+                      )}
+                      חלץ מהלוגו
+                    </Button>
+                  )}
                 </h4>
                 <div className="flex gap-3">
                   <div className="text-center">
