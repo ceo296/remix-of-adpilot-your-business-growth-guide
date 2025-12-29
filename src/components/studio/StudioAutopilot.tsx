@@ -25,8 +25,8 @@ interface StudioAutopilotProps {
   concepts: CreativeConcept[];
   selectedConcept: CreativeConcept | null;
   clientInfo: ClientInfo | null;
-  selectedMediaType: MediaType | null;
-  onMediaTypeChange: (type: MediaType) => void;
+  selectedMediaTypes: MediaType[];
+  onMediaTypesChange: (types: MediaType[]) => void;
   onGenerateConcepts: () => void;
   onSelectConcept: (concept: CreativeConcept) => void;
   onExecuteConcept: () => void;
@@ -228,12 +228,37 @@ export const StudioAutopilot = ({
   concepts,
   selectedConcept,
   clientInfo,
-  selectedMediaType,
-  onMediaTypeChange,
+  selectedMediaTypes,
+  onMediaTypesChange,
   onGenerateConcepts,
   onSelectConcept,
   onExecuteConcept,
 }: StudioAutopilotProps) => {
+  const handleToggleMediaType = (id: MediaType) => {
+    // If selecting 'all', clear others and select only 'all'
+    if (id === 'all') {
+      if (selectedMediaTypes.includes('all')) {
+        onMediaTypesChange([]);
+      } else {
+        onMediaTypesChange(['all']);
+      }
+      return;
+    }
+
+    // If selecting individual type, remove 'all' if present
+    let newValue = selectedMediaTypes.filter(v => v !== 'all');
+    
+    if (newValue.includes(id)) {
+      newValue = newValue.filter(v => v !== id);
+    } else {
+      newValue = [...newValue, id];
+    }
+    
+    onMediaTypesChange(newValue);
+  };
+
+  const isSelected = (id: MediaType) => selectedMediaTypes.includes(id);
+  const primaryMediaType = selectedMediaTypes[0] || null;
   // Initial state - no concepts yet
   if (concepts.length === 0 && !isGenerating) {
     return (
@@ -248,36 +273,36 @@ export const StudioAutopilot = ({
         
         {/* Media Type Selection */}
         <div className="w-full max-w-2xl mb-6">
-          <p className="text-sm font-medium text-muted-foreground mb-3">איזה חומר פרסומי תרצו ליצור?</p>
+          <p className="text-sm font-medium text-muted-foreground mb-3">איזה חומר פרסומי תרצו ליצור? (ניתן לבחור כמה)</p>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
             {MEDIA_OPTIONS.map((option) => (
               <Card
                 key={option.id}
                 className={cn(
                   'cursor-pointer transition-all duration-300 border-2 relative',
-                  selectedMediaType === option.id
+                  isSelected(option.id)
                     ? 'border-primary bg-primary/5 shadow-md'
                     : 'border-border hover:border-primary/50'
                 )}
-                onClick={() => onMediaTypeChange(option.id)}
+                onClick={() => handleToggleMediaType(option.id)}
               >
                 <CardContent className="p-3 flex flex-col items-center gap-2">
                   <div className={cn(
                     'w-10 h-10 rounded-lg flex items-center justify-center',
-                    selectedMediaType === option.id ? 'bg-primary/20' : 'bg-muted'
+                    isSelected(option.id) ? 'bg-primary/20' : 'bg-muted'
                   )}>
                     <option.icon className={cn(
                       'w-5 h-5',
-                      selectedMediaType === option.id ? 'text-primary' : 'text-muted-foreground'
+                      isSelected(option.id) ? 'text-primary' : 'text-muted-foreground'
                     )} />
                   </div>
                   <span className={cn(
                     'text-xs font-medium',
-                    selectedMediaType === option.id ? 'text-primary' : 'text-muted-foreground'
+                    isSelected(option.id) ? 'text-primary' : 'text-muted-foreground'
                   )}>
                     {option.label}
                   </span>
-                  {selectedMediaType === option.id && (
+                  {isSelected(option.id) && (
                     <div className="absolute top-1 left-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
                       <Check className="w-3 h-3 text-primary-foreground" />
                     </div>
@@ -305,14 +330,14 @@ export const StudioAutopilot = ({
           size="lg"
           variant="gradient"
           onClick={onGenerateConcepts}
-          disabled={!selectedMediaType}
+          disabled={selectedMediaTypes.length === 0}
           className="text-lg px-8"
         >
           <Wand2 className="h-5 w-5 ml-2" />
           תכינו לי סקיצות על בסיס האסטרטגיה
         </Button>
         
-        {!selectedMediaType && (
+        {selectedMediaTypes.length === 0 && (
           <p className="text-xs text-muted-foreground mt-2">יש לבחור סוג מדיה להמשך</p>
         )}
       </div>
@@ -334,8 +359,13 @@ export const StudioAutopilot = ({
 
   // Get media type label
   const getMediaLabel = () => {
-    const media = MEDIA_OPTIONS.find(m => m.id === selectedMediaType);
-    return media?.label || 'קריאייטיב';
+    if (selectedMediaTypes.length === 0) return 'קריאייטיב';
+    if (selectedMediaTypes.includes('all')) return 'קמפיין 360°';
+    if (selectedMediaTypes.length === 1) {
+      const media = MEDIA_OPTIONS.find(m => m.id === selectedMediaTypes[0]);
+      return media?.label || 'קריאייטיב';
+    }
+    return `${selectedMediaTypes.length} סוגי מדיה`;
   };
 
   // Concepts display
@@ -343,7 +373,7 @@ export const StudioAutopilot = ({
     <div className="space-y-6">
       <div className="text-center mb-8">
         <Badge variant="secondary" className="mb-3">
-          {selectedMediaType === 'radio' ? '🎙️' : selectedMediaType === 'billboard' ? '🪧' : selectedMediaType === 'social' ? '📱' : '📰'} {getMediaLabel()}
+          {primaryMediaType === 'radio' ? '🎙️' : primaryMediaType === 'billboard' ? '🪧' : primaryMediaType === 'social' ? '📱' : '📰'} {getMediaLabel()}
         </Badge>
         <h2 className="text-2xl font-bold mb-2">בחרו את הזווית שמדברת אליכם</h2>
         <p className="text-muted-foreground">
@@ -388,7 +418,7 @@ export const StudioAutopilot = ({
                   </div>
                   
                   {/* Media-specific preview */}
-                  <ConceptPreview concept={concept} mediaType={selectedMediaType} />
+                  <ConceptPreview concept={concept} mediaType={primaryMediaType} />
                 </div>
               </div>
             </Card>
