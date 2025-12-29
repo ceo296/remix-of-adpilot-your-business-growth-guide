@@ -630,7 +630,15 @@ const CreativeStudio = () => {
       };
 
       const { data, error } = await supabase.functions.invoke('generate-concepts', {
-        body: { profile, mediaType }
+        body: { 
+          profile, 
+          mediaType,
+          campaignBrief: {
+            title: campaignBrief.title,
+            offer: campaignBrief.offer,
+            goal: campaignBrief.goal,
+          }
+        }
       });
 
       if (error) {
@@ -674,14 +682,63 @@ const CreativeStudio = () => {
     try {
       const results: GeneratedImage[] = [];
       
+      // Build brand context for autopilot
+      const colorSelection = campaignBrief.colorSelection;
+      let effectiveColors = {
+        primary: clientProfile?.primary_color || null,
+        secondary: clientProfile?.secondary_color || null,
+        background: clientProfile?.background_color || null,
+      };
+      
+      if (colorSelection.mode === 'swapped') {
+        effectiveColors = {
+          primary: colorSelection.primaryColor || clientProfile?.secondary_color || null,
+          secondary: colorSelection.secondaryColor || clientProfile?.primary_color || null,
+          background: colorSelection.backgroundColor || clientProfile?.background_color || null,
+        };
+      }
+
+      const brandContext = clientProfile ? {
+        businessName: clientProfile.business_name,
+        targetAudience: clientProfile.target_audience,
+        primaryXFactor: clientProfile.primary_x_factor,
+        winningFeature: clientProfile.winning_feature,
+        xFactors: clientProfile.x_factors,
+        colors: effectiveColors,
+        fonts: {
+          header: clientProfile.header_font,
+          body: clientProfile.body_font,
+        },
+        colorMode: colorSelection.mode,
+      } : null;
+
+      const campaignContext = {
+        title: campaignBrief.title,
+        offer: campaignBrief.offer,
+        goal: campaignBrief.goal,
+        structure: campaignBrief.structure,
+      };
+      
       for (let i = 0; i < 4; i++) {
         toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
         
-        const { data, error } = await supabase.functions.invoke('generate-creative', {
+        // Combine concept with campaign offer for stronger emphasis
+        const enhancedVisualPrompt = campaignBrief.offer 
+          ? `${selectedConcept.idea}. המסר המרכזי: ${campaignBrief.offer}`
+          : selectedConcept.idea;
+        
+        const enhancedTextPrompt = campaignBrief.offer && !selectedConcept.copy.includes(campaignBrief.offer)
+          ? `${selectedConcept.copy} - ${campaignBrief.offer}`
+          : selectedConcept.copy;
+
+        const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
-            prompt: `${selectedConcept.idea}. טקסט: ${selectedConcept.copy}`,
+            visualPrompt: enhancedVisualPrompt,
+            textPrompt: enhancedTextPrompt,
             style: 'modern',
-            aspectRatio: 'square',
+            engine: 'nano-banana',
+            brandContext,
+            campaignContext,
           }
         });
 
@@ -708,8 +765,8 @@ const CreativeStudio = () => {
           setGeneratedImages([...results]);
 
           await supabase.from('generated_images').insert({
-            visual_prompt: selectedConcept.idea,
-            text_prompt: selectedConcept.copy,
+            visual_prompt: enhancedVisualPrompt,
+            text_prompt: enhancedTextPrompt,
             style: 'modern',
             engine: config.engine,
             image_url: data.imageUrl,
