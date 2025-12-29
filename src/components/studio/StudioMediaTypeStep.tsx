@@ -16,12 +16,12 @@ import { cn } from '@/lib/utils';
 export type MediaType = 'ad' | 'radio' | 'banner' | 'billboard' | 'social' | 'all';
 
 export interface MediaTypeSelection {
-  type: MediaType | null;
+  types: MediaType[];
 }
 
 interface StudioMediaTypeStepProps {
-  value: MediaType | null;
-  onChange: (type: MediaType) => void;
+  value: MediaType[];
+  onChange: (types: MediaType[]) => void;
 }
 
 const MEDIA_OPTIONS: { 
@@ -76,6 +76,51 @@ const MEDIA_OPTIONS: {
 ];
 
 export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProps) => {
+  const handleToggle = (id: MediaType) => {
+    // If selecting 'all', clear others and select only 'all'
+    if (id === 'all') {
+      if (value.includes('all')) {
+        onChange([]);
+      } else {
+        onChange(['all']);
+      }
+      return;
+    }
+
+    // If selecting individual type, remove 'all' if present
+    let newValue = value.filter(v => v !== 'all');
+    
+    if (newValue.includes(id)) {
+      newValue = newValue.filter(v => v !== id);
+    } else {
+      newValue = [...newValue, id];
+    }
+    
+    onChange(newValue);
+  };
+
+  const isSelected = (id: MediaType) => value.includes(id);
+
+  // Generate info message based on selection
+  const getInfoMessage = () => {
+    if (value.length === 0) return null;
+    if (value.includes('all')) {
+      return '💡 קמפיין 360° - נתחיל מיצירת מודעה מאסטר, ולאחר אישורך נתאים אותה לכל שאר הפלטפורמות.';
+    }
+    if (value.length === 1) {
+      const type = value[0];
+      switch (type) {
+        case 'ad': return '💡 נתמקד ביצירת מודעה מושלמת לפרסום בעיתונות ובמגזינים.';
+        case 'radio': return '💡 ניצור לך תסריט ספוט רדיו מותאם לקהל היעד שלך.';
+        case 'billboard': return '💡 נעצב שלט חוצות בולט ומרשים שייתפס מרחוק.';
+        case 'social': return '💡 ניצור תוכן מושך לרשתות חברתיות, וואטסאפ וניוזלטר שיניע לפעולה.';
+        case 'banner': return '💡 נעצב באנר דיגיטלי בממדים המתאימים לפלטפורמות המובילות.';
+        default: return null;
+      }
+    }
+    return `💡 בחרת ${value.length} סוגי מדיה - ניצור קריאייטיב מותאם לכל פלטפורמה.`;
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -87,7 +132,7 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
           אלו חומרים הולכים להיות בקמפיין?
         </h2>
         <p className="text-muted-foreground">
-          בחר את סוג המדיה לקמפיין שלך
+          בחר את סוגי המדיה לקמפיין שלך (ניתן לבחור כמה)
         </p>
       </div>
 
@@ -100,20 +145,20 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
               key={option.id}
               className={cn(
                 'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden',
-                value === option.id
+                isSelected(option.id)
                   ? 'border-primary bg-primary/5 shadow-lg'
                   : 'border-border hover:border-primary/50'
               )}
-              onClick={() => onChange(option.id)}
+              onClick={() => handleToggle(option.id)}
             >
               <CardContent className="p-6 flex items-start gap-4">
                 <div className={cn(
                   'w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0',
-                  value === option.id ? 'bg-primary/20' : 'bg-muted'
+                  isSelected(option.id) ? 'bg-primary/20' : 'bg-muted'
                 )}>
                   <option.icon className={cn(
                     'w-7 h-7',
-                    value === option.id ? 'text-primary' : 'text-muted-foreground'
+                    isSelected(option.id) ? 'text-primary' : 'text-muted-foreground'
                   )} />
                 </div>
                 <div className="flex-1">
@@ -133,7 +178,7 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
                     ))}
                   </div>
                 </div>
-                {value === option.id && (
+                {isSelected(option.id) && (
                   <div className="absolute top-3 left-3 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                     <Check className="w-4 h-4 text-primary-foreground" />
                   </div>
@@ -145,20 +190,10 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
       </div>
 
       {/* Info message based on selection */}
-      {value && (
+      {value.length > 0 && (
         <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 animate-fade-in">
           <p className="text-sm text-foreground">
-            {value === 'all' 
-              ? '💡 קמפיין 360° - נתחיל מיצירת מודעה מאסטר, ולאחר אישורך נתאים אותה לכל שאר הפלטפורמות.'
-              : value === 'ad'
-              ? '💡 נתמקד ביצירת מודעה מושלמת לפרסום בעיתונות ובמגזינים.'
-              : value === 'radio'
-              ? '💡 ניצור לך תסריט ספוט רדיו מותאם לקהל היעד שלך.'
-              : value === 'billboard'
-              ? '💡 נעצב שלט חוצות בולט ומרשים שייתפס מרחוק.'
-              : value === 'social'
-              ? '💡 ניצור תוכן מושך לרשתות חברתיות, וואטסאפ וניוזלטר שיניע לפעולה.'
-              : '💡 נעצב באנר דיגיטלי בממדים המתאימים לפלטפורמות המובילות.'}
+            {getInfoMessage()}
           </p>
         </div>
       )}

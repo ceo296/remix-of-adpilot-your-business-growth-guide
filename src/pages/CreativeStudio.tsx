@@ -174,7 +174,7 @@ const CreativeStudio = () => {
       backgroundColor: null,
     },
   });
-  const [mediaType, setMediaType] = useState<MediaType | null>(null);
+  const [mediaTypes, setMediaTypes] = useState<MediaType[]>([]);
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
   const [treatment, setTreatment] = useState<TreatmentChoice | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -229,7 +229,9 @@ const CreativeStudio = () => {
   // Calculate actual steps based on asset choice and media type
   const getSteps = () => {
     // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment, 4=Style, 5=Prompt
-    if (mediaType === 'radio') {
+    // If only radio is selected, skip visual steps
+    const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
+    if (isOnlyRadio) {
       // Radio doesn't need visual steps
       return [0, 1, 5]; // Brief, MediaType, Prompt (for script)
     }
@@ -247,7 +249,7 @@ const CreativeStudio = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 0: return campaignBrief.offer.trim().length > 0 && campaignBrief.structure !== null;
-      case 1: return mediaType !== null;
+      case 1: return mediaTypes.length > 0;
       case 2: return assetChoice !== null;
       case 3: return uploadedImage !== null && treatment !== null;
       case 4: return style !== null;
@@ -257,7 +259,8 @@ const CreativeStudio = () => {
   };
 
   const handleNext = () => {
-    if (currentStep === 1 && mediaType === 'radio') {
+    const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
+    if (currentStep === 1 && isOnlyRadio) {
       setCurrentStep(5); // Skip to prompt for radio
     } else if (currentStep === 2 && assetChoice === 'no-product') {
       setCurrentStep(4); // Skip treatment to style
@@ -267,7 +270,8 @@ const CreativeStudio = () => {
   };
 
   const handleBack = () => {
-    if (currentStep === 5 && mediaType === 'radio') {
+    const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
+    if (currentStep === 5 && isOnlyRadio) {
       setCurrentStep(1); // Go back to media type for radio
     } else if (currentStep === 4 && assetChoice === 'no-product') {
       setCurrentStep(2); // Go back to asset
@@ -469,7 +473,7 @@ const CreativeStudio = () => {
         backgroundColor: null,
       },
     });
-    setMediaType(null);
+    setMediaTypes([]);
     setAssetChoice(null);
     setTreatment(null);
     setUploadedImage(null);
@@ -632,7 +636,7 @@ const CreativeStudio = () => {
       const { data, error } = await supabase.functions.invoke('generate-concepts', {
         body: { 
           profile, 
-          mediaType,
+          mediaTypes,
           campaignBrief: {
             title: campaignBrief.title,
             offer: campaignBrief.offer,
@@ -820,7 +824,7 @@ const CreativeStudio = () => {
           />
         );
       case 1:
-        return <StudioMediaTypeStep value={mediaType} onChange={setMediaType} />;
+        return <StudioMediaTypeStep value={mediaTypes} onChange={setMediaTypes} />;
       case 2:
         return <StudioAssetStep value={assetChoice} onChange={setAssetChoice} />;
       case 3:
@@ -845,7 +849,7 @@ const CreativeStudio = () => {
             hasProduct={assetChoice === 'has-product'}
             aspectRatio={aspectRatio}
             onAspectRatioChange={setAspectRatio}
-            mediaType={mediaType}
+            mediaType={mediaTypes[0] || null}
             selectedTemplate={selectedTemplate}
             onTemplateChange={setSelectedTemplate}
           />
@@ -903,8 +907,8 @@ const CreativeStudio = () => {
                   business_name: clientProfile.business_name,
                   target_audience: clientProfile.target_audience
                 } : null}
-                selectedMediaType={mediaType}
-                onMediaTypeChange={setMediaType}
+                selectedMediaTypes={mediaTypes}
+                onMediaTypesChange={setMediaTypes}
                 onGenerateConcepts={handleGenerateConcepts}
                 onSelectConcept={setSelectedConcept}
                 onExecuteConcept={handleExecuteConcept}
@@ -1065,9 +1069,9 @@ const CreativeStudio = () => {
               <>
                 {/* Dynamic grid based on media type */}
                 <div className={
-                  mediaType === 'banner' 
+                  mediaTypes.includes('banner') 
                     ? 'grid grid-cols-1 lg:grid-cols-2 gap-4' 
-                    : mediaType === 'billboard'
+                    : mediaTypes.includes('billboard')
                     ? 'grid grid-cols-1 gap-4'
                     : 'grid grid-cols-2 lg:grid-cols-4 gap-4'
                 }>
@@ -1075,11 +1079,11 @@ const CreativeStudio = () => {
                     <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
                       {/* Dynamic aspect ratio based on media type */}
                       <div className={`relative bg-muted ${
-                        mediaType === 'banner' 
+                        mediaTypes.includes('banner') 
                           ? 'aspect-[4/1]' 
-                          : mediaType === 'billboard'
+                          : mediaTypes.includes('billboard')
                           ? 'aspect-[16/9]'
-                          : mediaType === 'social'
+                          : mediaTypes.includes('social')
                           ? 'aspect-square'
                           : 'aspect-square'
                       }`}>
