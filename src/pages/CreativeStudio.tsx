@@ -46,6 +46,12 @@ interface ClientProfile {
   contact_youtube: string | null;
   social_facebook: string | null;
   social_instagram: string | null;
+  // Brand colors
+  primary_color: string | null;
+  secondary_color: string | null;
+  background_color: string | null;
+  header_font: string | null;
+  body_font: string | null;
 }
 
 interface MediaPackage {
@@ -202,7 +208,7 @@ const CreativeStudio = () => {
 
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram')
+        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font')
         .eq('user_id', user.id)
         .single();
 
@@ -311,6 +317,33 @@ const CreativeStudio = () => {
       const results: GeneratedImage[] = [];
       
       // Generate 4 variations
+      // Build brand context for AI
+      const brandContext = clientProfile ? {
+        businessName: clientProfile.business_name,
+        targetAudience: clientProfile.target_audience,
+        primaryXFactor: clientProfile.primary_x_factor,
+        winningFeature: clientProfile.winning_feature,
+        xFactors: clientProfile.x_factors,
+        colors: {
+          primary: clientProfile.primary_color,
+          secondary: clientProfile.secondary_color,
+          background: clientProfile.background_color,
+        },
+        fonts: {
+          header: clientProfile.header_font,
+          body: clientProfile.body_font,
+        },
+      } : null;
+
+      // Build campaign context
+      const campaignContext = {
+        title: campaignBrief.title,
+        offer: campaignBrief.offer,
+        goal: campaignBrief.goal,
+        structure: campaignBrief.structure,
+        contactInfo: campaignBrief.contactSelection,
+      };
+
       for (let i = 0; i < 4; i++) {
         toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
         
@@ -323,6 +356,8 @@ const CreativeStudio = () => {
             templateId: selectedTemplate?.id || null,
             templateHints: selectedTemplate?.promptHints || null,
             dimensions: selectedTemplate?.dimensions || null,
+            brandContext,
+            campaignContext,
           }
         });
 
