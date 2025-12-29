@@ -45,7 +45,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, mediaType } = await req.json();
+    const { profile, mediaType, campaignBrief } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -93,6 +93,11 @@ Respond ONLY with valid JSON in this exact format:
   ]
 }`;
 
+    // Campaign brief info
+    const campaignTitle = campaignBrief?.title || '';
+    const campaignOffer = campaignBrief?.offer || '';
+    const campaignGoal = campaignBrief?.goal || '';
+
     const userPrompt = `Create 3 creative ${isRadio ? 'radio spot' : 'advertising'} concepts for this business:
 
 Business Name: ${profile.business_name || 'עסק כללי'}
@@ -101,6 +106,16 @@ Main X-Factor/Unique Selling Point: ${profile.primary_x_factor || 'איכות ו
 Winning Feature: ${profile.winning_feature || 'מקצועיות'}
 Advantage Type: ${profile.advantage_type || 'שירות'}
 All X-Factors: ${profile.x_factors?.join(', ') || 'איכות, מחיר, שירות'}
+
+${campaignTitle || campaignOffer ? `
+=== CAMPAIGN BRIEF - CRITICAL ===
+${campaignTitle ? `Campaign Name: ${campaignTitle}` : ''}
+${campaignOffer ? `MAIN OFFER/MESSAGE (MUST be the central focus of ALL concepts): ${campaignOffer}` : ''}
+${campaignGoal ? `Campaign Goal: ${campaignGoal === 'promotion' ? 'Sale/Promotion' : campaignGoal === 'awareness' ? 'Brand Awareness' : campaignGoal === 'launch' ? 'Product Launch' : campaignGoal === 'seasonal' ? 'Seasonal/Holiday Campaign' : campaignGoal}` : ''}
+
+IMPORTANT: The main offer "${campaignOffer}" MUST appear prominently in each concept's copy and be the central message. Do not create generic brand concepts - focus specifically on this offer!
+=================================
+` : ''}
 
 Media Type: ${mediaInfo.name}
 Format: ${mediaInfo.format}
@@ -111,14 +126,17 @@ IMPORTANT: For radio spots:
 - Include notes for the narrator (tone, emphasis, pacing)
 - Suggest background music style if relevant
 - Include a catchy opening and strong call-to-action ending
+${campaignOffer ? `- The main message "${campaignOffer}" must be mentioned clearly at least twice in the script` : ''}
 ` : `
 The visual concepts should speak directly to this audience and highlight what makes this business special.
 Tailor the text length and style to fit ${mediaInfo.name}.
+${campaignOffer ? `CRITICAL: The main offer "${campaignOffer}" must be the central element in the copy and visual description. Every concept must prominently feature this offer!` : ''}
 `}
 
-Remember: Each concept needs a different angle - one emotional, one hard-sale focused, and one addressing a pain point the audience has.`;
+Remember: Each concept needs a different angle - one emotional, one hard-sale focused, and one addressing a pain point the audience has.
+${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${campaignOffer}"` : ''}`;
 
-    console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType);
+    console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType, 'Campaign offer:', campaignBrief?.offer);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
