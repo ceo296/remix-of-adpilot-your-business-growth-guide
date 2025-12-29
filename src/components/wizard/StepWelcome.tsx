@@ -2,8 +2,14 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, Heart, Upload, User, Building2, AlertCircle, FileText } from 'lucide-react';
+import { Sparkles, Heart, Upload, User, Building2, AlertCircle, FileText, X } from 'lucide-react';
 import { BrandingStudio } from './BrandingStudio';
+
+interface UploadedFile {
+  name: string;
+  type: string;
+  dataUrl: string;
+}
 
 interface StepWelcomeProps {
   onNext: (userName: string, brandName: string, logo: string | null, isAgency: boolean) => void;
@@ -12,33 +18,50 @@ interface StepWelcomeProps {
 const StepWelcome = ({ onNext }: StepWelcomeProps) => {
   const [userName, setUserName] = useState('');
   const [brandName, setBrandName] = useState('');
-  const [logo, setLogo] = useState<string | null>(null);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isAgency, setIsAgency] = useState<boolean | null>(null);
   const [showBrandingStudio, setShowBrandingStudio] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setLogo(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    const selectedFiles = e.target.files;
+    if (selectedFiles) {
+      Array.from(selectedFiles).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setFiles((prev) => [
+            ...prev,
+            {
+              name: file.name,
+              type: file.type,
+              dataUrl: event.target?.result as string,
+            },
+          ]);
+        };
+        reader.readAsDataURL(file);
+      });
+      // Clear input to allow re-uploading same file
+      e.target.value = '';
     }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleContinue = () => {
-    // Agencies don't need logo at this stage
-    const logoRequired = isAgency === false;
-    if (userName.trim() && brandName.trim() && isAgency !== null && (!logoRequired || logo)) {
-      onNext(userName.trim(), brandName.trim(), logo, isAgency);
+    // Agencies don't need files at this stage
+    const filesRequired = isAgency === false;
+    if (userName.trim() && brandName.trim() && isAgency !== null && (!filesRequired || files.length > 0)) {
+      // Pass first file as logo for backward compatibility
+      const logoData = files.length > 0 ? files[0].dataUrl : null;
+      onNext(userName.trim(), brandName.trim(), logoData, isAgency);
     }
   };
 
-  // Agencies don't need logo at this stage
-  const logoRequired = isAgency === false;
-  const isValid = userName.trim() && brandName.trim() && isAgency !== null && (!logoRequired || logo);
+  // Agencies don't need files at this stage
+  const filesRequired = isAgency === false;
+  const isValid = userName.trim() && brandName.trim() && isAgency !== null && (!filesRequired || files.length > 0);
 
   return (
     <>
@@ -138,46 +161,57 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   type="file"
                   accept="image/*,.pdf,application/pdf"
                   onChange={handleFileUpload}
+                  multiple
                   className="hidden"
                 />
                 
+                {/* Upload area */}
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className={`w-full h-24 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors cursor-pointer group ${
-                    logo 
-                      ? 'border-primary/50 bg-primary/5' 
-                      : 'border-muted-foreground/30 hover:border-primary/50'
-                  }`}
+                  className="w-full min-h-[80px] rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors cursor-pointer group border-muted-foreground/30 hover:border-primary/50"
                 >
-                  {logo ? (
-                    <div className="flex items-center gap-4 px-4">
-                      {logo.startsWith('data:application/pdf') ? (
-                        <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <FileText className="w-8 h-8 text-primary" />
-                        </div>
-                      ) : (
-                        <img 
-                          src={logo} 
-                          alt="Logo" 
-                          className="h-16 w-16 object-contain rounded-lg"
-                        />
-                      )}
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-foreground">
-                          {logo.startsWith('data:application/pdf') ? 'ספר מותג נטען' : 'הלוגו נטען בהצלחה'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">לחץ להחלפה</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center p-4 group-hover:scale-105 transition-transform">
-                      <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
-                      <span className="text-sm text-muted-foreground">לחץ להעלאה (תמונה או PDF)</span>
-                    </div>
-                  )}
+                  <div className="text-center p-4 group-hover:scale-105 transition-transform">
+                    <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
+                    <span className="text-sm text-muted-foreground">לחץ להעלאה (תמונות או PDF)</span>
+                  </div>
                 </div>
 
-                {!logo && (
+                {/* Uploaded files list */}
+                {files.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    {files.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-2 rounded-lg bg-primary/5 border border-primary/20"
+                      >
+                        {file.type.startsWith('image/') ? (
+                          <img
+                            src={file.dataUrl}
+                            alt={file.name}
+                            className="h-10 w-10 object-contain rounded"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 bg-primary/10 rounded flex items-center justify-center">
+                            <FileText className="w-5 h-5 text-primary" />
+                          </div>
+                        )}
+                        <span className="flex-1 text-sm text-foreground truncate">{file.name}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFile(index);
+                          }}
+                          className="p-1 hover:bg-destructive/10 rounded transition-colors"
+                        >
+                          <X className="w-4 h-4 text-destructive" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {files.length === 0 && (
                   <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 p-2 rounded-lg">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     <span>חובה להעלות לוגו או ספר מותג כדי ליצור קמפיינים מותאמים</span>
