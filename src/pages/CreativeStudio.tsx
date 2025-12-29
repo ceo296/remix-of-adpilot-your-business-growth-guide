@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, ZoomIn, Type, RefreshCw, MessageSquare, CheckCircle2, Pencil } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X } from 'lucide-react';
 import { AIChatWidget } from '@/components/chat/AIChatWidget';
-import { ImageEditor } from '@/components/studio/ImageEditor';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -192,7 +192,7 @@ const CreativeStudio = () => {
   const [showQuote, setShowQuote] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
-  const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
+  const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
@@ -1097,19 +1097,11 @@ const CreativeStudio = () => {
                           </div>
                         )}
                         {image.status !== 'rejected' && image.status !== 'pending' && (
-                          <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="secondary"
-                              onClick={() => setEditingImageUrl(image.url)}
-                            >
-                              <Pencil className="h-4 w-4 ml-1" />
-                              עריכה
-                            </Button>
-                            <Button size="sm" variant="secondary">
-                              <ZoomIn className="h-4 w-4 ml-1" />
-                              הגדלה
-                            </Button>
+                          <div 
+                            className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                            onClick={() => setEnlargedImageUrl(image.url)}
+                          >
+                            <span className="text-white text-sm font-medium">לחץ להגדלה</span>
                           </div>
                         )}
                       </div>
@@ -1220,24 +1212,24 @@ const CreativeStudio = () => {
         } : undefined}
       />
       
-      {/* Image Editor Modal */}
-      {editingImageUrl && (
-        <ImageEditor
-          imageUrl={editingImageUrl}
-          onClose={() => setEditingImageUrl(null)}
-          onSave={(dataUrl) => {
-            // Update the image in generatedImages
-            setGeneratedImages(prev => 
-              prev.map(img => 
-                img.url === editingImageUrl 
-                  ? { ...img, url: dataUrl }
-                  : img
-              )
-            );
-            setEditingImageUrl(null);
-          }}
-        />
-      )}
+      {/* Enlarged Image Modal */}
+      <Dialog open={!!enlargedImageUrl} onOpenChange={() => setEnlargedImageUrl(null)}>
+        <DialogContent className="max-w-4xl p-2">
+          <button 
+            onClick={() => setEnlargedImageUrl(null)}
+            className="absolute top-2 right-2 z-10 p-1 rounded-full bg-background/80 hover:bg-background transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          {enlargedImageUrl && (
+            <img 
+              src={enlargedImageUrl} 
+              alt="תמונה מוגדלת" 
+              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
