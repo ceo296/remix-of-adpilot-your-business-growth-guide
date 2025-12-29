@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Upload, Palette, Type, Check, ArrowRight, ArrowLeft, Pencil } from 'lucide-react';
+import { Upload, Palette, Type, Check, ArrowRight, ArrowLeft, Pencil, FileText } from 'lucide-react';
 
 interface StepBrandIdentityProps {
   data: WizardData;
@@ -120,25 +120,33 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,.pdf,application/pdf"
               onChange={handleLogoUpload}
               className="hidden"
             />
             
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="w-32 h-32 mx-auto rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden hover:border-primary/50 transition-colors"
+              className="w-32 h-32 mx-auto rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden hover:border-primary/50 transition-colors cursor-pointer"
             >
               {data.brand.logo ? (
-                <img 
-                  src={data.brand.logo} 
-                  alt="Logo" 
-                  className="w-full h-full object-contain"
-                />
+                data.brand.logo.startsWith('data:application/pdf') ? (
+                  <div className="w-full h-full bg-primary/10 flex flex-col items-center justify-center">
+                    <FileText className="w-10 h-10 text-primary mb-1" />
+                    <span className="text-xs text-primary">ספר מותג</span>
+                  </div>
+                ) : (
+                  <img 
+                    src={data.brand.logo} 
+                    alt="Logo" 
+                    className="w-full h-full object-contain"
+                  />
+                )
               ) : (
                 <div className="text-center p-4">
                   <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
                   <span className="text-xs text-muted-foreground">לחץ להעלאה</span>
+                  <span className="text-[10px] text-muted-foreground block">(תמונה או PDF)</span>
                 </div>
               )}
             </div>

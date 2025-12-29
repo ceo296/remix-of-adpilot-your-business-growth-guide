@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, Heart, Upload, User, Building2, AlertCircle } from 'lucide-react';
+import { Sparkles, Heart, Upload, User, Building2, AlertCircle, FileText } from 'lucide-react';
 import { BrandingStudio } from './BrandingStudio';
 
 interface StepWelcomeProps {
@@ -136,7 +136,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.pdf,application/pdf"
                   onChange={handleLogoUpload}
                   className="hidden"
                 />
@@ -151,20 +151,28 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                 >
                   {logo ? (
                     <div className="flex items-center gap-4 px-4">
-                      <img 
-                        src={logo} 
-                        alt="Logo" 
-                        className="h-16 w-16 object-contain rounded-lg"
-                      />
+                      {logo.startsWith('data:application/pdf') ? (
+                        <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-primary" />
+                        </div>
+                      ) : (
+                        <img 
+                          src={logo} 
+                          alt="Logo" 
+                          className="h-16 w-16 object-contain rounded-lg"
+                        />
+                      )}
                       <div className="text-right">
-                        <p className="text-sm font-medium text-foreground">הלוגו נטען בהצלחה</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {logo.startsWith('data:application/pdf') ? 'ספר מותג נטען' : 'הלוגו נטען בהצלחה'}
+                        </p>
                         <p className="text-xs text-muted-foreground">לחץ להחלפה</p>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center p-4 group-hover:scale-105 transition-transform">
                       <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
-                      <span className="text-sm text-muted-foreground">לחץ להעלאה</span>
+                      <span className="text-sm text-muted-foreground">לחץ להעלאה (תמונה או PDF)</span>
                     </div>
                   )}
                 </div>
