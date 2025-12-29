@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { 
   Zap, 
   Layers, 
@@ -22,12 +24,16 @@ import {
   Youtube,
   Facebook,
   Instagram,
-  Type
+  Type,
+  Palette,
+  ArrowLeftRight,
+  History
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type CampaignStructure = 'single' | 'series';
 export type CampaignGoal = 'awareness' | 'promotion' | 'launch' | 'seasonal' | 'other';
+export type ColorMode = 'brand' | 'swapped' | 'continue-past';
 
 export type ContactSelection = {
   phone: boolean;
@@ -40,12 +46,20 @@ export type ContactSelection = {
   customText: string;
 };
 
+export type ColorSelection = {
+  mode: ColorMode;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  backgroundColor: string | null;
+};
+
 export interface CampaignBrief {
   title: string;
   offer: string;
   goal: CampaignGoal | null;
   structure: CampaignStructure | null;
   contactSelection: ContactSelection;
+  colorSelection: ColorSelection;
 }
 
 export interface ContactInfo {
@@ -58,11 +72,18 @@ export interface ContactInfo {
   social_instagram?: string | null;
 }
 
+export interface BrandColors {
+  primary_color?: string | null;
+  secondary_color?: string | null;
+  background_color?: string | null;
+}
+
 interface StudioBriefStepProps {
   value: CampaignBrief;
   onChange: (brief: CampaignBrief) => void;
   businessName?: string;
   contactInfo?: ContactInfo;
+  brandColors?: BrandColors;
 }
 
 const GOAL_OPTIONS: { id: CampaignGoal; label: string; description: string; icon: React.ElementType }[] = [
@@ -72,7 +93,7 @@ const GOAL_OPTIONS: { id: CampaignGoal; label: string; description: string; icon
   { id: 'seasonal', label: 'עונתי / חג', description: 'קמפיין לרגל אירוע או עונה', icon: Calendar },
 ];
 
-export const StudioBriefStep = ({ value, onChange, businessName, contactInfo }: StudioBriefStepProps) => {
+export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors }: StudioBriefStepProps) => {
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
   };
@@ -87,6 +108,31 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo }: 
     });
   };
 
+  const setColorMode = (mode: ColorMode) => {
+    if (mode === 'swapped' && brandColors) {
+      // When swapping, set the swapped colors
+      onChange({
+        ...value,
+        colorSelection: {
+          mode: 'swapped',
+          primaryColor: brandColors.secondary_color || null,
+          secondaryColor: brandColors.primary_color || null,
+          backgroundColor: brandColors.background_color || null,
+        },
+      });
+    } else {
+      onChange({
+        ...value,
+        colorSelection: {
+          mode,
+          primaryColor: null,
+          secondaryColor: null,
+          backgroundColor: null,
+        },
+      });
+    }
+  };
+
   const hasAnyContact = contactInfo && (
     contactInfo.contact_phone || 
     contactInfo.contact_whatsapp || 
@@ -96,6 +142,8 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo }: 
     contactInfo.social_facebook ||
     contactInfo.social_instagram
   );
+
+  const hasBrandColors = brandColors && (brandColors.primary_color || brandColors.secondary_color);
 
   const updateCustomText = (text: string) => {
     onChange({
@@ -282,6 +330,172 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo }: 
               ? '💡 פרסום נקודתי מתאים כשרוצים להעביר מסר ברור ומהיר, כמו מבצע קצר או הודעה חשובה.'
               : '💡 סדרה מתאימה כשרוצים לבנות נרטיב לאורך זמן, כמו השקה מדורגת או סיפור מותג.'}
           </p>
+        </div>
+      )}
+
+      {/* Brand Colors Selection */}
+      {hasBrandColors && (
+        <div className="space-y-4 animate-fade-in">
+          <Label className="text-foreground font-medium flex items-center gap-2">
+            <Palette className="w-4 h-4 text-primary" />
+            צבעי המותג לקמפיין
+          </Label>
+          
+          {/* Color Preview */}
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              {/* Color Mode Selection */}
+              <div className="grid grid-cols-3 border-b">
+                {/* Brand Colors (Default) */}
+                <button
+                  type="button"
+                  className={cn(
+                    'p-4 text-center transition-all border-l',
+                    value.colorSelection.mode === 'brand'
+                      ? 'bg-primary/10 border-b-2 border-b-primary'
+                      : 'hover:bg-muted/50'
+                  )}
+                  onClick={() => setColorMode('brand')}
+                >
+                  <div className="flex justify-center gap-2 mb-2">
+                    <div 
+                      className="w-8 h-8 rounded-full border-2 border-white shadow-md"
+                      style={{ backgroundColor: brandColors?.primary_color || '#E31E24' }}
+                    />
+                    <div 
+                      className="w-6 h-6 rounded-full border-2 border-white shadow-md mt-1"
+                      style={{ backgroundColor: brandColors?.secondary_color || '#000000' }}
+                    />
+                  </div>
+                  <p className="text-sm font-medium">צבעי המותג</p>
+                  <p className="text-xs text-muted-foreground">כפי שהגדרת</p>
+                </button>
+
+                {/* Swapped Colors */}
+                <button
+                  type="button"
+                  className={cn(
+                    'p-4 text-center transition-all border-l',
+                    value.colorSelection.mode === 'swapped'
+                      ? 'bg-primary/10 border-b-2 border-b-primary'
+                      : 'hover:bg-muted/50'
+                  )}
+                  onClick={() => setColorMode('swapped')}
+                >
+                  <div className="flex justify-center gap-2 mb-2">
+                    <div 
+                      className="w-8 h-8 rounded-full border-2 border-white shadow-md"
+                      style={{ backgroundColor: brandColors?.secondary_color || '#000000' }}
+                    />
+                    <div 
+                      className="w-6 h-6 rounded-full border-2 border-white shadow-md mt-1"
+                      style={{ backgroundColor: brandColors?.primary_color || '#E31E24' }}
+                    />
+                    <ArrowLeftRight className="w-4 h-4 text-muted-foreground absolute" />
+                  </div>
+                  <p className="text-sm font-medium">החלפת צבעים</p>
+                  <p className="text-xs text-muted-foreground">ראשי ↔ משני</p>
+                </button>
+
+                {/* Continue Past Design */}
+                <button
+                  type="button"
+                  className={cn(
+                    'p-4 text-center transition-all',
+                    value.colorSelection.mode === 'continue-past'
+                      ? 'bg-primary/10 border-b-2 border-b-primary'
+                      : 'hover:bg-muted/50'
+                  )}
+                  onClick={() => setColorMode('continue-past')}
+                >
+                  <div className="flex justify-center mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                      <History className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  </div>
+                  <p className="text-sm font-medium">המשך קו עיצובי</p>
+                  <p className="text-xs text-muted-foreground">מהקמפיין האחרון</p>
+                </button>
+              </div>
+
+              {/* Selected Mode Preview */}
+              <div className="p-4">
+                {value.colorSelection.mode === 'brand' && (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-10 h-10 rounded-lg border shadow-sm"
+                        style={{ backgroundColor: brandColors?.primary_color || '#E31E24' }}
+                      />
+                      <div className="text-sm">
+                        <p className="font-medium">ראשי</p>
+                        <p className="text-muted-foreground text-xs" dir="ltr">{brandColors?.primary_color}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-10 h-10 rounded-lg border shadow-sm"
+                        style={{ backgroundColor: brandColors?.secondary_color || '#000000' }}
+                      />
+                      <div className="text-sm">
+                        <p className="font-medium">משני</p>
+                        <p className="text-muted-foreground text-xs" dir="ltr">{brandColors?.secondary_color}</p>
+                      </div>
+                    </div>
+                    {brandColors?.background_color && (
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-10 h-10 rounded-lg border shadow-sm"
+                          style={{ backgroundColor: brandColors.background_color }}
+                        />
+                        <div className="text-sm">
+                          <p className="font-medium">רקע</p>
+                          <p className="text-muted-foreground text-xs" dir="ltr">{brandColors.background_color}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {value.colorSelection.mode === 'swapped' && (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-10 h-10 rounded-lg border shadow-sm"
+                        style={{ backgroundColor: brandColors?.secondary_color || '#000000' }}
+                      />
+                      <div className="text-sm">
+                        <p className="font-medium">ראשי (הוחלף)</p>
+                        <p className="text-muted-foreground text-xs" dir="ltr">{brandColors?.secondary_color}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-10 h-10 rounded-lg border shadow-sm"
+                        style={{ backgroundColor: brandColors?.primary_color || '#E31E24' }}
+                      />
+                      <div className="text-sm">
+                        <p className="font-medium">משני (הוחלף)</p>
+                        <p className="text-muted-foreground text-xs" dir="ltr">{brandColors?.primary_color}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {value.colorSelection.mode === 'continue-past' && (
+                  <div className="text-center py-2">
+                    <p className="text-sm text-muted-foreground">
+                      העיצוב ימשיך את הקו הגרפי של הקמפיין האחרון שלך
+                    </p>
+                    <Badge variant="secondary" className="mt-2">
+                      <History className="w-3 h-3 ml-1" />
+                      מבוסס על היסטוריה
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 

@@ -167,6 +167,12 @@ const CreativeStudio = () => {
       instagram: false,
       customText: '',
     },
+    colorSelection: {
+      mode: 'brand',
+      primaryColor: null,
+      secondaryColor: null,
+      backgroundColor: null,
+    },
   });
   const [mediaType, setMediaType] = useState<MediaType | null>(null);
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
@@ -317,22 +323,30 @@ const CreativeStudio = () => {
       const results: GeneratedImage[] = [];
       
       // Generate 4 variations
-      // Build brand context for AI
+      // Build brand context for AI - use campaign color selection if set
+      const colorSelection = campaignBrief.colorSelection;
+      const effectiveColors = {
+        primary: colorSelection.mode === 'swapped' 
+          ? colorSelection.primaryColor || clientProfile?.secondary_color 
+          : clientProfile?.primary_color,
+        secondary: colorSelection.mode === 'swapped' 
+          ? colorSelection.secondaryColor || clientProfile?.primary_color 
+          : clientProfile?.secondary_color,
+        background: colorSelection.backgroundColor || clientProfile?.background_color,
+      };
+
       const brandContext = clientProfile ? {
         businessName: clientProfile.business_name,
         targetAudience: clientProfile.target_audience,
         primaryXFactor: clientProfile.primary_x_factor,
         winningFeature: clientProfile.winning_feature,
         xFactors: clientProfile.x_factors,
-        colors: {
-          primary: clientProfile.primary_color,
-          secondary: clientProfile.secondary_color,
-          background: clientProfile.background_color,
-        },
+        colors: effectiveColors,
         fonts: {
           header: clientProfile.header_font,
           body: clientProfile.body_font,
         },
+        colorMode: colorSelection.mode, // 'brand', 'swapped', or 'continue-past'
       } : null;
 
       // Build campaign context
@@ -447,6 +461,12 @@ const CreativeStudio = () => {
         facebook: false,
         instagram: false,
         customText: '',
+      },
+      colorSelection: {
+        mode: 'brand',
+        primaryColor: null,
+        secondaryColor: null,
+        backgroundColor: null,
       },
     });
     setMediaType(null);
@@ -734,6 +754,11 @@ const CreativeStudio = () => {
               contact_youtube: clientProfile.contact_youtube,
               social_facebook: clientProfile.social_facebook,
               social_instagram: clientProfile.social_instagram,
+            } : undefined}
+            brandColors={clientProfile ? {
+              primary_color: clientProfile.primary_color,
+              secondary_color: clientProfile.secondary_color,
+              background_color: clientProfile.background_color,
             } : undefined}
           />
         );
