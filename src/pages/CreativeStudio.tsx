@@ -1049,7 +1049,10 @@ const CreativeStudio = () => {
                 הסקיצות שלך
               </h2>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={resetWizard}>
+                <Button variant="outline" onClick={() => {
+                  setShowResults(false);
+                  setCurrentStep(0);
+                }}>
                   התחל מחדש
                 </Button>
               </div>
@@ -1123,7 +1126,7 @@ const CreativeStudio = () => {
                           variant="outline"
                           size="lg"
                           onClick={() => setFeedbackMode('another-round')}
-                          className="gap-2"
+                          className="gap-2 bg-card border-2 border-border hover:bg-muted"
                         >
                           <RefreshCw className="h-5 w-5" />
                           אשמח לעוד סבב סקיצות
@@ -1132,7 +1135,7 @@ const CreativeStudio = () => {
                           variant="outline"
                           size="lg"
                           onClick={() => setFeedbackMode('small-fixes')}
-                          className="gap-2"
+                          className="gap-2 bg-card border-2 border-border hover:bg-muted"
                         >
                           <MessageSquare className="h-5 w-5" />
                           אהבתי! יש לי כמה תיקונים
