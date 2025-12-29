@@ -93,6 +93,24 @@ export const useAdminClients = () => {
     await fetchClients();
   };
 
+  const createClient = async (businessName: string) => {
+    if (!isAdmin || !user) throw new Error('Only admins can create clients');
+    
+    const { data, error } = await supabase
+      .from('client_profiles')
+      .insert({
+        business_name: businessName,
+        user_id: user.id,
+        onboarding_completed: false,
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    await fetchClients();
+    return data;
+  };
+
   return {
     isAdmin,
     clients,
@@ -101,6 +119,7 @@ export const useAdminClients = () => {
     setSelectedClientId,
     loading,
     resetClient,
+    createClient,
     refetch: fetchClients,
   };
 };
