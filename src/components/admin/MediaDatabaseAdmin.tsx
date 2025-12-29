@@ -262,6 +262,13 @@ const MediaDatabaseAdmin = () => {
     { id: 246, category: 'digital', outlet: 'המחדש', name: 'באנר 600×160', size: '600×160 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
     { id: 247, category: 'digital', outlet: 'המחדש', name: 'באנר 200×800', size: '200×800 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
     
+    // דיגיטל - הדרן
+    { id: 250, category: 'digital', outlet: 'הדרן', name: 'באנר', size: '50×320 px', notes: 'JPEG/GIF עד חצי מגה', pubDay: '' },
+    { id: 251, category: 'digital', outlet: 'הדרן', name: 'מעברון', size: '450×320 px', notes: 'JPEG/GIF עד חצי מגה', pubDay: '' },
+    { id: 252, category: 'digital', outlet: 'הדרן', name: 'פוש', size: '350×700 px', notes: 'כותרת 8 מילים, טקסט מורחב עד 40 מילים כולל לינק', pubDay: '' },
+    { id: 253, category: 'digital', outlet: 'הדרן', name: 'מדמה תוכן', size: '350×700 px', notes: 'JPEG/GIF עד חצי מגה, כותרת+כותרת משנה 8 מילים כל אחת', pubDay: '' },
+    { id: 254, category: 'digital', outlet: 'הדרן', name: 'קובץ וידאו', size: '16:9', notes: 'עד 10 מ"ב', pubDay: '' },
+    
     // פרסום חוצות - לוחות קיר
     { id: 30, category: 'outdoor', outlet: 'לוחות קיר', name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
     { id: 31, category: 'outdoor', outlet: 'לוחות קיר', name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
