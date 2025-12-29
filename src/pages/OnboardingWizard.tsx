@@ -146,12 +146,50 @@ const OnboardingWizard = () => {
     }
   };
 
+  const extractColorsFromLogo = async (imageDataUrl: string): Promise<{ primary: string; secondary: string; background: string } | null> => {
+    try {
+      // Only extract colors from images, not PDFs
+      if (imageDataUrl.startsWith('data:application/pdf')) {
+        return null;
+      }
+
+      const { data, error } = await supabase.functions.invoke('extract-logo-colors', {
+        body: { imageBase64: imageDataUrl }
+      });
+
+      if (error) {
+        console.error('Error extracting colors:', error);
+        return null;
+      }
+
+      if (data?.colors) {
+        return data.colors;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error calling extract-logo-colors:', error);
+      return null;
+    }
+  };
+
   const handleWelcomeComplete = async (userName: string, brandName: string, logo: string | null, isAgencyUser: boolean) => {
     setIsAgency(isAgencyUser);
     
     // Upload logo to storage if provided
     let logoUrl: string | null = null;
+    let extractedColors: { primary: string; secondary: string; background: string } | null = null;
+    
     if (logo && user) {
+      // Extract colors from logo using AI (before uploading)
+      toast.loading('מנתח צבעים מהלוגו...', { id: 'color-extract' });
+      extractedColors = await extractColorsFromLogo(logo);
+      toast.dismiss('color-extract');
+      
+      if (extractedColors) {
+        toast.success('צבעים חולצו בהצלחה מהלוגו!');
+      }
+      
+      // Upload logo to storage
       logoUrl = await uploadLogoToStorage(logo, user.id);
     }
     
@@ -161,7 +199,13 @@ const OnboardingWizard = () => {
       brand: {
         ...prev.brand,
         name: brandName,
-        logo: logoUrl || logo, // Use uploaded URL or fallback to data URL
+        logo: logoUrl || logo,
+        // Use extracted colors if available
+        colors: extractedColors ? {
+          primary: extractedColors.primary,
+          secondary: extractedColors.secondary,
+          background: extractedColors.background,
+        } : prev.brand.colors,
       },
     }));
     toast.success(`שלום ${userName}! נעים להכיר`);
