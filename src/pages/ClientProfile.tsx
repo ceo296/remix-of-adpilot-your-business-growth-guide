@@ -47,6 +47,7 @@ const ClientProfilePage = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExtractingColors, setIsExtractingColors] = useState(false);
   
   // Editable fields
   const [businessName, setBusinessName] = useState(profile?.business_name || '');
@@ -130,6 +131,54 @@ const ClientProfilePage = () => {
       toast.error(error.message || 'שגיאה בעדכון הפרופיל');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleExtractColorsFromLogo = async () => {
+    if (!profile.logo_url) {
+      toast.error('אין לוגו בפרופיל');
+      return;
+    }
+
+    if (profile.logo_url.toLowerCase().endsWith('.pdf')) {
+      toast.error('לא ניתן לחלץ צבעים מקובץ PDF. נא להעלות לוגו כתמונה.');
+      return;
+    }
+
+    setIsExtractingColors(true);
+    toast.loading('מנתח צבעים מהלוגו...', { id: 'profile-color-extract' });
+
+    try {
+      const { data, error } = await supabase.functions.invoke('extract-logo-colors', {
+        body: { imageUrl: profile.logo_url },
+      });
+
+      if (error) {
+        // supabase-js wraps non-2xx errors into `error`
+        throw error;
+      }
+
+      const colors = data?.colors as { primary: string; secondary: string; background: string } | undefined;
+      if (!colors?.primary || !colors?.secondary || !colors?.background) {
+        throw new Error('לא התקבלו צבעים מהניתוח');
+      }
+
+      await updateProfile({
+        primary_color: colors.primary,
+        secondary_color: colors.secondary,
+        background_color: colors.background,
+      } as any);
+
+      setPrimaryColor(colors.primary);
+      setSecondaryColor(colors.secondary);
+
+      toast.success('עודכנתי צבעי המותג לפי הלוגו');
+    } catch (e: any) {
+      const msg = typeof e?.message === 'string' ? e.message : 'שגיאה בחילוץ צבעים מהלוגו';
+      toast.error(msg);
+    } finally {
+      toast.dismiss('profile-color-extract');
+      setIsExtractingColors(false);
     }
   };
 
@@ -227,7 +276,19 @@ const ClientProfilePage = () => {
             <Separator />
 
             <div>
-              <Label>צבעי המותג</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label>צבעי המותג</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExtractColorsFromLogo}
+                  disabled={isExtractingColors || !profile.logo_url || profile.logo_url.toLowerCase().endsWith('.pdf')}
+                >
+                  <Sparkles className="w-4 h-4 ml-2" />
+                  {isExtractingColors ? 'מחלץ...' : 'חלץ מהלוגו'}
+                </Button>
+              </div>
               <div className="flex items-center gap-4 mt-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">ראשי:</span>
@@ -262,6 +323,9 @@ const ClientProfilePage = () => {
                   )}
                 </div>
               </div>
+              {profile.logo_url?.toLowerCase().endsWith('.pdf') && (
+                <p className="text-xs text-muted-foreground mt-2">הלוגו הוא PDF, לכן כפתור החילוץ מושבת.</p>
+              )}
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
