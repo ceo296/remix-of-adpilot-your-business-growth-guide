@@ -252,6 +252,16 @@ const MediaDatabaseAdmin = () => {
     { id: 233, category: 'digital', outlet: 'הדיברות', name: '920×720', size: '920×720 px', notes: '', pubDay: '' },
     { id: 234, category: 'digital', outlet: 'הדיברות', name: '150×800', size: '150×800 px', notes: '', pubDay: '' },
     
+    // דיגיטל - המחדש
+    { id: 240, category: 'digital', outlet: 'המחדש', name: 'באנר 250×300', size: '250×300 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
+    { id: 241, category: 'digital', outlet: 'המחדש', name: 'באנר 100×320', size: '100×320 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
+    { id: 242, category: 'digital', outlet: 'המחדש', name: 'באנר 50×320', size: '50×320 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
+    { id: 243, category: 'digital', outlet: 'המחדש', name: 'באנר 90×728', size: '90×728 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
+    { id: 244, category: 'digital', outlet: 'המחדש', name: 'באנר 100×1140', size: '100×1140 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
+    { id: 245, category: 'digital', outlet: 'המחדש', name: 'באנר 60×1140', size: '60×1140 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
+    { id: 246, category: 'digital', outlet: 'המחדש', name: 'באנר 600×160', size: '600×160 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
+    { id: 247, category: 'digital', outlet: 'המחדש', name: 'באנר 200×800', size: '200×800 px', notes: 'GIF/JPEG עדיף, HTML אפשרי', pubDay: '' },
+    
     // פרסום חוצות - לוחות קיר
     { id: 30, category: 'outdoor', outlet: 'לוחות קיר', name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
     { id: 31, category: 'outdoor', outlet: 'לוחות קיר', name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
