@@ -49,15 +49,17 @@ Return ONLY a valid JSON object with this exact structure:
   "background": "#XXXXXX"
 }
 
-Rules:
+Rules (follow strictly):
 - Use ONLY 6-digit hex color codes (e.g., #FF5733)
 - No explanation, no markdown, JSON only
-- Primary: the main brand color users should use for headlines/buttons
-  - If it's a text-heavy wordmark, the text color is usually primary
-  - If there is a small bright accent (e.g., a dot/mark) and most of the logo text is another color, the text color should be primary
-- Secondary: the next most used brand color (often the accent)
-- Background: the canvas/background behind the logo; if uncertain use #FFFFFF
-- If the logo is monochrome, set secondary to the same as primary`; 
+- Primary MUST be the main brand color used for the logo wordmark / main text / main shape.
+  - For text-heavy wordmarks: the text color is primary.
+  - If there is a small bright accent (dot, underline, icon) and the main wordmark text is another color, the text color MUST be primary and the accent is secondary.
+  - Do NOT pick a small accent as primary even if it is brighter.
+- Secondary is the next most-used brand color (often the accent).
+- Background is the canvas behind the logo; if uncertain use #FFFFFF.
+- If the logo is monochrome, set secondary to the same as primary.
+- If both near-black (#000000-ish) and a bright accent (red/blue/etc.) appear in a wordmark, prefer near-black as primary and the bright accent as secondary.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
