@@ -245,6 +245,13 @@ const MediaDatabaseAdmin = () => {
     { id: 223, category: 'digital', outlet: 'גוגל רספונסיבי', name: 'לוגו ריבועי', size: '1200×1200 px', notes: 'לוגו ריבועי', pubDay: '' },
     { id: 224, category: 'digital', outlet: 'גוגל רספונסיבי', name: 'לוגו אופקי', size: '1200×300 px', notes: 'לוגו אופקי', pubDay: '' },
     
+    // דיגיטל - הדיברות
+    { id: 230, category: 'digital', outlet: 'הדיברות', name: '460×340', size: '460×340 px', notes: '', pubDay: '' },
+    { id: 231, category: 'digital', outlet: 'הדיברות', name: '100×720', size: '100×720 px', notes: '', pubDay: '' },
+    { id: 232, category: 'digital', outlet: 'הדיברות', name: '460×720', size: '460×720 px', notes: '', pubDay: '' },
+    { id: 233, category: 'digital', outlet: 'הדיברות', name: '920×720', size: '920×720 px', notes: '', pubDay: '' },
+    { id: 234, category: 'digital', outlet: 'הדיברות', name: '150×800', size: '150×800 px', notes: '', pubDay: '' },
+    
     // פרסום חוצות - לוחות קיר
     { id: 30, category: 'outdoor', outlet: 'לוחות קיר', name: 'לוח קיר', size: '15×15 ס"מ', notes: '', pubDay: '' },
     { id: 31, category: 'outdoor', outlet: 'לוחות קיר', name: 'לוח קיר שער', size: 'גובה 22 × רוחב 15.8 ס"מ', notes: '', pubDay: '' },
