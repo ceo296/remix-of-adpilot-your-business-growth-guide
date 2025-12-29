@@ -26,7 +26,8 @@ import {
   ArrowRight,
   X,
   Plus,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -203,7 +204,13 @@ const ClientProfilePage = () => {
               <div>
                 <Label>לוגו</Label>
                 {profile.logo_url ? (
-                  <img src={profile.logo_url} alt="Logo" className="h-12 mt-1 object-contain" />
+                  profile.logo_url.toLowerCase().endsWith('.pdf') ? (
+                    <div className="h-12 w-12 mt-1 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <FileText className="w-6 h-6 text-primary" />
+                    </div>
+                  ) : (
+                    <img src={profile.logo_url} alt="Logo" className="h-12 mt-1 object-contain" />
+                  )
                 ) : (
                   <div className="flex items-center gap-2 mt-1">
                     <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">

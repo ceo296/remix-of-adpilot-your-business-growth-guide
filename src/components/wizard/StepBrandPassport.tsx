@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -143,11 +143,15 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
               </div>
               {data.brand.logo && (
                 <div className="w-16 h-16 rounded-xl bg-white p-2 flex items-center justify-center">
-                  <img 
-                    src={data.brand.logo} 
-                    alt="Logo" 
-                    className="max-w-full max-h-full object-contain"
-                  />
+                  {data.brand.logo.toLowerCase().endsWith('.pdf') ? (
+                    <FileText className="w-8 h-8 text-primary" />
+                  ) : (
+                    <img 
+                      src={data.brand.logo} 
+                      alt="Logo" 
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  )}
                 </div>
               )}
             </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Sparkles, Pencil } from 'lucide-react';
+import { Building2, Sparkles, Pencil, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -62,6 +62,9 @@ const BusinessIdCard = () => {
     );
   }
 
+  // Check if logo is a PDF
+  const isPdfLogo = profile.logo_url?.toLowerCase().endsWith('.pdf');
+
   return (
     <Card className="overflow-hidden">
       {/* Compact Header with Brand Colors */}
@@ -74,7 +77,11 @@ const BusinessIdCard = () => {
         {/* Logo */}
         <div className="w-12 h-12 rounded-xl bg-card shadow-lg flex items-center justify-center ml-4">
           {profile.logo_url ? (
-            <img src={profile.logo_url} alt={profile.business_name} className="w-full h-full object-contain rounded-lg" />
+            isPdfLogo ? (
+              <FileText className="w-6 h-6 text-primary" />
+            ) : (
+              <img src={profile.logo_url} alt={profile.business_name} className="w-full h-full object-contain rounded-lg" />
+            )
           ) : (
             <Building2 className="w-6 h-6 text-muted-foreground" />
           )}
