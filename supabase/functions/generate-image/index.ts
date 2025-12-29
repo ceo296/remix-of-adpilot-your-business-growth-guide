@@ -42,8 +42,8 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions } = await req.json();
-    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId });
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext } = await req.json();
+    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, brandContext: !!brandContext, campaignContext: !!campaignContext });
 
     // Get style description
     const styleDesc = STYLE_DESCRIPTIONS[style] || STYLE_DESCRIPTIONS['ultra-realistic'];
@@ -51,6 +51,41 @@ serve(async (req) => {
     // Get template-specific prompts if available
     const templatePrompt = templateId ? TEMPLATE_PROMPTS[templateId] || '' : '';
     const additionalHints = templateHints || '';
+
+    // Build brand identity section for prompt
+    let brandSection = '';
+    if (brandContext) {
+      const colorParts: string[] = [];
+      if (brandContext.colors?.primary) colorParts.push(`Primary brand color: ${brandContext.colors.primary}`);
+      if (brandContext.colors?.secondary) colorParts.push(`Secondary brand color: ${brandContext.colors.secondary}`);
+      if (brandContext.colors?.background) colorParts.push(`Background color: ${brandContext.colors.background}`);
+      
+      brandSection = `
+BRAND IDENTITY:
+- Business: ${brandContext.businessName || 'N/A'}
+- Target Audience: ${brandContext.targetAudience || 'General Haredi audience'}
+- Key Differentiator (X-Factor): ${brandContext.primaryXFactor || 'Quality and service'}
+- Winning Feature: ${brandContext.winningFeature || ''}
+${brandContext.xFactors?.length ? `- Brand Values: ${brandContext.xFactors.join(', ')}` : ''}
+${colorParts.length > 0 ? `\nBRAND COLORS (MUST USE THESE PROMINENTLY):
+${colorParts.join('\n')}
+The design MUST incorporate these exact brand colors as the dominant colors in the composition.` : ''}
+${brandContext.fonts?.header ? `- Headline Font Style: ${brandContext.fonts.header}` : ''}`;
+    }
+
+    // Build campaign section for prompt
+    let campaignSection = '';
+    if (campaignContext) {
+      campaignSection = `
+CAMPAIGN BRIEF:
+- Campaign Name: ${campaignContext.title || 'Marketing Campaign'}
+- Main Offer/Message: ${campaignContext.offer || visualPrompt}
+- Campaign Goal: ${campaignContext.goal === 'awareness' ? 'Brand Awareness' : 
+                   campaignContext.goal === 'promotion' ? 'Sale/Promotion' :
+                   campaignContext.goal === 'launch' ? 'Product Launch' :
+                   campaignContext.goal === 'seasonal' ? 'Seasonal/Holiday' : 'General Marketing'}
+The creative MUST clearly communicate the main offer: "${campaignContext.offer}"`;
+    }
 
     // Build enhanced prompt
     let fullPrompt = '';
@@ -60,6 +95,8 @@ serve(async (req) => {
       fullPrompt = `Create a stunning professional advertisement image.
 
 STYLE: ${styleDesc}
+${brandSection}
+${campaignSection}
 
 ${templatePrompt ? `FORMAT: ${templatePrompt}` : ''}
 
@@ -82,13 +119,17 @@ CRITICAL REQUIREMENTS:
 - If showing people: modest dress only (long sleeves, covered legs for women; traditional attire for men)
 - Family-friendly, dignified atmosphere
 - Professional advertising quality
-- Commercial-grade composition and lighting`;
+- Commercial-grade composition and lighting
+${brandContext?.colors?.primary ? `- USE THE BRAND COLORS (${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}) AS THE DOMINANT COLORS` : ''}
+${campaignContext?.offer ? `- The main message "${campaignContext.offer}" should be the central focus` : ''}`;
 
     } else {
       // Flux model for non-text photorealism
       fullPrompt = `Create a photorealistic commercial image.
 
 STYLE: ${styleDesc}
+${brandSection}
+${campaignSection}
 
 ${templatePrompt ? `FORMAT: ${templatePrompt}` : ''}
 
@@ -101,7 +142,8 @@ REQUIREMENTS:
 - Professional lighting and composition
 - No text in image
 - Haredi audience appropriate - absolute modesty
-- Commercial advertising quality`;
+- Commercial advertising quality
+${brandContext?.colors?.primary ? `- Color scheme should align with brand colors: ${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}` : ''}`;
     }
 
     console.log("Enhanced prompt:", fullPrompt);
