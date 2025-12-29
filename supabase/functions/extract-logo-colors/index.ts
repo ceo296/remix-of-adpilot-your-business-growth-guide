@@ -25,30 +25,39 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Normalize base64 inputs (support both full data URLs and raw base64 strings)
+    const normalizedBase64 = imageBase64
+      ? (imageBase64.startsWith("data:") ? imageBase64 : `data:image/png;base64,${imageBase64}`)
+      : null;
+
     // Use base64 if provided, otherwise use URL
-    const imageContent = imageBase64 || imageUrl;
-    const isBase64 = !!imageBase64;
+    const imageContent = normalizedBase64 || imageUrl;
+    const isBase64 = !!normalizedBase64;
 
-    const systemPrompt = `You are a professional color analyst. Analyze the provided logo image and extract the dominant colors.
+    console.log("extract-logo-colors input:", {
+      hasImageUrl: !!imageUrl,
+      hasImageBase64: !!imageBase64,
+      base64Prefix: typeof imageBase64 === "string" ? imageBase64.slice(0, 32) : null,
+    });
 
-Your task:
-1. Identify the PRIMARY color (the most prominent/dominant brand color)
-2. Identify the SECONDARY color (the second most prominent color, or black if not clear)
-3. Identify the BACKGROUND color (usually white or the background of the logo)
+    const systemPrompt = `You are a professional brand color analyst. Analyze the provided logo image and extract the dominant BRAND colors.
 
 Return ONLY a valid JSON object with this exact structure:
 {
   "primary": "#XXXXXX",
-  "secondary": "#XXXXXX", 
+  "secondary": "#XXXXXX",
   "background": "#XXXXXX"
 }
 
 Rules:
-- Use ONLY hex color codes (6 characters, e.g., #FF5733)
-- Do not include any explanation, just the JSON
-- If the logo has multiple prominent colors, choose the most distinctive one as primary
-- For text-heavy logos, the text color is often the primary color
-- If unsure about background, default to #FFFFFF (white)`;
+- Use ONLY 6-digit hex color codes (e.g., #FF5733)
+- No explanation, no markdown, JSON only
+- Primary: the main brand color users should use for headlines/buttons
+  - If it's a text-heavy wordmark, the text color is usually primary
+  - If there is a small bright accent (e.g., a dot/mark) and most of the logo text is another color, the text color should be primary
+- Secondary: the next most used brand color (often the accent)
+- Background: the canvas/background behind the logo; if uncertain use #FFFFFF
+- If the logo is monochrome, set secondary to the same as primary`; 
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -57,7 +66,7 @@ Rules:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: systemPrompt },
           {
@@ -65,16 +74,16 @@ Rules:
             content: [
               {
                 type: "text",
-                text: "Analyze this logo and extract the color palette. Return only the JSON with primary, secondary, and background colors."
+                text: "Analyze this logo and extract the color palette. Return only the JSON with primary, secondary, and background colors.",
               },
               {
                 type: "image_url",
                 image_url: {
-                  url: isBase64 ? imageContent : imageContent
-                }
-              }
-            ]
-          }
+                  url: imageContent,
+                },
+              },
+            ],
+          },
         ],
       }),
     });
