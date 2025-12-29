@@ -139,8 +139,28 @@ const MediaDatabaseAdmin = () => {
   ];
 
   const [mediaSizes, setMediaSizes] = useState([
-    // עיתונות מודפסת - יתד נאמן
-    { id: 1, category: 'print', outlet: 'יתד נאמן', name: 'יותר מרבע', size: 'רוחב 14.7 × גובה 20 ס"מ', notes: '', pubDay: '' },
+    // עיתונות מודפסת - יתד נאמן יומי
+    { id: 1, category: 'print', outlet: 'יתד נאמן', name: '1 טור', size: 'רוחב 3.5 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2001, category: 'print', outlet: 'יתד נאמן', name: '2 טורים', size: 'רוחב 7.3 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2002, category: 'print', outlet: 'יתד נאמן', name: '3 טורים', size: 'רוחב 11 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2003, category: 'print', outlet: 'יתד נאמן', name: '4 טורים', size: 'רוחב 14.7 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2004, category: 'print', outlet: 'יתד נאמן', name: '5 טורים', size: 'רוחב 18.5 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2005, category: 'print', outlet: 'יתד נאמן', name: '6 טורים', size: 'רוחב 22.6 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2006, category: 'print', outlet: 'יתד נאמן', name: '7 טורים', size: 'רוחב 26 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2007, category: 'print', outlet: 'יתד נאמן', name: 'רבע עמוד', size: '12.7×16.5 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2008, category: 'print', outlet: 'יתד נאמן', name: '1/2 עמוד רוחב', size: '12.7×35 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2009, category: 'print', outlet: 'יתד נאמן', name: '1/2 עמוד גובה', size: '26×16.5 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2010, category: 'print', outlet: 'יתד נאמן', name: 'עמוד', size: '26×35 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2011, category: 'print', outlet: 'יתד נאמן', name: 'דאבל', size: '54×35 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2012, category: 'print', outlet: 'יתד נאמן', name: 'סטריפ', size: '18.5×25 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    { id: 2013, category: 'print', outlet: 'יתד נאמן', name: 'פרופורציה', size: '26×7.5 ס"מ', notes: 'עיתון יומי', pubDay: '' },
+    // עיתונות מודפסת - יתד השבוע
+    { id: 2020, category: 'print', outlet: 'יתד השבוע', name: 'עמוד', size: '24×32 ס"מ', notes: 'מוסף שבועי', pubDay: 'שישי' },
+    { id: 2021, category: 'print', outlet: 'יתד השבוע', name: 'דאבל', size: '50.4×32 ס"מ', notes: 'מוסף שבועי', pubDay: 'שישי' },
+    { id: 2022, category: 'print', outlet: 'יתד השבוע', name: '1/2 רוחב', size: '23×14.5 ס"מ', notes: 'מוסף שבועי', pubDay: 'שישי' },
+    { id: 2023, category: 'print', outlet: 'יתד השבוע', name: '1/2 גובה', size: '11.5×30 ס"מ', notes: 'מוסף שבועי', pubDay: 'שישי' },
+    { id: 2024, category: 'print', outlet: 'יתד השבוע', name: '1/4 עמוד', size: '11.5×14.5 ס"מ', notes: 'מוסף שבועי', pubDay: 'שישי' },
+    { id: 2025, category: 'print', outlet: 'יתד השבוע', name: 'פרופורציה', size: '15×21 ס"מ', notes: 'מוסף שבועי', pubDay: 'שישי' },
     
     // עיתונות מודפסת - המבשר
     { id: 2, category: 'print', outlet: 'המבשר', name: 'סטריפ', size: 'גובה 7.5 × רוחב 232.167 מ"מ', notes: '', pubDay: '' },
