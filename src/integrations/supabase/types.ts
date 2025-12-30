@@ -200,6 +200,7 @@ export type Database = {
           my_position_y: number | null
           onboarding_completed: boolean | null
           past_materials: Json | null
+          personal_red_lines: string[] | null
           primary_color: string | null
           primary_x_factor: string | null
           secondary_color: string | null
@@ -207,6 +208,7 @@ export type Database = {
           social_instagram: string | null
           social_linkedin: string | null
           social_tiktok: string | null
+          successful_campaigns: string[] | null
           target_audience: string | null
           updated_at: string
           user_id: string
@@ -239,6 +241,7 @@ export type Database = {
           my_position_y?: number | null
           onboarding_completed?: boolean | null
           past_materials?: Json | null
+          personal_red_lines?: string[] | null
           primary_color?: string | null
           primary_x_factor?: string | null
           secondary_color?: string | null
@@ -246,6 +249,7 @@ export type Database = {
           social_instagram?: string | null
           social_linkedin?: string | null
           social_tiktok?: string | null
+          successful_campaigns?: string[] | null
           target_audience?: string | null
           updated_at?: string
           user_id: string
@@ -278,6 +282,7 @@ export type Database = {
           my_position_y?: number | null
           onboarding_completed?: boolean | null
           past_materials?: Json | null
+          personal_red_lines?: string[] | null
           primary_color?: string | null
           primary_x_factor?: string | null
           secondary_color?: string | null
@@ -285,6 +290,7 @@ export type Database = {
           social_instagram?: string | null
           social_linkedin?: string | null
           social_tiktok?: string | null
+          successful_campaigns?: string[] | null
           target_audience?: string | null
           updated_at?: string
           user_id?: string
