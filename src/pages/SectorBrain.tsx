@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Users, Upload, X, FileImage, FileText, Sparkles, Trash2, Loader2, Type, Plus } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Users, Upload, X, FileImage, FileText, Sparkles, Trash2, Loader2, Type, Plus, Clipboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +60,7 @@ const SectorBrain = () => {
   });
   const [selectedStream, setSelectedStream] = useState<StreamType | ''>('');
   const [selectedGender, setSelectedGender] = useState<GenderAudience | ''>('');
+  const [activeZone, setActiveZone] = useState<UploadZone | null>(null);
 
   // Check admin role
   useEffect(() => {
@@ -241,6 +242,71 @@ const SectorBrain = () => {
     e.preventDefault();
   };
 
+  // Handle paste from clipboard
+  const handlePaste = useCallback(async (zone: UploadZone) => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      
+      for (const item of clipboardItems) {
+        const imageType = item.types.find(type => type.startsWith('image/'));
+        if (imageType) {
+          const blob = await item.getType(imageType);
+          const file = new File([blob], `pasted-image-${Date.now()}.png`, { type: imageType });
+          
+          // Upload to storage
+          const fileName = `${zone}/${Date.now()}-${file.name}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('sector-brain')
+            .upload(fileName, file);
+
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            toast.error('שגיאה בהעלאת התמונה');
+            continue;
+          }
+
+          // Save to database
+          const { data: dbData, error: dbError } = await supabase
+            .from('sector_brain_examples')
+            .insert({
+              zone,
+              name: file.name,
+              file_path: fileName,
+              file_type: file.type,
+              stream_type: zone === 'styles' && selectedStream ? selectedStream : null,
+              gender_audience: zone === 'styles' && selectedGender ? selectedGender : null,
+            })
+            .select()
+            .single();
+
+          if (dbError) {
+            console.error('Database error:', dbError);
+            toast.error('שגיאה בשמירת התמונה');
+            continue;
+          }
+
+          // Add to local state
+          const newUpload: UploadedAsset = {
+            id: dbData.id,
+            name: file.name,
+            type: 'image',
+            zone,
+            file_path: fileName,
+            stream_type: dbData.stream_type,
+            gender_audience: dbData.gender_audience,
+            preview: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}`,
+          };
+
+          setUploads(prev => [newUpload, ...prev]);
+          toast.success('התמונה הודבקה בהצלחה!');
+        }
+      }
+    } catch (error) {
+      console.error('Paste error:', error);
+      toast.error('לא ניתן להדביק. נסה להעתיק תמונה ללוח');
+    }
+  }, [selectedStream, selectedGender]);
+
   const removeUpload = async (id: string, filePath?: string) => {
     // Delete from storage
     if (filePath) {
@@ -370,6 +436,17 @@ const SectorBrain = () => {
           </Button>
         </div>
 
+        {/* Paste button */}
+        <Button 
+          size="sm" 
+          variant="outline"
+          onClick={() => handlePaste(zone)}
+          className="w-full"
+        >
+          <Clipboard className="h-4 w-4 ml-1" />
+          הדבק תמונה מהלוח
+        </Button>
+
         {/* File drop zone */}
         <div className="min-h-[120px] bg-muted/30 rounded-lg flex flex-col items-center justify-center p-4 border border-border/50">
           {getZoneUploads(zone).length === 0 ? (
@@ -377,6 +454,9 @@ const SectorBrain = () => {
               <Upload className="h-8 w-8 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground text-center">
                 גרור ושחרר קבצים לכאן
+              </p>
+              <p className="text-xs text-muted-foreground/70 text-center mt-1">
+                או לחץ על "הדבק תמונה" למעלה
               </p>
             </>
           ) : (
