@@ -674,6 +674,7 @@ export type Database = {
           name: string
           stream_type: string | null
           text_content: string | null
+          topic_category: string | null
           zone: string
         }
         Insert: {
@@ -686,6 +687,7 @@ export type Database = {
           name: string
           stream_type?: string | null
           text_content?: string | null
+          topic_category?: string | null
           zone: string
         }
         Update: {
@@ -698,6 +700,7 @@ export type Database = {
           name?: string
           stream_type?: string | null
           text_content?: string | null
+          topic_category?: string | null
           zone?: string
         }
         Relationships: []

@@ -21,11 +21,13 @@ interface UploadedAsset {
   text_content?: string;
   stream_type?: string;
   gender_audience?: string;
+  topic_category?: string;
 }
 
 type UploadZone = 'fame' | 'redlines' | 'styles';
 type StreamType = 'hasidic' | 'litvish' | 'general' | 'sephardic';
 type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'youth' | 'classic';
+type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'hotels' | 'mens_fashion' | 'kids_fashion' | 'womens_fashion' | 'education' | 'health' | 'finance' | 'events' | 'other';
 
 const STREAM_LABELS: Record<StreamType, string> = {
   hasidic: 'חסידי',
@@ -41,6 +43,22 @@ const GENDER_LABELS: Record<GenderAudience, string> = {
   hasidic_male: 'גברי חסידי',
   youth: 'צעירים',
   classic: 'קלאסי',
+};
+
+const TOPIC_LABELS: Record<TopicCategory, string> = {
+  real_estate: 'נדל"ן',
+  beauty: 'ביוטי',
+  food: 'מזון',
+  cellular: 'סלולר',
+  hotels: 'מלונות וחופשות',
+  mens_fashion: 'אופנה גברית',
+  kids_fashion: 'אופנת ילדים',
+  womens_fashion: 'אופנת נשים',
+  education: 'חינוך',
+  health: 'בריאות',
+  finance: 'פיננסים',
+  events: 'אירועים',
+  other: 'אחר',
 };
 
 const SectorBrain = () => {
@@ -60,6 +78,7 @@ const SectorBrain = () => {
   });
   const [selectedStream, setSelectedStream] = useState<StreamType | ''>('');
   const [selectedGender, setSelectedGender] = useState<GenderAudience | ''>('');
+  const [selectedTopic, setSelectedTopic] = useState<TopicCategory | ''>('');
   const [activeZone, setActiveZone] = useState<UploadZone | null>(null);
 
   // Check admin role
@@ -123,6 +142,7 @@ const SectorBrain = () => {
           text_content: item.text_content,
           stream_type: item.stream_type,
           gender_audience: item.gender_audience,
+          topic_category: item.topic_category,
           preview: isImage ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${item.file_path}` : undefined,
         };
       });
@@ -150,6 +170,7 @@ const SectorBrain = () => {
         text_content: text,
         stream_type: selectedStream || null,
         gender_audience: selectedGender || null,
+        topic_category: selectedTopic || null,
       })
       .select()
       .single();
@@ -168,6 +189,7 @@ const SectorBrain = () => {
       text_content: text,
       stream_type: dbData.stream_type,
       gender_audience: dbData.gender_audience,
+      topic_category: dbData.topic_category,
     };
 
     setUploads(prev => [newUpload, ...prev]);
@@ -175,7 +197,7 @@ const SectorBrain = () => {
     toast.success('הטקסט נוסף בהצלחה');
   };
 
-  const handleDrop = useCallback(async (e: React.DragEvent, zone: UploadZone, streamType?: StreamType, genderAudience?: GenderAudience) => {
+  const handleDrop = useCallback(async (e: React.DragEvent, zone: UploadZone, streamType?: StreamType, genderAudience?: GenderAudience, topicCategory?: TopicCategory) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     
@@ -208,6 +230,7 @@ const SectorBrain = () => {
           file_type: file.type,
           stream_type: streamType || null,
           gender_audience: genderAudience || null,
+          topic_category: topicCategory || null,
         })
         .select()
         .single();
@@ -227,6 +250,7 @@ const SectorBrain = () => {
         file_path: fileName,
         stream_type: dbData.stream_type,
         gender_audience: dbData.gender_audience,
+        topic_category: dbData.topic_category,
         preview: file.type.startsWith('image/') 
           ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}`
           : undefined,
@@ -275,6 +299,7 @@ const SectorBrain = () => {
               file_type: file.type,
               stream_type: selectedStream || null,
               gender_audience: selectedGender || null,
+              topic_category: selectedTopic || null,
             })
             .select()
             .single();
@@ -294,6 +319,7 @@ const SectorBrain = () => {
             file_path: fileName,
             stream_type: dbData.stream_type,
             gender_audience: dbData.gender_audience,
+            topic_category: dbData.topic_category,
             preview: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}`,
           };
 
@@ -305,7 +331,7 @@ const SectorBrain = () => {
       console.error('Paste error:', error);
       toast.error('לא ניתן להדביק. נסה להעתיק תמונה ללוח');
     }
-  }, [selectedStream, selectedGender]);
+  }, [selectedStream, selectedGender, selectedTopic]);
 
   const removeUpload = async (id: string, filePath?: string) => {
     // Delete from storage
@@ -367,7 +393,7 @@ const SectorBrain = () => {
   }) => (
     <Card 
       className="border-2 border-dashed transition-all hover:border-primary/50"
-      onDrop={(e) => handleDrop(e, zone, selectedStream || undefined, selectedGender || undefined)}
+      onDrop={(e) => handleDrop(e, zone, selectedStream || undefined, selectedGender || undefined, selectedTopic || undefined)}
       onDragOver={handleDragOver}
     >
       <CardHeader className="pb-3">
@@ -378,36 +404,54 @@ const SectorBrain = () => {
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Category selectors for styles zone */}
+        {/* Category selectors */}
         {showCategorySelect && (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">זרם</Label>
-              <Select 
-                value={selectedStream} 
-                onValueChange={(v) => setSelectedStream(v as StreamType)}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="בחר זרם" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(STREAM_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">זרם</Label>
+                <Select 
+                  value={selectedStream} 
+                  onValueChange={(v) => setSelectedStream(v as StreamType)}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="בחר זרם" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(STREAM_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">קהל יעד</Label>
+                <Select 
+                  value={selectedGender} 
+                  onValueChange={(v) => setSelectedGender(v as GenderAudience)}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="בחר קהל" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(GENDER_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">קהל יעד</Label>
+              <Label className="text-xs text-muted-foreground mb-1 block">נושא/תחום</Label>
               <Select 
-                value={selectedGender} 
-                onValueChange={(v) => setSelectedGender(v as GenderAudience)}
+                value={selectedTopic} 
+                onValueChange={(v) => setSelectedTopic(v as TopicCategory)}
               >
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="בחר קהל" />
+                  <SelectValue placeholder="בחר נושא" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(GENDER_LABELS).map(([key, label]) => (
+                  {Object.entries(TOPIC_LABELS).map(([key, label]) => (
                     <SelectItem key={key} value={key}>{label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -481,8 +525,8 @@ const SectorBrain = () => {
                   )}
                   <div className="flex-1 min-w-0">
                     <span className="block truncate text-sm">{upload.name}</span>
-                    {(upload.stream_type || upload.gender_audience) && (
-                      <div className="flex gap-1 mt-0.5">
+                    {(upload.stream_type || upload.gender_audience || upload.topic_category) && (
+                      <div className="flex flex-wrap gap-1 mt-0.5">
                         {upload.stream_type && (
                           <Badge variant="outline" className="text-xs py-0 px-1.5">
                             {STREAM_LABELS[upload.stream_type as StreamType]}
@@ -491,6 +535,11 @@ const SectorBrain = () => {
                         {upload.gender_audience && (
                           <Badge variant="outline" className="text-xs py-0 px-1.5">
                             {GENDER_LABELS[upload.gender_audience as GenderAudience]}
+                          </Badge>
+                        )}
+                        {upload.topic_category && (
+                          <Badge variant="secondary" className="text-xs py-0 px-1.5">
+                            {TOPIC_LABELS[upload.topic_category as TopicCategory]}
                           </Badge>
                         )}
                       </div>
