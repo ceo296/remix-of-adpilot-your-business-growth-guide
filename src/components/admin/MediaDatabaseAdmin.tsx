@@ -169,8 +169,39 @@ const MediaDatabaseAdmin = () => {
     { id: 3, category: 'print', outlet: 'המודיע', name: 'אנגלית ישראל ואירופה', size: 'רוחב 25 × גובה 32 ס"מ', notes: '', pubDay: '' },
     { id: 4, category: 'print', outlet: 'המודיע', name: 'אנגלית ארצות הברית', size: 'רוחב 24 × גובה 27.5 ס"מ', notes: '', pubDay: '' },
     
-    // עיתונות מודפסת - משפחה
-    { id: 5, category: 'print', outlet: 'משפחה', name: 'עמוד', size: '29.7×20.5 ס"מ', notes: '', pubDay: '' },
+    // עיתונות מודפסת - משפחה מגזין ובתוך המשפחה
+    { id: 5, category: 'print', outlet: 'משפחה - מגזין', name: 'עמוד', size: '28.7×19.5 ס"מ', notes: 'מודעה גולשת 1 ס"מ מכל צד', pubDay: 'שלישי' },
+    { id: 3001, category: 'print', outlet: 'משפחה - מגזין', name: 'חצי עמוד גובה', size: '28.7×9.5 ס"מ', notes: 'מודעה גולשת 1 ס"מ מכל צד', pubDay: 'שלישי' },
+    { id: 3002, category: 'print', outlet: 'משפחה - מגזין', name: 'חצי עמוד רוחב', size: '14.1×19.5 ס"מ', notes: 'מודעה גולשת 1 ס"מ מכל צד', pubDay: 'שלישי' },
+    { id: 3003, category: 'print', outlet: 'משפחה - מגזין', name: 'רבע עמוד', size: '14.1×9.5 ס"מ', notes: 'מודעה גולשת 1 ס"מ מכל צד', pubDay: 'שלישי' },
+    { id: 3004, category: 'print', outlet: 'משפחה - מגזין', name: 'שמינית עמוד', size: '6.8×9.5 ס"מ', notes: 'מודעה גולשת 1 ס"מ מכל צד', pubDay: 'שלישי' },
+    { id: 3005, category: 'print', outlet: 'משפחה - מגזין', name: 'חצי שמינית', size: '6.8×4.6 ס"מ', notes: 'מודעה גולשת 1 ס"מ מכל צד', pubDay: 'שלישי' },
+    { id: 3006, category: 'print', outlet: 'משפחה - מגזין', name: 'סטריפ', size: '6.25×19.5 ס"מ', notes: 'מודעה גולשת 1 ס"מ מכל צד', pubDay: 'שלישי' },
+    { id: 3007, category: 'print', outlet: 'משפחה - מגזין', name: 'שליש עמוד', size: '28.7×5.6 ס"מ', notes: 'מודעה גולשת 1 ס"מ מכל צד', pubDay: 'שלישי' },
+    { id: 3008, category: 'print', outlet: 'משפחה - מגזין', name: 'דאבל', size: '28.7×40 ס"מ', notes: 'מודעה גולשת 1 ס"מ מכל צד', pubDay: 'שלישי' },
+    // עיתונות מודפסת - משפחה חדשות
+    { id: 3010, category: 'print', outlet: 'משפחה - חדשות', name: 'עמוד', size: '34×25 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3011, category: 'print', outlet: 'משפחה - חדשות', name: 'חצי עמוד לגובה', size: '34×12.5 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3012, category: 'print', outlet: 'משפחה - חדשות', name: 'חצי עמוד לרוחב', size: '12×25 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3013, category: 'print', outlet: 'משפחה - חדשות', name: 'רבע עמוד', size: '16.8×12.5 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3014, category: 'print', outlet: 'משפחה - חדשות', name: 'שמינית עמוד', size: '8.2×12.5 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3015, category: 'print', outlet: 'משפחה - חדשות', name: 'חצי שמינית', size: '8.2×5.8 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3016, category: 'print', outlet: 'משפחה - חדשות', name: 'רבע שמינית', size: '4.1×5.8 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3017, category: 'print', outlet: 'משפחה - חדשות', name: 'אוזן (בשער)', size: '4.7×11.4 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3018, category: 'print', outlet: 'משפחה - חדשות', name: 'שליש', size: '34×6.3 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3019, category: 'print', outlet: 'משפחה - חדשות', name: 'סטריפ בשער', size: '5×26 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3020, category: 'print', outlet: 'משפחה - חדשות', name: 'סטריפ רגיל בעיתון', size: '5×25 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3021, category: 'print', outlet: 'משפחה - חדשות', name: 'סטריפ קיט ונופש', size: '8.2×25 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3022, category: 'print', outlet: 'משפחה - חדשות', name: 'פורפורציה', size: '28.5×19.5 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    { id: 3023, category: 'print', outlet: 'משפחה - חדשות', name: 'דאבל', size: '34×52 ס"מ', notes: 'ללא גלישה', pubDay: 'רביעי' },
+    // עיתונות מודפסת - משפחה טעימות
+    { id: 3030, category: 'print', outlet: 'משפחה - טעימות', name: 'עמוד', size: '28.7×21 ס"מ', notes: 'מודעה גולשת 5 מ"מ מכל צד', pubDay: 'חמישי' },
+    { id: 3031, category: 'print', outlet: 'משפחה - טעימות', name: 'חצי עמוד גובה', size: '28.7×10.3 ס"מ', notes: 'מודעה גולשת 5 מ"מ מכל צד', pubDay: 'חמישי' },
+    { id: 3032, category: 'print', outlet: 'משפחה - טעימות', name: 'חצי עמוד רוחב', size: '14×21 ס"מ', notes: 'מודעה גולשת 5 מ"מ מכל צד', pubDay: 'חמישי' },
+    { id: 3033, category: 'print', outlet: 'משפחה - טעימות', name: 'רבע עמוד', size: '14×10.2 ס"מ', notes: 'מודעה גולשת 5 מ"מ מכל צד', pubDay: 'חמישי' },
+    { id: 3034, category: 'print', outlet: 'משפחה - טעימות', name: 'סטריפ', size: '6.2×21 ס"מ', notes: 'מודעה גולשת 5 מ"מ מכל צד', pubDay: 'חמישי' },
+    { id: 3035, category: 'print', outlet: 'משפחה - טעימות', name: 'שליש', size: '28.7×6.7 ס"מ', notes: 'מודעה גולשת 5 מ"מ מכל צד', pubDay: 'חמישי' },
+    { id: 3036, category: 'print', outlet: 'משפחה - טעימות', name: 'דאבל', size: '28.7×44 ס"מ', notes: 'גולש 5 מ"מ מכל צד', pubDay: 'חמישי' },
     
     // עיתונות מודפסת - קטיפה
     { id: 6, category: 'print', outlet: 'קטיפה', name: 'עמוד', size: '307×215 מ"מ', notes: '', pubDay: '' },
