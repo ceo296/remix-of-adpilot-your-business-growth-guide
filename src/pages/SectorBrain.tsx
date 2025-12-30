@@ -148,8 +148,8 @@ const SectorBrain = () => {
         file_path: '',
         file_type: 'text',
         text_content: text,
-        stream_type: zone === 'styles' && selectedStream ? selectedStream : null,
-        gender_audience: zone === 'styles' && selectedGender ? selectedGender : null,
+        stream_type: selectedStream || null,
+        gender_audience: selectedGender || null,
       })
       .select()
       .single();
@@ -206,8 +206,8 @@ const SectorBrain = () => {
           name: file.name,
           file_path: fileName,
           file_type: file.type,
-          stream_type: zone === 'styles' && streamType ? streamType : null,
-          gender_audience: zone === 'styles' && genderAudience ? genderAudience : null,
+          stream_type: streamType || null,
+          gender_audience: genderAudience || null,
         })
         .select()
         .single();
@@ -273,8 +273,8 @@ const SectorBrain = () => {
               name: file.name,
               file_path: fileName,
               file_type: file.type,
-              stream_type: zone === 'styles' && selectedStream ? selectedStream : null,
-              gender_audience: zone === 'styles' && selectedGender ? selectedGender : null,
+              stream_type: selectedStream || null,
+              gender_audience: selectedGender || null,
             })
             .select()
             .single();
@@ -356,7 +356,7 @@ const SectorBrain = () => {
     description, 
     icon: Icon, 
     color,
-    showCategorySelect = false,
+    showCategorySelect = true,
   }: { 
     zone: UploadZone; 
     title: string; 
