@@ -521,7 +521,7 @@ const SectorBrain = () => {
           <UploadZoneCard
             zone="fame"
             title="היכל התהילה"
-            description="העלו קמפיינים מוצלחים מהעבר. האלגוריתם ילמד מה עובד אצלכם"
+            description="העלו קמפיינים מוצלחים מהעבר. האלגוריתם ילמד מה עובד בעולם הפרסום החרדי"
             icon={Trophy}
             color="text-success"
           />
