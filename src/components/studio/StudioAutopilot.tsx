@@ -57,75 +57,69 @@ const MEDIA_OPTIONS: {
   { id: 'all', label: 'קמפיין 360°', icon: Layers },
 ];
 
-// Media-specific preview component
+// Truncate text helper
+const truncateText = (text: string, maxLength: number = 120) => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + '...';
+};
+
+// Media-specific preview component - redesigned for clarity
 const ConceptPreview = ({ concept, mediaType }: { concept: CreativeConcept; mediaType: MediaType | null }) => {
   if (mediaType === 'radio') {
-    // Radio script preview with audio player mockup
+    // Radio script preview - cleaner layout
     return (
-      <div className="mt-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Volume2 className="h-4 w-4" />
-          תסריט ספוט רדיו (30 שניות)
+      <div className="mt-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Volume2 className="h-4 w-4 text-primary" />
+          </div>
+          <span className="text-sm font-medium text-muted-foreground">ספוט רדיו • 30 שניות</span>
         </div>
-        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20">
-          {/* Audio waveform mockup */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <Radio className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-1 h-8">
-                {[...Array(40)].map((_, i) => (
-                  <div 
-                    key={i} 
-                    className="w-1 bg-primary/40 rounded-full"
-                    style={{ 
-                      height: `${Math.random() * 100}%`,
-                      minHeight: '4px'
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-            <span className="text-xs text-muted-foreground">0:30</span>
-          </div>
-          {/* Script text */}
-          <div className="bg-background/80 rounded-lg p-3 border border-border">
-            <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap" dir="rtl">
-              {concept.copy}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
-            <Badge variant="secondary" className="text-xs">קריין</Badge>
-            <span>• הנחיות: {concept.idea}</span>
-          </div>
+        
+        {/* Audio waveform visual */}
+        <div className="flex items-center gap-1 h-8 px-2">
+          {[...Array(50)].map((_, i) => (
+            <div 
+              key={i} 
+              className="w-1 bg-primary/30 rounded-full transition-all"
+              style={{ height: `${20 + Math.random() * 80}%` }}
+            />
+          ))}
+        </div>
+        
+        {/* Script preview */}
+        <div className="bg-muted/30 rounded-xl p-4">
+          <p className="text-sm text-muted-foreground mb-2 font-medium">תסריט:</p>
+          <p className="text-foreground leading-relaxed" dir="rtl">
+            {truncateText(concept.copy, 150)}
+          </p>
         </div>
       </div>
     );
   }
 
   if (mediaType === 'ad' || mediaType === 'all') {
-    // Print ad preview
+    // Print ad preview - simplified
     return (
-      <div className="mt-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Newspaper className="h-4 w-4" />
-          תצוגת מודעה
+      <div className="mt-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Newspaper className="h-4 w-4 text-primary" />
+          </div>
+          <span className="text-sm font-medium text-muted-foreground">מודעת פרסום</span>
         </div>
-        <div className="bg-white border-2 border-border rounded-lg p-6 shadow-md max-w-sm mx-auto">
-          {/* Ad mockup */}
-          <div className="aspect-[3/4] bg-gradient-to-b from-muted/30 to-muted/60 rounded-lg p-4 flex flex-col justify-between">
-            {/* Image placeholder */}
-            <div className="flex-1 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 rounded-lg mb-4">
-              <div className="text-center text-muted-foreground/50">
-                <Image className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs">{concept.idea}</p>
-              </div>
+        
+        {/* Simplified ad mockup */}
+        <div className="bg-muted/20 rounded-xl p-5 border border-border/50">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 rounded-lg bg-muted/50 flex items-center justify-center flex-shrink-0">
+              <Image className="h-6 w-6 text-muted-foreground/50" />
             </div>
-            {/* Ad copy */}
-            <div className="bg-background rounded-lg p-3 text-center">
-              <p className="font-bold text-foreground text-lg mb-1" dir="rtl">{concept.headline}</p>
-              <p className="text-sm text-foreground" dir="rtl">"{concept.copy}"</p>
+            <div className="flex-1 space-y-2">
+              <p className="font-bold text-lg text-foreground" dir="rtl">{concept.headline}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed" dir="rtl">
+                {truncateText(concept.copy, 100)}
+              </p>
             </div>
           </div>
         </div>
@@ -136,21 +130,24 @@ const ConceptPreview = ({ concept, mediaType }: { concept: CreativeConcept; medi
   if (mediaType === 'banner') {
     // Digital banner preview
     return (
-      <div className="mt-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Monitor className="h-4 w-4" />
-          תצוגת באנר
+      <div className="mt-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Monitor className="h-4 w-4 text-primary" />
+          </div>
+          <span className="text-sm font-medium text-muted-foreground">באנר דיגיטלי</span>
         </div>
-        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-border rounded-lg p-3 overflow-hidden">
-          {/* Banner mockup - horizontal */}
-          <div className="aspect-[4/1] bg-gradient-to-r from-muted to-muted/80 rounded flex items-center justify-between px-6">
+        
+        {/* Banner mockup */}
+        <div className="bg-gradient-to-l from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex-1 text-right" dir="rtl">
-              <p className="font-bold text-foreground text-sm md:text-base">{concept.headline}</p>
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{concept.copy}</p>
+              <p className="font-bold text-foreground">{concept.headline}</p>
+              <p className="text-xs text-muted-foreground mt-1">{truncateText(concept.copy, 60)}</p>
             </div>
-            <Button size="sm" variant="default" className="mr-4 text-xs">
-              לחצו כאן
-            </Button>
+            <div className="px-3 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-medium">
+              קרא עוד →
+            </div>
           </div>
         </div>
       </div>
@@ -158,25 +155,23 @@ const ConceptPreview = ({ concept, mediaType }: { concept: CreativeConcept; medi
   }
 
   if (mediaType === 'billboard') {
-    // Billboard preview
+    // Billboard preview - dramatic
     return (
-      <div className="mt-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <RectangleHorizontal className="h-4 w-4" />
-          תצוגת שלט חוצות
-        </div>
-        <div className="bg-muted/50 rounded-lg p-4">
-          {/* Billboard mockup */}
-          <div className="aspect-[16/9] bg-gradient-to-br from-primary/20 via-primary/10 to-muted rounded-lg border-4 border-muted-foreground/20 flex flex-col items-center justify-center p-8 shadow-lg">
-            <p className="font-black text-2xl md:text-3xl text-foreground text-center" dir="rtl">
-              {concept.copy}
-            </p>
-            <div className="mt-4 text-xs text-muted-foreground text-center">
-              {concept.idea}
-            </div>
+      <div className="mt-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <RectangleHorizontal className="h-4 w-4 text-primary" />
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">* נקרא ב-3 שניות מרכב נוסע</p>
+          <span className="text-sm font-medium text-muted-foreground">שלט חוצות</span>
         </div>
+        
+        {/* Billboard mockup */}
+        <div className="aspect-[16/6] bg-gradient-to-br from-muted/30 to-muted/50 rounded-xl border-2 border-muted flex items-center justify-center p-6">
+          <p className="font-black text-xl md:text-2xl text-foreground text-center" dir="rtl">
+            {truncateText(concept.copy, 50)}
+          </p>
+        </div>
+        <p className="text-xs text-muted-foreground text-center">* נקרא ב-3 שניות מרכב נוסע</p>
       </div>
     );
   }
@@ -184,41 +179,42 @@ const ConceptPreview = ({ concept, mediaType }: { concept: CreativeConcept; medi
   if (mediaType === 'social') {
     // Social media post preview
     return (
-      <div className="mt-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Share2 className="h-4 w-4" />
-          תצוגת פוסט סושיאל
+      <div className="mt-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Share2 className="h-4 w-4 text-primary" />
+          </div>
+          <span className="text-sm font-medium text-muted-foreground">פוסט סושיאל</span>
         </div>
-        <div className="bg-background border border-border rounded-xl max-w-xs mx-auto shadow-md">
-          {/* Social post mockup */}
-          <div className="p-3 border-b border-border flex items-center gap-2">
+        
+        {/* Social post mockup - simplified */}
+        <div className="bg-muted/20 rounded-xl p-4 border border-border/50 max-w-xs">
+          <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-full bg-primary/20" />
-            <div>
-              <p className="text-xs font-bold">העסק שלי</p>
-              <p className="text-xs text-muted-foreground">ממומן</p>
+            <div className="text-xs">
+              <p className="font-bold">שם העסק</p>
+              <p className="text-muted-foreground">ממומן</p>
             </div>
           </div>
-          <div className="aspect-square bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
-            <div className="text-center px-4">
-              <Image className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-              <p className="text-xs text-muted-foreground">{concept.idea}</p>
-            </div>
-          </div>
-          <div className="p-3">
-            <p className="text-sm font-medium" dir="rtl">{concept.headline}</p>
-            <p className="text-sm text-foreground mt-1" dir="rtl">{concept.copy}</p>
-            <p className="text-xs text-primary mt-2">#פרסום #קמפיין #מומלץ</p>
-          </div>
+          <p className="text-sm font-medium" dir="rtl">{concept.headline}</p>
+          <p className="text-sm text-muted-foreground mt-1" dir="rtl">{truncateText(concept.copy, 80)}</p>
         </div>
       </div>
     );
   }
 
-  // Default - text preview
+  // Default - clean text preview
   return (
-    <div className="bg-background/50 rounded-lg p-3 border border-border mt-3">
-      <p className="text-sm font-medium">קופי מוצע:</p>
-      <p className="text-foreground">"{concept.copy}"</p>
+    <div className="mt-5 space-y-3">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+          <FileText className="h-4 w-4 text-primary" />
+        </div>
+        <span className="text-sm font-medium text-muted-foreground">קופי מוצע</span>
+      </div>
+      <div className="bg-muted/20 rounded-xl p-4">
+        <p className="text-foreground leading-relaxed" dir="rtl">"{truncateText(concept.copy, 120)}"</p>
+      </div>
     </div>
   );
 };
@@ -381,45 +377,65 @@ export const StudioAutopilot = ({
         </p>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4">
         {concepts.map((concept) => {
           const Icon = CONCEPT_ICONS[concept.type];
           const colorClass = CONCEPT_COLORS[concept.type];
-          const isSelected = selectedConcept?.id === concept.id;
+          const isConceptSelected = selectedConcept?.id === concept.id;
+
+          // Get type label in Hebrew
+          const typeLabel = concept.type === 'emotional' ? 'רגשי' : 
+                           concept.type === 'hard-sale' ? 'מכירתי' : 'כאב ופתרון';
 
           return (
             <Card
               key={concept.id}
               onClick={() => onSelectConcept(concept)}
               className={cn(
-                "p-6 cursor-pointer transition-all border-2",
+                "cursor-pointer transition-all duration-200 border-2 overflow-hidden",
                 colorClass,
-                isSelected && "ring-2 ring-primary ring-offset-2 scale-[1.01]",
-                "hover:scale-[1.005] hover:shadow-lg"
+                isConceptSelected && "ring-2 ring-primary ring-offset-2",
+                "hover:shadow-lg"
               )}
             >
-              <div className="flex items-start gap-4">
-                <div className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
-                  concept.type === 'emotional' && "bg-pink-500/20 text-pink-500",
-                  concept.type === 'hard-sale' && "bg-amber-500/20 text-amber-500",
-                  concept.type === 'pain-point' && "bg-emerald-500/20 text-emerald-500",
-                )}>
-                  <Icon className="h-6 w-6" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold mb-2">{concept.headline}</h3>
-                    {isSelected && (
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                        ✓
-                      </div>
-                    )}
+              {/* Header bar */}
+              <div className={cn(
+                "px-5 py-3 flex items-center justify-between border-b",
+                concept.type === 'emotional' && "bg-pink-500/10 border-pink-500/20",
+                concept.type === 'hard-sale' && "bg-amber-500/10 border-amber-500/20",
+                concept.type === 'pain-point' && "bg-emerald-500/10 border-emerald-500/20",
+              )}>
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center",
+                    concept.type === 'emotional' && "bg-pink-500/20 text-pink-500",
+                    concept.type === 'hard-sale' && "bg-amber-500/20 text-amber-500",
+                    concept.type === 'pain-point' && "bg-emerald-500/20 text-emerald-500",
+                  )}>
+                    <Icon className="h-5 w-5" />
                   </div>
-                  
-                  {/* Media-specific preview */}
-                  <ConceptPreview concept={concept} mediaType={primaryMediaType} />
+                  <div>
+                    <Badge variant="secondary" className="text-xs mb-1">{typeLabel}</Badge>
+                    <h3 className="text-lg font-bold text-foreground">{concept.headline}</h3>
+                  </div>
                 </div>
+                {isConceptSelected && (
+                  <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                    <Check className="w-4 h-4" />
+                  </div>
+                )}
+              </div>
+
+              {/* Content area */}
+              <div className="p-5">
+                {/* Idea/direction - concise */}
+                <div className="mb-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">כיוון קריאייטיבי</p>
+                  <p className="text-sm text-foreground">{concept.idea}</p>
+                </div>
+                
+                {/* Media-specific preview */}
+                <ConceptPreview concept={concept} mediaType={primaryMediaType} />
               </div>
             </Card>
           );
