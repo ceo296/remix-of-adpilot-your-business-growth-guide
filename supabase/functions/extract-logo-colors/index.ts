@@ -45,21 +45,34 @@ serve(async (req) => {
 Return ONLY a valid JSON object with this exact structure:
 {
   "primary": "#XXXXXX",
-  "secondary": "#XXXXXX",
+  "secondary": "#XXXXXX", 
   "background": "#XXXXXX"
 }
 
 Rules (follow strictly):
 - Use ONLY 6-digit hex color codes (e.g., #FF5733)
 - No explanation, no markdown, JSON only
-- Primary MUST be the main brand color used for the logo wordmark / main text / main shape.
-  - For text-heavy wordmarks: the text color is primary.
-  - If there is a small bright accent (dot, underline, icon) and the main wordmark text is another color, the text color MUST be primary and the accent is secondary.
-  - Do NOT pick a small accent as primary even if it is brighter.
-- Secondary is the next most-used brand color (often the accent).
-- Background is the canvas behind the logo; if uncertain use #FFFFFF.
-- If the logo is monochrome, set secondary to the same as primary.
-- If both near-black (#000000-ish) and a bright accent (red/blue/etc.) appear in a wordmark, prefer near-black as primary and the bright accent as secondary.`;
+- Analyze ALL visible colors in the logo carefully
+
+For COLORFUL/MULTI-COLOR logos:
+- If the logo has multiple bright colors (pink, blue, green, purple, yellow, etc.), pick the MOST prominent/largest color as primary
+- Pick the second most prominent color as secondary
+- Do NOT default to black or red unless those are actually the main colors in the logo
+
+For TEXT-HEAVY logos:
+- If the main wordmark text is a specific color, that should be primary
+- Small accents (dots, underlines) should be secondary
+
+For MONOCHROME logos:
+- If the logo is truly black/white only, use those colors
+- Set secondary to the same as primary if only one color exists
+
+- Background is the canvas behind the logo; if white/light use #FFFFFF
+
+IMPORTANT: Actually look at the colors in the image. Do NOT guess or use generic defaults like #E31E24 or #000000 unless you actually see those exact colors prominently in the logo.`;
+
+    console.log("Sending image to AI for color extraction...");
+    console.log("Image content type:", isBase64 ? "base64" : "URL");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -122,24 +135,43 @@ Rules (follow strictly):
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         colors = JSON.parse(jsonMatch[0]);
+        console.log("Extracted colors from AI:", colors);
       } else {
         throw new Error("No JSON found in response");
       }
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError);
-      // Return default colors if parsing fails
-      colors = {
-        primary: "#E31E24",
-        secondary: "#000000",
-        background: "#FFFFFF"
-      };
+      console.error("Raw content:", content);
+      // Return an error instead of default colors - let the caller know extraction failed
+      return new Response(
+        JSON.stringify({ 
+          error: "Failed to parse color response",
+          rawContent: content,
+          colors: null 
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Validate colors are proper hex codes
     const hexRegex = /^#[0-9A-Fa-f]{6}$/;
-    if (!hexRegex.test(colors.primary)) colors.primary = "#E31E24";
-    if (!hexRegex.test(colors.secondary)) colors.secondary = "#000000";
-    if (!hexRegex.test(colors.background)) colors.background = "#FFFFFF";
+    const validationErrors: string[] = [];
+    
+    if (!hexRegex.test(colors.primary)) {
+      validationErrors.push(`Invalid primary: ${colors.primary}`);
+    }
+    if (!hexRegex.test(colors.secondary)) {
+      validationErrors.push(`Invalid secondary: ${colors.secondary}`);
+    }
+    if (!hexRegex.test(colors.background)) {
+      colors.background = "#FFFFFF"; // Background can default to white
+    }
+    
+    if (validationErrors.length > 0) {
+      console.error("Color validation errors:", validationErrors);
+    }
+
+    console.log("Returning colors:", colors);
 
     return new Response(
       JSON.stringify({ colors }),
@@ -150,12 +182,7 @@ Rules (follow strictly):
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : "Unknown error",
-        // Return default colors on error
-        colors: {
-          primary: "#E31E24",
-          secondary: "#000000",
-          background: "#FFFFFF"
-        }
+        colors: null // Don't return default colors - let caller know extraction failed
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
