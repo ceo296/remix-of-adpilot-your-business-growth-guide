@@ -258,6 +258,44 @@ const CreativeStudio = () => {
     }
   };
 
+  const explainBlockedNext = () => {
+    if (currentStep === 0) {
+      const missing: string[] = [];
+      if (!campaignBrief.offer.trim()) missing.push('מה ההצעה הפרסומית');
+      if (!campaignBrief.structure) missing.push('מבנה הקמפיין');
+      return missing.length ? `כדי להמשיך צריך למלא: ${missing.join(' + ')}` : null;
+    }
+
+    if (currentStep === 1) return 'כדי להמשיך צריך לבחור סוג מדיה';
+    if (currentStep === 2) return 'כדי להמשיך צריך לבחור סוג נכס';
+    if (currentStep === 3) return 'כדי להמשיך צריך להעלות תמונה ולבחור עיבוד';
+    if (currentStep === 4) return 'כדי להמשיך צריך לבחור סגנון';
+    if (currentStep === 5) return 'כדי להמשיך צריך למלא תיאור/תוכן';
+    return null;
+  };
+
+  const handleNextAttempt = () => {
+    if (canProceed()) {
+      handleNext();
+      return;
+    }
+
+    const msg = explainBlockedNext();
+    toast.error(msg || 'חסרים פרטים כדי להמשיך');
+
+    // Guide user to the relevant field
+    if (currentStep === 0) {
+      if (!campaignBrief.offer.trim()) {
+        document.getElementById('campaign-offer')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      if (!campaignBrief.structure) {
+        document.getElementById('campaign-structure')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
+  };
+
   const handleNext = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (currentStep === 1 && isOnlyRadio) {
@@ -969,8 +1007,7 @@ const CreativeStudio = () => {
                     </Button>
                   ) : (
                     <Button
-                      onClick={handleNext}
-                      disabled={!canProceed()}
+                      onClick={handleNextAttempt}
                     >
                       הבא
                       <ChevronLeft className="h-4 w-4 mr-1" />

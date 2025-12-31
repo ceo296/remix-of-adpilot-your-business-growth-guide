@@ -237,7 +237,7 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
       </div>
 
       {/* Campaign Structure */}
-      <div className="space-y-4">
+      <div id="campaign-structure" className="space-y-4">
         <Label className="text-foreground font-medium">מבנה הקמפיין *</Label>
         <div className="grid md:grid-cols-2 gap-4">
           {/* Single Ad */}
