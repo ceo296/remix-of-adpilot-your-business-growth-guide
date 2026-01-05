@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,6 +32,40 @@ const TEMPLATE_PROMPTS: Record<string, string> = {
   'social-story': 'Vertical story format for Instagram/WhatsApp. Full-screen immersive design, swipe-up CTA area at bottom, bold vertical composition.',
 };
 
+// Media type to config mapping
+const MEDIA_TYPE_MAP: Record<string, string> = {
+  'newspaper': 'print_ads',
+  'newspaper-full': 'print_ads',
+  'newspaper-half': 'print_ads',
+  'newspaper-quarter': 'print_ads',
+  'banner': 'banners',
+  'banner-leaderboard': 'banners',
+  'banner-rectangle': 'banners',
+  'banner-skyscraper': 'banners',
+  'billboard': 'signage',
+  'billboard-standard': 'signage',
+  'billboard-digital': 'signage',
+  'social': 'banners',
+  'social-square': 'banners',
+  'social-story': 'banners',
+  'promo': 'promo',
+};
+
+interface AIModelConfig {
+  id: string;
+  media_type: string;
+  model_name: string;
+  system_prompt: string;
+  design_rules: string[] | null;
+  text_rules: string[] | null;
+  logo_instructions: string | null;
+  color_usage_rules: string | null;
+  typography_rules: string | null;
+  layout_principles: string[] | null;
+  dos: string[] | null;
+  donts: string[] | null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -42,8 +77,30 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext } = await req.json();
-    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, brandContext: !!brandContext, campaignContext: !!campaignContext });
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType } = await req.json();
+    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, brandContext: !!brandContext, campaignContext: !!campaignContext });
+
+    // Initialize Supabase to fetch model config
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Determine the media type for config lookup
+    const configMediaType = mediaType || MEDIA_TYPE_MAP[templateId || ''] || 'print_ads';
+    
+    // Fetch the model config for this media type
+    const { data: modelConfig, error: configError } = await supabase
+      .from('ai_model_configs')
+      .select('*')
+      .eq('media_type', configMediaType)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (configError) {
+      console.error('Error fetching model config:', configError);
+    }
+
+    console.log("Using model config:", modelConfig?.media_type || 'default');
 
     // Get style description
     const styleDesc = STYLE_DESCRIPTIONS[style] || STYLE_DESCRIPTIONS['ultra-realistic'];
@@ -52,101 +109,160 @@ serve(async (req) => {
     const templatePrompt = templateId ? TEMPLATE_PROMPTS[templateId] || '' : '';
     const additionalHints = templateHints || '';
 
+    // Build model-specific rules section
+    let modelRulesSection = '';
+    if (modelConfig) {
+      modelRulesSection = `
+=== הנחיות ספציפיות לסוג מדיה: ${modelConfig.media_type} ===
+
+${modelConfig.system_prompt}
+
+${modelConfig.logo_instructions ? `הנחיות לוגו:
+${modelConfig.logo_instructions}` : ''}
+
+${modelConfig.color_usage_rules ? `כללי צבעים:
+${modelConfig.color_usage_rules}` : ''}
+
+${modelConfig.typography_rules ? `כללי טיפוגרפיה:
+${modelConfig.typography_rules}` : ''}
+
+${modelConfig.design_rules?.length ? `כללי עיצוב:
+${modelConfig.design_rules.map((r: string) => `• ${r}`).join('\n')}` : ''}
+
+${modelConfig.text_rules?.length ? `כללי טקסט:
+${modelConfig.text_rules.map((r: string) => `• ${r}`).join('\n')}` : ''}
+
+${modelConfig.layout_principles?.length ? `עקרונות פריסה:
+${modelConfig.layout_principles.map((r: string) => `• ${r}`).join('\n')}` : ''}
+
+${modelConfig.dos?.length ? `לעשות:
+${modelConfig.dos.map((r: string) => `✓ ${r}`).join('\n')}` : ''}
+
+${modelConfig.donts?.length ? `לא לעשות:
+${modelConfig.donts.map((r: string) => `✗ ${r}`).join('\n')}` : ''}
+`;
+    }
+
     // Build brand identity section for prompt
     let brandSection = '';
     if (brandContext) {
       const colorParts: string[] = [];
-      if (brandContext.colors?.primary) colorParts.push(`Primary brand color: ${brandContext.colors.primary}`);
-      if (brandContext.colors?.secondary) colorParts.push(`Secondary brand color: ${brandContext.colors.secondary}`);
-      if (brandContext.colors?.background) colorParts.push(`Background color: ${brandContext.colors.background}`);
+      if (brandContext.colors?.primary) colorParts.push(`צבע ראשי: ${brandContext.colors.primary}`);
+      if (brandContext.colors?.secondary) colorParts.push(`צבע משני: ${brandContext.colors.secondary}`);
+      if (brandContext.colors?.background) colorParts.push(`צבע רקע: ${brandContext.colors.background}`);
       
       brandSection = `
-BRAND IDENTITY:
-- Business: ${brandContext.businessName || 'N/A'}
-- Target Audience: ${brandContext.targetAudience || 'General Haredi audience'}
-- Key Differentiator (X-Factor): ${brandContext.primaryXFactor || 'Quality and service'}
-- Winning Feature: ${brandContext.winningFeature || ''}
-${brandContext.xFactors?.length ? `- Brand Values: ${brandContext.xFactors.join(', ')}` : ''}
-${colorParts.length > 0 ? `\nBRAND COLORS (MUST USE THESE PROMINENTLY):
+=== זהות המותג ===
+- שם העסק: ${brandContext.businessName || 'לא צוין'}
+- קהל יעד: ${brandContext.targetAudience || 'קהל חרדי כללי'}
+- יתרון תחרותי: ${brandContext.primaryXFactor || 'איכות ושירות'}
+- פיצ'ר מנצח: ${brandContext.winningFeature || ''}
+${brandContext.xFactors?.length ? `- ערכי המותג: ${brandContext.xFactors.join(', ')}` : ''}
+
+${colorParts.length > 0 ? `צבעי המותג (חובה להשתמש בהם!):
 ${colorParts.join('\n')}
-The design MUST incorporate these exact brand colors as the dominant colors in the composition.` : ''}
-${brandContext.fonts?.header ? `- Headline Font Style: ${brandContext.fonts.header}` : ''}`;
+העיצוב חייב להשתמש בצבעים אלו כצבעים הדומיננטיים.` : ''}
+
+${brandContext.logoUrl ? `
+=== לוגו המותג ===
+יש לשלב את לוגו המותג בעיצוב בהתאם להנחיות הלוגו למעלה.
+כתובת הלוגו: ${brandContext.logoUrl}` : ''}
+
+${brandContext.fonts?.header ? `- סגנון פונט כותרות: ${brandContext.fonts.header}` : ''}`;
     }
 
     // Build campaign section for prompt
     let campaignSection = '';
     if (campaignContext) {
       campaignSection = `
-CAMPAIGN BRIEF:
-- Campaign Name: ${campaignContext.title || 'Marketing Campaign'}
-- Main Offer/Message: ${campaignContext.offer || visualPrompt}
-- Campaign Goal: ${campaignContext.goal === 'awareness' ? 'Brand Awareness' : 
-                   campaignContext.goal === 'promotion' ? 'Sale/Promotion' :
-                   campaignContext.goal === 'launch' ? 'Product Launch' :
-                   campaignContext.goal === 'seasonal' ? 'Seasonal/Holiday' : 'General Marketing'}
-The creative MUST clearly communicate the main offer: "${campaignContext.offer}"`;
+=== הקמפיין ===
+- שם: ${campaignContext.title || 'קמפיין שיווקי'}
+- הצעה/מסר עיקרי: ${campaignContext.offer || visualPrompt}
+- מטרה: ${campaignContext.goal === 'awareness' ? 'מודעות למותג' : 
+                   campaignContext.goal === 'promotion' ? 'מבצע/הנחה' :
+                   campaignContext.goal === 'launch' ? 'השקה' :
+                   campaignContext.goal === 'seasonal' ? 'עונתי/חג' : 'שיווק כללי'}
+${campaignContext.vibe ? `- אווירה: ${campaignContext.vibe}` : ''}
+${campaignContext.targetStream ? `- זרם: ${campaignContext.targetStream}` : ''}
+${campaignContext.targetGender ? `- מגדר יעד: ${campaignContext.targetGender}` : ''}
+
+המודעה חייבת להעביר בבירור את המסר: "${campaignContext.offer}"`;
     }
 
     // Build enhanced prompt
     let fullPrompt = '';
     
+    // Base system prompt for Haredi audience
+    const baseSystemPrompt = `אתה מעצב גרפי מומחה ליצירת פרסומות לקהילה החרדית בישראל.
+
+חוקים קריטיים שחובה לשמור:
+- אין להציג תמונות נשים או ילדות כלל!
+- שמירה על צניעות מלאה בכל אלמנט
+- עיצוב נקי, מכובד ומקצועי
+- טקסט בעברית בלבד (מימין לשמאל)
+- אין תוכן פוגעני או לא צנוע`;
+
     if (engine === 'nano-banana' || !engine) {
       // Gemini Pro Image - highest quality with Hebrew text support
-      fullPrompt = `Create a stunning professional advertisement image.
+      fullPrompt = `${baseSystemPrompt}
 
-STYLE: ${styleDesc}
+=== סגנון ===
+${styleDesc}
+
+${modelRulesSection}
 ${brandSection}
 ${campaignSection}
 
-${templatePrompt ? `FORMAT: ${templatePrompt}` : ''}
+${templatePrompt ? `=== פורמט ===
+${templatePrompt}` : ''}
 
-SCENE: ${visualPrompt}
+=== הסצנה ===
+${visualPrompt}
 
-${additionalHints ? `ADDITIONAL GUIDANCE: ${additionalHints}` : ''}
+${additionalHints ? `הנחיות נוספות: ${additionalHints}` : ''}
 
-${textPrompt ? `HEBREW TEXT TO INCLUDE: "${textPrompt}"
-The Hebrew text must be:
-- Prominently displayed and perfectly legible
-- Beautifully integrated into the design
-- Using elegant, professional Hebrew typography
-- Properly right-to-left oriented` : 'Do not include any text in the image.'}
+${textPrompt ? `=== טקסט עברי לשלב ===
+"${textPrompt}"
+הטקסט העברי חייב להיות:
+- בולט וקריא לחלוטין
+- משולב באלגנטיות בעיצוב
+- בטיפוגרפיה מקצועית
+- מימין לשמאל כמובן` : 'אין לכלול טקסט בתמונה.'}
 
-${dimensions ? `TARGET DIMENSIONS: ${dimensions.width}x${dimensions.height} pixels` : ''}
+${dimensions ? `מידות: ${dimensions.width}x${dimensions.height} פיקסלים` : ''}
 
-CRITICAL REQUIREMENTS:
-- This is for a Haredi (Ultra-Orthodox Jewish) audience
-- Absolute modesty in all imagery - no inappropriate content
-- If showing people: modest dress only (long sleeves, covered legs for women; traditional attire for men)
-- Family-friendly, dignified atmosphere
-- Professional advertising quality
-- Commercial-grade composition and lighting
-${brandContext?.colors?.primary ? `- USE THE BRAND COLORS (${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}) AS THE DOMINANT COLORS` : ''}
-${campaignContext?.offer ? `- The main message "${campaignContext.offer}" should be the central focus` : ''}`;
+${brandContext?.colors?.primary ? `חובה: השתמש בצבעי המותג (${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}) כצבעים הדומיננטיים!` : ''}
+${campaignContext?.offer ? `המסר "${campaignContext.offer}" צריך להיות המוקד המרכזי` : ''}`;
 
     } else {
       // Flux model for non-text photorealism
-      fullPrompt = `Create a photorealistic commercial image.
+      fullPrompt = `${baseSystemPrompt}
 
-STYLE: ${styleDesc}
+=== סגנון ===
+${styleDesc}
+
+${modelRulesSection}
 ${brandSection}
 ${campaignSection}
 
-${templatePrompt ? `FORMAT: ${templatePrompt}` : ''}
+${templatePrompt ? `=== פורמט ===
+${templatePrompt}` : ''}
 
-SCENE: ${visualPrompt}
+=== הסצנה ===
+${visualPrompt}
 
-${additionalHints ? `ADDITIONAL GUIDANCE: ${additionalHints}` : ''}
+${additionalHints ? `הנחיות נוספות: ${additionalHints}` : ''}
 
-REQUIREMENTS:
-- Ultra high quality photorealism
-- Professional lighting and composition
-- No text in image
-- Haredi audience appropriate - absolute modesty
-- Commercial advertising quality
-${brandContext?.colors?.primary ? `- Color scheme should align with brand colors: ${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}` : ''}`;
+דרישות:
+- איכות פוטו-ריאליסטית גבוהה
+- תאורה וקומפוזיציה מקצועיות
+- ללא טקסט בתמונה
+- מותאם לקהל חרדי - צניעות מלאה
+- איכות פרסום מסחרי
+${brandContext?.colors?.primary ? `- סכמת הצבעים תואמת למותג: ${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}` : ''}`;
     }
 
-    console.log("Enhanced prompt:", fullPrompt);
+    console.log("Enhanced prompt length:", fullPrompt.length);
 
     // Select best model based on requirements
     const model = (engine === 'nano-banana' || textPrompt) 
@@ -220,11 +336,31 @@ ${brandContext?.colors?.primary ? `- Color scheme should align with brand colors
       });
     }
 
+    // Log the generation for learning
+    try {
+      await supabase
+        .from('ai_generation_logs')
+        .insert({
+          media_type: configMediaType,
+          model_config_id: modelConfig?.id || null,
+          prompt_used: fullPrompt.substring(0, 5000), // Limit size
+          generated_output: imageUrl,
+          generation_type: 'image',
+          success: true,
+          brand_context: brandContext || null,
+          campaign_context: campaignContext || null,
+        });
+    } catch (logError) {
+      console.error('Error logging generation:', logError);
+      // Don't fail the request if logging fails
+    }
+
     return new Response(JSON.stringify({ 
       imageUrl,
       status: 'approved',
       message: data.choices?.[0]?.message?.content || '',
       model: model,
+      configUsed: modelConfig?.media_type || 'default',
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

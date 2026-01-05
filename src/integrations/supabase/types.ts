@@ -14,6 +14,135 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_generation_logs: {
+        Row: {
+          brand_context: Json | null
+          campaign_context: Json | null
+          client_profile_id: string | null
+          created_at: string
+          feedback_notes: string | null
+          generated_output: string | null
+          generation_type: string
+          id: string
+          media_type: string
+          model_config_id: string | null
+          prompt_used: string
+          success: boolean
+          user_feedback: string | null
+          user_id: string | null
+        }
+        Insert: {
+          brand_context?: Json | null
+          campaign_context?: Json | null
+          client_profile_id?: string | null
+          created_at?: string
+          feedback_notes?: string | null
+          generated_output?: string | null
+          generation_type: string
+          id?: string
+          media_type: string
+          model_config_id?: string | null
+          prompt_used: string
+          success?: boolean
+          user_feedback?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          brand_context?: Json | null
+          campaign_context?: Json | null
+          client_profile_id?: string | null
+          created_at?: string
+          feedback_notes?: string | null
+          generated_output?: string | null
+          generation_type?: string
+          id?: string
+          media_type?: string
+          model_config_id?: string | null
+          prompt_used?: string
+          success?: boolean
+          user_feedback?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_generation_logs_client_profile_id_fkey"
+            columns: ["client_profile_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_generation_logs_model_config_id_fkey"
+            columns: ["model_config_id"]
+            isOneToOne: false
+            referencedRelation: "ai_model_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_model_configs: {
+        Row: {
+          color_usage_rules: string | null
+          created_at: string
+          description: string | null
+          design_rules: string[] | null
+          display_name: string
+          donts: string[] | null
+          dos: string[] | null
+          example_prompts: string[] | null
+          id: string
+          is_active: boolean
+          layout_principles: string[] | null
+          logo_instructions: string | null
+          media_type: string
+          model_name: string
+          system_prompt: string
+          text_rules: string[] | null
+          typography_rules: string | null
+          updated_at: string
+        }
+        Insert: {
+          color_usage_rules?: string | null
+          created_at?: string
+          description?: string | null
+          design_rules?: string[] | null
+          display_name: string
+          donts?: string[] | null
+          dos?: string[] | null
+          example_prompts?: string[] | null
+          id?: string
+          is_active?: boolean
+          layout_principles?: string[] | null
+          logo_instructions?: string | null
+          media_type: string
+          model_name: string
+          system_prompt: string
+          text_rules?: string[] | null
+          typography_rules?: string | null
+          updated_at?: string
+        }
+        Update: {
+          color_usage_rules?: string | null
+          created_at?: string
+          description?: string | null
+          design_rules?: string[] | null
+          display_name?: string
+          donts?: string[] | null
+          dos?: string[] | null
+          example_prompts?: string[] | null
+          id?: string
+          is_active?: boolean
+          layout_principles?: string[] | null
+          logo_instructions?: string | null
+          media_type?: string
+          model_name?: string
+          system_prompt?: string
+          text_rules?: string[] | null
+          typography_rules?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       branding_orders: {
         Row: {
           audience: string | null
