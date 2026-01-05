@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Users, Upload, X, FileImage, FileText, Sparkles, Trash2, Loader2, Type, Plus, Clipboard } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,12 +10,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 
 interface UploadedAsset {
   id: string;
   name: string;
   type: 'image' | 'document' | 'text';
-  zone: 'fame' | 'redlines' | 'styles';
+  example_type: 'good' | 'bad';
+  media_type: MediaType | null;
   preview?: string;
   file_path?: string;
   text_content?: string;
@@ -25,11 +28,21 @@ interface UploadedAsset {
   holiday_season?: string;
 }
 
-type UploadZone = 'fame' | 'redlines' | 'styles';
+type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio';
+type ExampleType = 'good' | 'bad';
 type StreamType = 'hasidic' | 'litvish' | 'general' | 'sephardic';
 type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'youth' | 'classic';
 type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_internet' | 'electronics' | 'hotels' | 'mens_fashion' | 'kids_fashion' | 'womens_fashion' | 'makeup' | 'education' | 'health' | 'finance' | 'events' | 'judaica' | 'toys' | 'furniture' | 'jewelry' | 'other';
 type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round';
+
+const MEDIA_TYPES: { id: MediaType; label: string; icon: React.ElementType; description: string }[] = [
+  { id: 'ads', label: 'מודעות', icon: Newspaper, description: 'עיתונות, מגזינים ומדיה מודפסת' },
+  { id: 'text', label: 'מלל וקופי', icon: FileText, description: 'סלוגנים, כותרות וטקסטים שיווקיים' },
+  { id: 'video', label: 'וידאו', icon: Video, description: 'סרטוני פרסום ותוכן וידאו' },
+  { id: 'signage', label: 'שילוט', icon: RectangleHorizontal, description: 'שלטי חוצות, באנרים ומדיה חוצות' },
+  { id: 'promo', label: 'קד"מ', icon: Megaphone, description: 'קידום מכירות, מבצעים והטבות' },
+  { id: 'radio', label: 'רדיו', icon: Radio, description: 'ספוטים וג׳ינגלים' },
+];
 
 const STREAM_LABELS: Record<StreamType, string> = {
   hasidic: 'חסידי',
@@ -94,17 +107,14 @@ const SectorBrain = () => {
   const [isTraining, setIsTraining] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Text input states
-  const [textInputs, setTextInputs] = useState<Record<UploadZone, string>>({
-    fame: '',
-    redlines: '',
-    styles: '',
-  });
+  // Current selections
+  const [activeMediaType, setActiveMediaType] = useState<MediaType>('ads');
+  const [selectedExampleType, setSelectedExampleType] = useState<ExampleType>('good');
   const [selectedStream, setSelectedStream] = useState<StreamType | ''>('');
   const [selectedGender, setSelectedGender] = useState<GenderAudience | ''>('');
   const [selectedTopic, setSelectedTopic] = useState<TopicCategory | ''>('');
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason | ''>('');
-  const [activeZone, setActiveZone] = useState<UploadZone | null>(null);
+  const [textInput, setTextInput] = useState('');
 
   // Check admin role
   useEffect(() => {
@@ -158,11 +168,19 @@ const SectorBrain = () => {
       const assets: UploadedAsset[] = data.map(item => {
         const isText = item.file_type === 'text';
         const isImage = !isText && item.file_type?.startsWith('image/');
+        
+        // Migrate old zone-based data to new structure
+        let exampleType: ExampleType = (item.example_type as ExampleType) || 'good';
+        if (!item.example_type) {
+          exampleType = item.zone === 'redlines' ? 'bad' : 'good';
+        }
+        
         return {
           id: item.id,
           name: item.name,
           type: isText ? 'text' : (isImage ? 'image' : 'document'),
-          zone: item.zone as UploadZone,
+          example_type: exampleType,
+          media_type: (item.media_type as MediaType) || null,
           file_path: item.file_path,
           text_content: item.text_content,
           stream_type: item.stream_type,
@@ -177,8 +195,8 @@ const SectorBrain = () => {
     setIsLoading(false);
   };
 
-  const handleAddText = async (zone: UploadZone) => {
-    const text = textInputs[zone].trim();
+  const handleAddText = async () => {
+    const text = textInput.trim();
     if (!text) {
       toast.error('נא להזין טקסט');
       return;
@@ -189,7 +207,7 @@ const SectorBrain = () => {
     const { data: dbData, error: dbError } = await supabase
       .from('sector_brain_examples')
       .insert({
-        zone,
+        zone: selectedExampleType === 'good' ? 'fame' : 'redlines', // Keep for backwards compat
         name: textName,
         file_path: '',
         file_type: 'text',
@@ -198,6 +216,8 @@ const SectorBrain = () => {
         gender_audience: selectedGender || null,
         topic_category: selectedTopic || null,
         holiday_season: selectedHoliday || null,
+        media_type: activeMediaType,
+        example_type: selectedExampleType,
       })
       .select()
       .single();
@@ -212,7 +232,8 @@ const SectorBrain = () => {
       id: dbData.id,
       name: textName,
       type: 'text',
-      zone,
+      example_type: selectedExampleType,
+      media_type: activeMediaType,
       text_content: text,
       stream_type: dbData.stream_type,
       gender_audience: dbData.gender_audience,
@@ -221,24 +242,17 @@ const SectorBrain = () => {
     };
 
     setUploads(prev => [newUpload, ...prev]);
-    setTextInputs(prev => ({ ...prev, [zone]: '' }));
+    setTextInput('');
     toast.success('הטקסט נוסף בהצלחה');
   };
 
-  const handleDrop = useCallback(async (e: React.DragEvent, zone: UploadZone, streamType?: StreamType, genderAudience?: GenderAudience, topicCategory?: TopicCategory, holidaySeason?: HolidaySeason) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     
-    const zoneNames = {
-      fame: 'היכל התהילה',
-      redlines: 'הקו האדום',
-      styles: 'סגנון לפי זרם',
-    };
-
     for (const file of files) {
-      // Upload to storage
-      const fileName = `${zone}/${Date.now()}-${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const fileName = `${activeMediaType}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
         .from('sector-brain')
         .upload(fileName, file);
 
@@ -248,18 +262,19 @@ const SectorBrain = () => {
         continue;
       }
 
-      // Save to database
       const { data: dbData, error: dbError } = await supabase
         .from('sector_brain_examples')
         .insert({
-          zone,
+          zone: selectedExampleType === 'good' ? 'fame' : 'redlines',
           name: file.name,
           file_path: fileName,
           file_type: file.type,
-          stream_type: streamType || null,
-          gender_audience: genderAudience || null,
-          topic_category: topicCategory || null,
-          holiday_season: holidaySeason || null,
+          stream_type: selectedStream || null,
+          gender_audience: selectedGender || null,
+          topic_category: selectedTopic || null,
+          holiday_season: selectedHoliday || null,
+          media_type: activeMediaType,
+          example_type: selectedExampleType,
         })
         .select()
         .single();
@@ -270,12 +285,12 @@ const SectorBrain = () => {
         continue;
       }
 
-      // Add to local state
       const newUpload: UploadedAsset = {
         id: dbData.id,
         name: file.name,
         type: file.type.startsWith('image/') ? 'image' : 'document',
-        zone,
+        example_type: selectedExampleType,
+        media_type: activeMediaType,
         file_path: fileName,
         stream_type: dbData.stream_type,
         gender_audience: dbData.gender_audience,
@@ -289,15 +304,14 @@ const SectorBrain = () => {
       setUploads(prev => [newUpload, ...prev]);
     }
     
-    toast.success(`${files.length} קבצים נוספו ל${zoneNames[zone]}`);
-  }, []);
+    toast.success(`${files.length} קבצים נוספו`);
+  }, [activeMediaType, selectedExampleType, selectedStream, selectedGender, selectedTopic, selectedHoliday]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
-  // Handle paste from clipboard
-  const handlePaste = useCallback(async (zone: UploadZone) => {
+  const handlePaste = useCallback(async () => {
     try {
       const clipboardItems = await navigator.clipboard.read();
       
@@ -307,9 +321,8 @@ const SectorBrain = () => {
           const blob = await item.getType(imageType);
           const file = new File([blob], `pasted-image-${Date.now()}.png`, { type: imageType });
           
-          // Upload to storage
-          const fileName = `${zone}/${Date.now()}-${file.name}`;
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const fileName = `${activeMediaType}/${Date.now()}-${file.name}`;
+          const { error: uploadError } = await supabase.storage
             .from('sector-brain')
             .upload(fileName, file);
 
@@ -319,11 +332,10 @@ const SectorBrain = () => {
             continue;
           }
 
-          // Save to database
           const { data: dbData, error: dbError } = await supabase
             .from('sector_brain_examples')
             .insert({
-              zone,
+              zone: selectedExampleType === 'good' ? 'fame' : 'redlines',
               name: file.name,
               file_path: fileName,
               file_type: file.type,
@@ -331,6 +343,8 @@ const SectorBrain = () => {
               gender_audience: selectedGender || null,
               topic_category: selectedTopic || null,
               holiday_season: selectedHoliday || null,
+              media_type: activeMediaType,
+              example_type: selectedExampleType,
             })
             .select()
             .single();
@@ -341,12 +355,12 @@ const SectorBrain = () => {
             continue;
           }
 
-          // Add to local state
           const newUpload: UploadedAsset = {
             id: dbData.id,
             name: file.name,
             type: 'image',
-            zone,
+            example_type: selectedExampleType,
+            media_type: activeMediaType,
             file_path: fileName,
             stream_type: dbData.stream_type,
             gender_audience: dbData.gender_audience,
@@ -363,15 +377,13 @@ const SectorBrain = () => {
       console.error('Paste error:', error);
       toast.error('לא ניתן להדביק. נסה להעתיק תמונה ללוח');
     }
-  }, [selectedStream, selectedGender, selectedTopic, selectedHoliday]);
+  }, [activeMediaType, selectedExampleType, selectedStream, selectedGender, selectedTopic, selectedHoliday]);
 
   const removeUpload = async (id: string, filePath?: string) => {
-    // Delete from storage
     if (filePath) {
       await supabase.storage.from('sector-brain').remove([filePath]);
     }
 
-    // Delete from database
     const { error } = await supabase
       .from('sector_brain_examples')
       .delete()
@@ -387,7 +399,21 @@ const SectorBrain = () => {
     toast.success('הקובץ נמחק');
   };
 
-  const getZoneUploads = (zone: UploadZone) => uploads.filter(u => u.zone === zone);
+  const getFilteredUploads = (mediaType: MediaType, exampleType: ExampleType) => {
+    return uploads.filter(u => {
+      // Handle old data without media_type
+      if (!u.media_type && mediaType === 'ads') {
+        return u.example_type === exampleType;
+      }
+      return u.media_type === mediaType && u.example_type === exampleType;
+    });
+  };
+
+  const getMediaStats = (mediaType: MediaType) => {
+    const good = getFilteredUploads(mediaType, 'good').length;
+    const bad = getFilteredUploads(mediaType, 'bad').length;
+    return { good, bad, total: good + bad };
+  };
 
   const startTraining = async () => {
     if (uploads.length === 0) {
@@ -398,217 +424,14 @@ const SectorBrain = () => {
     setIsTraining(true);
     setTrainingProgress(0);
 
-    // Simulate training progress
     for (let i = 0; i <= 100; i += 5) {
       await new Promise(resolve => setTimeout(resolve, 150));
       setTrainingProgress(i);
     }
 
     setIsTraining(false);
-    toast.success('המערכת למדה בהצלחה! כעת היא מכירה את הסגנון שלכם ותבדוק תמונות בהתאם.');
+    toast.success('המערכת למדה בהצלחה! כעת כל המודלים מכירים את הסגנון שלכם.');
   };
-
-  const UploadZoneCard = ({ 
-    zone, 
-    title, 
-    description, 
-    icon: Icon, 
-    color,
-    showCategorySelect = true,
-  }: { 
-    zone: UploadZone; 
-    title: string; 
-    description: string; 
-    icon: React.ElementType;
-    color: string;
-    showCategorySelect?: boolean;
-  }) => (
-    <Card 
-      className="border-2 border-dashed transition-all hover:border-primary/50"
-      onDrop={(e) => handleDrop(e, zone, selectedStream || undefined, selectedGender || undefined, selectedTopic || undefined, selectedHoliday || undefined)}
-      onDragOver={handleDragOver}
-    >
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Icon className={`h-5 w-5 ${color}`} />
-          {title}
-        </CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Category selectors */}
-        {showCategorySelect && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1 block">זרם</Label>
-                <Select 
-                  value={selectedStream} 
-                  onValueChange={(v) => setSelectedStream(v as StreamType)}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="בחר זרם" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(STREAM_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1 block">קהל יעד</Label>
-                <Select 
-                  value={selectedGender} 
-                  onValueChange={(v) => setSelectedGender(v as GenderAudience)}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="בחר קהל" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(GENDER_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1 block">נושא/תחום</Label>
-                <Select 
-                  value={selectedTopic} 
-                  onValueChange={(v) => setSelectedTopic(v as TopicCategory)}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="בחר נושא" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TOPIC_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1 block">חג/עונה</Label>
-                <Select 
-                  value={selectedHoliday} 
-                  onValueChange={(v) => setSelectedHoliday(v as HolidaySeason)}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="בחר חג" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Text input area */}
-        <div className="space-y-2">
-          <Textarea
-            placeholder="הקלד טקסט לדוגמה..."
-            value={textInputs[zone]}
-            onChange={(e) => setTextInputs(prev => ({ ...prev, [zone]: e.target.value }))}
-            className="min-h-[80px] resize-none"
-          />
-          <Button 
-            size="sm" 
-            variant="outline"
-            onClick={() => handleAddText(zone)}
-            disabled={!textInputs[zone].trim()}
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 ml-1" />
-            הוסף טקסט
-          </Button>
-        </div>
-
-        {/* Paste button */}
-        <Button 
-          size="sm" 
-          variant="outline"
-          onClick={() => handlePaste(zone)}
-          className="w-full"
-        >
-          <Clipboard className="h-4 w-4 ml-1" />
-          הדבק תמונה מהלוח
-        </Button>
-
-        {/* File drop zone */}
-        <div className="min-h-[120px] bg-muted/30 rounded-lg flex flex-col items-center justify-center p-4 border border-border/50">
-          {getZoneUploads(zone).length === 0 ? (
-            <>
-              <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground text-center">
-                גרור ושחרר קבצים לכאן
-              </p>
-              <p className="text-xs text-muted-foreground/70 text-center mt-1">
-                או לחץ על "הדבק תמונה" למעלה
-              </p>
-            </>
-          ) : (
-            <div className="w-full space-y-2 max-h-[200px] overflow-y-auto">
-              {getZoneUploads(zone).map(upload => (
-                <div 
-                  key={upload.id}
-                  className="flex items-center gap-3 bg-background rounded-lg p-2 border border-border"
-                >
-                  {upload.type === 'image' && upload.preview ? (
-                    <img 
-                      src={upload.preview} 
-                      alt={upload.name}
-                      className="h-10 w-10 rounded object-cover"
-                    />
-                  ) : upload.type === 'image' ? (
-                    <FileImage className="h-10 w-10 text-primary" />
-                  ) : upload.type === 'text' ? (
-                    <Type className="h-10 w-10 text-blue-500" />
-                  ) : (
-                    <FileText className="h-10 w-10 text-muted-foreground" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <span className="block truncate text-sm">{upload.name}</span>
-                    {(upload.stream_type || upload.gender_audience || upload.topic_category) && (
-                      <div className="flex flex-wrap gap-1 mt-0.5">
-                        {upload.stream_type && (
-                          <Badge variant="outline" className="text-xs py-0 px-1.5">
-                            {STREAM_LABELS[upload.stream_type as StreamType]}
-                          </Badge>
-                        )}
-                        {upload.gender_audience && (
-                          <Badge variant="outline" className="text-xs py-0 px-1.5">
-                            {GENDER_LABELS[upload.gender_audience as GenderAudience]}
-                          </Badge>
-                        )}
-                        {upload.topic_category && (
-                          <Badge variant="secondary" className="text-xs py-0 px-1.5">
-                            {TOPIC_LABELS[upload.topic_category as TopicCategory]}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <button 
-                    onClick={() => removeUpload(upload.id, upload.file_path)}
-                    className="text-muted-foreground hover:text-destructive transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
 
   // Show loading while checking admin status
   if (isCheckingAuth) {
@@ -626,6 +449,8 @@ const SectorBrain = () => {
     return null;
   }
 
+  const currentStats = getMediaStats(activeMediaType);
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
@@ -638,17 +463,17 @@ const SectorBrain = () => {
             <div>
               <h1 className="text-xl font-bold font-assistant flex items-center gap-2">
                 <Brain className="h-5 w-5 text-primary" />
-                בית הספר של האלגוריתם
+                אימון מערכת AI
               </h1>
               <p className="text-sm text-muted-foreground">
-                כאן מלמדים את המערכת מה זה 'פרסום חרדי איכותי' ומה זה 'אסור בתכלית האיסור'
+                כל המודלים (יצירת תמונות, קופי, צ'אט) ישאבו מידע מכאן
               </p>
             </div>
           </div>
           <Link to="/admin-dashboard">
             <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90">
               <ArrowRight className="h-4 w-4 ml-2" />
-              חזרה לממשק ניהול
+              חזרה
             </Button>
           </Link>
         </div>
@@ -665,7 +490,7 @@ const SectorBrain = () => {
                   <h3 className="font-semibold mb-2">לימוד המערכת בתהליך...</h3>
                   <Progress value={trainingProgress} className="h-2" />
                   <p className="text-sm text-muted-foreground mt-1">
-                    {trainingProgress}% - האלגוריתם לומד את הסגנון שלכם
+                    {trainingProgress}% - כל המודלים לומדים את הסגנון שלכם
                   </p>
                 </div>
               </div>
@@ -673,62 +498,338 @@ const SectorBrain = () => {
           </Card>
         )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <Card className="bg-success/10 border-success/30">
-            <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-success">{getZoneUploads('fame').length}</div>
-              <div className="text-sm text-muted-foreground">דוגמאות מוצלחות</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-destructive/10 border-destructive/30">
-            <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-destructive">{getZoneUploads('redlines').length}</div>
-              <div className="text-sm text-muted-foreground">קווים אדומים</div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Media Type Tabs */}
+        <Tabs value={activeMediaType} onValueChange={(v) => setActiveMediaType(v as MediaType)} className="w-full">
+          <TabsList className="w-full h-auto flex-wrap gap-2 bg-transparent p-0 mb-6">
+            {MEDIA_TYPES.map((media) => {
+              const stats = getMediaStats(media.id);
+              return (
+                <TabsTrigger
+                  key={media.id}
+                  value={media.id}
+                  className={cn(
+                    "flex-1 min-w-[120px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+                    "border-2 data-[state=active]:border-primary",
+                    "flex flex-col items-center gap-1 py-3 px-4"
+                  )}
+                >
+                  <media.icon className="h-5 w-5" />
+                  <span className="font-medium text-sm">{media.label}</span>
+                  {stats.total > 0 && (
+                    <span className="text-xs opacity-70">{stats.total} דוגמאות</span>
+                  )}
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
 
-        {/* Upload Zones - now only 2 columns */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <UploadZoneCard
-            zone="fame"
-            title="היכל התהילה"
-            description="העלו קמפיינים מוצלחים מהעבר. האלגוריתם ילמד מה עובד בעולם הפרסום החרדי"
-            icon={Trophy}
-            color="text-success"
-          />
-          <UploadZoneCard
-            zone="redlines"
-            title="הקו האדום - סייגים"
-            description="העלו דוגמאות לדברים אסורים - תמונות או טקסטים שלא עוברים"
-            icon={AlertOctagon}
-            color="text-destructive"
-          />
-        </div>
+          {MEDIA_TYPES.map((media) => (
+            <TabsContent key={media.id} value={media.id} className="mt-0">
+              {/* Media type header */}
+              <Card className="mb-6">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <media.icon className="h-5 w-5 text-primary" />
+                    {media.label}
+                  </CardTitle>
+                  <CardDescription>{media.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-success/10 border border-success/30">
+                      <ThumbsUp className="h-5 w-5 text-success" />
+                      <div>
+                        <div className="text-2xl font-bold text-success">{getFilteredUploads(media.id, 'good').length}</div>
+                        <div className="text-xs text-muted-foreground">דוגמאות טובות</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
+                      <ThumbsDown className="h-5 w-5 text-destructive" />
+                      <div>
+                        <div className="text-2xl font-bold text-destructive">{getFilteredUploads(media.id, 'bad').length}</div>
+                        <div className="text-xs text-muted-foreground">קווים אדומים</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Digital Mashgiach Info */}
-        <Card className="mb-8 bg-muted/30">
+              {/* Example Type Toggle */}
+              <div className="flex gap-2 mb-6">
+                <Button
+                  variant={selectedExampleType === 'good' ? 'default' : 'outline'}
+                  onClick={() => setSelectedExampleType('good')}
+                  className={cn(
+                    "flex-1",
+                    selectedExampleType === 'good' && "bg-success hover:bg-success/90"
+                  )}
+                >
+                  <Trophy className="h-4 w-4 ml-2" />
+                  דוגמאות מוצלחות
+                </Button>
+                <Button
+                  variant={selectedExampleType === 'bad' ? 'default' : 'outline'}
+                  onClick={() => setSelectedExampleType('bad')}
+                  className={cn(
+                    "flex-1",
+                    selectedExampleType === 'bad' && "bg-destructive hover:bg-destructive/90"
+                  )}
+                >
+                  <AlertOctagon className="h-4 w-4 ml-2" />
+                  קווים אדומים
+                </Button>
+              </div>
+
+              {/* Upload Area */}
+              <Card 
+                className="mb-6 border-2 border-dashed transition-all hover:border-primary/50"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {selectedExampleType === 'good' ? (
+                      <>
+                        <Trophy className="h-4 w-4 text-success" />
+                        הוסף דוגמה מוצלחת
+                      </>
+                    ) : (
+                      <>
+                        <AlertOctagon className="h-4 w-4 text-destructive" />
+                        הוסף קו אדום
+                      </>
+                    )}
+                  </CardTitle>
+                  <CardDescription>
+                    {selectedExampleType === 'good' 
+                      ? 'העלה דוגמאות לתוכן מוצלח שהמערכת תלמד לחקות'
+                      : 'העלה דוגמאות לתוכן בעייתי שהמערכת תדע להימנע ממנו'
+                    }
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Category selectors */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">זרם</Label>
+                      <Select value={selectedStream} onValueChange={(v) => setSelectedStream(v as StreamType)}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="בחר זרם" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(STREAM_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">קהל יעד</Label>
+                      <Select value={selectedGender} onValueChange={(v) => setSelectedGender(v as GenderAudience)}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="בחר קהל" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(GENDER_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">נושא/תחום</Label>
+                      <Select value={selectedTopic} onValueChange={(v) => setSelectedTopic(v as TopicCategory)}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="בחר נושא" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(TOPIC_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">חג/עונה</Label>
+                      <Select value={selectedHoliday} onValueChange={(v) => setSelectedHoliday(v as HolidaySeason)}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="בחר חג" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Text input */}
+                  <div className="space-y-2">
+                    <Textarea
+                      placeholder={`הקלד ${selectedExampleType === 'good' ? 'דוגמה לטקסט מוצלח' : 'דוגמה לטקסט בעייתי'}...`}
+                      value={textInput}
+                      onChange={(e) => setTextInput(e.target.value)}
+                      className="min-h-[80px] resize-none"
+                    />
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={handleAddText}
+                        disabled={!textInput.trim()}
+                        className="flex-1"
+                      >
+                        <Plus className="h-4 w-4 ml-1" />
+                        הוסף טקסט
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={handlePaste}
+                      >
+                        <Clipboard className="h-4 w-4 ml-1" />
+                        הדבק תמונה
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Drop zone */}
+                  <div className="min-h-[100px] bg-muted/30 rounded-lg flex flex-col items-center justify-center p-4 border border-border/50">
+                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground text-center">
+                      גרור ושחרר קבצים לכאן
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Examples List */}
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Good examples */}
+                <Card className="border-success/30">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2 text-success">
+                      <Trophy className="h-4 w-4" />
+                      דוגמאות מוצלחות ({getFilteredUploads(media.id, 'good').length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
+                    {getFilteredUploads(media.id, 'good').map((upload) => (
+                      <div key={upload.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                        {upload.type === 'image' && upload.preview ? (
+                          <img src={upload.preview} alt="" className="w-10 h-10 rounded object-cover" />
+                        ) : upload.type === 'text' ? (
+                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                            <FileImage className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm truncate">{upload.name}</p>
+                          <div className="flex gap-1 flex-wrap mt-1">
+                            {upload.topic_category && (
+                              <Badge variant="secondary" className="text-[10px] py-0 px-1">
+                                {TOPIC_LABELS[upload.topic_category as TopicCategory]}
+                              </Badge>
+                            )}
+                            {upload.holiday_season && upload.holiday_season !== 'year_round' && (
+                              <Badge variant="outline" className="text-[10px] py-0 px-1">
+                                {HOLIDAY_LABELS[upload.holiday_season as HolidaySeason]}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => removeUpload(upload.id, upload.file_path)}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {getFilteredUploads(media.id, 'good').length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        אין דוגמאות עדיין
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Bad examples */}
+                <Card className="border-destructive/30">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2 text-destructive">
+                      <AlertOctagon className="h-4 w-4" />
+                      קווים אדומים ({getFilteredUploads(media.id, 'bad').length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
+                    {getFilteredUploads(media.id, 'bad').map((upload) => (
+                      <div key={upload.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                        {upload.type === 'image' && upload.preview ? (
+                          <img src={upload.preview} alt="" className="w-10 h-10 rounded object-cover" />
+                        ) : upload.type === 'text' ? (
+                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                            <FileImage className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm truncate">{upload.name}</p>
+                          <div className="flex gap-1 flex-wrap mt-1">
+                            {upload.topic_category && (
+                              <Badge variant="secondary" className="text-[10px] py-0 px-1">
+                                {TOPIC_LABELS[upload.topic_category as TopicCategory]}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => removeUpload(upload.id, upload.file_path)}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {getFilteredUploads(media.id, 'bad').length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        אין קווים אדומים עדיין
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+
+        {/* Info Card */}
+        <Card className="mt-8 bg-muted/30">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-full bg-primary/10">
                 <Brain className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold mb-2">המשגיח הדיגיטלי</h3>
+                <h3 className="font-semibold mb-2">איך זה עובד?</h3>
                 <p className="text-muted-foreground text-sm mb-4">
-                  לפני שכל יצירה מוצגת לכם, המערכת מריצה "בדיקת כשרות" אוטומטית.
-                  היא משווה את התוצאה לדוגמאות שהעלתם כאן ומסננת תוכן בעייתי.
+                  כל המודלים שלנו - יצירת תמונות, כתיבת קופי, צ'אט AI ועוד - לומדים מהדוגמאות שתעלו כאן.
+                  ככל שתעלו יותר דוגמאות מגוונות, כך המערכת תבין טוב יותר מה מתאים ומה לא.
                 </p>
                 <div className="flex gap-3 flex-wrap">
                   <Badge className="bg-success text-success-foreground">
-                    מאושר בסינון ראשוני ✓
-                  </Badge>
-                  <Badge className="bg-warning text-warning-foreground">
-                    דורש בדיקה אנושית ⚠️
+                    דוגמאות טובות = ללמוד ממנו ✓
                   </Badge>
                   <Badge className="bg-destructive text-destructive-foreground">
-                    נדחה אוטומטית ✗
+                    קווים אדומים = להימנע ממנו ✗
                   </Badge>
                 </div>
               </div>
@@ -737,11 +838,11 @@ const SectorBrain = () => {
         </Card>
 
         {/* Train Button */}
-        <div className="text-center">
+        <div className="text-center mt-8">
           <Button
             onClick={startTraining}
             disabled={isTraining || uploads.length === 0}
-            size="xl"
+            size="lg"
             variant="gradient"
             className="px-12"
           >
@@ -750,12 +851,12 @@ const SectorBrain = () => {
             ) : (
               <>
                 <Brain className="h-5 w-5 ml-2" />
-                התחל לימוד המערכת
+                עדכן את כל המודלים
               </>
             )}
           </Button>
           <p className="text-sm text-muted-foreground mt-3">
-            ככל שתעלו יותר דוגמאות, המערכת תבין טוב יותר את הסגנון שלכם
+            סה"כ {uploads.length} דוגמאות במערכת
           </p>
         </div>
       </div>
