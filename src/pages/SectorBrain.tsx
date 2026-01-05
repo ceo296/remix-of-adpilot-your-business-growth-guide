@@ -22,12 +22,14 @@ interface UploadedAsset {
   stream_type?: string;
   gender_audience?: string;
   topic_category?: string;
+  holiday_season?: string;
 }
 
 type UploadZone = 'fame' | 'redlines' | 'styles';
 type StreamType = 'hasidic' | 'litvish' | 'general' | 'sephardic';
 type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'youth' | 'classic';
-type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'hotels' | 'mens_fashion' | 'kids_fashion' | 'womens_fashion' | 'education' | 'health' | 'finance' | 'events' | 'other';
+type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_internet' | 'electronics' | 'hotels' | 'mens_fashion' | 'kids_fashion' | 'womens_fashion' | 'makeup' | 'education' | 'health' | 'finance' | 'events' | 'judaica' | 'toys' | 'furniture' | 'jewelry' | 'other';
+type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round';
 
 const STREAM_LABELS: Record<StreamType, string> = {
   hasidic: 'חסידי',
@@ -50,15 +52,37 @@ const TOPIC_LABELS: Record<TopicCategory, string> = {
   beauty: 'ביוטי',
   food: 'מזון',
   cellular: 'סלולר',
-  hotels: 'מלונות וחופשות',
+  filtered_internet: 'אינטרנט מסונן',
+  electronics: 'מוצרי חשמל',
+  hotels: 'מלונאות וחופשות',
   mens_fashion: 'אופנה גברית',
   kids_fashion: 'אופנת ילדים',
   womens_fashion: 'אופנת נשים',
-  education: 'חינוך',
+  makeup: 'איפור וקוסמטיקה',
+  education: 'לימודים וחינוך',
   health: 'בריאות',
-  finance: 'פיננסים',
-  events: 'אירועים',
+  finance: 'פיננסים וביטוח',
+  events: 'אירועים ושמחות',
+  judaica: 'יודאיקה וספרי קודש',
+  toys: 'צעצועים ומשחקים',
+  furniture: 'ריהוט ועיצוב הבית',
+  jewelry: 'תכשיטים ושעונים',
   other: 'אחר',
+};
+
+const HOLIDAY_LABELS: Record<HolidaySeason, string> = {
+  pesach: 'פסח',
+  sukkot: 'סוכות',
+  chanukah: 'חנוכה',
+  purim: 'פורים',
+  shavuot: 'שבועות',
+  lag_baomer: 'ל"ג בעומר',
+  tu_bishvat: 'ט"ו בשבט',
+  summer: 'קיץ',
+  bein_hazmanim: 'בין הזמנים',
+  rosh_hashana: 'ראש השנה',
+  yom_kippur: 'ימים נוראים',
+  year_round: 'כל השנה',
 };
 
 const SectorBrain = () => {
@@ -79,6 +103,7 @@ const SectorBrain = () => {
   const [selectedStream, setSelectedStream] = useState<StreamType | ''>('');
   const [selectedGender, setSelectedGender] = useState<GenderAudience | ''>('');
   const [selectedTopic, setSelectedTopic] = useState<TopicCategory | ''>('');
+  const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason | ''>('');
   const [activeZone, setActiveZone] = useState<UploadZone | null>(null);
 
   // Check admin role
@@ -143,6 +168,7 @@ const SectorBrain = () => {
           stream_type: item.stream_type,
           gender_audience: item.gender_audience,
           topic_category: item.topic_category,
+          holiday_season: item.holiday_season,
           preview: isImage ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${item.file_path}` : undefined,
         };
       });
@@ -171,6 +197,7 @@ const SectorBrain = () => {
         stream_type: selectedStream || null,
         gender_audience: selectedGender || null,
         topic_category: selectedTopic || null,
+        holiday_season: selectedHoliday || null,
       })
       .select()
       .single();
@@ -190,6 +217,7 @@ const SectorBrain = () => {
       stream_type: dbData.stream_type,
       gender_audience: dbData.gender_audience,
       topic_category: dbData.topic_category,
+      holiday_season: dbData.holiday_season,
     };
 
     setUploads(prev => [newUpload, ...prev]);
@@ -197,7 +225,7 @@ const SectorBrain = () => {
     toast.success('הטקסט נוסף בהצלחה');
   };
 
-  const handleDrop = useCallback(async (e: React.DragEvent, zone: UploadZone, streamType?: StreamType, genderAudience?: GenderAudience, topicCategory?: TopicCategory) => {
+  const handleDrop = useCallback(async (e: React.DragEvent, zone: UploadZone, streamType?: StreamType, genderAudience?: GenderAudience, topicCategory?: TopicCategory, holidaySeason?: HolidaySeason) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     
@@ -231,6 +259,7 @@ const SectorBrain = () => {
           stream_type: streamType || null,
           gender_audience: genderAudience || null,
           topic_category: topicCategory || null,
+          holiday_season: holidaySeason || null,
         })
         .select()
         .single();
@@ -251,6 +280,7 @@ const SectorBrain = () => {
         stream_type: dbData.stream_type,
         gender_audience: dbData.gender_audience,
         topic_category: dbData.topic_category,
+        holiday_season: dbData.holiday_season,
         preview: file.type.startsWith('image/') 
           ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}`
           : undefined,
@@ -300,6 +330,7 @@ const SectorBrain = () => {
               stream_type: selectedStream || null,
               gender_audience: selectedGender || null,
               topic_category: selectedTopic || null,
+              holiday_season: selectedHoliday || null,
             })
             .select()
             .single();
@@ -320,6 +351,7 @@ const SectorBrain = () => {
             stream_type: dbData.stream_type,
             gender_audience: dbData.gender_audience,
             topic_category: dbData.topic_category,
+            holiday_season: dbData.holiday_season,
             preview: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}`,
           };
 
@@ -331,7 +363,7 @@ const SectorBrain = () => {
       console.error('Paste error:', error);
       toast.error('לא ניתן להדביק. נסה להעתיק תמונה ללוח');
     }
-  }, [selectedStream, selectedGender, selectedTopic]);
+  }, [selectedStream, selectedGender, selectedTopic, selectedHoliday]);
 
   const removeUpload = async (id: string, filePath?: string) => {
     // Delete from storage
@@ -393,7 +425,7 @@ const SectorBrain = () => {
   }) => (
     <Card 
       className="border-2 border-dashed transition-all hover:border-primary/50"
-      onDrop={(e) => handleDrop(e, zone, selectedStream || undefined, selectedGender || undefined, selectedTopic || undefined)}
+      onDrop={(e) => handleDrop(e, zone, selectedStream || undefined, selectedGender || undefined, selectedTopic || undefined, selectedHoliday || undefined)}
       onDragOver={handleDragOver}
     >
       <CardHeader className="pb-3">
@@ -441,21 +473,39 @@ const SectorBrain = () => {
                 </Select>
               </div>
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">נושא/תחום</Label>
-              <Select 
-                value={selectedTopic} 
-                onValueChange={(v) => setSelectedTopic(v as TopicCategory)}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="בחר נושא" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(TOPIC_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">נושא/תחום</Label>
+                <Select 
+                  value={selectedTopic} 
+                  onValueChange={(v) => setSelectedTopic(v as TopicCategory)}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="בחר נושא" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(TOPIC_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">חג/עונה</Label>
+                <Select 
+                  value={selectedHoliday} 
+                  onValueChange={(v) => setSelectedHoliday(v as HolidaySeason)}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="בחר חג" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         )}
