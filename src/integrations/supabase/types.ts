@@ -670,6 +670,7 @@ export type Database = {
           file_path: string
           file_type: string
           gender_audience: string | null
+          holiday_season: string | null
           id: string
           name: string
           stream_type: string | null
@@ -683,6 +684,7 @@ export type Database = {
           file_path: string
           file_type: string
           gender_audience?: string | null
+          holiday_season?: string | null
           id?: string
           name: string
           stream_type?: string | null
@@ -696,6 +698,7 @@ export type Database = {
           file_path?: string
           file_type?: string
           gender_audience?: string | null
+          holiday_season?: string | null
           id?: string
           name?: string
           stream_type?: string | null
