@@ -15,7 +15,7 @@ import { StudioTreatmentStep } from '@/components/studio/StudioTreatmentStep';
 import { StudioStyleStep, StyleChoice } from '@/components/studio/StudioStyleStep';
 import { StudioPromptStep, AspectRatio } from '@/components/studio/StudioPromptStep';
 import { StudioModeToggle, StudioMode } from '@/components/studio/StudioModeToggle';
-import { StudioAutopilot, CreativeConcept } from '@/components/studio/StudioAutopilot';
+import { StudioAutopilot, CreativeConcept, HolidaySeason, HOLIDAY_LABELS } from '@/components/studio/StudioAutopilot';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
 import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/studio/StudioBriefStep';
 import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaTypeStep';
@@ -200,6 +200,9 @@ const CreativeStudio = () => {
   const [mediaTargetGender, setMediaTargetGender] = useState<string>('');
   const [mediaTargetCity, setMediaTargetCity] = useState<string>('nationwide');
   const [selectedMediaPackage, setSelectedMediaPackage] = useState<MediaPackage | null>(null);
+  
+  // Holiday/Season selection for creative
+  const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('');
 
   // Scroll to top when changing views
   useEffect(() => {
@@ -679,7 +682,8 @@ const CreativeStudio = () => {
             title: campaignBrief.title,
             offer: campaignBrief.offer,
             goal: campaignBrief.goal,
-          }
+          },
+          holidaySeason: selectedHoliday || null,
         }
       });
 
@@ -759,6 +763,7 @@ const CreativeStudio = () => {
         offer: campaignBrief.offer,
         goal: campaignBrief.goal,
         structure: campaignBrief.structure,
+        holidaySeason: selectedHoliday || null,
       };
       
       for (let i = 0; i < 4; i++) {
@@ -950,6 +955,8 @@ const CreativeStudio = () => {
                 onGenerateConcepts={handleGenerateConcepts}
                 onSelectConcept={setSelectedConcept}
                 onExecuteConcept={handleExecuteConcept}
+                selectedHoliday={selectedHoliday}
+                onHolidayChange={setSelectedHoliday}
               />
             ) : (
               /* Manual Mode */

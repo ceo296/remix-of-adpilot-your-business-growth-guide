@@ -39,13 +39,28 @@ const MEDIA_TYPE_INSTRUCTIONS: Record<string, { name: string; format: string; ex
   }
 };
 
+const HOLIDAY_LABELS: Record<string, string> = {
+  pesach: 'פסח',
+  sukkot: 'סוכות',
+  chanukah: 'חנוכה',
+  purim: 'פורים',
+  shavuot: 'שבועות',
+  lag_baomer: 'ל"ג בעומר',
+  tu_bishvat: 'ט"ו בשבט',
+  summer: 'קיץ',
+  bein_hazmanim: 'בין הזמנים',
+  rosh_hashana: 'ראש השנה',
+  yom_kippur: 'ימים נוראים',
+  year_round: 'כל השנה',
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { profile, mediaType, campaignBrief } = await req.json();
+    const { profile, mediaType, campaignBrief, holidaySeason } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -54,6 +69,7 @@ serve(async (req) => {
 
     const mediaInfo = MEDIA_TYPE_INSTRUCTIONS[mediaType || 'ad'];
     const isRadio = mediaType === 'radio';
+    const holidayName = holidaySeason && holidaySeason !== 'year_round' ? HOLIDAY_LABELS[holidaySeason] : null;
 
     const systemPrompt = `You are a creative director for a Haredi/Orthodox Jewish advertising agency. 
 You create advertising concepts that are culturally appropriate, modest, and effective for this community.
@@ -63,7 +79,20 @@ Your concepts should be warm, family-oriented, and avoid immodest imagery.
 You are creating concepts specifically for: ${mediaInfo.name}
 Format required: ${mediaInfo.format}
 Example: ${mediaInfo.example}
-
+${holidayName ? `
+=== HOLIDAY/SEASON CONTEXT ===
+This campaign is for: ${holidayName}
+Incorporate the atmosphere, symbols, and messaging appropriate for ${holidayName}.
+For example:
+- פסח: חירות, משפחה, ליל הסדר, מצות, ניקיון פסח
+- סוכות: שמחה, אושפיזין, סוכה, ארבעת המינים
+- חנוכה: אור, נרות, סופגניות, נסים, חגיגה
+- פורים: שמחה, משלוח מנות, תחפושות, צדקה
+- ראש השנה: שנה טובה, תשובה, תפילה, דבש
+- ימים נוראים: סליחות, תשובה, תפילה, קדושה
+- קיץ/בין הזמנים: חופשה, מנוחה, משפחה, פעילויות
+================================
+` : ''}
 Generate exactly 3 creative concepts for ${isRadio ? 'radio spots' : 'advertising campaigns'}. Each concept should have:
 1. A distinct angle (emotional, hard-sale, or pain-point)
 2. ${isRadio ? 'A radio script with narration instructions' : 'A visual idea description (what the image should show)'}
@@ -132,11 +161,16 @@ The visual concepts should speak directly to this audience and highlight what ma
 Tailor the text length and style to fit ${mediaInfo.name}.
 ${campaignOffer ? `CRITICAL: The main offer "${campaignOffer}" must be the central element in the copy and visual description. Every concept must prominently feature this offer!` : ''}
 `}
-
+${holidayName ? `
+=== HOLIDAY CONTEXT ===
+This campaign is for ${holidayName}. Make sure the concepts reflect the atmosphere and themes of ${holidayName}.
+Use appropriate symbols, greetings, and messaging for the season.
+=======================
+` : ''}
 Remember: Each concept needs a different angle - one emotional, one hard-sale focused, and one addressing a pain point the audience has.
 ${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${campaignOffer}"` : ''}`;
 
-    console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType, 'Campaign offer:', campaignBrief?.offer);
+    console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType, 'Campaign offer:', campaignBrief?.offer, 'Holiday:', holidayName);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

@@ -1,10 +1,29 @@
 import { useState } from 'react';
-import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check, Volume2, FileText, Image } from 'lucide-react';
+import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check, Volume2, FileText, Image, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { MediaType } from './StudioMediaTypeStep';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+
+export type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round' | '';
+
+export const HOLIDAY_LABELS: Record<string, string> = {
+  pesach: 'פסח',
+  sukkot: 'סוכות',
+  chanukah: 'חנוכה',
+  purim: 'פורים',
+  shavuot: 'שבועות',
+  lag_baomer: 'ל"ג בעומר',
+  tu_bishvat: 'ט"ו בשבט',
+  summer: 'קיץ',
+  bein_hazmanim: 'בין הזמנים',
+  rosh_hashana: 'ראש השנה',
+  yom_kippur: 'ימים נוראים',
+  year_round: 'כל השנה',
+};
 
 export interface CreativeConcept {
   id: string;
@@ -30,6 +49,8 @@ interface StudioAutopilotProps {
   onGenerateConcepts: () => void;
   onSelectConcept: (concept: CreativeConcept) => void;
   onExecuteConcept: () => void;
+  selectedHoliday?: HolidaySeason;
+  onHolidayChange?: (holiday: HolidaySeason) => void;
 }
 
 const CONCEPT_ICONS = {
@@ -229,6 +250,8 @@ export const StudioAutopilot = ({
   onGenerateConcepts,
   onSelectConcept,
   onExecuteConcept,
+  selectedHoliday = '',
+  onHolidayChange,
 }: StudioAutopilotProps) => {
   const handleToggleMediaType = (id: MediaType) => {
     // If selecting 'all', clear others and select only 'all'
@@ -308,6 +331,32 @@ export const StudioAutopilot = ({
             ))}
           </div>
         </div>
+
+        {/* Holiday/Season Selection */}
+        {onHolidayChange && (
+          <div className="w-full max-w-md mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              <Label className="text-sm font-medium">חג/עונה (אופציונלי)</Label>
+            </div>
+            <Select 
+              value={selectedHoliday} 
+              onValueChange={(v) => onHolidayChange(v as HolidaySeason)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="בחר חג או עונה רלוונטית לקמפיין" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              בחירת חג תביא דוגמאות מותאמות לעונה ותשפיע על סגנון הקריאייטיב
+            </p>
+          </div>
+        )}
         
         {/* Personalized info card */}
         {clientInfo && (
@@ -318,6 +367,12 @@ export const StudioAutopilot = ({
               <p className="text-sm text-muted-foreground mt-1">
                 קהל יעד: <span className="text-foreground">{clientInfo.target_audience}</span>
               </p>
+            )}
+            {selectedHoliday && selectedHoliday !== 'year_round' && (
+              <Badge variant="secondary" className="mt-2">
+                <Calendar className="h-3 w-3 ml-1" />
+                {HOLIDAY_LABELS[selectedHoliday]}
+              </Badge>
             )}
           </div>
         )}
