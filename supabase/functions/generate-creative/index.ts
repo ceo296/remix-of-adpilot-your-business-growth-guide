@@ -14,7 +14,98 @@ interface SectorExample {
   stream_type: string | null;
   gender_audience: string | null;
   topic_category: string | null;
+  holiday_season: string | null;
 }
+
+// Helper function to determine relevant holidays based on campaign dates
+function getRelevantHolidays(startDate?: string, endDate?: string): string[] {
+  if (!startDate) return [];
+  
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : start;
+  
+  const holidays: string[] = [];
+  const startMonth = start.getMonth(); // 0-11
+  const endMonth = end.getMonth();
+  
+  // Check which months the campaign spans and add relevant holidays
+  // These are approximate - Hebrew calendar dates vary each year
+  const monthsInCampaign = new Set<number>();
+  let currentMonth = startMonth;
+  while (true) {
+    monthsInCampaign.add(currentMonth);
+    if (currentMonth === endMonth) break;
+    currentMonth = (currentMonth + 1) % 12;
+    if (monthsInCampaign.size > 12) break; // Safety
+  }
+  
+  // Pesach - March/April (months 2-3)
+  if (monthsInCampaign.has(2) || monthsInCampaign.has(3)) {
+    holidays.push('pesach');
+  }
+  
+  // Shavuot - May/June (months 4-5)
+  if (monthsInCampaign.has(4) || monthsInCampaign.has(5)) {
+    holidays.push('shavuot');
+  }
+  
+  // Summer + Bein Hazmanim - June/July/August (months 5-7)
+  if (monthsInCampaign.has(5) || monthsInCampaign.has(6) || monthsInCampaign.has(7)) {
+    holidays.push('summer');
+    holidays.push('bein_hazmanim');
+  }
+  
+  // Rosh Hashana / Yom Kippur - September/October (months 8-9)
+  if (monthsInCampaign.has(8) || monthsInCampaign.has(9)) {
+    holidays.push('rosh_hashana');
+    holidays.push('yom_kippur');
+  }
+  
+  // Sukkot - September/October (months 8-9)
+  if (monthsInCampaign.has(8) || monthsInCampaign.has(9)) {
+    holidays.push('sukkot');
+  }
+  
+  // Chanukah - November/December (months 10-11)
+  if (monthsInCampaign.has(10) || monthsInCampaign.has(11)) {
+    holidays.push('chanukah');
+  }
+  
+  // Tu Bishvat - January/February (months 0-1)
+  if (monthsInCampaign.has(0) || monthsInCampaign.has(1)) {
+    holidays.push('tu_bishvat');
+  }
+  
+  // Purim - February/March (months 1-2)
+  if (monthsInCampaign.has(1) || monthsInCampaign.has(2)) {
+    holidays.push('purim');
+  }
+  
+  // Lag BaOmer - April/May (months 3-4)
+  if (monthsInCampaign.has(3) || monthsInCampaign.has(4)) {
+    holidays.push('lag_baomer');
+  }
+  
+  // Always include year_round examples
+  holidays.push('year_round');
+  
+  return holidays;
+}
+
+const HOLIDAY_LABELS: Record<string, string> = {
+  pesach: 'פסח',
+  sukkot: 'סוכות',
+  chanukah: 'חנוכה',
+  purim: 'פורים',
+  shavuot: 'שבועות',
+  lag_baomer: 'ל"ג בעומר',
+  tu_bishvat: 'ט"ו בשבט',
+  summer: 'קיץ',
+  bein_hazmanim: 'בין הזמנים',
+  rosh_hashana: 'ראש השנה',
+  yom_kippur: 'ימים נוראים',
+  year_round: 'כל השנה',
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -51,44 +142,82 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Determine relevant holidays based on campaign dates
+    const relevantHolidays = getRelevantHolidays(
+      campaignContext?.startDate,
+      campaignContext?.endDate
+    );
+    console.log('Relevant holidays for campaign:', relevantHolidays);
+
     // Fetch relevant examples from sector_brain_examples
     let query = supabase
       .from('sector_brain_examples')
-      .select('zone, name, file_path, text_content, stream_type, gender_audience, topic_category');
+      .select('zone, name, file_path, text_content, stream_type, gender_audience, topic_category, holiday_season');
 
-    // Filter by topic category if provided
-    if (topicCategory) {
-      query = query.eq('topic_category', topicCategory);
-    }
-
-    // Filter by stream type if provided
-    if (streamType) {
-      query = query.eq('stream_type', streamType);
-    }
-
-    // Filter by gender audience if provided
-    if (genderAudience) {
-      query = query.eq('gender_audience', genderAudience);
-    }
-
-    const { data: examples, error: examplesError } = await query.limit(20);
+    // We'll fetch all matching examples and filter in code for more flexibility
+    const { data: allExamples, error: examplesError } = await query.limit(100);
 
     if (examplesError) {
       console.error('Error fetching sector examples:', examplesError);
     }
 
-    console.log(`Found ${examples?.length || 0} relevant sector examples`);
+    // Filter examples based on criteria
+    let examples = (allExamples || []).filter((ex: SectorExample) => {
+      // Match by topic category if specified
+      if (topicCategory && ex.topic_category && ex.topic_category !== topicCategory) {
+        return false;
+      }
+      
+      // Match by stream type if specified
+      if (streamType && ex.stream_type && ex.stream_type !== streamType) {
+        return false;
+      }
+      
+      // Match by gender audience if specified
+      if (genderAudience && ex.gender_audience && ex.gender_audience !== genderAudience) {
+        return false;
+      }
+      
+      return true;
+    });
+
+    // Separate holiday-specific examples
+    const holidayExamples = examples.filter((ex: SectorExample) => 
+      ex.holiday_season && relevantHolidays.includes(ex.holiday_season)
+    );
+    
+    const generalExamples = examples.filter((ex: SectorExample) => 
+      !ex.holiday_season || ex.holiday_season === 'year_round'
+    );
+
+    // Prioritize holiday examples, then fill with general
+    const prioritizedExamples = [
+      ...holidayExamples.slice(0, 10),
+      ...generalExamples.slice(0, 10)
+    ].slice(0, 20);
+
+    console.log(`Found ${prioritizedExamples.length} relevant sector examples (${holidayExamples.length} holiday-specific)`);
 
     // Build the enhanced prompt with sector brain knowledge
     let enhancedPrompt = prompt;
     
-    // Separate examples by zone
-    const fameExamples = examples?.filter((e: SectorExample) => e.zone === 'fame') || [];
-    const redlineExamples = examples?.filter((e: SectorExample) => e.zone === 'redlines') || [];
-    const styleExamples = examples?.filter((e: SectorExample) => e.zone === 'styles') || [];
+    // Separate prioritized examples by zone
+    const fameExamples = prioritizedExamples.filter((e: SectorExample) => e.zone === 'fame') || [];
+    const redlineExamples = prioritizedExamples.filter((e: SectorExample) => e.zone === 'redlines') || [];
+    const styleExamples = prioritizedExamples.filter((e: SectorExample) => e.zone === 'styles') || [];
 
     // Build sector brain context
     let sectorBrainContext = '';
+    
+    // Add holiday context if relevant
+    if (relevantHolidays.length > 0 && relevantHolidays[0] !== 'year_round') {
+      const holidayNames = relevantHolidays
+        .filter(h => h !== 'year_round')
+        .map(h => HOLIDAY_LABELS[h] || h)
+        .join(', ');
+      sectorBrainContext += `\n\n=== עונה/חג רלוונטי: ${holidayNames} ===\n`;
+      sectorBrainContext += `התמונה צריכה להתאים לאווירה של ${holidayNames}.\n`;
+    }
 
     if (fameExamples.length > 0) {
       sectorBrainContext += `\n\n=== דוגמאות מוצלחות ללמוד מהן ===\n`;
@@ -99,6 +228,9 @@ serve(async (req) => {
         }
         if (ex.topic_category) {
           sectorBrainContext += ` (תחום: ${ex.topic_category})`;
+        }
+        if (ex.holiday_season && ex.holiday_season !== 'year_round') {
+          sectorBrainContext += ` [${HOLIDAY_LABELS[ex.holiday_season] || ex.holiday_season}]`;
         }
         sectorBrainContext += '\n';
       });
@@ -252,7 +384,9 @@ ${sectorBrainContext}${brandSection}${campaignSection}
         prompt: enhancedPrompt,
         style: style || 'default',
         aspectRatio: aspectRatio || 'square',
-        sectorExamplesUsed: examples?.length || 0,
+        sectorExamplesUsed: prioritizedExamples.length,
+        holidayExamplesUsed: holidayExamples.length,
+        relevantHolidays,
         message: 'Image generated successfully with Sector Brain knowledge',
       }),
       { 
