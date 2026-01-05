@@ -674,7 +674,7 @@ const SectorBrain = () => {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8">
           <Card className="bg-success/10 border-success/30">
             <CardContent className="p-4 text-center">
               <div className="text-3xl font-bold text-success">{getZoneUploads('fame').length}</div>
@@ -687,16 +687,10 @@ const SectorBrain = () => {
               <div className="text-sm text-muted-foreground">קווים אדומים</div>
             </CardContent>
           </Card>
-          <Card className="bg-primary/10 border-primary/30">
-            <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-primary">{getZoneUploads('styles').length}</div>
-              <div className="text-sm text-muted-foreground">סגנונות לפי זרם</div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Upload Zones */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        {/* Upload Zones - now only 2 columns */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
           <UploadZoneCard
             zone="fame"
             title="היכל התהילה"
@@ -710,14 +704,6 @@ const SectorBrain = () => {
             description="העלו דוגמאות לדברים אסורים - תמונות או טקסטים שלא עוברים"
             icon={AlertOctagon}
             color="text-destructive"
-          />
-          <UploadZoneCard
-            zone="styles"
-            title="סגנון לפי זרם וקהל"
-            description="דוגמאות לסגנונות: חסידי, ליטאי, גברי, נשי, נשי חסידי, צעיר, קלאסי"
-            icon={Users}
-            color="text-primary"
-            showCategorySelect={true}
           />
         </div>
 
