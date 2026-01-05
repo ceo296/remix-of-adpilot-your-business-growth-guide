@@ -15,6 +15,7 @@ import FastTrackWizard from "./pages/FastTrackWizard";
 import AgencyClients from "./pages/AgencyClients";
 import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
+import MediaPortal from "./pages/MediaPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/clients" element={<AgencyClients />} />
             <Route path="/admin-auth" element={<AdminAuth />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/media-portal" element={<MediaPortal />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </HashRouter>
