@@ -667,11 +667,13 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          example_type: string | null
           file_path: string
           file_type: string
           gender_audience: string | null
           holiday_season: string | null
           id: string
+          media_type: string | null
           name: string
           stream_type: string | null
           text_content: string | null
@@ -681,11 +683,13 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          example_type?: string | null
           file_path: string
           file_type: string
           gender_audience?: string | null
           holiday_season?: string | null
           id?: string
+          media_type?: string | null
           name: string
           stream_type?: string | null
           text_content?: string | null
@@ -695,11 +699,13 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          example_type?: string | null
           file_path?: string
           file_type?: string
           gender_audience?: string | null
           holiday_season?: string | null
           id?: string
+          media_type?: string | null
           name?: string
           stream_type?: string | null
           text_content?: string | null
