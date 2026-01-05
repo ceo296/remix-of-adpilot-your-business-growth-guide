@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   Database, Brain, Users, LogOut, Menu, X, 
-  Settings, ChevronLeft, Palette, Newspaper
+  Settings, ChevronLeft, Palette, Newspaper, Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,8 +12,9 @@ import MediaDatabaseAdmin from '@/components/admin/MediaDatabaseAdmin';
 import ClientOverview from '@/components/admin/ClientOverview';
 import BrandingOrdersAdmin from '@/components/admin/BrandingOrdersAdmin';
 import ProofManagement from '@/components/admin/ProofManagement';
+import MediaPortalAdmin from '@/components/admin/MediaPortalAdmin';
 
-type AdminTab = 'media' | 'brain' | 'clients' | 'branding' | 'proofs';
+type AdminTab = 'media' | 'brain' | 'clients' | 'branding' | 'proofs' | 'portal';
 
 const TABS = [
   { id: 'media' as AdminTab, label: 'ניהול מדיה', icon: Database },
@@ -21,6 +22,7 @@ const TABS = [
   { id: 'clients' as AdminTab, label: 'רשימת לקוחות', icon: Users },
   { id: 'branding' as AdminTab, label: 'הזמנות מיתוג', icon: Palette },
   { id: 'proofs' as AdminTab, label: 'הוכחות פרסום', icon: Newspaper },
+  { id: 'portal' as AdminTab, label: 'פורטל מדיה', icon: Link2 },
 ];
 
 const AdminDashboard = () => {
@@ -105,6 +107,8 @@ const AdminDashboard = () => {
         return <BrandingOrdersAdmin />;
       case 'proofs':
         return <ProofManagement />;
+      case 'portal':
+        return <MediaPortalAdmin />;
       default:
         return <MediaDatabaseAdmin />;
     }
