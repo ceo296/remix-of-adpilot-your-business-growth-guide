@@ -79,7 +79,8 @@ const MEDIA_OPTIONS: {
 ];
 
 // Truncate text helper
-const truncateText = (text: string, maxLength: number = 120) => {
+const truncateText = (text: string | undefined | null, maxLength: number = 120): string => {
+  if (!text || typeof text !== 'string') return '';
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength).trim() + '...';
 };
