@@ -17,7 +17,7 @@ import MediaPortalAdmin from '@/components/admin/MediaPortalAdmin';
 type AdminTab = 'media' | 'brain' | 'clients' | 'branding' | 'proofs' | 'portal';
 
 const TABS = [
-  { id: 'media' as AdminTab, label: 'ניהול מדיה', icon: Database },
+  { id: 'media' as AdminTab, label: 'ערוצי מדיה', icon: Database },
   { id: 'brain' as AdminTab, label: 'אימון מערכת AI', icon: Brain },
   { id: 'clients' as AdminTab, label: 'רשימת לקוחות', icon: Users },
   { id: 'branding' as AdminTab, label: 'הזמנות מיתוג', icon: Palette },
