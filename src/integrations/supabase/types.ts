@@ -67,32 +67,44 @@ export type Database = {
       }
       campaign_media_proofs: {
         Row: {
+          admin_notes: string | null
+          admin_reviewed_at: string | null
+          admin_status: string | null
           campaign_id: string
           created_at: string
           id: string
           image_url: string
           media_outlet_name: string
           notes: string | null
+          order_id: string | null
           proof_type: string
           publication_date: string | null
         }
         Insert: {
+          admin_notes?: string | null
+          admin_reviewed_at?: string | null
+          admin_status?: string | null
           campaign_id: string
           created_at?: string
           id?: string
           image_url: string
           media_outlet_name: string
           notes?: string | null
+          order_id?: string | null
           proof_type?: string
           publication_date?: string | null
         }
         Update: {
+          admin_notes?: string | null
+          admin_reviewed_at?: string | null
+          admin_status?: string | null
           campaign_id?: string
           created_at?: string
           id?: string
           image_url?: string
           media_outlet_name?: string
           notes?: string | null
+          order_id?: string | null
           proof_type?: string
           publication_date?: string | null
         }
@@ -102,6 +114,13 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_media_proofs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "media_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -429,6 +448,86 @@ export type Database = {
         }
         Relationships: []
       }
+      media_orders: {
+        Row: {
+          campaign_id: string
+          client_price: number | null
+          created_at: string | null
+          creative_url: string | null
+          deadline_date: string | null
+          id: string
+          media_notes: string | null
+          order_notes: string | null
+          outlet_id: string
+          product_id: string | null
+          publication_date: string | null
+          spec_id: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_id: string
+          client_price?: number | null
+          created_at?: string | null
+          creative_url?: string | null
+          deadline_date?: string | null
+          id?: string
+          media_notes?: string | null
+          order_notes?: string | null
+          outlet_id: string
+          product_id?: string | null
+          publication_date?: string | null
+          spec_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          client_price?: number | null
+          created_at?: string | null
+          creative_url?: string | null
+          deadline_date?: string | null
+          id?: string
+          media_notes?: string | null
+          order_notes?: string | null
+          outlet_id?: string
+          product_id?: string | null
+          publication_date?: string | null
+          spec_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_orders_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_orders_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "media_outlets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "media_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_orders_spec_id_fkey"
+            columns: ["spec_id"]
+            isOneToOne: false
+            referencedRelation: "product_specs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media_outlets: {
         Row: {
           brand_color: string | null
@@ -487,6 +586,53 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "media_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_portal_access: {
+        Row: {
+          access_token: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_accessed_at: string | null
+          outlet_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_token?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          outlet_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          outlet_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_portal_access_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "media_outlets"
             referencedColumns: ["id"]
           },
         ]
