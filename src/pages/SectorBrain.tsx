@@ -119,11 +119,14 @@ const SectorBrain = () => {
   const [selectedTopic, setSelectedTopic] = useState<TopicCategory | ''>('');
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason | ''>('');
   const [textInput, setTextInput] = useState('');
+  const [linkInput, setLinkInput] = useState('');
   
   // General guidelines
   const [guidelines, setGuidelines] = useState<UploadedAsset[]>([]);
   const [guidelineInput, setGuidelineInput] = useState('');
+  const [generalGuidelineInput, setGeneralGuidelineInput] = useState('');
   const [guidelinesOpen, setGuidelinesOpen] = useState(false);
+  const [generalGuidelinesOpen, setGeneralGuidelinesOpen] = useState(false);
   const [expandedGuidelineId, setExpandedGuidelineId] = useState<string | null>(null);
 
   // API link builder (optional query params)
@@ -334,6 +337,113 @@ const SectorBrain = () => {
     setUploads(prev => [newUpload, ...prev]);
     setTextInput('');
     toast.success('הטקסט נוסף בהצלחה');
+  };
+
+  const handleAddLink = async () => {
+    const link = linkInput.trim();
+    if (!link) {
+      toast.error('נא להזין קישור');
+      return;
+    }
+
+    // Simple URL validation
+    if (!link.startsWith('http://') && !link.startsWith('https://')) {
+      toast.error('נא להזין קישור תקין (מתחיל ב-http:// או https://)');
+      return;
+    }
+
+    const linkName = link.length > 50 ? link.substring(0, 50) + '...' : link;
+
+    const { data: dbData, error: dbError } = await supabase
+      .from('sector_brain_examples')
+      .insert({
+        zone: selectedExampleType === 'good' ? 'fame' : 'redlines',
+        name: linkName,
+        file_path: link,
+        file_type: 'link',
+        text_content: link,
+        stream_type: selectedStream || null,
+        gender_audience: selectedGender || null,
+        topic_category: selectedTopic || null,
+        holiday_season: selectedHoliday || null,
+        media_type: activeMediaType,
+        example_type: selectedExampleType,
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      toast.error('שגיאה בשמירת הקישור');
+      return;
+    }
+
+    const newUpload: UploadedAsset = {
+      id: dbData.id,
+      name: linkName,
+      type: 'text',
+      example_type: selectedExampleType,
+      media_type: activeMediaType,
+      text_content: link,
+      file_path: link,
+      stream_type: dbData.stream_type,
+      gender_audience: dbData.gender_audience,
+      topic_category: dbData.topic_category,
+      holiday_season: dbData.holiday_season,
+    };
+
+    setUploads(prev => [newUpload, ...prev]);
+    setLinkInput('');
+    toast.success('הקישור נוסף בהצלחה');
+  };
+
+  const handleAddGeneralGuideline = async () => {
+    const text = generalGuidelineInput.trim();
+    if (!text) {
+      toast.error('נא להזין כלל אצבע');
+      return;
+    }
+
+    const textName = text.substring(0, 50) + (text.length > 50 ? '...' : '');
+
+    const { data: dbData, error: dbError } = await supabase
+      .from('sector_brain_examples')
+      .insert({
+        zone: 'fame',
+        name: textName,
+        file_path: 'general-guideline',
+        file_type: 'text',
+        text_content: text,
+        is_general_guideline: true,
+        media_type: null,
+        example_type: 'good',
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      toast.error('שגיאה בשמירת הכלל');
+      return;
+    }
+
+    const newGuideline: UploadedAsset = {
+      id: dbData.id,
+      name: textName,
+      type: 'text',
+      example_type: 'good',
+      media_type: null,
+      text_content: text,
+      is_general_guideline: true,
+    };
+
+    setGuidelines(prev => [newGuideline, ...prev]);
+    setGeneralGuidelineInput('');
+    toast.success('כלל האצבע נוסף בהצלחה');
+  };
+
+  const getGeneralGuidelines = () => {
+    return guidelines.filter(g => g.media_type === null);
   };
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
@@ -630,6 +740,68 @@ const SectorBrain = () => {
           </Card>
         )}
 
+        {/* General Guidelines Section */}
+        <Card className="mb-8 border-2 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Lightbulb className="h-5 w-5 text-amber-500" />
+              כללי אצבע כלליים למגזר
+            </CardTitle>
+            <CardDescription>
+              הנחיות כלליות שתקפות לכל סוגי המדיה - המערכת תיישם אותן בכל יצירה
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Textarea
+                placeholder="הזן כלל אצבע כללי... לדוגמה: 'תמיד להשתמש בשפה מכבדת ועדינה', 'לא להשתמש בתמונות של נשים'"
+                value={generalGuidelineInput}
+                onChange={(e) => setGeneralGuidelineInput(e.target.value)}
+                className="flex-1 min-h-[80px] bg-white dark:bg-background"
+              />
+            </div>
+            <Button 
+              onClick={handleAddGeneralGuideline}
+              disabled={!generalGuidelineInput.trim()}
+              className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              <Plus className="h-4 w-4" />
+              הוסף כלל אצבע כללי
+            </Button>
+
+            {getGeneralGuidelines().length > 0 && (
+              <Collapsible open={generalGuidelinesOpen} onOpenChange={setGeneralGuidelinesOpen} className="pt-4 border-t">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-amber-100/50">
+                    <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <BookOpen className="h-4 w-4" />
+                      כללים קיימים ({getGeneralGuidelines().length})
+                    </span>
+                    {generalGuidelinesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 pt-2">
+                  {getGeneralGuidelines().map((guideline) => (
+                    <div 
+                      key={guideline.id}
+                      className="flex items-start gap-2 p-2 bg-white dark:bg-background rounded border"
+                    >
+                      <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                      <p className="flex-1 text-sm">{guideline.text_content}</p>
+                      <button 
+                        onClick={() => removeGuideline(guideline.id)}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Media Type Tabs */}
         <Tabs value={activeMediaType} onValueChange={(v) => setActiveMediaType(v as MediaType)} className="w-full">
           <TabsList className="w-full h-auto flex-wrap gap-2 bg-transparent p-0 mb-6">
@@ -822,6 +994,32 @@ const SectorBrain = () => {
                       >
                         <Clipboard className="h-4 w-4 ml-1" />
                         הדבק תמונה
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Link input */}
+                  <div className="space-y-2 border-t pt-4">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Link2 className="h-3 w-3" />
+                      הוסף קישור
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="https://example.com/..."
+                        value={linkInput}
+                        onChange={(e) => setLinkInput(e.target.value)}
+                        className="flex-1"
+                        dir="ltr"
+                      />
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={handleAddLink}
+                        disabled={!linkInput.trim()}
+                      >
+                        <Plus className="h-4 w-4 ml-1" />
+                        הוסף
                       </Button>
                     </div>
                   </div>
