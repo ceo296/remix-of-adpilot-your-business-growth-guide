@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 
 interface UploadedAsset {
   id: string;
@@ -470,12 +472,56 @@ const SectorBrain = () => {
               </p>
             </div>
           </div>
-          <Link to="/admin-dashboard">
-            <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90">
-              <ArrowRight className="h-4 w-4 ml-2" />
-              חזרה
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Link2 className="h-4 w-4" />
+                  קישור API
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-96" align="end">
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">קישור לשאיבת דוגמאות</h4>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      מערכות AI חיצוניות יכולות לשאוב דוגמאות מהקישור הזה
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sector-brain-api`}
+                      className="text-xs font-mono"
+                      dir="ltr"
+                    />
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sector-brain-api`);
+                        toast.success('הקישור הועתק!');
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="text-xs text-muted-foreground space-y-1 border-t pt-2">
+                    <p className="font-medium">פרמטרים אופציונליים:</p>
+                    <p dir="ltr" className="font-mono bg-muted p-1 rounded">?media_type=ads&example_type=good</p>
+                    <p>media_type: ads, text, video, signage, promo, radio</p>
+                    <p>example_type: good, bad</p>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Link to="/admin-dashboard">
+              <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90">
+                <ArrowRight className="h-4 w-4 ml-2" />
+                חזרה
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
