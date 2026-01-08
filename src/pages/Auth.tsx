@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Rocket, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Rocket, Mail, Lock, User, ArrowRight, Loader2, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -338,6 +338,32 @@ const Auth = () => {
                 </form>
               </TabsContent>
             </Tabs>
+            
+            {/* Dev-only: Quick Admin Login */}
+            {import.meta.env.DEV && (
+              <div className="mt-6 pt-6 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2 text-muted-foreground hover:text-foreground"
+                  onClick={async () => {
+                    setIsLoading(true);
+                    const { error } = await signIn('admin@adpilot.dev', 'admin123');
+                    if (error) {
+                      toast.error('שגיאה בכניסת אדמין: ' + error.message);
+                    } else {
+                      toast.success('מחובר כאדמין!');
+                      navigate('/admin-dashboard');
+                    }
+                    setIsLoading(false);
+                  }}
+                  disabled={isLoading}
+                >
+                  <Shield className="w-4 h-4" />
+                  כניסת אדמין מהירה (פיתוח)
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
