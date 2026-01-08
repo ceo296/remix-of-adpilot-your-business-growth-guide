@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2 } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,7 @@ interface UploadedAsset {
   gender_audience?: string;
   topic_category?: string;
   holiday_season?: string;
+  is_general_guideline?: boolean;
 }
 
 type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio';
@@ -117,6 +118,10 @@ const SectorBrain = () => {
   const [selectedTopic, setSelectedTopic] = useState<TopicCategory | ''>('');
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason | ''>('');
   const [textInput, setTextInput] = useState('');
+  
+  // General guidelines
+  const [guidelines, setGuidelines] = useState<UploadedAsset[]>([]);
+  const [guidelineInput, setGuidelineInput] = useState('');
 
   // Check admin role
   useEffect(() => {
@@ -167,7 +172,10 @@ const SectorBrain = () => {
       console.error('Error loading examples:', error);
       toast.error('שגיאה בטעינת הדוגמאות');
     } else if (data) {
-      const assets: UploadedAsset[] = data.map(item => {
+      const guidelinesArr: UploadedAsset[] = [];
+      const examplesArr: UploadedAsset[] = [];
+      
+      data.forEach(item => {
         const isText = item.file_type === 'text';
         const isImage = !isText && item.file_type?.startsWith('image/');
         
@@ -177,7 +185,7 @@ const SectorBrain = () => {
           exampleType = item.zone === 'redlines' ? 'bad' : 'good';
         }
         
-        return {
+        const asset: UploadedAsset = {
           id: item.id,
           name: item.name,
           type: isText ? 'text' : (isImage ? 'image' : 'document'),
@@ -189,12 +197,81 @@ const SectorBrain = () => {
           gender_audience: item.gender_audience,
           topic_category: item.topic_category,
           holiday_season: item.holiday_season,
+          is_general_guideline: item.is_general_guideline || false,
           preview: isImage ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${item.file_path}` : undefined,
         };
+        
+        if (item.is_general_guideline) {
+          guidelinesArr.push(asset);
+        } else {
+          examplesArr.push(asset);
+        }
       });
-      setUploads(assets);
+      
+      setGuidelines(guidelinesArr);
+      setUploads(examplesArr);
     }
     setIsLoading(false);
+  };
+
+  const handleAddGuideline = async () => {
+    const text = guidelineInput.trim();
+    if (!text) {
+      toast.error('נא להזין כלל אצבע');
+      return;
+    }
+
+    const textName = text.substring(0, 50) + (text.length > 50 ? '...' : '');
+
+    const { data: dbData, error: dbError } = await supabase
+      .from('sector_brain_examples')
+      .insert({
+        zone: 'guidelines',
+        name: textName,
+        file_path: '',
+        file_type: 'text',
+        text_content: text,
+        is_general_guideline: true,
+        example_type: 'good',
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      toast.error('שגיאה בשמירת הכלל');
+      return;
+    }
+
+    const newGuideline: UploadedAsset = {
+      id: dbData.id,
+      name: textName,
+      type: 'text',
+      example_type: 'good',
+      media_type: null,
+      text_content: text,
+      is_general_guideline: true,
+    };
+
+    setGuidelines(prev => [newGuideline, ...prev]);
+    setGuidelineInput('');
+    toast.success('כלל האצבע נוסף בהצלחה');
+  };
+
+  const removeGuideline = async (id: string) => {
+    const { error } = await supabase
+      .from('sector_brain_examples')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Delete error:', error);
+      toast.error('שגיאה במחיקת הכלל');
+      return;
+    }
+
+    setGuidelines(prev => prev.filter(g => g.id !== id));
+    toast.success('הכלל נמחק');
   };
 
   const handleAddText = async () => {
@@ -543,6 +620,64 @@ const SectorBrain = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* General Guidelines Section */}
+        <Card className="mb-8 border-2 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Lightbulb className="h-5 w-5 text-amber-500" />
+              כללי אצבע בפרסום מגזרי
+            </CardTitle>
+            <CardDescription>
+              הנחיות כלליות שתקפות לכל סוגי המדיה - המערכת תיישם אותן בכל יצירה
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Textarea
+                placeholder="הזן כלל אצבע... לדוגמה: 'תמיד להשתמש בשפה מכבדת ועדינה', 'לא להשתמש בתמונות של נשים', 'להימנע משימוש בצבעים בוהקים מדי'"
+                value={guidelineInput}
+                onChange={(e) => setGuidelineInput(e.target.value)}
+                className="flex-1 min-h-[80px] bg-white dark:bg-background"
+              />
+            </div>
+            <Button 
+              onClick={handleAddGuideline}
+              className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              <Plus className="h-4 w-4" />
+              הוסף כלל אצבע
+            </Button>
+
+            {guidelines.length > 0 && (
+              <div className="space-y-2 pt-4 border-t">
+                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  כללים קיימים ({guidelines.length})
+                </h4>
+                <div className="space-y-2">
+                  {guidelines.map((guideline) => (
+                    <div 
+                      key={guideline.id}
+                      className="flex items-start gap-3 p-3 bg-white dark:bg-background rounded-lg border group"
+                    >
+                      <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                      <p className="flex-1 text-sm">{guideline.text_content}</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                        onClick={() => removeGuideline(guideline.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Media Type Tabs */}
         <Tabs value={activeMediaType} onValueChange={(v) => setActiveMediaType(v as MediaType)} className="w-full">
