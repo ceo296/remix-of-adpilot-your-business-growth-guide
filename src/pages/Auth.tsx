@@ -339,28 +339,20 @@ const Auth = () => {
               </TabsContent>
             </Tabs>
             
-            {/* Dev-only: Quick Admin Login */}
+            {/* Dev-only: Quick Admin Login - fills email field */}
             {import.meta.env.DEV && (
               <div className="mt-6 pt-6 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full gap-2 text-muted-foreground hover:text-foreground"
-                  onClick={async () => {
-                    setIsLoading(true);
-                    const { error } = await signIn('admin@adpilot.dev', 'admin123');
-                    if (error) {
-                      toast.error('שגיאה בכניסת אדמין: ' + error.message);
-                    } else {
-                      toast.success('מחובר כאדמין!');
-                      navigate('/admin-dashboard');
-                    }
-                    setIsLoading(false);
+                  onClick={() => {
+                    setLoginEmail('furmand713@gmail.com');
+                    toast.info('מייל אדמין הוזן - הזן סיסמה ולחץ התחבר');
                   }}
-                  disabled={isLoading}
                 >
                   <Shield className="w-4 h-4" />
-                  כניסת אדמין מהירה (פיתוח)
+                  מלא מייל אדמין (פיתוח)
                 </Button>
               </div>
             )}
