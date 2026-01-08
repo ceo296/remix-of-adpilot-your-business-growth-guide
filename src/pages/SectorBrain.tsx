@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface UploadedAsset {
   id: string;
@@ -122,6 +123,8 @@ const SectorBrain = () => {
   // General guidelines
   const [guidelines, setGuidelines] = useState<UploadedAsset[]>([]);
   const [guidelineInput, setGuidelineInput] = useState('');
+  const [guidelinesOpen, setGuidelinesOpen] = useState(false);
+  const [expandedGuidelineId, setExpandedGuidelineId] = useState<string | null>(null);
 
   // API link builder (optional query params)
   const [apiQuery, setApiQuery] = useState('');
@@ -682,31 +685,61 @@ const SectorBrain = () => {
             </Button>
 
             {guidelines.length > 0 && (
-              <div className="space-y-2 pt-4 border-t">
-                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  כללים קיימים ({guidelines.length})
-                </h4>
-                <div className="space-y-2">
+              <Collapsible open={guidelinesOpen} onOpenChange={setGuidelinesOpen} className="pt-4 border-t">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-amber-100/50">
+                    <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <BookOpen className="h-4 w-4" />
+                      כללים קיימים ({guidelines.length})
+                    </span>
+                    {guidelinesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 pt-2">
                   {guidelines.map((guideline) => (
-                    <div 
+                    <Collapsible 
                       key={guideline.id}
-                      className="flex items-start gap-3 p-3 bg-white dark:bg-background rounded-lg border group"
+                      open={expandedGuidelineId === guideline.id}
+                      onOpenChange={(open) => setExpandedGuidelineId(open ? guideline.id : null)}
                     >
-                      <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                      <p className="flex-1 text-sm">{guideline.text_content}</p>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                        onClick={() => removeGuideline(guideline.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      <div className="border rounded-lg bg-white dark:bg-background overflow-hidden">
+                        <CollapsibleTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-between p-3 h-auto text-right hover:bg-amber-50"
+                          >
+                            <span className="flex items-center gap-2 text-sm font-medium truncate flex-1">
+                              <Lightbulb className="h-4 w-4 text-amber-500 shrink-0" />
+                              <span className="truncate">{guideline.name}</span>
+                            </span>
+                            {expandedGuidelineId === guideline.id ? (
+                              <ChevronUp className="h-4 w-4 shrink-0" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 shrink-0" />
+                            )}
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="p-3 pt-0 border-t bg-amber-50/30">
+                            <p className="text-sm whitespace-pre-wrap">{guideline.text_content}</p>
+                            <div className="flex justify-end mt-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => removeGuideline(guideline.id)}
+                              >
+                                <Trash2 className="h-4 w-4 ml-1" />
+                                מחק
+                              </Button>
+                            </div>
+                          </div>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
                   ))}
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
             )}
           </CardContent>
         </Card>
