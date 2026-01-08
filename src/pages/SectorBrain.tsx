@@ -226,9 +226,9 @@ const SectorBrain = () => {
     const { data: dbData, error: dbError } = await supabase
       .from('sector_brain_examples')
       .insert({
-        zone: 'guidelines',
+        zone: 'fame',
         name: textName,
-        file_path: '',
+        file_path: 'general-guideline',
         file_type: 'text',
         text_content: text,
         is_general_guideline: true,
