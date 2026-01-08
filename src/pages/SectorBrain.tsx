@@ -123,6 +123,9 @@ const SectorBrain = () => {
   const [guidelines, setGuidelines] = useState<UploadedAsset[]>([]);
   const [guidelineInput, setGuidelineInput] = useState('');
 
+  // API link builder (optional query params)
+  const [apiQuery, setApiQuery] = useState('');
+
   // Check admin role
   useEffect(() => {
     const checkAdmin = async () => {
@@ -529,6 +532,8 @@ const SectorBrain = () => {
   }
 
   const currentStats = getMediaStats(activeMediaType);
+  const apiBaseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sector-brain-api`;
+  const apiFullUrl = `${apiBaseUrl}${apiQuery || ''}`;
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
@@ -565,29 +570,56 @@ const SectorBrain = () => {
                       מערכות AI חיצוניות יכולות לשאוב דוגמאות מהקישור הזה
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Input
-                      readOnly
-                      value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sector-brain-api`}
-                      className="text-xs font-mono"
-                      dir="ltr"
-                    />
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sector-brain-api`);
-                        toast.success('הקישור הועתק!');
-                      }}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="text-xs text-muted-foreground space-y-1 border-t pt-2">
-                    <p className="font-medium">פרמטרים אופציונליים:</p>
-                    <p dir="ltr" className="font-mono bg-muted p-1 rounded">?media_type=ads&example_type=good</p>
-                    <p>media_type: ads, text, video, signage, promo, radio</p>
-                    <p>example_type: good, bad</p>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        readOnly
+                        value={apiBaseUrl}
+                        className="text-xs font-mono"
+                        dir="ltr"
+                        onFocus={(e) => e.currentTarget.select()}
+                        onClick={(e) => (e.currentTarget as HTMLInputElement).select()}
+                      />
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(apiBaseUrl);
+                          toast.success('הקישור הועתק!');
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Input
+                        value={apiQuery}
+                        onChange={(e) => setApiQuery(e.target.value)}
+                        placeholder="?media_type=ads&example_type=good&include_guidelines=true"
+                        className="text-xs font-mono"
+                        dir="ltr"
+                      />
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(apiFullUrl);
+                          toast.success('הקישור עם הפרמטרים הועתק!');
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground space-y-1 border-t pt-2">
+                      <p className="font-medium">פרמטרים אופציונליים:</p>
+                      <p dir="ltr" className="font-mono bg-muted p-1 rounded">?media_type=ads&example_type=good</p>
+                      <p>media_type: ads, text, video, signage, promo, radio</p>
+                      <p>example_type: good, bad</p>
+                      <p dir="ltr" className="font-mono bg-muted p-1 rounded">?include_guidelines=true</p>
+                      <p dir="ltr" className="font-mono bg-muted p-1 rounded">?guidelines_only=true</p>
+                    </div>
                   </div>
                 </div>
               </PopoverContent>
