@@ -220,7 +220,7 @@ const SectorBrain = () => {
     setIsLoading(false);
   };
 
-  const handleAddGuideline = async () => {
+  const handleAddGuideline = async (mediaType: MediaType) => {
     const text = guidelineInput.trim();
     if (!text) {
       toast.error('נא להזין כלל אצבע');
@@ -234,10 +234,11 @@ const SectorBrain = () => {
       .insert({
         zone: 'fame',
         name: textName,
-        file_path: 'general-guideline',
+        file_path: 'guideline',
         file_type: 'text',
         text_content: text,
         is_general_guideline: true,
+        media_type: mediaType,
         example_type: 'good',
       })
       .select()
@@ -254,7 +255,7 @@ const SectorBrain = () => {
       name: textName,
       type: 'text',
       example_type: 'good',
-      media_type: null,
+      media_type: mediaType,
       text_content: text,
       is_general_guideline: true,
     };
@@ -262,6 +263,10 @@ const SectorBrain = () => {
     setGuidelines(prev => [newGuideline, ...prev]);
     setGuidelineInput('');
     toast.success('כלל האצבע נוסף בהצלחה');
+  };
+
+  const getGuidelinesForMedia = (mediaType: MediaType) => {
+    return guidelines.filter(g => g.media_type === mediaType);
   };
 
   const removeGuideline = async (id: string) => {
@@ -565,64 +570,33 @@ const SectorBrain = () => {
                   קישור API
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-96" align="end">
+              <PopoverContent className="w-80" align="end">
                 <div className="space-y-3">
                   <div>
-                    <h4 className="font-medium text-sm mb-1">קישור לשאיבת דוגמאות</h4>
+                    <h4 className="font-medium text-sm mb-1">קישור API</h4>
                     <p className="text-xs text-muted-foreground mb-2">
-                      מערכות AI חיצוניות יכולות לשאוב דוגמאות מהקישור הזה
+                      מערכות AI חיצוניות יכולות לשאוב דוגמאות מכאן
                     </p>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input
-                        readOnly
-                        value={apiBaseUrl}
-                        className="text-xs font-mono"
-                        dir="ltr"
-                        onFocus={(e) => e.currentTarget.select()}
-                        onClick={(e) => (e.currentTarget as HTMLInputElement).select()}
-                      />
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => {
-                          navigator.clipboard.writeText(apiBaseUrl);
-                          toast.success('הקישור הועתק!');
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Input
-                        value={apiQuery}
-                        onChange={(e) => setApiQuery(e.target.value)}
-                        placeholder="?media_type=ads&example_type=good&include_guidelines=true"
-                        className="text-xs font-mono"
-                        dir="ltr"
-                      />
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => {
-                          navigator.clipboard.writeText(apiFullUrl);
-                          toast.success('הקישור עם הפרמטרים הועתק!');
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="text-xs text-muted-foreground space-y-1 border-t pt-2">
-                      <p className="font-medium">פרמטרים אופציונליים:</p>
-                      <p dir="ltr" className="font-mono bg-muted p-1 rounded">?media_type=ads&example_type=good</p>
-                      <p>media_type: ads, text, video, signage, promo, radio</p>
-                      <p>example_type: good, bad</p>
-                      <p dir="ltr" className="font-mono bg-muted p-1 rounded">?include_guidelines=true</p>
-                      <p dir="ltr" className="font-mono bg-muted p-1 rounded">?guidelines_only=true</p>
-                    </div>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={apiBaseUrl}
+                      className="text-xs font-mono"
+                      dir="ltr"
+                      onFocus={(e) => e.currentTarget.select()}
+                      onClick={(e) => (e.currentTarget as HTMLInputElement).select()}
+                    />
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        navigator.clipboard.writeText(apiBaseUrl);
+                        toast.success('הקישור הועתק!');
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </PopoverContent>
@@ -655,94 +629,6 @@ const SectorBrain = () => {
             </CardContent>
           </Card>
         )}
-
-        {/* General Guidelines Section */}
-        <Card className="mb-8 border-2 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Lightbulb className="h-5 w-5 text-amber-500" />
-              כללי אצבע בפרסום מגזרי
-            </CardTitle>
-            <CardDescription>
-              הנחיות כלליות שתקפות לכל סוגי המדיה - המערכת תיישם אותן בכל יצירה
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Textarea
-                placeholder="הזן כלל אצבע... לדוגמה: 'תמיד להשתמש בשפה מכבדת ועדינה', 'לא להשתמש בתמונות של נשים', 'להימנע משימוש בצבעים בוהקים מדי'"
-                value={guidelineInput}
-                onChange={(e) => setGuidelineInput(e.target.value)}
-                className="flex-1 min-h-[80px] bg-white dark:bg-background"
-              />
-            </div>
-            <Button 
-              onClick={handleAddGuideline}
-              className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white"
-            >
-              <Plus className="h-4 w-4" />
-              הוסף כלל אצבע
-            </Button>
-
-            {guidelines.length > 0 && (
-              <Collapsible open={guidelinesOpen} onOpenChange={setGuidelinesOpen} className="pt-4 border-t">
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-amber-100/50">
-                    <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <BookOpen className="h-4 w-4" />
-                      כללים קיימים ({guidelines.length})
-                    </span>
-                    {guidelinesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 pt-2">
-                  {guidelines.map((guideline) => (
-                    <Collapsible 
-                      key={guideline.id}
-                      open={expandedGuidelineId === guideline.id}
-                      onOpenChange={(open) => setExpandedGuidelineId(open ? guideline.id : null)}
-                    >
-                      <div className="border rounded-lg bg-white dark:bg-background overflow-hidden">
-                        <CollapsibleTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-between p-3 h-auto text-right hover:bg-amber-50"
-                          >
-                            <span className="flex items-center gap-2 text-sm font-medium truncate flex-1">
-                              <Lightbulb className="h-4 w-4 text-amber-500 shrink-0" />
-                              <span className="truncate">{guideline.name}</span>
-                            </span>
-                            {expandedGuidelineId === guideline.id ? (
-                              <ChevronUp className="h-4 w-4 shrink-0" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4 shrink-0" />
-                            )}
-                          </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <div className="p-3 pt-0 border-t bg-amber-50/30">
-                            <p className="text-sm whitespace-pre-wrap">{guideline.text_content}</p>
-                            <div className="flex justify-end mt-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={() => removeGuideline(guideline.id)}
-                              >
-                                <Trash2 className="h-4 w-4 ml-1" />
-                                מחק
-                              </Button>
-                            </div>
-                          </div>
-                        </CollapsibleContent>
-                      </div>
-                    </Collapsible>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Media Type Tabs */}
         <Tabs value={activeMediaType} onValueChange={(v) => setActiveMediaType(v as MediaType)} className="w-full">
@@ -938,6 +824,64 @@ const SectorBrain = () => {
                         הדבק תמונה
                       </Button>
                     </div>
+                  </div>
+
+                  {/* Guidelines input for this media type */}
+                  <div className="border-t pt-4 mt-4 space-y-2">
+                    <Label className="text-xs text-amber-600 flex items-center gap-1">
+                      <Lightbulb className="h-3 w-3" />
+                      כלל אצבע ל{media.label}
+                    </Label>
+                    <div className="flex gap-2">
+                      <Textarea
+                        placeholder={`הזן כלל אצבע ל${media.label}... לדוגמה: 'תמיד להשתמש בשפה מכבדת', 'להימנע מתמונות מסוימות'`}
+                        value={guidelineInput}
+                        onChange={(e) => setGuidelineInput(e.target.value)}
+                        className="min-h-[60px] resize-none flex-1"
+                      />
+                    </div>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleAddGuideline(media.id)}
+                      disabled={!guidelineInput.trim()}
+                      className="w-full border-amber-500/50 text-amber-600 hover:bg-amber-50"
+                    >
+                      <Lightbulb className="h-4 w-4 ml-1" />
+                      הוסף כלל אצבע
+                    </Button>
+
+                    {/* Existing guidelines for this media type */}
+                    {getGuidelinesForMedia(media.id).length > 0 && (
+                      <Collapsible open={guidelinesOpen} onOpenChange={setGuidelinesOpen} className="pt-2">
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="sm" className="w-full justify-between h-8 text-xs hover:bg-amber-50/50">
+                            <span className="flex items-center gap-1 text-muted-foreground">
+                              <BookOpen className="h-3 w-3" />
+                              כללים קיימים ({getGuidelinesForMedia(media.id).length})
+                            </span>
+                            {guidelinesOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="space-y-1 pt-1">
+                          {getGuidelinesForMedia(media.id).map((guideline) => (
+                            <div 
+                              key={guideline.id}
+                              className="flex items-start gap-2 p-2 bg-amber-50/50 dark:bg-amber-950/20 rounded border border-amber-200/50 text-sm"
+                            >
+                              <Lightbulb className="h-3 w-3 text-amber-500 mt-0.5 shrink-0" />
+                              <p className="flex-1 text-xs">{guideline.text_content}</p>
+                              <button 
+                                onClick={() => removeGuideline(guideline.id)}
+                                className="text-muted-foreground hover:text-destructive transition-colors"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
                   </div>
 
                   {/* Drop zone */}
