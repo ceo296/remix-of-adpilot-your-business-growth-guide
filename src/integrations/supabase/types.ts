@@ -948,6 +948,7 @@ export type Database = {
           gender_audience: string | null
           holiday_season: string | null
           id: string
+          is_general_guideline: boolean | null
           media_type: string | null
           name: string
           stream_type: string | null
@@ -964,6 +965,7 @@ export type Database = {
           gender_audience?: string | null
           holiday_season?: string | null
           id?: string
+          is_general_guideline?: boolean | null
           media_type?: string | null
           name: string
           stream_type?: string | null
@@ -980,6 +982,7 @@ export type Database = {
           gender_audience?: string | null
           holiday_season?: string | null
           id?: string
+          is_general_guideline?: boolean | null
           media_type?: string | null
           name?: string
           stream_type?: string | null

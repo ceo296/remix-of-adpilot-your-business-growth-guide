@@ -24,6 +24,8 @@ Deno.serve(async (req) => {
     const genderAudience = url.searchParams.get('gender_audience');
     const topicCategory = url.searchParams.get('topic_category');
     const holidaySeason = url.searchParams.get('holiday_season');
+    const includeGuidelines = url.searchParams.get('include_guidelines') !== 'false'; // default true
+    const guidelinesOnly = url.searchParams.get('guidelines_only') === 'true';
     const limit = parseInt(url.searchParams.get('limit') || '100');
 
     console.log('Fetching sector brain examples with filters:', {
@@ -33,13 +35,46 @@ Deno.serve(async (req) => {
       genderAudience,
       topicCategory,
       holidaySeason,
+      includeGuidelines,
+      guidelinesOnly,
       limit,
     });
 
-    // Build query
+    // Fetch general guidelines if requested
+    let guidelines: any[] = [];
+    if (includeGuidelines || guidelinesOnly) {
+      const { data: guidelinesData, error: guidelinesError } = await supabase
+        .from('sector_brain_examples')
+        .select('*')
+        .eq('is_general_guideline', true)
+        .order('created_at', { ascending: false });
+
+      if (!guidelinesError && guidelinesData) {
+        guidelines = guidelinesData.map(item => ({
+          id: item.id,
+          text: item.text_content,
+          created_at: item.created_at,
+        }));
+      }
+    }
+
+    // If guidelines only, return just guidelines
+    if (guidelinesOnly) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          guidelines,
+          count: guidelines.length,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Build query for examples
     let query = supabase
       .from('sector_brain_examples')
       .select('*')
+      .eq('is_general_guideline', false)
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -95,11 +130,12 @@ Deno.serve(async (req) => {
       };
     }) || [];
 
-    console.log(`Returning ${transformedData.length} examples`);
+    console.log(`Returning ${transformedData.length} examples and ${guidelines.length} guidelines`);
 
     return new Response(
       JSON.stringify({
         success: true,
+        guidelines: includeGuidelines ? guidelines : undefined,
         count: transformedData.length,
         examples: transformedData,
         filters: {
