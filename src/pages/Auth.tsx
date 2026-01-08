@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Rocket, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Rocket, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -22,7 +23,9 @@ const signupSchema = loginSchema.extend({
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signIn, signUp, user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
@@ -36,12 +39,31 @@ const Auth = () => {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupName, setSignupName] = useState('');
 
-  // Redirect if already logged in (wait for auth to finish loading)
+  const redirectPath = searchParams.get('redirect') || '/dashboard';
+
+  // Redirect if already logged in OR if admin (wait for auth to finish loading)
   useEffect(() => {
-    if (!authLoading && user) {
+    if (authLoading || adminLoading) return;
+    
+    // Admins go straight through
+    if (isAdmin) {
+      navigate(redirectPath, { replace: true });
+      return;
+    }
+    
+    if (user) {
       navigate('/dashboard', { replace: true });
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, adminLoading, user, isAdmin, navigate, redirectPath]);
+
+  // Show loading while checking auth/admin status
+  if (authLoading || adminLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
