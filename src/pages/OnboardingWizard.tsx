@@ -13,6 +13,7 @@ import StepBrandPassport from '@/components/wizard/StepBrandPassport';
 import { Rocket, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 
@@ -43,6 +44,7 @@ const stepTitlesAgency = [
 const OnboardingWizard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,9 +54,12 @@ const OnboardingWizard = () => {
   const TOTAL_STEPS = isAgency ? TOTAL_STEPS_AGENCY : TOTAL_STEPS_REGULAR;
   const stepTitles = isAgency ? stepTitlesAgency : stepTitlesRegular;
 
-  // Redirect to auth if not logged in, or to dashboard if already completed onboarding
+  // Redirect to auth if not logged in (skip for admins), or to dashboard if already completed onboarding
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || adminLoading) return;
+    
+    // Admins can access freely
+    if (isAdmin) return;
     
     if (!user) {
       navigate('/auth?redirect=/onboarding');
@@ -77,7 +82,7 @@ const OnboardingWizard = () => {
     };
     
     checkOnboardingStatus();
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, adminLoading, isAdmin, navigate]);
 
   const updateData = (data: Partial<WizardData>) => {
     setWizardData((prev) => ({ ...prev, ...data }));
@@ -404,7 +409,7 @@ const OnboardingWizard = () => {
   };
 
   // Show loading while checking auth
-  if (authLoading) {
+  if (authLoading || adminLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -412,8 +417,8 @@ const OnboardingWizard = () => {
     );
   }
 
-  // Don't render if not authenticated
-  if (!user) {
+  // Don't render if not authenticated (unless admin)
+  if (!user && !isAdmin) {
     return null;
   }
 
