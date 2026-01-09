@@ -6,6 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const MEDIA_TYPE_LABELS: Record<string, string> = {
+  ads: 'מודעות',
+  text: 'מלל וקופי',
+  video: 'וידאו',
+  signage: 'שילוט',
+  promo: 'קד"מ',
+  radio: 'רדיו',
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -24,7 +33,7 @@ serve(async (req) => {
 
     // Fetch all examples and links
     const [examplesRes, linksRes] = await Promise.all([
-      supabase.from('sector_brain_examples').select('*').order('created_at', { ascending: false }).limit(100),
+      supabase.from('sector_brain_examples').select('*').order('created_at', { ascending: false }).limit(200),
       supabase.from('sector_brain_links').select('*').order('created_at', { ascending: false }).limit(50),
     ]);
 
@@ -38,73 +47,102 @@ serve(async (req) => {
     const examples = examplesRes.data || [];
     const links = linksRes.data || [];
 
-    // Build summary of content
-    const contentSummary = {
-      totalExamples: examples.length,
-      totalLinks: links.length,
-      guidelines: examples.filter(e => e.is_general_guideline).map(e => ({
-        text: e.text_content,
-        mediaType: e.media_type
-      })),
-      textExamples: examples.filter(e => e.file_type === 'text' && !e.is_general_guideline).map(e => ({
-        text: e.text_content,
-        type: e.example_type,
-        mediaType: e.media_type,
-        stream: e.stream_type,
-        topic: e.topic_category
-      })),
-      imageExamples: examples.filter(e => e.file_type?.startsWith('image/')).map(e => ({
-        name: e.name,
-        type: e.example_type,
-        mediaType: e.media_type
-      })),
-      links: links.map(l => l.url),
-      mediaTypeBreakdown: {} as Record<string, number>
-    };
-
-    // Count by media type
-    examples.forEach(e => {
-      if (e.media_type) {
-        contentSummary.mediaTypeBreakdown[e.media_type] = (contentSummary.mediaTypeBreakdown[e.media_type] || 0) + 1;
-      }
+    // Build content by media type
+    const mediaTypes = ['ads', 'text', 'video', 'signage', 'promo', 'radio'];
+    const contentByMedia: Record<string, any> = {};
+    
+    mediaTypes.forEach(mt => {
+      const mediaExamples = examples.filter(e => e.media_type === mt);
+      contentByMedia[mt] = {
+        label: MEDIA_TYPE_LABELS[mt],
+        guidelines: mediaExamples.filter(e => e.is_general_guideline).map(e => e.text_content),
+        goodExamples: mediaExamples.filter(e => e.example_type === 'good' && !e.is_general_guideline).map(e => ({
+          text: e.text_content,
+          topic: e.topic_category,
+          stream: e.stream_type
+        })),
+        badExamples: mediaExamples.filter(e => e.example_type === 'bad' && !e.is_general_guideline).map(e => ({
+          text: e.text_content,
+          topic: e.topic_category
+        })),
+        imageCount: mediaExamples.filter(e => e.file_type?.startsWith('image/')).length
+      };
     });
 
-    const systemPrompt = `אתה מומחה לפרסום במגזר החרדי. 
-קיבלת גישה לכל החומרים שהועלו למערכת ללימוד AI - דוגמאות טובות, דוגמאות רעות, כללי אצבע, וקישורים רלוונטיים.
+    // General content (no media type)
+    const generalGuidelines = examples.filter(e => e.is_general_guideline && !e.media_type).map(e => e.text_content);
 
-תפקידך לנתח את כל המידע ולהציג תובנות חכמות ושימושיות:
-1. מה אפשר ללמוד מהדוגמאות הטובות?
-2. מה הטעויות הנפוצות שרואים בדוגמאות הרעות?
-3. מה הסגנון והטון המומלץ לפי הכללים שהוגדרו?
-4. מה הדפוסים שחוזרים על עצמם?
-5. המלצות לשיפור
+    const systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון.
+קיבלת גישה לכל החומרים שהועלו למערכת לאימון AI - דוגמאות טובות, דוגמאות רעות, כללי אצבע, וקישורים.
 
-כתוב בעברית, בסגנון מקצועי אך נגיש.
-אל תפרט יותר מדי - תן תובנות ממוקדות ושימושיות.`;
+עליך לנתח את המידע ולהחזיר תובנות מובנות בפורמט הבא בדיוק:
+
+## 🎯 תובנות כלליות על פרסום במגזר החרדי
+
+[כתוב 3-5 תובנות מפתח על פרסום במגזר החרדי בכלל, בהתבסס על כל החומר שקיבלת]
+
+## 📰 תובנות למודעות (ads)
+
+[אם יש תוכן למודעות - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
+
+## ✍️ תובנות למלל וקופי (text)
+
+[אם יש תוכן לטקסט - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
+
+## 🎬 תובנות לוידאו (video)
+
+[אם יש תוכן לוידאו - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
+
+## 🪧 תובנות לשילוט (signage)
+
+[אם יש תוכן לשילוט - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
+
+## 📢 תובנות לקד"מ (promo)
+
+[אם יש תוכן לקד"מ - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
+
+## 📻 תובנות לרדיו (radio)
+
+[אם יש תוכן לרדיו - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
+
+כללים חשובים:
+- כתוב בעברית מקצועית אך נגישה
+- התמקד בתובנות פרקטיות ושימושיות
+- השתמש באמוג'י בתחילת כל כותרת
+- אם אין מספיק מידע לסוג מדיה מסוים, ציין זאת בקצרה`;
 
     const userPrompt = `הנה סיכום התכנים שהועלו למערכת:
 
-📊 סטטיסטיקה:
-- סה"כ דוגמאות: ${contentSummary.totalExamples}
-- סה"כ קישורים: ${contentSummary.totalLinks}
-- התפלגות לפי סוג מדיה: ${JSON.stringify(contentSummary.mediaTypeBreakdown)}
+📊 סטטיסטיקה כללית:
+- סה"כ דוגמאות: ${examples.length}
+- סה"כ קישורים: ${links.length}
 
-📝 כללי אצבע שהוגדרו (${contentSummary.guidelines.length}):
-${contentSummary.guidelines.slice(0, 10).map(g => `- ${g.text}`).join('\n') || 'אין כללים עדיין'}
+📝 כללי אצבע כלליים (${generalGuidelines.length}):
+${generalGuidelines.slice(0, 5).join('\n') || 'אין'}
 
-✅ דוגמאות טקסט טובות (${contentSummary.textExamples.filter(e => e.type === 'good').length}):
-${contentSummary.textExamples.filter(e => e.type === 'good').slice(0, 5).map(e => `- "${e.text?.substring(0, 100)}..." (${e.topic || 'כללי'})`).join('\n') || 'אין דוגמאות עדיין'}
+🔗 קישורים כלליים (${links.length}):
+${links.slice(0, 5).map(l => l.url).join('\n') || 'אין'}
 
-❌ דוגמאות טקסט רעות (${contentSummary.textExamples.filter(e => e.type === 'bad').length}):
-${contentSummary.textExamples.filter(e => e.type === 'bad').slice(0, 5).map(e => `- "${e.text?.substring(0, 100)}..." (${e.topic || 'כללי'})`).join('\n') || 'אין דוגמאות עדיין'}
+${mediaTypes.map(mt => {
+  const data = contentByMedia[mt];
+  return `
+--- ${data.label} (${mt}) ---
+כללי אצבע: ${data.guidelines.length}
+${data.guidelines.slice(0, 3).join(' | ') || '-'}
 
-🖼️ דוגמאות תמונה (${contentSummary.imageExamples.length}):
-${contentSummary.imageExamples.slice(0, 5).map(e => `- ${e.name} (${e.type === 'good' ? 'טוב' : 'רע'})`).join('\n') || 'אין תמונות עדיין'}
+דוגמאות טובות: ${data.goodExamples.length}
+${data.goodExamples.slice(0, 2).map((e: any) => `"${e.text?.substring(0, 80)}..."`).join('\n') || '-'}
 
-🔗 קישורים (${contentSummary.links.length}):
-${contentSummary.links.slice(0, 5).join('\n') || 'אין קישורים עדיין'}
+דוגמאות רעות: ${data.badExamples.length}
+${data.badExamples.slice(0, 2).map((e: any) => `"${e.text?.substring(0, 80)}..."`).join('\n') || '-'}
 
-נתח את המידע הזה והצג תובנות שימושיות.`;
+תמונות: ${data.imageCount}
+`;
+}).join('\n')}
+
+נתח את כל המידע והחזר תובנות מובנות לפי הפורמט שקיבלת.`;
+
+    console.log('Sending analysis request to AI...');
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
