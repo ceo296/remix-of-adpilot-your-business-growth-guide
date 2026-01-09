@@ -15,6 +15,51 @@ const MEDIA_TYPE_LABELS: Record<string, string> = {
   radio: 'רדיו',
 };
 
+const STREAM_LABELS: Record<string, string> = {
+  hasidic: 'חסידי',
+  litvish: 'ליטאי',
+  general: 'כללי',
+  sephardic: 'ספרדי',
+};
+
+const HOLIDAY_LABELS: Record<string, string> = {
+  pesach: 'פסח',
+  sukkot: 'סוכות',
+  chanukah: 'חנוכה',
+  purim: 'פורים',
+  shavuot: 'שבועות',
+  lag_baomer: 'ל"ג בעומר',
+  tu_bishvat: 'ט"ו בשבט',
+  summer: 'קיץ',
+  bein_hazmanim: 'בין הזמנים',
+  rosh_hashana: 'ראש השנה',
+  yom_kippur: 'ימים נוראים',
+  year_round: 'כל השנה',
+};
+
+const TOPIC_LABELS: Record<string, string> = {
+  real_estate: 'נדל"ן',
+  beauty: 'ביוטי',
+  food: 'מזון',
+  cellular: 'סלולר',
+  filtered_internet: 'אינטרנט מסונן',
+  electronics: 'מוצרי חשמל',
+  hotels: 'מלונאות וחופשות',
+  mens_fashion: 'אופנה גברית',
+  kids_fashion: 'אופנת ילדים',
+  womens_fashion: 'אופנת נשים',
+  makeup: 'איפור וקוסמטיקה',
+  education: 'לימודים וחינוך',
+  health: 'בריאות',
+  finance: 'פיננסים וביטוח',
+  events: 'אירועים ושמחות',
+  judaica: 'יודאיקה וספרי קודש',
+  toys: 'צעצועים ומשחקים',
+  furniture: 'ריהוט ועיצוב הבית',
+  jewelry: 'תכשיטים ושעונים',
+  other: 'אחר',
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -165,26 +210,36 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
 
 נתח את כל המידע והחזר תובנות כלליות בלבד (ללא חלוקה לפי סוגי מדיה).`;
 
-    } else {
+    } else if (insightType.startsWith('media_')) {
       // Specific media type analysis
-      const data = contentByMedia[insightType];
-      const mediaLinks = linkContents.filter(lc => lc.mediaType === insightType || !lc.mediaType);
+      const mediaType = insightType.replace('media_', '');
+      const mediaTypeLabel = MEDIA_TYPE_LABELS[mediaType] || mediaType;
+      const data = contentByMedia[mediaType];
+      const mediaLinks = linkContents.filter(lc => lc.mediaType === mediaType || !lc.mediaType);
       
-      // Get full example details for better referencing
-      const relevantExamples = examples.filter(e => e.media_type === insightType);
+      const relevantExamples = examples.filter(e => e.media_type === mediaType);
       
-      systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון, מתמחה ב${mediaTypeLabel}.
-קיבלת גישה לדוגמאות ספציפיות שהועלו למערכת.
+      systemPrompt = buildMediaSystemPrompt(mediaTypeLabel);
+      userPrompt = buildMediaUserPrompt(relevantExamples, data, mediaLinks, mediaTypeLabel);
+
+    } else if (insightType.startsWith('stream_')) {
+      // Stream-specific analysis
+      const stream = insightType.replace('stream_', '');
+      const streamLabel = STREAM_LABELS[stream] || stream;
+      
+      const relevantExamples = examples.filter(e => e.stream_type === stream);
+      
+      systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון, מתמחה בקהל ה${streamLabel}.
+קיבלת גישה לדוגמאות ספציפיות שהועלו למערכת עבור הזרם ה${streamLabel}.
 
 חשוב מאוד - התייחס לדוגמאות ספציפיות!
 כשאתה מנתח, ציין במפורש:
 - "מהדוגמה של [שם/תוכן הדוגמה] אני רואה ש..."
-- "בדוגמה הטובה '[ציטוט קצר]' - עובד כי..."
-- "בדוגמה הרעה '[ציטוט קצר]' - הבעיה היא..."
+- "בדוגמה '[ציטוט קצר]' - עובד/לא עובד כי..."
 
 הפורמט הרצוי:
 
-${mediaTypeLabel === 'מודעות' ? '📰' : mediaTypeLabel === 'מלל וקופי' ? '✍️' : mediaTypeLabel === 'וידאו' ? '🎬' : mediaTypeLabel === 'שילוט' ? '🪧' : mediaTypeLabel === 'קד"מ' ? '📢' : '📻'} **תובנות ל${mediaTypeLabel}**
+🎯 **תובנות לפרסום לקהל ${streamLabel}**
 
 כתוב 4-6 תובנות, כל אחת בפורמט:
 
@@ -194,84 +249,81 @@ ${mediaTypeLabel === 'מודעות' ? '📰' : mediaTypeLabel === 'מלל וקו
   ❌ אל תעשה: [מה להימנע]
 
 כללים:
-- חובה להתייחס לדוגמאות ספציפיות שקיבלת בשמן או בציטוט
-- אם יש דוגמאות טובות - ציין מה בדיוק עובד בכל אחת
-- אם יש דוגמאות רעות - הסבר מה הבעיה הספציפית
-- כתוב בעברית מקצועית אך נגישה
-- אם אין מספיק דוגמאות, ציין זאת`;
+- התמקד בהבדלים הייחודיים לזרם ה${streamLabel} מול זרמים אחרים
+- ציין נימה, סגנון שפה, ערכים שמדברים לקהל זה
+- חובה להתייחס לדוגמאות ספציפיות שקיבלת`;
 
-      // Build detailed examples list with more context - include ALL examples with file info
-      const goodExamplesDetailed = relevantExamples
-        .filter(e => e.example_type === 'good' && !e.is_general_guideline)
-        .slice(0, 15) // Increased limit
-        .map((e: any, i: number) => {
-          const parts = [];
-          if (e.name) parts.push(`**"${e.name}"**`);
-          if (e.description) parts.push(`תיאור: ${e.description}`);
-          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 300)}"`);
-          if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
-          if (e.stream_type) parts.push(`זרם: ${e.stream_type}`);
-          if (e.gender_audience) parts.push(`קהל: ${e.gender_audience}`);
-          if (e.holiday_season) parts.push(`עונה/חג: ${e.holiday_season}`);
-          if (e.file_type) parts.push(`סוג קובץ: ${e.file_type}`);
-          return `${i+1}. ${parts.join(' | ')}`;
-        });
+      userPrompt = buildFilteredUserPrompt(relevantExamples, linkContents, `זרם ${streamLabel}`, 'stream_type', stream);
 
-      const badExamplesDetailed = relevantExamples
-        .filter(e => e.example_type === 'bad' && !e.is_general_guideline)
-        .slice(0, 15) // Increased limit
-        .map((e: any, i: number) => {
-          const parts = [];
-          if (e.name) parts.push(`**"${e.name}"**`);
-          if (e.description) parts.push(`תיאור: ${e.description}`);
-          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 300)}"`);
-          if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
-          if (e.file_type) parts.push(`סוג קובץ: ${e.file_type}`);
-          return `${i+1}. ${parts.join(' | ')}`;
-        });
+    } else if (insightType.startsWith('holiday_')) {
+      // Holiday-specific analysis
+      const holiday = insightType.replace('holiday_', '');
+      const holidayLabel = HOLIDAY_LABELS[holiday] || holiday;
+      
+      const relevantExamples = examples.filter(e => e.holiday_season === holiday);
+      
+      systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון, מתמחה בפרסום לתקופת ${holidayLabel}.
+קיבלת גישה לדוגמאות ספציפיות שהועלו למערכת עבור ${holidayLabel}.
 
-      // Also include examples without explicit good/bad type (neutral examples from uploaded files)
-      const neutralExamples = relevantExamples
-        .filter(e => !e.example_type && !e.is_general_guideline)
-        .slice(0, 10)
-        .map((e: any, i: number) => {
-          const parts = [];
-          if (e.name) parts.push(`**"${e.name}"**`);
-          if (e.description) parts.push(`תיאור: ${e.description}`);
-          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 300)}"`);
-          if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
-          if (e.stream_type) parts.push(`זרם: ${e.stream_type}`);
-          return `${i+1}. ${parts.join(' | ')}`;
-        });
+חשוב מאוד - התייחס לדוגמאות ספציפיות!
 
-      userPrompt = `הנה כל הדוגמאות והמידע על ${mediaTypeLabel}:
+הפורמט הרצוי:
 
-📊 סטטיסטיקה:
-- סה"כ דוגמאות מקבצים: ${relevantExamples.length}
-- דוגמאות טובות: ${goodExamplesDetailed.length}
-- דוגמאות רעות: ${badExamplesDetailed.length}
-- דוגמאות נוספות מקבצים: ${neutralExamples.length}
-- כללי אצבע: ${data?.guidelines?.length || 0}
-- קישורים: ${mediaLinks.length}
+🗓️ **תובנות לפרסום ב${holidayLabel}**
 
-📝 כללי אצבע ל${mediaTypeLabel}:
-${data?.guidelines?.slice(0, 10).join('\n') || 'אין כללים ספציפיים'}
+כתוב 4-6 תובנות, כל אחת בפורמט:
 
-📁 **דוגמאות מקבצים שהועלו - התייחס לשמות ולתיאורים!**
+• **כותרת התובנה**
+  מהדוגמה "[ציטוט או תיאור]" אני רואה ש[התובנה].
+  ✅ עשה: [המלצה ספציפית]
+  ❌ אל תעשה: [מה להימנע]
 
-✅ דוגמאות טובות (חובה להתייחס בשמן):
-${goodExamplesDetailed.join('\n\n') || 'אין דוגמאות טובות'}
+כללים:
+- התמקד בייחודיות של ${holidayLabel} - מסרים, תחושות, צרכים
+- ציין טיימינג, מוטיבים, ושפה מתאימה לתקופה
+- חובה להתייחס לדוגמאות ספציפיות שקיבלת`;
 
-❌ דוגמאות רעות (חובה להתייחס בשמן):
-${badExamplesDetailed.join('\n\n') || 'אין דוגמאות רעות'}
+      userPrompt = buildFilteredUserPrompt(relevantExamples, linkContents, holidayLabel, 'holiday_season', holiday);
 
-📄 דוגמאות נוספות מקבצים:
-${neutralExamples.join('\n\n') || 'אין'}
+    } else if (insightType.startsWith('topic_')) {
+      // Topic-specific analysis
+      const topic = insightType.replace('topic_', '');
+      const topicLabel = TOPIC_LABELS[topic] || topic;
+      
+      const relevantExamples = examples.filter(e => e.topic_category === topic);
+      
+      systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון, מתמחה בתחום ${topicLabel}.
+קיבלת גישה לדוגמאות ספציפיות שהועלו למערכת עבור תחום ${topicLabel}.
 
-🔗 **תוכן מקישורים:**
-${mediaLinks.slice(0, 4).map(lc => `מתוך ${lc.url}:\n${lc.content.substring(0, 500)}`).join('\n\n') || 'אין קישורים'}
+חשוב מאוד - התייחס לדוגמאות ספציפיות!
 
-🎯 חשוב: נתח את כל המקורות - גם הקבצים שהועלו וגם הקישורים. התייחס לכל דוגמה בשמה!`;
+הפורמט הרצוי:
+
+🏷️ **תובנות לפרסום בתחום ${topicLabel}**
+
+כתוב 4-6 תובנות, כל אחת בפורמט:
+
+• **כותרת התובנה**
+  מהדוגמה "[ציטוט או תיאור]" אני רואה ש[התובנה].
+  ✅ עשה: [המלצה ספציפית]
+  ❌ אל תעשה: [מה להימנע]
+
+כללים:
+- התמקד באסטרטגיות שעובדות בתחום ${topicLabel} במגזר החרדי
+- ציין מה עובד/לא עובד ספציפית בתחום הזה
+- חובה להתייחס לדוגמאות ספציפיות שקיבלת`;
+
+      userPrompt = buildFilteredUserPrompt(relevantExamples, linkContents, `תחום ${topicLabel}`, 'topic_category', topic);
+
+    } else {
+      // Fallback for old media type format (backwards compatibility)
+      const mediaTypeLabel = MEDIA_TYPE_LABELS[insightType] || insightType;
+      const data = contentByMedia[insightType];
+      const mediaLinks = linkContents.filter(lc => lc.mediaType === insightType || !lc.mediaType);
+      const relevantExamples = examples.filter(e => e.media_type === insightType);
+      
+      systemPrompt = buildMediaSystemPrompt(mediaTypeLabel);
+      userPrompt = buildMediaUserPrompt(relevantExamples, data, mediaLinks, mediaTypeLabel);
     }
 
     console.log(`Built prompts for ${insightType}. System prompt length: ${systemPrompt.length}, User prompt length: ${userPrompt.length}`);
@@ -337,3 +389,135 @@ ${mediaLinks.slice(0, 4).map(lc => `מתוך ${lc.url}:\n${lc.content.substring(
     });
   }
 });
+
+// Helper functions for building prompts
+function buildMediaSystemPrompt(mediaTypeLabel: string): string {
+  return `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון, מתמחה ב${mediaTypeLabel}.
+קיבלת גישה לדוגמאות ספציפיות שהועלו למערכת.
+
+חשוב מאוד - התייחס לדוגמאות ספציפיות!
+כשאתה מנתח, ציין במפורש:
+- "מהדוגמה של [שם/תוכן הדוגמה] אני רואה ש..."
+- "בדוגמה הטובה '[ציטוט קצר]' - עובד כי..."
+- "בדוגמה הרעה '[ציטוט קצר]' - הבעיה היא..."
+
+הפורמט הרצוי:
+
+📰 **תובנות ל${mediaTypeLabel}**
+
+כתוב 4-6 תובנות, כל אחת בפורמט:
+
+• **כותרת התובנה**
+  מהדוגמה "[ציטוט או תיאור]" אני רואה ש[התובנה].
+  ✅ עשה: [המלצה ספציפית]
+  ❌ אל תעשה: [מה להימנע]
+
+כללים:
+- חובה להתייחס לדוגמאות ספציפיות שקיבלת בשמן או בציטוט
+- אם יש דוגמאות טובות - ציין מה בדיוק עובד בכל אחת
+- אם יש דוגמאות רעות - הסבר מה הבעיה הספציפית
+- כתוב בעברית מקצועית אך נגישה
+- אם אין מספיק דוגמאות, ציין זאת`;
+}
+
+function buildMediaUserPrompt(relevantExamples: any[], data: any, mediaLinks: any[], mediaTypeLabel: string): string {
+  const goodExamplesDetailed = relevantExamples
+    .filter(e => e.example_type === 'good' && !e.is_general_guideline)
+    .slice(0, 15)
+    .map((e: any, i: number) => formatExample(e, i));
+
+  const badExamplesDetailed = relevantExamples
+    .filter(e => e.example_type === 'bad' && !e.is_general_guideline)
+    .slice(0, 15)
+    .map((e: any, i: number) => formatExample(e, i));
+
+  const neutralExamples = relevantExamples
+    .filter(e => !e.example_type && !e.is_general_guideline)
+    .slice(0, 10)
+    .map((e: any, i: number) => formatExample(e, i));
+
+  return `הנה כל הדוגמאות והמידע על ${mediaTypeLabel}:
+
+📊 סטטיסטיקה:
+- סה"כ דוגמאות מקבצים: ${relevantExamples.length}
+- דוגמאות טובות: ${goodExamplesDetailed.length}
+- דוגמאות רעות: ${badExamplesDetailed.length}
+- דוגמאות נוספות מקבצים: ${neutralExamples.length}
+- כללי אצבע: ${data?.guidelines?.length || 0}
+- קישורים: ${mediaLinks.length}
+
+📝 כללי אצבע ל${mediaTypeLabel}:
+${data?.guidelines?.slice(0, 10).join('\n') || 'אין כללים ספציפיים'}
+
+📁 **דוגמאות מקבצים שהועלו - התייחס לשמות ולתיאורים!**
+
+✅ דוגמאות טובות (חובה להתייחס בשמן):
+${goodExamplesDetailed.join('\n\n') || 'אין דוגמאות טובות'}
+
+❌ דוגמאות רעות (חובה להתייחס בשמן):
+${badExamplesDetailed.join('\n\n') || 'אין דוגמאות רעות'}
+
+📄 דוגמאות נוספות מקבצים:
+${neutralExamples.join('\n\n') || 'אין'}
+
+🔗 **תוכן מקישורים:**
+${mediaLinks.slice(0, 4).map(lc => `מתוך ${lc.url}:\n${lc.content.substring(0, 500)}`).join('\n\n') || 'אין קישורים'}
+
+🎯 חשוב: נתח את כל המקורות - גם הקבצים שהועלו וגם הקישורים. התייחס לכל דוגמה בשמה!`;
+}
+
+function buildFilteredUserPrompt(relevantExamples: any[], linkContents: any[], filterLabel: string, filterField: string, filterValue: string): string {
+  const goodExamples = relevantExamples
+    .filter(e => e.example_type === 'good' && !e.is_general_guideline)
+    .slice(0, 15)
+    .map((e: any, i: number) => formatExample(e, i));
+
+  const badExamples = relevantExamples
+    .filter(e => e.example_type === 'bad' && !e.is_general_guideline)
+    .slice(0, 15)
+    .map((e: any, i: number) => formatExample(e, i));
+
+  const neutralExamples = relevantExamples
+    .filter(e => !e.example_type && !e.is_general_guideline)
+    .slice(0, 10)
+    .map((e: any, i: number) => formatExample(e, i));
+
+  return `הנה כל הדוגמאות והמידע עבור ${filterLabel}:
+
+📊 סטטיסטיקה:
+- סה"כ דוגמאות: ${relevantExamples.length}
+- דוגמאות טובות: ${goodExamples.length}
+- דוגמאות רעות: ${badExamples.length}
+- דוגמאות נוספות: ${neutralExamples.length}
+
+📁 **דוגמאות - התייחס לשמות ולתיאורים!**
+
+✅ דוגמאות טובות:
+${goodExamples.join('\n\n') || 'אין דוגמאות טובות'}
+
+❌ דוגמאות רעות:
+${badExamples.join('\n\n') || 'אין דוגמאות רעות'}
+
+📄 דוגמאות נוספות:
+${neutralExamples.join('\n\n') || 'אין'}
+
+🔗 **תוכן מקישורים:**
+${linkContents.slice(0, 4).map(lc => `מתוך ${lc.url}:\n${lc.content.substring(0, 500)}`).join('\n\n') || 'אין קישורים'}
+
+🎯 נתח את כל הדוגמאות והחזר תובנות עם התייחסות ישירה לכל דוגמה.
+${relevantExamples.length === 0 ? `\n⚠️ שים לב: אין עדיין דוגמאות מסומנות עבור ${filterLabel}. נסה להסיק מהמידע הכללי.` : ''}`;
+}
+
+function formatExample(e: any, i: number): string {
+  const parts = [];
+  if (e.name) parts.push(`**"${e.name}"**`);
+  if (e.description) parts.push(`תיאור: ${e.description}`);
+  if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 300)}"`);
+  if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
+  if (e.stream_type) parts.push(`זרם: ${e.stream_type}`);
+  if (e.gender_audience) parts.push(`קהל: ${e.gender_audience}`);
+  if (e.holiday_season) parts.push(`עונה/חג: ${e.holiday_season}`);
+  if (e.media_type) parts.push(`מדיה: ${e.media_type}`);
+  if (e.file_type) parts.push(`סוג קובץ: ${e.file_type}`);
+  return `${i+1}. ${parts.join(' | ')}`; 
+}
