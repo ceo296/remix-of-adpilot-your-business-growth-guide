@@ -328,6 +328,54 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
 
     console.log(`Built prompts for ${insightType}. System prompt length: ${systemPrompt.length}, User prompt length: ${userPrompt.length}`);
 
+    // Get image URLs for vision analysis
+    const imageExamples = examples.filter(e => 
+      e.file_type?.startsWith('image/') && e.file_path
+    ).slice(0, 10); // Limit to 10 images to avoid token limits
+    
+    console.log(`Found ${imageExamples.length} images for vision analysis`);
+    
+    // Build message content with images
+    const userContent: any[] = [];
+    
+    // Add text content first
+    userContent.push({
+      type: "text",
+      text: userPrompt
+    });
+    
+    // Add images for visual analysis
+    if (imageExamples.length > 0) {
+      const imageIntro = `\n\n🖼️ **תמונות לניתוח ויזואלי (${imageExamples.length} תמונות):**\nלהלן התמונות שהועלו. נתח כל תמונה ויזואלית והסק תובנות ספציפיות מכל אחת.`;
+      userContent.push({
+        type: "text",
+        text: imageIntro
+      });
+      
+      for (const img of imageExamples) {
+        // Add image label
+        const imgLabel = `תמונה: "${img.name}" ${img.example_type === 'good' ? '(דוגמה טובה)' : img.example_type === 'bad' ? '(דוגמה רעה)' : ''} ${img.description ? `- ${img.description}` : ''}`;
+        userContent.push({
+          type: "text",
+          text: imgLabel
+        });
+        
+        // Add the image - Supabase storage URLs
+        const imageUrl = img.file_path.startsWith('http') 
+          ? img.file_path 
+          : `${SUPABASE_URL}/storage/v1/object/public/sector-brain/${img.file_path}`;
+        
+        userContent.push({
+          type: "image_url",
+          image_url: {
+            url: imageUrl
+          }
+        });
+        
+        console.log(`Added image for analysis: ${img.name} - ${imageUrl}`);
+      }
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -338,7 +386,7 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: userContent },
         ],
         stream: true,
       }),
