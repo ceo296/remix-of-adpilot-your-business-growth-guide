@@ -47,6 +47,46 @@ serve(async (req) => {
     const examples = examplesRes.data || [];
     const links = linksRes.data || [];
 
+    // Fetch content from links
+    console.log(`Fetching content from ${links.length} links...`);
+    const linkContents: Array<{ url: string; mediaType: string | null; content: string }> = [];
+    
+    for (const link of links.slice(0, 10)) { // Limit to 10 links to avoid timeout
+      try {
+        console.log(`Fetching: ${link.url}`);
+        const response = await fetch(link.url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; SectorBrainBot/1.0)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+          signal: AbortSignal.timeout(5000), // 5 second timeout per link
+        });
+        
+        if (response.ok) {
+          const html = await response.text();
+          // Extract text content from HTML (basic extraction)
+          const textContent = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .substring(0, 2000); // Limit content length
+          
+          linkContents.push({
+            url: link.url,
+            mediaType: link.media_type,
+            content: textContent,
+          });
+          console.log(`Successfully fetched ${link.url}: ${textContent.substring(0, 100)}...`);
+        } else {
+          console.log(`Failed to fetch ${link.url}: ${response.status}`);
+        }
+      } catch (error) {
+        console.error(`Error fetching ${link.url}:`, error);
+      }
+    }
+
     // Build content by media type
     const mediaTypes = ['ads', 'text', 'video', 'signage', 'promo', 'radio'];
     const contentByMedia: Record<string, any> = {};
@@ -116,15 +156,23 @@ serve(async (req) => {
 📊 סטטיסטיקה כללית:
 - סה"כ דוגמאות: ${examples.length}
 - סה"כ קישורים: ${links.length}
+- קישורים שנקראו בהצלחה: ${linkContents.length}
 
 📝 כללי אצבע כלליים (${generalGuidelines.length}):
 ${generalGuidelines.slice(0, 5).join('\n') || 'אין'}
 
-🔗 קישורים כלליים (${links.length}):
-${links.slice(0, 5).map(l => l.url).join('\n') || 'אין'}
+🔗 תוכן מקישורים (${linkContents.length}):
+${linkContents.map(lc => `
+--- קישור: ${lc.url} ---
+סוג מדיה: ${lc.mediaType ? MEDIA_TYPE_LABELS[lc.mediaType] || lc.mediaType : 'כללי'}
+תוכן:
+${lc.content.substring(0, 500)}
+`).join('\n') || 'לא נמצא תוכן בקישורים'}
 
 ${mediaTypes.map(mt => {
   const data = contentByMedia[mt];
+  // Include link content relevant to this media type
+  const mediaLinks = linkContents.filter(lc => lc.mediaType === mt);
   return `
 --- ${data.label} (${mt}) ---
 כללי אצבע: ${data.guidelines.length}
@@ -137,10 +185,13 @@ ${data.goodExamples.slice(0, 2).map((e: any) => `"${e.text?.substring(0, 80)}...
 ${data.badExamples.slice(0, 2).map((e: any) => `"${e.text?.substring(0, 80)}..."`).join('\n') || '-'}
 
 תמונות: ${data.imageCount}
+
+קישורים לסוג מדיה זה: ${mediaLinks.length}
+${mediaLinks.map(lc => `מתוך ${lc.url}:\n${lc.content.substring(0, 300)}`).join('\n') || '-'}
 `;
 }).join('\n')}
 
-נתח את כל המידע והחזר תובנות מובנות לפי הפורמט שקיבלת.`;
+נתח את כל המידע כולל התוכן מהקישורים והחזר תובנות מובנות לפי הפורמט שקיבלת.`;
 
     console.log('Sending analysis request to AI...');
 
