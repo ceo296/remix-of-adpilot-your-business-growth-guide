@@ -132,6 +132,16 @@ const SectorBrain = () => {
   // API link builder (optional query params)
   const [apiQuery, setApiQuery] = useState('');
   const [customApiLink, setCustomApiLink] = useState('');
+  
+  // General links management
+  interface GeneralLink {
+    id: string;
+    url: string;
+    media_type: string | null;
+    created_at: string;
+  }
+  const [generalLinks, setGeneralLinks] = useState<GeneralLink[]>([]);
+  const [newLinkInput, setNewLinkInput] = useState('');
 
   // Check admin role
   useEffect(() => {
@@ -164,12 +174,72 @@ const SectorBrain = () => {
     checkAdmin();
   }, [navigate]);
 
-  // Load existing examples from database (only after admin check)
+  // Load existing examples and links from database (only after admin check)
   useEffect(() => {
     if (isAdmin) {
       loadExamples();
+      loadGeneralLinks();
     }
   }, [isAdmin]);
+
+  const loadGeneralLinks = async () => {
+    const { data, error } = await supabase
+      .from('sector_brain_links')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading links:', error);
+    } else if (data) {
+      setGeneralLinks(data);
+    }
+  };
+
+  const handleAddGeneralLink = async () => {
+    const url = newLinkInput.trim();
+    if (!url) {
+      toast.error('נא להזין קישור');
+      return;
+    }
+
+    // Basic URL validation
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      toast.error('קישור חייב להתחיל ב-http:// או https://');
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('sector_brain_links')
+      .insert({ url, media_type: null })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding link:', error);
+      toast.error('שגיאה בשמירת הקישור');
+      return;
+    }
+
+    setGeneralLinks(prev => [data, ...prev]);
+    setNewLinkInput('');
+    toast.success('הקישור נשמר בהצלחה');
+  };
+
+  const handleDeleteGeneralLink = async (id: string) => {
+    const { error } = await supabase
+      .from('sector_brain_links')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting link:', error);
+      toast.error('שגיאה במחיקת הקישור');
+      return;
+    }
+
+    setGeneralLinks(prev => prev.filter(l => l.id !== id));
+    toast.success('הקישור נמחק');
+  };
 
   const loadExamples = async () => {
     setIsLoading(true);
@@ -681,49 +751,83 @@ const SectorBrain = () => {
                   קישור API
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-96" align="end">
-                <div className="space-y-4">
+              <PopoverContent className="w-[420px]" align="end">
+                <div className="space-y-4 max-h-[400px] overflow-y-auto">
                   <div>
-                    <h4 className="font-medium text-sm mb-1">קישור API כללי</h4>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      הוסף קישור כללי שילמד את כל סוגי המדיה
+                    <h4 className="font-medium text-sm mb-1">קישורים כלליים ללמידה</h4>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      הוסף קישורים שילמדו את כל סוגי המדיה
                     </p>
                   </div>
+                  
+                  {/* Add new link */}
                   <div className="flex gap-2">
                     <Input
-                      value={customApiLink}
-                      onChange={(e) => setCustomApiLink(e.target.value)}
-                      placeholder="הדבק קישור כאן..."
+                      value={newLinkInput}
+                      onChange={(e) => setNewLinkInput(e.target.value)}
+                      placeholder="הדבק קישור חדש כאן..."
                       className="text-xs font-mono flex-1"
                       dir="ltr"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddGeneralLink();
+                        }
+                      }}
                     />
                     <Button
                       size="sm"
-                      variant="secondary"
-                      onClick={() => {
-                        if (customApiLink) {
-                          navigator.clipboard.writeText(customApiLink);
-                          toast.success('הקישור הועתק!');
-                        } else {
-                          toast.error('אין קישור להעתקה');
-                        }
-                      }}
-                      disabled={!customApiLink}
+                      variant="default"
+                      onClick={handleAddGeneralLink}
+                      disabled={!newLinkInput.trim()}
                     >
-                      <Copy className="h-4 w-4" />
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                  {customApiLink && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => setCustomApiLink('')}
-                    >
-                      <X className="h-4 w-4 ml-2" />
-                      נקה קישור
-                    </Button>
+                  
+                  {/* Existing links */}
+                  {generalLinks.length > 0 && (
+                    <div className="space-y-2 border-t pt-3">
+                      <p className="text-xs text-muted-foreground font-medium">קישורים קיימים ({generalLinks.length}):</p>
+                      {generalLinks.map((link) => (
+                        <div key={link.id} className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg group">
+                          <Link2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                          <span 
+                            className="text-xs font-mono flex-1 truncate cursor-pointer hover:text-primary"
+                            onClick={() => window.open(link.url, '_blank')}
+                            title={link.url}
+                          >
+                            {link.url}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              navigator.clipboard.writeText(link.url);
+                              toast.success('הקישור הועתק!');
+                            }}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleDeleteGeneralLink(link.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   )}
+                  
+                  {generalLinks.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-2">
+                      אין קישורים כלליים עדיין
+                    </p>
+                  )}
+
                   <div className="border-t pt-3">
                     <p className="text-xs text-muted-foreground mb-2">
                       קישור API של המערכת:

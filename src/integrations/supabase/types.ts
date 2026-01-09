@@ -992,6 +992,33 @@ export type Database = {
         }
         Relationships: []
       }
+      sector_brain_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          media_type: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          media_type?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          media_type?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
