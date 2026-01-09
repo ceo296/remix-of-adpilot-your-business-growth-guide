@@ -131,6 +131,7 @@ const SectorBrain = () => {
 
   // API link builder (optional query params)
   const [apiQuery, setApiQuery] = useState('');
+  const [customApiLink, setCustomApiLink] = useState('');
 
   // Check admin role
   useEffect(() => {
@@ -680,33 +681,73 @@ const SectorBrain = () => {
                   קישור API
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80" align="end">
-                <div className="space-y-3">
+              <PopoverContent className="w-96" align="end">
+                <div className="space-y-4">
                   <div>
-                    <h4 className="font-medium text-sm mb-1">קישור API</h4>
+                    <h4 className="font-medium text-sm mb-1">קישור API כללי</h4>
                     <p className="text-xs text-muted-foreground mb-2">
-                      מערכות AI חיצוניות יכולות לשאוב דוגמאות מכאן
+                      הוסף קישור כללי שילמד את כל סוגי המדיה
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <Input
-                      readOnly
-                      value={apiBaseUrl}
-                      className="text-xs font-mono"
+                      value={customApiLink}
+                      onChange={(e) => setCustomApiLink(e.target.value)}
+                      placeholder="הדבק קישור כאן..."
+                      className="text-xs font-mono flex-1"
                       dir="ltr"
-                      onFocus={(e) => e.currentTarget.select()}
-                      onClick={(e) => (e.currentTarget as HTMLInputElement).select()}
                     />
                     <Button
                       size="sm"
                       variant="secondary"
                       onClick={() => {
-                        navigator.clipboard.writeText(apiBaseUrl);
-                        toast.success('הקישור הועתק!');
+                        if (customApiLink) {
+                          navigator.clipboard.writeText(customApiLink);
+                          toast.success('הקישור הועתק!');
+                        } else {
+                          toast.error('אין קישור להעתקה');
+                        }
                       }}
+                      disabled={!customApiLink}
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
+                  </div>
+                  {customApiLink && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setCustomApiLink('')}
+                    >
+                      <X className="h-4 w-4 ml-2" />
+                      נקה קישור
+                    </Button>
+                  )}
+                  <div className="border-t pt-3">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      קישור API של המערכת:
+                    </p>
+                    <div className="flex gap-2">
+                      <Input
+                        readOnly
+                        value={apiBaseUrl}
+                        className="text-xs font-mono bg-muted/50"
+                        dir="ltr"
+                        onFocus={(e) => e.currentTarget.select()}
+                        onClick={(e) => (e.currentTarget as HTMLInputElement).select()}
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard.writeText(apiBaseUrl);
+                          toast.success('קישור API הועתק!');
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </PopoverContent>
