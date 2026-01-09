@@ -21,6 +21,8 @@ serve(async (req) => {
   }
 
   try {
+    const { insightType = 'general' } = await req.json().catch(() => ({}));
+    
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -30,6 +32,8 @@ serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+    
+    console.log(`Analyzing content for insight type: ${insightType}`);
 
     // Fetch all examples and links
     const [examplesRes, linksRes] = await Promise.all([
@@ -112,46 +116,34 @@ serve(async (req) => {
     // General content (no media type)
     const generalGuidelines = examples.filter(e => e.is_general_guideline && !e.media_type).map(e => e.text_content);
 
-    const systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון.
+    // Build different prompts based on insight type
+    let systemPrompt = '';
+    let userPrompt = '';
+    
+    const mediaTypeLabel = MEDIA_TYPE_LABELS[insightType] || insightType;
+    
+    if (insightType === 'general') {
+      systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון.
 קיבלת גישה לכל החומרים שהועלו למערכת לאימון AI - דוגמאות טובות, דוגמאות רעות, כללי אצבע, וקישורים.
 
-עליך לנתח את המידע ולהחזיר תובנות מובנות בפורמט הבא בדיוק:
+עליך לנתח את המידע ולהחזיר תובנות כלליות על פרסום במגזר החרדי.
 
+הפורמט:
 ## 🎯 תובנות כלליות על פרסום במגזר החרדי
 
-[כתוב 3-5 תובנות מפתח על פרסום במגזר החרדי בכלל, בהתבסס על כל החומר שקיבלת]
+כתוב 5-8 תובנות מפתח על פרסום במגזר החרדי בכלל. התובנות צריכות להיות:
+- פרקטיות ושימושיות
+- מבוססות על הדוגמאות שקיבלת
+- מותאמות למגזר החרדי ולרגישויותיו
+- כוללות עשה/אל תעשה ספציפיים
 
-## 📰 תובנות למודעות (ads)
-
-[אם יש תוכן למודעות - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
-
-## ✍️ תובנות למלל וקופי (text)
-
-[אם יש תוכן לטקסט - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
-
-## 🎬 תובנות לוידאו (video)
-
-[אם יש תוכן לוידאו - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
-
-## 🪧 תובנות לשילוט (signage)
-
-[אם יש תוכן לשילוט - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
-
-## 📢 תובנות לקד"מ (promo)
-
-[אם יש תוכן לקד"מ - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
-
-## 📻 תובנות לרדיו (radio)
-
-[אם יש תוכן לרדיו - כתוב 2-3 תובנות ספציפיות. אם אין - כתוב "אין מספיק תוכן לניתוח"]
-
-כללים חשובים:
+כללים:
 - כתוב בעברית מקצועית אך נגישה
-- התמקד בתובנות פרקטיות ושימושיות
-- השתמש באמוג'י בתחילת כל כותרת
-- אם אין מספיק מידע לסוג מדיה מסוים, ציין זאת בקצרה`;
+- התמקד בתובנות אסטרטגיות שחוצות את כל סוגי המדיה
+- הדגש הבדלים בין זרמים (חסידי, ליטאי, ספרדי) אם רלוונטי
+- ציין קווים אדומים חשובים`;
 
-    const userPrompt = `הנה סיכום התכנים שהועלו למערכת:
+      userPrompt = `הנה סיכום התכנים שהועלו למערכת:
 
 📊 סטטיסטיקה כללית:
 - סה"כ דוגמאות: ${examples.length}
@@ -159,41 +151,81 @@ serve(async (req) => {
 - קישורים שנקראו בהצלחה: ${linkContents.length}
 
 📝 כללי אצבע כלליים (${generalGuidelines.length}):
-${generalGuidelines.slice(0, 5).join('\n') || 'אין'}
+${generalGuidelines.slice(0, 10).join('\n') || 'אין'}
 
 🔗 תוכן מקישורים (${linkContents.length}):
-${linkContents.map(lc => `
+${linkContents.slice(0, 5).map(lc => `
 --- קישור: ${lc.url} ---
-סוג מדיה: ${lc.mediaType ? MEDIA_TYPE_LABELS[lc.mediaType] || lc.mediaType : 'כללי'}
-תוכן:
-${lc.content.substring(0, 500)}
+${lc.content.substring(0, 800)}
 `).join('\n') || 'לא נמצא תוכן בקישורים'}
 
+📊 סיכום לפי סוגי מדיה:
 ${mediaTypes.map(mt => {
   const data = contentByMedia[mt];
-  // Include link content relevant to this media type
-  const mediaLinks = linkContents.filter(lc => lc.mediaType === mt);
-  return `
---- ${data.label} (${mt}) ---
-כללי אצבע: ${data.guidelines.length}
-${data.guidelines.slice(0, 3).join(' | ') || '-'}
-
-דוגמאות טובות: ${data.goodExamples.length}
-${data.goodExamples.slice(0, 2).map((e: any) => `"${e.text?.substring(0, 80)}..."`).join('\n') || '-'}
-
-דוגמאות רעות: ${data.badExamples.length}
-${data.badExamples.slice(0, 2).map((e: any) => `"${e.text?.substring(0, 80)}..."`).join('\n') || '-'}
-
-תמונות: ${data.imageCount}
-
-קישורים לסוג מדיה זה: ${mediaLinks.length}
-${mediaLinks.map(lc => `מתוך ${lc.url}:\n${lc.content.substring(0, 300)}`).join('\n') || '-'}
-`;
+  return `${data.label}: ${data.goodExamples.length} דוגמאות טובות, ${data.badExamples.length} דוגמאות רעות, ${data.guidelines.length} כללים`;
 }).join('\n')}
 
-נתח את כל המידע כולל התוכן מהקישורים והחזר תובנות מובנות לפי הפורמט שקיבלת.`;
+נתח את כל המידע והחזר תובנות כלליות על פרסום במגזר החרדי.`;
 
-    console.log('Sending analysis request to AI...');
+    } else {
+      // Specific media type analysis
+      const data = contentByMedia[insightType];
+      const mediaLinks = linkContents.filter(lc => lc.mediaType === insightType || !lc.mediaType);
+      
+      systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון, מתמחה ב${mediaTypeLabel}.
+קיבלת גישה לדוגמאות טובות ורעות, כללי אצבע, וקישורים הקשורים ל${mediaTypeLabel}.
+
+עליך לנתח את המידע ולהחזיר תובנות ספציפיות ל${mediaTypeLabel}.
+
+הפורמט:
+## ${mediaTypeLabel === 'מודעות' ? '📰' : mediaTypeLabel === 'מלל וקופי' ? '✍️' : mediaTypeLabel === 'וידאו' ? '🎬' : mediaTypeLabel === 'שילוט' ? '🪧' : mediaTypeLabel === 'קד"מ' ? '📢' : '📻'} תובנות ל${mediaTypeLabel}
+
+כתוב 5-8 תובנות ספציפיות ל${mediaTypeLabel}. כל תובנה צריכה להיות:
+- פרקטית ומיידית ליישום
+- מבוססת על הדוגמאות הקונקרטיות שקיבלת
+- כוללת "עשה" ו"אל תעשה" ספציפיים
+- מתייחסת לנורמות המגזר החרדי
+
+אם יש דוגמאות טובות - הסבר מה עובד בהן ולמה
+אם יש דוגמאות רעות - הסבר מה לא עובד ואיך לתקן
+אם יש כללי אצבע - הרחב עליהם עם דוגמאות
+
+כללים:
+- כתוב בעברית מקצועית אך נגישה
+- התמקד בפרקטיקה של ${mediaTypeLabel}
+- אם אין מספיק מידע, ציין זאת וספק עצות כלליות מניסיונך`;
+
+      userPrompt = `הנה כל המידע על ${mediaTypeLabel}:
+
+📊 סטטיסטיקה:
+- דוגמאות טובות: ${data?.goodExamples?.length || 0}
+- דוגמאות רעות: ${data?.badExamples?.length || 0}
+- כללי אצבע ספציפיים: ${data?.guidelines?.length || 0}
+- תמונות: ${data?.imageCount || 0}
+- קישורים רלוונטיים: ${mediaLinks.length}
+
+📝 כללי אצבע ל${mediaTypeLabel}:
+${data?.guidelines?.slice(0, 10).join('\n') || 'אין כללים ספציפיים'}
+
+✅ דוגמאות טובות:
+${data?.goodExamples?.slice(0, 5).map((e: any, i: number) => `${i+1}. "${e.text || 'ללא טקסט'}" ${e.topic ? `(נושא: ${e.topic})` : ''} ${e.stream ? `(זרם: ${e.stream})` : ''}`).join('\n') || 'אין דוגמאות'}
+
+❌ דוגמאות רעות:
+${data?.badExamples?.slice(0, 5).map((e: any, i: number) => `${i+1}. "${e.text || 'ללא טקסט'}" ${e.topic ? `(נושא: ${e.topic})` : ''}`).join('\n') || 'אין דוגמאות'}
+
+🔗 תוכן מקישורים רלוונטיים:
+${mediaLinks.slice(0, 5).map(lc => `
+--- מתוך: ${lc.url} ---
+${lc.content.substring(0, 600)}
+`).join('\n') || 'אין קישורים'}
+
+📝 כללי אצבע כלליים (לרקע):
+${generalGuidelines.slice(0, 5).join('\n') || 'אין'}
+
+נתח את כל המידע והחזר תובנות ספציפיות ל${mediaTypeLabel}.`;
+    }
+
+    console.log(`Built prompts for ${insightType}. System prompt length: ${systemPrompt.length}, User prompt length: ${userPrompt.length}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

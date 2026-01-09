@@ -147,6 +147,17 @@ const SectorBrain = () => {
   const [aiInsights, setAiInsights] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
+  const [selectedInsightType, setSelectedInsightType] = useState<'general' | MediaType | null>(null);
+
+  const INSIGHT_TYPES = [
+    { id: 'general' as const, label: 'תובנות כלליות', icon: Brain, description: 'ניתוח כללי על פרסום במגזר החרדי' },
+    { id: 'ads' as const, label: 'מודעות', icon: Newspaper, description: 'תובנות לעיתונות ומדיה מודפסת' },
+    { id: 'text' as const, label: 'מלל וקופי', icon: FileText, description: 'תובנות לכותרות וטקסטים שיווקיים' },
+    { id: 'video' as const, label: 'וידאו', icon: Video, description: 'תובנות לסרטוני פרסום' },
+    { id: 'signage' as const, label: 'שילוט', icon: RectangleHorizontal, description: 'תובנות לשילוט חוצות' },
+    { id: 'promo' as const, label: 'קד"מ', icon: Megaphone, description: 'תובנות לקידום מכירות' },
+    { id: 'radio' as const, label: 'רדיו', icon: Radio, description: 'תובנות לספוטים וג׳ינגלים' },
+  ];
 
   // Check admin role
   useEffect(() => {
@@ -246,7 +257,8 @@ const SectorBrain = () => {
     toast.success('הקישור נמחק');
   };
 
-  const analyzeContent = async () => {
+  const analyzeContent = async (insightType: 'general' | MediaType) => {
+    setSelectedInsightType(insightType);
     setIsAnalyzing(true);
     setAiInsights('');
     setInsightsOpen(true);
@@ -258,7 +270,7 @@ const SectorBrain = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ insightType }),
       });
 
       if (!response.ok) {
@@ -968,43 +980,62 @@ const SectorBrain = () => {
         {/* AI Insights Section */}
         <Card className="mb-8 border-2 border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Sparkles className="h-5 w-5 text-purple-500" />
-                  תובנות AI
-                </CardTitle>
-                <CardDescription>
-                  ניתוח חכם של כל התוכן שהעלת - קישורים, דוגמאות וכללי אצבע
-                </CardDescription>
-              </div>
-              <Button
-                onClick={analyzeContent}
-                disabled={isAnalyzing}
-                className="gap-2 bg-purple-500 hover:bg-purple-600 text-white"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    מנתח...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4" />
-                    נתח תוכן
-                  </>
-                )}
-              </Button>
-            </div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Sparkles className="h-5 w-5 text-purple-500" />
+              תובנות AI
+            </CardTitle>
+            <CardDescription>
+              בחר סוג ניתוח כדי לקבל תובנות ממוקדות
+            </CardDescription>
           </CardHeader>
-          {(aiInsights || isAnalyzing) && (
-            <CardContent>
+          <CardContent className="space-y-4">
+            {/* Insight Type Selector */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
+              {INSIGHT_TYPES.map((type) => {
+                const Icon = type.icon;
+                const isSelected = selectedInsightType === type.id;
+                const isCurrentlyAnalyzing = isAnalyzing && selectedInsightType === type.id;
+                
+                return (
+                  <button
+                    key={type.id}
+                    onClick={() => analyzeContent(type.id)}
+                    disabled={isAnalyzing}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all",
+                      "hover:border-purple-400 hover:bg-purple-100/50 disabled:opacity-50 disabled:cursor-not-allowed",
+                      isSelected 
+                        ? "border-purple-500 bg-purple-100 dark:bg-purple-900/30" 
+                        : "border-transparent bg-white dark:bg-background"
+                    )}
+                  >
+                    {isCurrentlyAnalyzing ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-purple-500" />
+                    ) : (
+                      <Icon className={cn(
+                        "h-5 w-5",
+                        isSelected ? "text-purple-600" : "text-muted-foreground"
+                      )} />
+                    )}
+                    <span className={cn(
+                      "text-xs font-medium text-center",
+                      isSelected ? "text-purple-700 dark:text-purple-300" : "text-muted-foreground"
+                    )}>
+                      {type.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Insights Display */}
+            {(aiInsights || isAnalyzing) && (
               <Collapsible open={insightsOpen} onOpenChange={setInsightsOpen}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-purple-100/50 mb-2">
+                  <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-purple-100/50">
                     <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                       <Brain className="h-4 w-4" />
-                      {isAnalyzing ? 'מקבל תובנות...' : 'הצג תובנות'}
+                      {isAnalyzing ? 'מקבל תובנות...' : `תובנות: ${INSIGHT_TYPES.find(t => t.id === selectedInsightType)?.label || ''}`}
                     </span>
                     {insightsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
@@ -1024,15 +1055,14 @@ const SectorBrain = () => {
                   </div>
                 </CollapsibleContent>
               </Collapsible>
-            </CardContent>
-          )}
-          {!aiInsights && !isAnalyzing && (
-            <CardContent>
-              <p className="text-sm text-muted-foreground text-center py-4">
-                לחץ על "נתח תוכן" כדי לקבל תובנות מ-AI על הדוגמאות והכללים שהעלית
+            )}
+
+            {!aiInsights && !isAnalyzing && (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                לחץ על אחד מסוגי הניתוח למעלה כדי לקבל תובנות ממוקדות
               </p>
-            </CardContent>
-          )}
+            )}
+          </CardContent>
         </Card>
 
         {/* General Guidelines Section */}
