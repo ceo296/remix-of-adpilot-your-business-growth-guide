@@ -170,57 +170,82 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       const data = contentByMedia[insightType];
       const mediaLinks = linkContents.filter(lc => lc.mediaType === insightType || !lc.mediaType);
       
+      // Get full example details for better referencing
+      const relevantExamples = examples.filter(e => e.media_type === insightType);
+      
       systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון, מתמחה ב${mediaTypeLabel}.
-קיבלת גישה לדוגמאות טובות ורעות, כללי אצבע, וקישורים הקשורים ל${mediaTypeLabel}.
+קיבלת גישה לדוגמאות ספציפיות שהועלו למערכת.
 
-עליך לנתח את המידע ולהחזיר תובנות ספציפיות ל${mediaTypeLabel}.
+חשוב מאוד - התייחס לדוגמאות ספציפיות!
+כשאתה מנתח, ציין במפורש:
+- "מהדוגמה של [שם/תוכן הדוגמה] אני רואה ש..."
+- "בדוגמה הטובה '[ציטוט קצר]' - עובד כי..."
+- "בדוגמה הרעה '[ציטוט קצר]' - הבעיה היא..."
 
-הפורמט:
-## ${mediaTypeLabel === 'מודעות' ? '📰' : mediaTypeLabel === 'מלל וקופי' ? '✍️' : mediaTypeLabel === 'וידאו' ? '🎬' : mediaTypeLabel === 'שילוט' ? '🪧' : mediaTypeLabel === 'קד"מ' ? '📢' : '📻'} תובנות ל${mediaTypeLabel}
+הפורמט הרצוי:
 
-כתוב 5-8 תובנות ספציפיות ל${mediaTypeLabel}. כל תובנה צריכה להיות:
-- פרקטית ומיידית ליישום
-- מבוססת על הדוגמאות הקונקרטיות שקיבלת
-- כוללת "עשה" ו"אל תעשה" ספציפיים
-- מתייחסת לנורמות המגזר החרדי
+${mediaTypeLabel === 'מודעות' ? '📰' : mediaTypeLabel === 'מלל וקופי' ? '✍️' : mediaTypeLabel === 'וידאו' ? '🎬' : mediaTypeLabel === 'שילוט' ? '🪧' : mediaTypeLabel === 'קד"מ' ? '📢' : '📻'} **תובנות ל${mediaTypeLabel}**
 
-אם יש דוגמאות טובות - הסבר מה עובד בהן ולמה
-אם יש דוגמאות רעות - הסבר מה לא עובד ואיך לתקן
-אם יש כללי אצבע - הרחב עליהם עם דוגמאות
+כתוב 4-6 תובנות, כל אחת בפורמט:
+
+• **כותרת התובנה**
+  מהדוגמה "[ציטוט או תיאור]" אני רואה ש[התובנה].
+  ✅ עשה: [המלצה ספציפית]
+  ❌ אל תעשה: [מה להימנע]
 
 כללים:
+- חובה להתייחס לדוגמאות ספציפיות שקיבלת בשמן או בציטוט
+- אם יש דוגמאות טובות - ציין מה בדיוק עובד בכל אחת
+- אם יש דוגמאות רעות - הסבר מה הבעיה הספציפית
 - כתוב בעברית מקצועית אך נגישה
-- התמקד בפרקטיקה של ${mediaTypeLabel}
-- אם אין מספיק מידע, ציין זאת וספק עצות כלליות מניסיונך`;
+- אם אין מספיק דוגמאות, ציין זאת`;
 
-      userPrompt = `הנה כל המידע על ${mediaTypeLabel}:
+      // Build detailed examples list with more context
+      const goodExamplesDetailed = relevantExamples
+        .filter(e => e.example_type === 'good' && !e.is_general_guideline)
+        .slice(0, 8)
+        .map((e: any, i: number) => {
+          const parts = [];
+          if (e.name) parts.push(`שם: "${e.name}"`);
+          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 200)}"`);
+          if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
+          if (e.stream_type) parts.push(`זרם: ${e.stream_type}`);
+          if (e.gender_audience) parts.push(`קהל: ${e.gender_audience}`);
+          return `${i+1}. ${parts.join(' | ')}`;
+        });
+
+      const badExamplesDetailed = relevantExamples
+        .filter(e => e.example_type === 'bad' && !e.is_general_guideline)
+        .slice(0, 8)
+        .map((e: any, i: number) => {
+          const parts = [];
+          if (e.name) parts.push(`שם: "${e.name}"`);
+          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 200)}"`);
+          if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
+          return `${i+1}. ${parts.join(' | ')}`;
+        });
+
+      userPrompt = `הנה כל הדוגמאות והמידע על ${mediaTypeLabel}:
 
 📊 סטטיסטיקה:
-- דוגמאות טובות: ${data?.goodExamples?.length || 0}
-- דוגמאות רעות: ${data?.badExamples?.length || 0}
-- כללי אצבע ספציפיים: ${data?.guidelines?.length || 0}
-- תמונות: ${data?.imageCount || 0}
-- קישורים רלוונטיים: ${mediaLinks.length}
+- דוגמאות טובות: ${goodExamplesDetailed.length}
+- דוגמאות רעות: ${badExamplesDetailed.length}
+- כללי אצבע: ${data?.guidelines?.length || 0}
+- קישורים: ${mediaLinks.length}
 
 📝 כללי אצבע ל${mediaTypeLabel}:
 ${data?.guidelines?.slice(0, 10).join('\n') || 'אין כללים ספציפיים'}
 
-✅ דוגמאות טובות:
-${data?.goodExamples?.slice(0, 5).map((e: any, i: number) => `${i+1}. "${e.text || 'ללא טקסט'}" ${e.topic ? `(נושא: ${e.topic})` : ''} ${e.stream ? `(זרם: ${e.stream})` : ''}`).join('\n') || 'אין דוגמאות'}
+✅ דוגמאות טובות (התייחס אליהן בשמן!):
+${goodExamplesDetailed.join('\n') || 'אין דוגמאות טובות'}
 
-❌ דוגמאות רעות:
-${data?.badExamples?.slice(0, 5).map((e: any, i: number) => `${i+1}. "${e.text || 'ללא טקסט'}" ${e.topic ? `(נושא: ${e.topic})` : ''}`).join('\n') || 'אין דוגמאות'}
+❌ דוגמאות רעות (התייחס אליהן בשמן!):
+${badExamplesDetailed.join('\n') || 'אין דוגמאות רעות'}
 
-🔗 תוכן מקישורים רלוונטיים:
-${mediaLinks.slice(0, 5).map(lc => `
---- מתוך: ${lc.url} ---
-${lc.content.substring(0, 600)}
-`).join('\n') || 'אין קישורים'}
+🔗 תוכן מקישורים:
+${mediaLinks.slice(0, 4).map(lc => `מתוך ${lc.url}:\n${lc.content.substring(0, 500)}`).join('\n\n') || 'אין קישורים'}
 
-📝 כללי אצבע כלליים (לרקע):
-${generalGuidelines.slice(0, 5).join('\n') || 'אין'}
-
-נתח את כל המידע והחזר תובנות ספציפיות ל${mediaTypeLabel}.`;
+נתח את הדוגמאות הספציפיות והחזר תובנות עם התייחסות ישירה לכל דוגמה.`;
     }
 
     console.log(`Built prompts for ${insightType}. System prompt length: ${systemPrompt.length}, User prompt length: ${userPrompt.length}`);
