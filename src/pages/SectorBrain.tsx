@@ -147,17 +147,33 @@ const SectorBrain = () => {
   const [aiInsights, setAiInsights] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
-  const [selectedInsightType, setSelectedInsightType] = useState<'general' | MediaType | null>(null);
+  const [selectedInsightType, setSelectedInsightType] = useState<string | null>(null);
+  const [insightCategory, setInsightCategory] = useState<'general' | 'media' | 'stream' | 'holiday' | 'topic'>('general');
 
-  const INSIGHT_TYPES = [
-    { id: 'general' as const, label: 'תובנות כלליות', icon: Brain, description: 'ניתוח כללי על פרסום במגזר החרדי' },
-    { id: 'ads' as const, label: 'מודעות', icon: Newspaper, description: 'תובנות לעיתונות ומדיה מודפסת' },
-    { id: 'text' as const, label: 'מלל וקופי', icon: FileText, description: 'תובנות לכותרות וטקסטים שיווקיים' },
-    { id: 'video' as const, label: 'וידאו', icon: Video, description: 'תובנות לסרטוני פרסום' },
-    { id: 'signage' as const, label: 'שילוט', icon: RectangleHorizontal, description: 'תובנות לשילוט חוצות' },
-    { id: 'promo' as const, label: 'קד"מ', icon: Megaphone, description: 'תובנות לקידום מכירות' },
-    { id: 'radio' as const, label: 'רדיו', icon: Radio, description: 'תובנות לספוטים וג׳ינגלים' },
+  // Insight categories structure
+  const INSIGHT_CATEGORIES = [
+    { id: 'general' as const, label: 'כללי', icon: Brain },
+    { id: 'media' as const, label: 'לפי מדיה', icon: Newspaper },
+    { id: 'stream' as const, label: 'לפי זרם', icon: Sparkles },
+    { id: 'holiday' as const, label: 'לפי חג', icon: Sparkles },
+    { id: 'topic' as const, label: 'לפי תחום', icon: Sparkles },
   ];
+
+  const INSIGHT_TYPES_BY_CATEGORY = {
+    general: [
+      { id: 'general', label: 'תובנות כלליות', icon: Brain, description: 'ניתוח כללי על פרסום במגזר החרדי' },
+    ],
+    media: MEDIA_TYPES.map(m => ({ id: `media_${m.id}`, label: m.label, icon: m.icon, description: m.description })),
+    stream: Object.entries(STREAM_LABELS).map(([id, label]) => ({ 
+      id: `stream_${id}`, label, icon: Sparkles, description: `תובנות לפרסום לקהל ${label}` 
+    })),
+    holiday: Object.entries(HOLIDAY_LABELS).map(([id, label]) => ({ 
+      id: `holiday_${id}`, label, icon: Sparkles, description: `תובנות לפרסום ב${label}` 
+    })),
+    topic: Object.entries(TOPIC_LABELS).map(([id, label]) => ({ 
+      id: `topic_${id}`, label, icon: Sparkles, description: `תובנות לתחום ${label}` 
+    })),
+  };
 
   // Check admin role
   useEffect(() => {
@@ -257,7 +273,7 @@ const SectorBrain = () => {
     toast.success('הקישור נמחק');
   };
 
-  const analyzeContent = async (insightType: 'general' | MediaType) => {
+  const analyzeContent = async (insightType: string) => {
     setSelectedInsightType(insightType);
     setIsAnalyzing(true);
     setAiInsights('');
@@ -989,9 +1005,30 @@ const SectorBrain = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Insight Type Selector */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
-              {INSIGHT_TYPES.map((type) => {
+            {/* Category Tabs */}
+            <div className="flex flex-wrap gap-2 border-b pb-3">
+              {INSIGHT_CATEGORIES.map((cat) => {
+                const Icon = cat.icon;
+                return (
+                  <Button
+                    key={cat.id}
+                    variant={insightCategory === cat.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setInsightCategory(cat.id)}
+                    className={cn(
+                      insightCategory === cat.id && "bg-purple-600 hover:bg-purple-700"
+                    )}
+                  >
+                    <Icon className="h-4 w-4 ml-1" />
+                    {cat.label}
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* Insight Type Selector based on category */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {INSIGHT_TYPES_BY_CATEGORY[insightCategory].map((type) => {
                 const Icon = type.icon;
                 const isSelected = selectedInsightType === type.id;
                 const isCurrentlyAnalyzing = isAnalyzing && selectedInsightType === type.id;
@@ -1035,7 +1072,7 @@ const SectorBrain = () => {
                   <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-purple-100/50">
                     <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                       <Brain className="h-4 w-4" />
-                      {isAnalyzing ? 'מקבל תובנות...' : `תובנות: ${INSIGHT_TYPES.find(t => t.id === selectedInsightType)?.label || ''}`}
+                      {isAnalyzing ? 'מקבל תובנות...' : `תובנות: ${selectedInsightType || ''}`}
                     </span>
                     {insightsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
@@ -1059,7 +1096,7 @@ const SectorBrain = () => {
 
             {!aiInsights && !isAnalyzing && (
               <p className="text-sm text-muted-foreground text-center py-2">
-                לחץ על אחד מסוגי הניתוח למעלה כדי לקבל תובנות ממוקדות
+                בחר קטגוריה ולחץ על אחת האפשרויות לקבלת תובנות ממוקדות
               </p>
             )}
           </CardContent>
