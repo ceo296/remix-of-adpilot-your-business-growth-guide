@@ -200,52 +200,78 @@ ${mediaTypeLabel === 'מודעות' ? '📰' : mediaTypeLabel === 'מלל וקו
 - כתוב בעברית מקצועית אך נגישה
 - אם אין מספיק דוגמאות, ציין זאת`;
 
-      // Build detailed examples list with more context
+      // Build detailed examples list with more context - include ALL examples with file info
       const goodExamplesDetailed = relevantExamples
         .filter(e => e.example_type === 'good' && !e.is_general_guideline)
-        .slice(0, 8)
+        .slice(0, 15) // Increased limit
         .map((e: any, i: number) => {
           const parts = [];
-          if (e.name) parts.push(`שם: "${e.name}"`);
-          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 200)}"`);
+          if (e.name) parts.push(`**"${e.name}"**`);
+          if (e.description) parts.push(`תיאור: ${e.description}`);
+          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 300)}"`);
           if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
           if (e.stream_type) parts.push(`זרם: ${e.stream_type}`);
           if (e.gender_audience) parts.push(`קהל: ${e.gender_audience}`);
+          if (e.holiday_season) parts.push(`עונה/חג: ${e.holiday_season}`);
+          if (e.file_type) parts.push(`סוג קובץ: ${e.file_type}`);
           return `${i+1}. ${parts.join(' | ')}`;
         });
 
       const badExamplesDetailed = relevantExamples
         .filter(e => e.example_type === 'bad' && !e.is_general_guideline)
-        .slice(0, 8)
+        .slice(0, 15) // Increased limit
         .map((e: any, i: number) => {
           const parts = [];
-          if (e.name) parts.push(`שם: "${e.name}"`);
-          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 200)}"`);
+          if (e.name) parts.push(`**"${e.name}"**`);
+          if (e.description) parts.push(`תיאור: ${e.description}`);
+          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 300)}"`);
           if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
+          if (e.file_type) parts.push(`סוג קובץ: ${e.file_type}`);
+          return `${i+1}. ${parts.join(' | ')}`;
+        });
+
+      // Also include examples without explicit good/bad type (neutral examples from uploaded files)
+      const neutralExamples = relevantExamples
+        .filter(e => !e.example_type && !e.is_general_guideline)
+        .slice(0, 10)
+        .map((e: any, i: number) => {
+          const parts = [];
+          if (e.name) parts.push(`**"${e.name}"**`);
+          if (e.description) parts.push(`תיאור: ${e.description}`);
+          if (e.text_content) parts.push(`תוכן: "${e.text_content.substring(0, 300)}"`);
+          if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
+          if (e.stream_type) parts.push(`זרם: ${e.stream_type}`);
           return `${i+1}. ${parts.join(' | ')}`;
         });
 
       userPrompt = `הנה כל הדוגמאות והמידע על ${mediaTypeLabel}:
 
 📊 סטטיסטיקה:
+- סה"כ דוגמאות מקבצים: ${relevantExamples.length}
 - דוגמאות טובות: ${goodExamplesDetailed.length}
 - דוגמאות רעות: ${badExamplesDetailed.length}
+- דוגמאות נוספות מקבצים: ${neutralExamples.length}
 - כללי אצבע: ${data?.guidelines?.length || 0}
 - קישורים: ${mediaLinks.length}
 
 📝 כללי אצבע ל${mediaTypeLabel}:
 ${data?.guidelines?.slice(0, 10).join('\n') || 'אין כללים ספציפיים'}
 
-✅ דוגמאות טובות (התייחס אליהן בשמן!):
-${goodExamplesDetailed.join('\n') || 'אין דוגמאות טובות'}
+📁 **דוגמאות מקבצים שהועלו - התייחס לשמות ולתיאורים!**
 
-❌ דוגמאות רעות (התייחס אליהן בשמן!):
-${badExamplesDetailed.join('\n') || 'אין דוגמאות רעות'}
+✅ דוגמאות טובות (חובה להתייחס בשמן):
+${goodExamplesDetailed.join('\n\n') || 'אין דוגמאות טובות'}
 
-🔗 תוכן מקישורים:
+❌ דוגמאות רעות (חובה להתייחס בשמן):
+${badExamplesDetailed.join('\n\n') || 'אין דוגמאות רעות'}
+
+📄 דוגמאות נוספות מקבצים:
+${neutralExamples.join('\n\n') || 'אין'}
+
+🔗 **תוכן מקישורים:**
 ${mediaLinks.slice(0, 4).map(lc => `מתוך ${lc.url}:\n${lc.content.substring(0, 500)}`).join('\n\n') || 'אין קישורים'}
 
-נתח את הדוגמאות הספציפיות והחזר תובנות עם התייחסות ישירה לכל דוגמה.`;
+🎯 חשוב: נתח את כל המקורות - גם הקבצים שהועלו וגם הקישורים. התייחס לכל דוגמה בשמה!`;
     }
 
     console.log(`Built prompts for ${insightType}. System prompt length: ${systemPrompt.length}, User prompt length: ${userPrompt.length}`);
