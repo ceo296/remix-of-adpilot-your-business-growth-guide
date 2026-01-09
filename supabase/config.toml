@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.sector-brain-api]
 verify_jwt = false
+
+[functions.analyze-brain-content]
+verify_jwt = false

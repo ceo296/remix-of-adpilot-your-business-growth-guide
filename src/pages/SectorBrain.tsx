@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp, Sparkles, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -142,6 +142,11 @@ const SectorBrain = () => {
   }
   const [generalLinks, setGeneralLinks] = useState<GeneralLink[]>([]);
   const [newLinkInput, setNewLinkInput] = useState('');
+  
+  // AI Insights
+  const [aiInsights, setAiInsights] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [insightsOpen, setInsightsOpen] = useState(false);
 
   // Check admin role
   useEffect(() => {
@@ -239,6 +244,81 @@ const SectorBrain = () => {
 
     setGeneralLinks(prev => prev.filter(l => l.id !== id));
     toast.success('הקישור נמחק');
+  };
+
+  const analyzeContent = async () => {
+    setIsAnalyzing(true);
+    setAiInsights('');
+    setInsightsOpen(true);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-brain-content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          toast.error('הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות.');
+          setIsAnalyzing(false);
+          return;
+        }
+        if (response.status === 402) {
+          toast.error('נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות.');
+          setIsAnalyzing(false);
+          return;
+        }
+        throw new Error('Failed to analyze');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No reader available');
+
+      const decoder = new TextDecoder();
+      let textBuffer = '';
+      let fullContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              fullContent += content;
+              setAiInsights(fullContent);
+            }
+          } catch {
+            textBuffer = line + '\n' + textBuffer;
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast.error('שגיאה בניתוח התוכן');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const loadExamples = async () => {
@@ -884,6 +964,76 @@ const SectorBrain = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* AI Insights Section */}
+        <Card className="mb-8 border-2 border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Sparkles className="h-5 w-5 text-purple-500" />
+                  תובנות AI
+                </CardTitle>
+                <CardDescription>
+                  ניתוח חכם של כל התוכן שהעלת - קישורים, דוגמאות וכללי אצבע
+                </CardDescription>
+              </div>
+              <Button
+                onClick={analyzeContent}
+                disabled={isAnalyzing}
+                className="gap-2 bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    מנתח...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    נתח תוכן
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          {(aiInsights || isAnalyzing) && (
+            <CardContent>
+              <Collapsible open={insightsOpen} onOpenChange={setInsightsOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-purple-100/50 mb-2">
+                    <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <Brain className="h-4 w-4" />
+                      {isAnalyzing ? 'מקבל תובנות...' : 'הצג תובנות'}
+                    </span>
+                    {insightsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="p-4 bg-white dark:bg-background rounded-lg border border-purple-200 dark:border-purple-800">
+                    {isAnalyzing && !aiInsights && (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+                      </div>
+                    )}
+                    {aiInsights && (
+                      <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
+                        {aiInsights}
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </CardContent>
+          )}
+          {!aiInsights && !isAnalyzing && (
+            <CardContent>
+              <p className="text-sm text-muted-foreground text-center py-4">
+                לחץ על "נתח תוכן" כדי לקבל תובנות מ-AI על הדוגמאות והכללים שהעלית
+              </p>
+            </CardContent>
+          )}
+        </Card>
 
         {/* General Guidelines Section */}
         <Card className="mb-8 border-2 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
