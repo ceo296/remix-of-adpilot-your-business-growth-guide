@@ -3,21 +3,46 @@ import { HonorificType } from '@/types/wizard';
 /**
  * Get personalized greeting based on honorific preference
  */
-export const getGreeting = (userName: string, honorific: HonorificType): string => {
+export const getGreeting = (honorific: HonorificType, userName?: string): string => {
+  const name = userName || '';
   switch (honorific) {
     case 'mr':
-      return `שלום אדון ${userName}`;
+      return `שלום אדון ${name}`.trim();
     case 'mrs':
-      return `שלום גברת ${userName}`;
+      return `שלום גברת ${name}`.trim();
     default:
-      return `שלום ${userName}`;
+      return name ? `שלום ${name}` : 'שלום';
+  }
+};
+
+/**
+ * Get "what would you like" question based on honorific
+ */
+export const getWhatWouldYouLike = (honorific: HonorificType): string => {
+  switch (honorific) {
+    case 'mr':
+      return 'מה תרצה ליצור?';
+    case 'mrs':
+      return 'מה תרצי ליצור?';
+    default:
+      return 'מה תרצו ליצור?';
   }
 };
 
 /**
  * Get personalized "you" word based on honorific
  */
-export const getYouWord = (honorific: HonorificType): string => {
+export const getYouWord = (honorific: HonorificType, verb?: 'choose'): string => {
+  if (verb === 'choose') {
+    switch (honorific) {
+      case 'mr':
+        return 'בחר';
+      case 'mrs':
+        return 'בחרי';
+      default:
+        return 'בחרו';
+    }
+  }
   switch (honorific) {
     case 'mr':
       return 'אתה';
@@ -71,5 +96,19 @@ export const getTitlePrefix = (honorific: HonorificType): string => {
       return 'גברת';
     default:
       return '';
+  }
+};
+
+/**
+ * Get welcome greeting with honorific
+ */
+export const getWelcomeGreeting = (honorific: HonorificType): string => {
+  switch (honorific) {
+    case 'mr':
+      return 'ברוך הבא!';
+    case 'mrs':
+      return 'ברוכה הבאה!';
+    default:
+      return 'ברוכים הבאים!';
   }
 };

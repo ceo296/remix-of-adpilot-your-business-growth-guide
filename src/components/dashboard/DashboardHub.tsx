@@ -22,6 +22,8 @@ import { cn } from '@/lib/utils';
 import CampaignHistory from './CampaignHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useClientProfile } from '@/hooks/useClientProfile';
+import { getGreeting, getWhatWouldYouLike, getYouWord } from '@/lib/honorific-utils';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
@@ -50,11 +52,14 @@ interface MediaProof {
 const DashboardHub = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { profile, honorificPreference } = useClientProfile();
   const [currentView, setCurrentView] = useState<HubView>('main');
   const [activeCampaign, setActiveCampaign] = useState<CampaignStatus | null>(null);
   const [mediaProofs, setMediaProofs] = useState<MediaProof[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasAnyCampaigns, setHasAnyCampaigns] = useState(false);
+  
+  const userName = profile?.business_name || 'שם';
 
   useEffect(() => {
     const fetchCampaignData = async () => {
@@ -115,8 +120,8 @@ const DashboardHub = () => {
   const renderNewUserView = () => (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-foreground mb-2">ברוך הבא! 🎉</h2>
-        <p className="text-muted-foreground">מה תרצה ליצור?</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{getGreeting(honorificPreference, userName)} 🎉</h2>
+        <p className="text-muted-foreground">{getWhatWouldYouLike(honorificPreference)}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto px-4">
@@ -172,8 +177,8 @@ const DashboardHub = () => {
   const renderMainView = () => (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-foreground mb-2">מה תרצה לעשות?</h2>
-        <p className="text-muted-foreground">בחר אפשרות להמשך</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{getWhatWouldYouLike(honorificPreference)}</h2>
+        <p className="text-muted-foreground">{getYouWord(honorificPreference, 'choose')} אפשרות להמשך</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto px-4">

@@ -4,17 +4,23 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Rocket, Brain, Sparkles, Megaphone, Palette, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useClientProfile } from '@/hooks/useClientProfile';
+import { getGreeting, getWhatWouldYouLike } from '@/lib/honorific-utils';
 
 interface OnboardingSuccessModalProps {
   userName?: string;
   brandName?: string;
 }
 
-const OnboardingSuccessModal = ({ userName = 'שם', brandName = 'העסק' }: OnboardingSuccessModalProps) => {
+const OnboardingSuccessModal = ({ userName: propUserName, brandName: propBrandName }: OnboardingSuccessModalProps) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [animationPhase, setAnimationPhase] = useState<'check' | 'brain' | 'ready'>('check');
+  const { profile, honorificPreference } = useClientProfile();
+  
+  const userName = propUserName || profile?.business_name || 'שם';
+  const brandName = propBrandName || profile?.business_name || 'העסק';
 
   useEffect(() => {
     // Check if coming from onboarding
@@ -105,13 +111,13 @@ const OnboardingSuccessModal = ({ userName = 'שם', brandName = 'העסק' }: O
           {/* Text content */}
           <div className="space-y-3 mb-8">
             <h2 className="text-2xl font-bold text-foreground">
-              מזל טוב, {userName}! 🎉
+              {getGreeting(honorificPreference, userName)}! 🎉
             </h2>
             <p className="text-lg text-primary font-semibold">
               הפרופיל של {brandName} מוכן!
             </p>
             <p className="text-muted-foreground">
-              קלטנו את כל הנתונים. מה תרצה לעשות עכשיו?
+              קלטנו את כל הנתונים. {getWhatWouldYouLike(honorificPreference)}
             </p>
           </div>
 
