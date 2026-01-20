@@ -69,7 +69,7 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           <FolderOpen className="w-12 h-12 text-primary" />
         </div>
         <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-          מה עשיתם עד היום? אל תתקמצנו...
+          מה עשיתם עד היום?
         </h2>
         <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
           תעלו לפה חומרי פרסום שעשיתם לאחרונה. זה יעזור לנו לשמור על הקו {getYourWord(data.honorific)}.

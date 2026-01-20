@@ -205,15 +205,13 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                       }`}
                     >
                       {isPrimary ? '⭐ עיקרי' : 'הפוך לעיקרי'}
-                    </button>
+                  </button>
                   )}
                   <div className="flex items-start gap-3">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                      isSelected 
-                        ? `bg-gradient-to-br ${gradients[factor.id]} shadow-md ${shadows[factor.id]}` 
-                        : 'bg-muted'
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all bg-gradient-to-br ${gradients[factor.id]} shadow-lg ${shadows[factor.id]} ${
+                      isSelected ? 'scale-110' : 'opacity-70'
                     }`}>
-                      <factor.icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-muted-foreground'}`} />
+                      <factor.icon className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 mt-1">
                       <p className="font-semibold text-foreground">{factor.label}</p>
@@ -236,14 +234,10 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                    isOtherSelected 
-                      ? otherNeedsText 
-                        ? 'bg-gradient-to-br from-red-500 to-rose-500 shadow-md shadow-red-500/30' 
-                        : 'bg-gradient-to-br from-slate-600 to-gray-700 shadow-md shadow-slate-500/30'
-                      : 'bg-muted'
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all bg-gradient-to-br from-slate-600 to-gray-700 shadow-lg shadow-slate-500/30 ${
+                    isOtherSelected ? 'scale-110' : 'opacity-70'
                   }`}>
-                    <Edit3 className={`w-6 h-6 ${isOtherSelected ? 'text-white' : 'text-muted-foreground'}`} />
+                    <Edit3 className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1 mt-1">
                     <p className="font-semibold text-foreground">אחר</p>
