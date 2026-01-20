@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check, Volume2, FileText, Image, Calendar } from 'lucide-react';
+import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check, Image, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -89,160 +89,13 @@ const truncateText = (text: string | undefined | null, maxLength: number = 120):
   return text.substring(0, maxLength).trim() + '...';
 };
 
-// Media-specific preview component - redesigned for clarity
-const ConceptPreview = ({ concept, mediaType }: { concept: CreativeConcept; mediaType: MediaType | null }) => {
-  if (mediaType === 'radio') {
-    // Radio script preview - cleaner layout
-    return (
-      <div className="mt-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Volume2 className="h-4 w-4 text-primary" />
-          </div>
-          <span className="text-sm font-medium text-muted-foreground">ספוט רדיו • 30 שניות</span>
-        </div>
-        
-        {/* Audio waveform visual */}
-        <div className="flex items-center gap-1 h-8 px-2">
-          {[...Array(50)].map((_, i) => (
-            <div 
-              key={i} 
-              className="w-1 bg-primary/30 rounded-full transition-all"
-              style={{ height: `${20 + Math.random() * 80}%` }}
-            />
-          ))}
-        </div>
-        
-        {/* Script preview */}
-        <div className="bg-muted/30 rounded-xl p-4">
-          <p className="text-sm text-muted-foreground mb-2 font-medium">תסריט:</p>
-          <p className="text-foreground leading-relaxed" dir="rtl">
-            {truncateText(concept.copy, 150)}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (mediaType === 'ad' || mediaType === 'all') {
-    // Print ad preview - simplified
-    return (
-      <div className="mt-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Newspaper className="h-4 w-4 text-primary" />
-          </div>
-          <span className="text-sm font-medium text-muted-foreground">מודעת פרסום</span>
-        </div>
-        
-        {/* Simplified ad mockup */}
-        <div className="bg-muted/20 rounded-xl p-5 border border-border/50">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-lg bg-muted/50 flex items-center justify-center flex-shrink-0">
-              <Image className="h-6 w-6 text-muted-foreground/50" />
-            </div>
-            <div className="flex-1 space-y-2">
-              <p className="font-bold text-lg text-foreground" dir="rtl">{concept.headline}</p>
-              <p className="text-sm text-muted-foreground leading-relaxed" dir="rtl">
-                {truncateText(concept.copy, 100)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (mediaType === 'banner') {
-    // Digital banner preview
-    return (
-      <div className="mt-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Monitor className="h-4 w-4 text-primary" />
-          </div>
-          <span className="text-sm font-medium text-muted-foreground">באנר דיגיטלי</span>
-        </div>
-        
-        {/* Banner mockup */}
-        <div className="bg-gradient-to-l from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1 text-right" dir="rtl">
-              <p className="font-bold text-foreground">{concept.headline}</p>
-              <p className="text-xs text-muted-foreground mt-1">{truncateText(concept.copy, 60)}</p>
-            </div>
-            <div className="px-3 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-medium">
-              קרא עוד →
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (mediaType === 'billboard') {
-    // Billboard preview - dramatic
-    return (
-      <div className="mt-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <RectangleHorizontal className="h-4 w-4 text-primary" />
-          </div>
-          <span className="text-sm font-medium text-muted-foreground">שלט חוצות</span>
-        </div>
-        
-        {/* Billboard mockup */}
-        <div className="aspect-[16/6] bg-gradient-to-br from-muted/30 to-muted/50 rounded-xl border-2 border-muted flex items-center justify-center p-6">
-          <p className="font-black text-xl md:text-2xl text-foreground text-center" dir="rtl">
-            {truncateText(concept.copy, 50)}
-          </p>
-        </div>
-        <p className="text-xs text-muted-foreground text-center">* נקרא ב-3 שניות מרכב נוסע</p>
-      </div>
-    );
-  }
-
-  if (mediaType === 'social') {
-    // Social media post preview
-    return (
-      <div className="mt-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Share2 className="h-4 w-4 text-primary" />
-          </div>
-          <span className="text-sm font-medium text-muted-foreground">פוסט סושיאל</span>
-        </div>
-        
-        {/* Social post mockup - simplified */}
-        <div className="bg-muted/20 rounded-xl p-4 border border-border/50 max-w-xs">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-primary/20" />
-            <div className="text-xs">
-              <p className="font-bold">שם העסק</p>
-              <p className="text-muted-foreground">ממומן</p>
-            </div>
-          </div>
-          <p className="text-sm font-medium" dir="rtl">{concept.headline}</p>
-          <p className="text-sm text-muted-foreground mt-1" dir="rtl">{truncateText(concept.copy, 80)}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Default - clean text preview
-  return (
-    <div className="mt-5 space-y-3">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <FileText className="h-4 w-4 text-primary" />
-        </div>
-        <span className="text-sm font-medium text-muted-foreground">קופי מוצע</span>
-      </div>
-      <div className="bg-muted/20 rounded-xl p-4">
-        <p className="text-foreground leading-relaxed" dir="rtl">"{truncateText(concept.copy, 120)}"</p>
-      </div>
-    </div>
-  );
+// Simplified visual suggestion - just a few words
+const getVisualSuggestion = (concept: CreativeConcept): string => {
+  // Extract a short visual hint from the idea
+  const idea = concept.idea || '';
+  // Take first sentence or first 30 chars
+  const firstSentence = idea.split('.')[0] || idea.split(',')[0] || idea;
+  return firstSentence.length > 40 ? firstSentence.substring(0, 40) + '...' : firstSentence;
 };
 
 export const StudioAutopilot = ({
@@ -475,75 +328,91 @@ export const StudioAutopilot = ({
                 "hover:shadow-lg"
               )}
             >
-              {/* Header bar */}
-              <div className={cn(
-                "px-5 py-3 flex items-center justify-between border-b",
-                concept.type === 'emotional' && "bg-pink-500/10 border-pink-500/20",
-                concept.type === 'hard-sale' && "bg-amber-500/10 border-amber-500/20",
-                concept.type === 'pain-point' && "bg-emerald-500/10 border-emerald-500/20",
-              )}>
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center",
-                    concept.type === 'emotional' && "bg-pink-500/20 text-pink-500",
-                    concept.type === 'hard-sale' && "bg-amber-500/20 text-amber-500",
-                    concept.type === 'pain-point' && "bg-emerald-500/20 text-emerald-500",
-                  )}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <Badge variant="secondary" className="text-xs mb-1">{typeLabel}</Badge>
-                    <h3 className="text-lg font-bold text-foreground">{concept.headline}</h3>
-                  </div>
-                </div>
-                {isConceptSelected && (
-                  <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                    <Check className="w-4 h-4" />
-                  </div>
-                )}
-              </div>
-
-              {/* Content area */}
+              {/* Simplified content - headline + subheadline + visual hint */}
               <div className="p-5">
-                {/* Idea/direction - concise */}
-                <div className="mb-4">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">כיוון קריאייטיבי</p>
-                  <p className="text-sm text-foreground">{concept.idea}</p>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    {/* Badge + Main Headline */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary" className="text-xs">{typeLabel}</Badge>
+                      <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center",
+                        concept.type === 'emotional' && "bg-pink-500/20 text-pink-500",
+                        concept.type === 'hard-sale' && "bg-amber-500/20 text-amber-500",
+                        concept.type === 'pain-point' && "bg-emerald-500/20 text-emerald-500",
+                      )}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                    </div>
+                    
+                    {/* Main Headline */}
+                    <h3 className="text-xl font-bold text-foreground mb-2" dir="rtl">
+                      {concept.headline}
+                    </h3>
+                    
+                    {/* Subheadline - short copy */}
+                    <p className="text-sm text-muted-foreground mb-3" dir="rtl">
+                      {truncateText(concept.copy, 60)}
+                    </p>
+                    
+                    {/* Visual Suggestion - just a few words */}
+                    <div className="flex items-center gap-2 text-xs">
+                      <Image className="h-4 w-4 text-primary/60" />
+                      <span className="text-primary/80 font-medium">הצעה לוויזואל:</span>
+                      <span className="text-muted-foreground">{getVisualSuggestion(concept)}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Selection indicator */}
+                  {isConceptSelected && (
+                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0">
+                      <Check className="w-5 h-5" />
+                    </div>
+                  )}
                 </div>
-                
-                {/* Media-specific preview */}
-                <ConceptPreview concept={concept} mediaType={primaryMediaType} />
               </div>
             </Card>
           );
         })}
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-6 border-t border-border">
+      {/* Actions - simplified with new CTA */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border">
         <Button variant="outline" onClick={onGenerateConcepts} disabled={isGenerating}>
           <RefreshCw className={cn("h-4 w-4 ml-2", isGenerating && "animate-spin")} />
           רעיונות חדשים
         </Button>
         
-        <Button
-          variant="gradient"
-          size="lg"
-          onClick={onExecuteConcept}
-          disabled={!selectedConcept || isGenerating}
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin ml-2" />
-              מייצר...
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4 ml-2" />
-              אהבתי, רוץ עם זה!
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* New button for people who need to see it designed */}
+          <Button
+            variant="secondary"
+            onClick={onExecuteConcept}
+            disabled={!selectedConcept || isGenerating}
+          >
+            <Image className="h-4 w-4 ml-2" />
+            תראה לי את זה מעוצב
+          </Button>
+          
+          <Button
+            variant="gradient"
+            size="lg"
+            onClick={onExecuteConcept}
+            disabled={!selectedConcept || isGenerating}
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                מייצר...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 ml-2" />
+                אהבתי, רוץ עם זה!
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
