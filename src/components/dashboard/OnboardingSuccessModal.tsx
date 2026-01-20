@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Rocket, Brain, Sparkles } from 'lucide-react';
+import { CheckCircle2, Rocket, Brain, Sparkles, Megaphone, Palette, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface OnboardingSuccessModalProps {
@@ -31,9 +31,14 @@ const OnboardingSuccessModal = ({ userName = 'שם', brandName = 'העסק' }: O
     }
   }, [searchParams, setSearchParams]);
 
-  const handleGoToStudio = () => {
+  const handleCreateCampaign = () => {
     setIsOpen(false);
     navigate('/studio');
+  };
+
+  const handleCreateInternalMaterials = () => {
+    setIsOpen(false);
+    navigate('/studio?type=internal');
   };
 
   const handleStayOnDashboard = () => {
@@ -42,7 +47,7 @@ const OnboardingSuccessModal = ({ userName = 'שם', brandName = 'העסק' }: O
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md border-0 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden">
+      <DialogContent className="sm:max-w-lg border-0 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
@@ -100,30 +105,65 @@ const OnboardingSuccessModal = ({ userName = 'שם', brandName = 'העסק' }: O
           {/* Text content */}
           <div className="space-y-3 mb-8">
             <h2 className="text-2xl font-bold text-foreground">
-              תודה, {userName}
+              מזל טוב, {userName}! 🎉
             </h2>
             <p className="text-lg text-primary font-semibold">
-              בניית הפרופיל של {brandName} הושלמה!
+              הפרופיל של {brandName} מוכן!
             </p>
             <p className="text-muted-foreground">
-              קלטנו את כל הנתונים והמערכת מוכנה.
-              <br />
-              עכשיו אפשר לעבור לבניית הקמפיין.
+              קלטנו את כל הנתונים. מה תרצה לעשות עכשיו?
             </p>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col gap-3 w-full">
-            <Button 
-              onClick={handleGoToStudio}
-              variant="gradient"
-              size="lg"
-              className="w-full text-lg font-bold gap-2 shadow-glow"
+          {/* Choice Cards */}
+          <div className="grid grid-cols-2 gap-4 w-full mb-6">
+            {/* Advertising Campaign */}
+            <button
+              onClick={handleCreateCampaign}
+              className="p-5 rounded-2xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary transition-all flex flex-col items-center gap-3 group"
             >
-              <Sparkles className="w-5 h-5" />
-              יאללה ממשיכים לקמפיין
-            </Button>
+              <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Megaphone className="w-7 h-7 text-primary" />
+              </div>
+              <span className="font-bold text-foreground">קמפיין פרסומי</span>
+              <span className="text-xs text-muted-foreground">מודעות לעיתונים, באנרים, דיגיטל</span>
+            </button>
+
+            {/* Internal Materials */}
+            <button
+              onClick={handleCreateInternalMaterials}
+              className="p-5 rounded-2xl border-2 border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-all flex flex-col items-center gap-3 group"
+            >
+              <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Palette className="w-7 h-7 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+              <span className="font-bold text-foreground">חומרים פנימיים</span>
+              <span className="text-xs text-muted-foreground">כרטיסי ביקור, פליירים, מצגות</span>
+            </button>
           </div>
+
+          {/* Personal Area Info */}
+          <div className="w-full p-4 rounded-xl bg-muted/50 border border-border mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <User className="w-5 h-5 text-primary" />
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-foreground">האזור האישי שלך</p>
+                <p className="text-xs text-muted-foreground">כאן תוכל לעקוב אחרי סטטוס והיסטוריית הקמפיינים שלך</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Stay on Dashboard */}
+          <Button 
+            onClick={handleStayOnDashboard}
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+          >
+            רק רוצה להסתכל סביב
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
