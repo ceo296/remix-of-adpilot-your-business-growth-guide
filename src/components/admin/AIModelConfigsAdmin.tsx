@@ -162,14 +162,14 @@ const AIModelConfigsAdmin = () => {
 
   const ArrayFieldEditor = ({ field, label, items }: { field: keyof AIModelConfig; label: string; items: string[] | null }) => (
     <div className="space-y-2">
-      <Label className="text-sm font-medium">{label}</Label>
+      <Label className="text-sm font-medium text-foreground">{label}</Label>
       <div className="space-y-2">
         {(items || []).map((item, index) => (
           <div key={index} className="flex gap-2">
             <Input
               value={item}
               onChange={(e) => updateArrayField(field, index, e.target.value)}
-              className="flex-1 bg-[#1a1a1d] border-[#333]"
+              className="flex-1 bg-muted/50 border-border text-foreground"
             />
             <Button
               size="icon"
@@ -217,10 +217,10 @@ const AIModelConfigsAdmin = () => {
         {configs.map(config => {
           const Icon = MEDIA_ICONS[config.media_type] || Brain;
           return (
-            <Card key={config.id} className="bg-[#111113] border-[#222]">
+            <Card key={config.id} className="bg-card border-border">
               <CardContent className="p-3 text-center">
                 <Icon className={`h-6 w-6 mx-auto mb-1 ${config.is_active ? 'text-primary' : 'text-muted-foreground'}`} />
-                <div className="text-xs font-medium truncate">{MEDIA_LABELS[config.media_type] || config.media_type}</div>
+                <div className="text-xs font-medium truncate text-foreground">{MEDIA_LABELS[config.media_type] || config.media_type}</div>
                 <Badge variant={config.is_active ? 'default' : 'secondary'} className="mt-1 text-xs">
                   {config.is_active ? 'פעיל' : 'מושבת'}
                 </Badge>
@@ -239,24 +239,24 @@ const AIModelConfigsAdmin = () => {
 
           return (
             <Collapsible key={config.id} open={isExpanded} onOpenChange={() => toggleSection(config.id)}>
-              <Card className="bg-[#111113] border-[#222]">
+              <Card className="bg-card border-border">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Icon className="h-5 w-5 text-primary" />
                       <div>
-                        <CardTitle className="text-lg">
+                        <CardTitle className="text-lg text-foreground">
                           {isEditing ? (
                             <Input
                               value={editForm.display_name || ''}
                               onChange={(e) => setEditForm(prev => ({ ...prev, display_name: e.target.value }))}
-                              className="bg-[#1a1a1d] border-[#333] h-8"
+                              className="bg-muted/50 border-border h-8 text-foreground"
                             />
                           ) : (
                             config.display_name
                           )}
                         </CardTitle>
-                        <CardDescription className="text-xs">
+                        <CardDescription className="text-xs text-muted-foreground">
                           {config.model_name} | {config.media_type}
                         </CardDescription>
                       </div>
@@ -281,54 +281,54 @@ const AIModelConfigsAdmin = () => {
                       <div className="space-y-6">
                         {/* Description */}
                         <div>
-                          <Label>תיאור</Label>
+                          <Label className="text-foreground">תיאור</Label>
                           <Input
                             value={editForm.description || ''}
                             onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                            className="bg-[#1a1a1d] border-[#333]"
+                            className="bg-muted/50 border-border text-foreground"
                           />
                         </div>
 
                         {/* System Prompt */}
                         <div>
-                          <Label>System Prompt</Label>
+                          <Label className="text-foreground">System Prompt</Label>
                           <Textarea
                             value={editForm.system_prompt || ''}
                             onChange={(e) => setEditForm(prev => ({ ...prev, system_prompt: e.target.value }))}
-                            className="bg-[#1a1a1d] border-[#333] min-h-[150px]"
+                            className="bg-muted/50 border-border min-h-[150px] text-foreground"
                             dir="rtl"
                           />
                         </div>
 
                         {/* Logo Instructions */}
                         <div>
-                          <Label>הנחיות לוגו</Label>
+                          <Label className="text-foreground">הנחיות לוגו</Label>
                           <Textarea
                             value={editForm.logo_instructions || ''}
                             onChange={(e) => setEditForm(prev => ({ ...prev, logo_instructions: e.target.value }))}
-                            className="bg-[#1a1a1d] border-[#333]"
+                            className="bg-muted/50 border-border text-foreground"
                             dir="rtl"
                           />
                         </div>
 
                         {/* Color Rules */}
                         <div>
-                          <Label>כללי שימוש בצבעים</Label>
+                          <Label className="text-foreground">כללי שימוש בצבעים</Label>
                           <Textarea
                             value={editForm.color_usage_rules || ''}
                             onChange={(e) => setEditForm(prev => ({ ...prev, color_usage_rules: e.target.value }))}
-                            className="bg-[#1a1a1d] border-[#333]"
+                            className="bg-muted/50 border-border text-foreground"
                             dir="rtl"
                           />
                         </div>
 
                         {/* Typography */}
                         <div>
-                          <Label>כללי טיפוגרפיה</Label>
+                          <Label className="text-foreground">כללי טיפוגרפיה</Label>
                           <Textarea
                             value={editForm.typography_rules || ''}
                             onChange={(e) => setEditForm(prev => ({ ...prev, typography_rules: e.target.value }))}
-                            className="bg-[#1a1a1d] border-[#333]"
+                            className="bg-muted/50 border-border text-foreground"
                             dir="rtl"
                           />
                         </div>
@@ -358,7 +358,7 @@ const AIModelConfigsAdmin = () => {
                         <p className="text-sm text-muted-foreground">{config.description}</p>
 
                         <Tabs defaultValue="prompt" className="w-full">
-                          <TabsList className="bg-[#1a1a1d]">
+                          <TabsList className="bg-muted">
                             <TabsTrigger value="prompt">System Prompt</TabsTrigger>
                             <TabsTrigger value="logo">לוגו</TabsTrigger>
                             <TabsTrigger value="rules">כללים</TabsTrigger>
@@ -366,29 +366,29 @@ const AIModelConfigsAdmin = () => {
                           </TabsList>
 
                           <TabsContent value="prompt" className="mt-3">
-                            <div className="bg-[#1a1a1d] rounded-lg p-4 text-sm max-h-[200px] overflow-y-auto" dir="rtl">
+                            <div className="bg-muted/50 rounded-lg p-4 text-sm max-h-[200px] overflow-y-auto text-foreground" dir="rtl">
                               {config.system_prompt}
                             </div>
                           </TabsContent>
 
                           <TabsContent value="logo" className="mt-3">
-                            <div className="bg-[#1a1a1d] rounded-lg p-4 text-sm" dir="rtl">
+                            <div className="bg-muted/50 rounded-lg p-4 text-sm text-foreground" dir="rtl">
                               {config.logo_instructions || 'לא הוגדר'}
                             </div>
                           </TabsContent>
 
                           <TabsContent value="rules" className="mt-3">
                             <div className="grid md:grid-cols-2 gap-4">
-                              <div className="bg-[#1a1a1d] rounded-lg p-4">
-                                <h4 className="font-medium mb-2">כללי עיצוב</h4>
+                              <div className="bg-muted/50 rounded-lg p-4">
+                                <h4 className="font-medium mb-2 text-foreground">כללי עיצוב</h4>
                                 <ul className="text-sm space-y-1 text-muted-foreground">
                                   {(config.design_rules || []).map((rule, i) => (
                                     <li key={i}>• {rule}</li>
                                   ))}
                                 </ul>
                               </div>
-                              <div className="bg-[#1a1a1d] rounded-lg p-4">
-                                <h4 className="font-medium mb-2">כללי טקסט</h4>
+                              <div className="bg-muted/50 rounded-lg p-4">
+                                <h4 className="font-medium mb-2 text-foreground">כללי טקסט</h4>
                                 <ul className="text-sm space-y-1 text-muted-foreground">
                                   {(config.text_rules || []).map((rule, i) => (
                                     <li key={i}>• {rule}</li>
