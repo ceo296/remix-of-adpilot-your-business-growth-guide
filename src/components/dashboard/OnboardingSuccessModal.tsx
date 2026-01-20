@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Rocket, Brain, Sparkles, Megaphone, Palette, User } from 'lucide-react';
+import { CheckCircle2, Rocket, Brain, Sparkles, Megaphone, Palette, User, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import { getGreeting, getWhatWouldYouLike } from '@/lib/honorific-utils';
@@ -49,6 +49,11 @@ const OnboardingSuccessModal = ({ userName: propUserName, brandName: propBrandNa
 
   const handleStayOnDashboard = () => {
     setIsOpen(false);
+  };
+
+  const handleGoBack = () => {
+    setIsOpen(false);
+    navigate('/onboarding');
   };
 
   return (
@@ -161,15 +166,27 @@ const OnboardingSuccessModal = ({ userName: propUserName, brandName: propBrandNa
             </div>
           </div>
 
-          {/* Stay on Dashboard */}
-          <Button 
-            onClick={handleStayOnDashboard}
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground"
-          >
-            רק רוצה להסתכל סביב
-          </Button>
+          {/* Bottom Actions */}
+          <div className="flex items-center justify-between w-full gap-4">
+            <Button 
+              onClick={handleGoBack}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <ArrowRight className="w-4 h-4" />
+              חזרה לעריכה
+            </Button>
+            
+            <Button 
+              onClick={handleStayOnDashboard}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+            >
+              רק רוצה להסתכל סביב
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
