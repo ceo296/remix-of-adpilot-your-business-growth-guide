@@ -223,20 +223,22 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                 )}
 
                 {files.length === 0 && (
-                  <div className="flex items-center gap-3 text-amber-700 bg-amber-100 p-4 rounded-xl border border-amber-200">
-                    <AlertCircle className="w-6 h-6 flex-shrink-0" />
-                    <span className="font-medium">חובה להעלות לוגו או ספר מותג כדי ליצור קמפיינים מותאמים</span>
+                  <div className="flex items-center gap-3 text-blue-700 bg-blue-50 p-4 rounded-xl border border-blue-200">
+                    <Upload className="w-6 h-6 flex-shrink-0" />
+                    <span className="font-medium">העלאת לוגו תעזור לנו להתאים את העיצובים בדיוק למותג שלך ✨</span>
                   </div>
                 )}
 
-                {/* No branding link - more prominent */}
+                {/* No branding button - more prominent */}
                 <button
                   type="button"
                   onClick={() => setShowBrandingStudio(true)}
-                  className="text-base text-primary hover:underline underline-offset-4 flex items-center gap-2 mx-auto font-medium py-2"
+                  className="w-full p-4 rounded-xl border-2 border-dashed border-primary/40 hover:border-primary bg-primary/5 hover:bg-primary/10 transition-all flex items-center justify-center gap-3 group"
                 >
-                  <Sparkles className="w-5 h-5" />
-                  אין לי מיתוג - תעזרו לי
+                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="text-lg font-semibold text-primary">אין לי מיתוג - תעזרו לי</span>
                 </button>
               </div>
             )}
