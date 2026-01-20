@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X } from 'lucide-react';
 import { AIChatWidget } from '@/components/chat/AIChatWidget';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -154,11 +154,17 @@ const SuccessScreen = ({ onReset }: { onReset: () => void }) => {
 };
 
 const CreativeStudio = () => {
+  const [searchParams] = useSearchParams();
+  
   // Client profile state
   const [clientProfile, setClientProfile] = useState<ClientProfile | null>(null);
   
-  // Mode state
-  const [mode, setMode] = useState<StudioMode>(null);
+  // Mode state - check URL param for direct access
+  const urlMode = searchParams.get('mode');
+  const [mode, setMode] = useState<StudioMode>(urlMode === 'upload' ? 'manual' : null);
+  
+  // Track if we should skip to asset step (for upload mode)
+  const [initializedFromUrl, setInitializedFromUrl] = useState(false);
   
   // Feedback state
   const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('none');
@@ -231,8 +237,20 @@ const CreativeStudio = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep, showResults, showMediaSelection, showQuote, showSuccess]);
 
+  // Handle URL mode parameter - skip to asset step for "upload" mode
+  useEffect(() => {
+    if (urlMode === 'upload' && !initializedFromUrl) {
+      setInitializedFromUrl(true);
+      // Skip directly to asset step (step 2)
+      setCurrentStep(2);
+    }
+  }, [urlMode, initializedFromUrl]);
+
   // Load campaign brief from session storage (from FastTrackWizard)
   useEffect(() => {
+    // Don't load from session if we're in upload mode
+    if (urlMode === 'upload') return;
+    
     const savedBrief = sessionStorage.getItem('campaignBrief');
     if (savedBrief) {
       try {
@@ -253,7 +271,7 @@ const CreativeStudio = () => {
         console.error('Failed to parse campaign brief from session storage:', e);
       }
     }
-  }, []);
+  }, [urlMode]);
 
   // Fetch client profile on mount
   useEffect(() => {
