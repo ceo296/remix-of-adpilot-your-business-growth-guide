@@ -88,6 +88,7 @@ export interface ContactAssets {
   contact_whatsapp: string;
   contact_email: string;
   contact_address: string;
+  website_url: string;
   contact_youtube: string;
   social_facebook: string;
   social_instagram: string;
@@ -139,6 +140,7 @@ export const initialContactAssets: ContactAssets = {
   contact_whatsapp: '',
   contact_email: '',
   contact_address: '',
+  website_url: '',
   contact_youtube: '',
   social_facebook: '',
   social_instagram: '',
