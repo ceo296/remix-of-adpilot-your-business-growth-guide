@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText, AlertTriangle, Lightbulb, Bot, RefreshCw } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText, AlertTriangle, Lightbulb, Bot, RefreshCw, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getYourWord } from '@/lib/honorific-utils';
@@ -30,6 +32,8 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [isValidating, setIsValidating] = useState(false);
   const [hasValidated, setHasValidated] = useState(false);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editFieldValue, setEditFieldValue] = useState('');
   
   // Editable local state
   const [editedFonts, setEditedFonts] = useState({
@@ -157,6 +161,96 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
     toast.success('פרטי העסק עודכנו');
   };
 
+  // Field label mapping for display
+  const fieldLabels: Record<string, string> = {
+    'תחום פעילות': 'תחום פעילות',
+    'מתחרים': 'מתחרים',
+    'גורם מבדל עיקרי': 'גורם מבדל עיקרי',
+    'מקבל ההחלטות': 'מקבל ההחלטות',
+    'שם העסק': 'שם העסק',
+    'מיקום מחיר/סגנון': 'מיקום מחיר/סגנון',
+  };
+
+  const getFieldValue = (field: string): string => {
+    switch (field) {
+      case 'תחום פעילות':
+        return data.websiteInsights?.industry || '';
+      case 'מתחרים':
+        return data.strategicMRI.competitors.join(', ');
+      case 'גורם מבדל עיקרי':
+        if (data.strategicMRI.primaryXFactor === 'veteran') return 'הוותק והניסיון';
+        if (data.strategicMRI.primaryXFactor === 'product') return 'עליונות מוצרית';
+        if (data.strategicMRI.primaryXFactor === 'price') return 'המחיר';
+        if (data.strategicMRI.primaryXFactor === 'service') return 'השירות והיחס';
+        if (data.strategicMRI.primaryXFactor === 'brand') return 'הבטחה פרסומית';
+        if (data.strategicMRI.primaryXFactor === 'other') return data.strategicMRI.otherXFactor || '';
+        return '';
+      case 'מקבל ההחלטות':
+        return data.strategicMRI.decisionMaker || '';
+      case 'שם העסק':
+        return data.brand.name || '';
+      default:
+        return '';
+    }
+  };
+
+  const handleOpenFieldEdit = (field: string) => {
+    setEditingField(field);
+    setEditFieldValue(getFieldValue(field));
+  };
+
+  const handleSaveFieldEdit = () => {
+    if (!editingField) return;
+    
+    switch (editingField) {
+      case 'תחום פעילות':
+        updateData({
+          websiteInsights: {
+            ...data.websiteInsights,
+            industry: editFieldValue,
+          }
+        });
+        break;
+      case 'מתחרים':
+        updateData({
+          strategicMRI: {
+            ...data.strategicMRI,
+            competitors: editFieldValue.split(',').map(c => c.trim()).filter(Boolean),
+          }
+        });
+        break;
+      case 'גורם מבדל עיקרי':
+        // Store as otherXFactor (free text override) while keeping primaryXFactor unchanged
+        updateData({
+          strategicMRI: {
+            ...data.strategicMRI,
+            otherXFactor: editFieldValue,
+          }
+        });
+        break;
+      case 'מקבל ההחלטות':
+        updateData({
+          strategicMRI: {
+            ...data.strategicMRI,
+            decisionMaker: editFieldValue,
+          }
+        });
+        break;
+      case 'שם העסק':
+        updateData({
+          brand: {
+            ...data.brand,
+            name: editFieldValue,
+          }
+        });
+        break;
+    }
+    
+    setEditingField(null);
+    setEditFieldValue('');
+    toast.success('השדה עודכן בהצלחה');
+  };
+
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
@@ -260,22 +354,36 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <h4 className="font-semibold text-foreground flex items-center gap-2">
                       <Bot className="w-4 h-4 text-primary" />
-                      {isValidating ? 'בודק את המידע...' : 'תובנות מערכת'}
+                      {isValidating ? 'בודק את המידע...' : 'דברים שקפצו לנו'}
                     </h4>
-                    {!isValidating && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-7 text-xs gap-1"
-                        onClick={runValidation}
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                        בדוק שוב
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {!isValidating && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 text-xs gap-1"
+                            onClick={runValidation}
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            בדוק שוב
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-xs gap-1 border-amber-400 text-amber-700 hover:bg-amber-50"
+                            onClick={handleConfirm}
+                            disabled={isSubmitting}
+                          >
+                            לא קריטי, ממשיכים
+                            <ArrowLeft className="w-3 h-3" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                   
                   {isValidating ? (
@@ -287,11 +395,12 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                       {validationIssues.map((issue, index) => (
                         <div 
                           key={index}
-                          className={`p-3 rounded-lg text-sm ${
+                          className={`p-3 rounded-lg text-sm cursor-pointer transition-all hover:shadow-md ${
                             issue.type === 'warning' 
-                              ? 'bg-amber-100/50 border border-amber-200' 
-                              : 'bg-blue-100/50 border border-blue-200'
+                              ? 'bg-amber-100/50 border border-amber-200 hover:bg-amber-100' 
+                              : 'bg-blue-100/50 border border-blue-200 hover:bg-blue-100'
                           }`}
+                          onClick={() => issue.field && handleOpenFieldEdit(issue.field)}
                         >
                           <div className="flex items-start gap-2">
                             {issue.type === 'warning' ? (
@@ -299,12 +408,20 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                             ) : (
                               <Lightbulb className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                             )}
-                            <div>
+                            <div className="flex-1">
                               <span className={issue.type === 'warning' ? 'text-amber-800' : 'text-blue-800'}>
                                 {issue.message}
                               </span>
                               {issue.field && (
-                                <Badge variant="secondary" className="mr-2 text-xs">
+                                <Badge 
+                                  variant="secondary" 
+                                  className="mr-2 text-xs cursor-pointer hover:bg-secondary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenFieldEdit(issue.field!);
+                                  }}
+                                >
+                                  <Pencil className="w-2 h-2 ml-1" />
                                   {issue.field}
                                 </Badge>
                               )}
@@ -716,6 +833,49 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
           )}
         </Button>
       </div>
+
+      {/* Field Edit Dialog */}
+      <Dialog open={!!editingField} onOpenChange={(open) => !open && setEditingField(null)}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-right">עריכת {editingField}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              ערוך את השדה ולחץ שמור. השינוי יעודכן מיד בדרכון המותג.
+            </p>
+            {editingField === 'מתחרים' ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">מתחרים (מופרדים בפסיקים)</label>
+                <Textarea
+                  value={editFieldValue}
+                  onChange={(e) => setEditFieldValue(e.target.value)}
+                  placeholder="למשל: חברה א, חברה ב, חברה ג"
+                  className="min-h-[100px]"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">{editingField}</label>
+                <Input
+                  value={editFieldValue}
+                  onChange={(e) => setEditFieldValue(e.target.value)}
+                  className="text-base"
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setEditingField(null)}>
+              ביטול
+            </Button>
+            <Button onClick={handleSaveFieldEdit}>
+              <Check className="w-4 h-4 ml-2" />
+              שמור
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
