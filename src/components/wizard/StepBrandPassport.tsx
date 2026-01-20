@@ -1,13 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { WizardData } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText, AlertTriangle, Lightbulb, Bot, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getYourWord } from '@/lib/honorific-utils';
+
+interface ValidationIssue {
+  type: 'warning' | 'suggestion';
+  category: 'inconsistency' | 'sparse_data' | 'improvement';
+  message: string;
+  field?: string;
+}
 
 interface StepBrandPassportProps {
   data: WizardData;
@@ -20,6 +27,9 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExtractingColors, setIsExtractingColors] = useState(false);
   const [editMode, setEditMode] = useState<'fonts' | 'business' | null>(null);
+  const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
+  const [isValidating, setIsValidating] = useState(false);
+  const [hasValidated, setHasValidated] = useState(false);
   
   // Editable local state
   const [editedFonts, setEditedFonts] = useState({
@@ -32,6 +42,49 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
     audience: data.websiteInsights?.audience || '',
     coreOffering: data.websiteInsights?.coreOffering || '',
   });
+
+  // Run validation on mount
+  useEffect(() => {
+    if (!hasValidated) {
+      runValidation();
+    }
+  }, []);
+
+  const runValidation = async () => {
+    setIsValidating(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke('validate-brand-passport', {
+        body: {
+          businessName: data.brand.name,
+          industry: data.websiteInsights?.industry || '',
+          seniority: data.websiteInsights?.seniority || '',
+          audience: data.websiteInsights?.audience || '',
+          coreOffering: data.websiteInsights?.coreOffering || '',
+          xFactors: data.strategicMRI.xFactors,
+          primaryXFactor: data.strategicMRI.primaryXFactor,
+          otherXFactor: data.strategicMRI.otherXFactor || '',
+          advantageType: data.strategicMRI.advantageType,
+          pricePosition: data.strategicMRI.myPosition.x,
+          stylePosition: data.strategicMRI.myPosition.y,
+          competitors: data.strategicMRI.competitors,
+          noCompetitors: data.strategicMRI.noCompetitors,
+          endConsumer: data.strategicMRI.endConsumer || '',
+          decisionMaker: data.strategicMRI.decisionMaker || '',
+        },
+      });
+
+      if (error) {
+        console.error('Validation error:', error);
+      } else if (result?.issues) {
+        setValidationIssues(result.issues);
+      }
+    } catch (e) {
+      console.error('Failed to validate:', e);
+    } finally {
+      setIsValidating(false);
+      setHasValidated(true);
+    }
+  };
 
   const handleExtractColorsFromLogo = async () => {
     const logoUrl = data.brand.logo;
@@ -178,6 +231,100 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
           הנה ה"דרכון" של המותג והקמפיין {getYourWord(data.honorific)} - בדקו שהכל מדויק
         </p>
       </div>
+
+      {/* AI Validation Section */}
+      {(isValidating || validationIssues.length > 0) && (
+        <div className="max-w-2xl mx-auto">
+          <Card className={`border-2 overflow-hidden ${
+            validationIssues.some(i => i.type === 'warning') 
+              ? 'border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50' 
+              : validationIssues.length > 0 
+                ? 'border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50'
+                : 'border-primary/20'
+          }`}>
+            <CardContent className="p-5">
+              <div className="flex items-start gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  isValidating 
+                    ? 'bg-primary/20' 
+                    : validationIssues.some(i => i.type === 'warning')
+                      ? 'bg-amber-100'
+                      : 'bg-blue-100'
+                }`}>
+                  {isValidating ? (
+                    <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                  ) : validationIssues.some(i => i.type === 'warning') ? (
+                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                  ) : (
+                    <Lightbulb className="w-5 h-5 text-blue-600" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2">
+                      <Bot className="w-4 h-4 text-primary" />
+                      {isValidating ? 'בודק את המידע...' : 'תובנות מערכת'}
+                    </h4>
+                    {!isValidating && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs gap-1"
+                        onClick={runValidation}
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        בדוק שוב
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {isValidating ? (
+                    <p className="text-sm text-muted-foreground">
+                      המערכת מנתחת את המידע ומחפשת חוסרי התאמה או הזדמנויות לשיפור...
+                    </p>
+                  ) : validationIssues.length > 0 ? (
+                    <div className="space-y-2">
+                      {validationIssues.map((issue, index) => (
+                        <div 
+                          key={index}
+                          className={`p-3 rounded-lg text-sm ${
+                            issue.type === 'warning' 
+                              ? 'bg-amber-100/50 border border-amber-200' 
+                              : 'bg-blue-100/50 border border-blue-200'
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            {issue.type === 'warning' ? (
+                              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                            ) : (
+                              <Lightbulb className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                            )}
+                            <div>
+                              <span className={issue.type === 'warning' ? 'text-amber-800' : 'text-blue-800'}>
+                                {issue.message}
+                              </span>
+                              {issue.field && (
+                                <Badge variant="secondary" className="mr-2 text-xs">
+                                  {issue.field}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-green-700 flex items-center gap-2">
+                      <Check className="w-4 h-4" />
+                      הכל נראה תקין! לא נמצאו בעיות או חוסרי התאמה.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Brand Passport Card */}
       <div className="max-w-2xl mx-auto">
