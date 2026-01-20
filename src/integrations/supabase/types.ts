@@ -341,6 +341,7 @@ export type Database = {
           decision_maker: string | null
           end_consumer: string | null
           header_font: string | null
+          honorific_preference: string | null
           id: string
           is_agency_profile: boolean | null
           logo_url: string | null
@@ -382,6 +383,7 @@ export type Database = {
           decision_maker?: string | null
           end_consumer?: string | null
           header_font?: string | null
+          honorific_preference?: string | null
           id?: string
           is_agency_profile?: boolean | null
           logo_url?: string | null
@@ -423,6 +425,7 @@ export type Database = {
           decision_maker?: string | null
           end_consumer?: string | null
           header_font?: string | null
+          honorific_preference?: string | null
           id?: string
           is_agency_profile?: boolean | null
           logo_url?: string | null

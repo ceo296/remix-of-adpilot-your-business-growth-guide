@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import type { HonorificType } from '@/types/wizard';
 
 type ClientProfile = Tables<'client_profiles'>;
 type ClientProfileInsert = TablesInsert<'client_profiles'>;
@@ -71,12 +72,14 @@ export const useClientProfile = () => {
   };
 
   const isOnboardingComplete = profile?.onboarding_completed ?? false;
+  const honorificPreference = (profile?.honorific_preference as HonorificType) ?? 'neutral';
 
   return {
     profile,
     loading,
     error,
     isOnboardingComplete,
+    honorificPreference,
     createProfile,
     updateProfile,
     refetch: fetchProfile,
