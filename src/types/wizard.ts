@@ -105,9 +105,12 @@ export interface WebsiteInsights {
   confirmed: boolean;
 }
 
+export type HonorificType = 'mr' | 'mrs' | 'neutral';
+
 export interface WizardData {
   // Step 0: Welcome
   userName: string;
+  honorific: HonorificType;
   
   // Step 1: Magic Link
   websiteUrl: string;
@@ -150,6 +153,7 @@ export const initialContactAssets: ContactAssets = {
 
 export const initialWizardData: WizardData = {
   userName: '',
+  honorific: 'neutral',
   websiteUrl: '',
   isScanning: false,
   websiteInsights: {
