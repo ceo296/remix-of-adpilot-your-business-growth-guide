@@ -11,8 +11,10 @@ interface UploadedFile {
   dataUrl: string;
 }
 
+type HonorificType = 'mr' | 'mrs' | 'neutral';
+
 interface StepWelcomeProps {
-  onNext: (userName: string, brandName: string, logo: string | null, isAgency: boolean) => void;
+  onNext: (userName: string, brandName: string, logo: string | null, isAgency: boolean, honorific: HonorificType) => void;
 }
 
 const StepWelcome = ({ onNext }: StepWelcomeProps) => {
@@ -20,6 +22,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
   const [brandName, setBrandName] = useState('');
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isAgency, setIsAgency] = useState<boolean | null>(null);
+  const [honorific, setHonorific] = useState<HonorificType>('neutral');
   const [showBrandingStudio, setShowBrandingStudio] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -52,7 +55,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
     const filesRequired = isAgency === false;
     if (userName.trim() && brandName.trim() && isAgency !== null && (!filesRequired || files.length > 0)) {
       const logoData = files.length > 0 ? files[0].dataUrl : null;
-      onNext(userName.trim(), brandName.trim(), logoData, isAgency);
+      onNext(userName.trim(), brandName.trim(), logoData, isAgency, honorific);
     }
   };
 
@@ -145,6 +148,56 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                 onChange={(e) => setUserName(e.target.value)}
                 className="text-lg h-14 text-xl border-2 border-emerald-200 focus:border-emerald-400 bg-gradient-to-br from-emerald-50/50 to-teal-50/50"
               />
+            </div>
+
+            {/* Honorific Preference */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 shadow-md shadow-pink-500/30 flex items-center justify-center">
+                  <Heart className="w-5 h-5 text-white" />
+                </div>
+                <label className="text-base font-semibold text-foreground">
+                  איך נפנה אליך?
+                </label>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setHonorific('mr')}
+                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                    honorific === 'mr'
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-md'
+                      : 'border-border hover:border-blue-300 hover:bg-blue-50/50'
+                  }`}
+                >
+                  <span className={`font-bold text-lg ${honorific === 'mr' ? 'text-blue-700' : ''}`}>אדון</span>
+                  <span className="text-sm text-muted-foreground">(פניה בלשון זכר)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHonorific('mrs')}
+                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                    honorific === 'mrs'
+                      ? 'border-pink-500 bg-gradient-to-br from-pink-50 to-rose-50 shadow-md'
+                      : 'border-border hover:border-pink-300 hover:bg-pink-50/50'
+                  }`}
+                >
+                  <span className={`font-bold text-lg ${honorific === 'mrs' ? 'text-pink-700' : ''}`}>גברת</span>
+                  <span className="text-sm text-muted-foreground">(פניה בלשון נקבה)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHonorific('neutral')}
+                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                    honorific === 'neutral'
+                      ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-violet-50 shadow-md'
+                      : 'border-border hover:border-purple-300 hover:bg-purple-50/50'
+                  }`}
+                >
+                  <span className={`font-bold text-lg ${honorific === 'neutral' ? 'text-purple-700' : ''}`}>ניטרלי</span>
+                  <span className="text-sm text-muted-foreground">(פניה בלשון רבים)</span>
+                </button>
+              </div>
             </div>
 
             {/* Brand Name - enhanced input */}

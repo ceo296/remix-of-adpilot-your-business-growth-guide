@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { WizardData, initialWizardData, ContactAssets } from '@/types/wizard';
+import { WizardData, initialWizardData, ContactAssets, HonorificType } from '@/types/wizard';
 import WizardProgress from '@/components/wizard/WizardProgress';
 import StepWelcome from '@/components/wizard/StepWelcome';
 import StepSelectClient from '@/components/wizard/StepSelectClient';
@@ -177,7 +177,7 @@ const OnboardingWizard = () => {
     }
   };
 
-  const handleWelcomeComplete = async (userName: string, brandName: string, logo: string | null, isAgencyUser: boolean) => {
+  const handleWelcomeComplete = async (userName: string, brandName: string, logo: string | null, isAgencyUser: boolean, honorific: HonorificType) => {
     setIsAgency(isAgencyUser);
     
     // Upload logo to storage if provided
@@ -201,6 +201,7 @@ const OnboardingWizard = () => {
     setWizardData((prev) => ({
       ...prev,
       userName,
+      honorific,
       brand: {
         ...prev.brand,
         name: brandName,
@@ -213,7 +214,12 @@ const OnboardingWizard = () => {
         } : prev.brand.colors,
       },
     }));
-    toast.success(`שלום ${userName}! נעים להכיר`);
+    
+    // Personalized greeting based on honorific
+    const greeting = honorific === 'mr' ? `שלום אדון ${userName}!` 
+      : honorific === 'mrs' ? `שלום גברת ${userName}!` 
+      : `שלום ${userName}!`;
+    toast.success(`${greeting} נעים להכיר`);
     nextStep();
   };
 
