@@ -368,10 +368,10 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
           <Globe className="w-12 h-12 text-primary" />
         </div>
         <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-          בוא נכיר רגע, בלי דיבורים מיותרים
+          בואו נכיר רגע, בלי דיבורים מיותרים
         </h2>
         <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
-          תן לנו את הלינק לאתר שלך ואנחנו נלמד את השפה שלכם בעצמנו
+          תנו לנו את הלינק לאתר ואנחנו נלמד את השפה שלכם בעצמנו
         </p>
       </div>
 
@@ -382,7 +382,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
             <div className="space-y-8">
               <div className="space-y-3">
                 <label className="text-base font-semibold text-foreground block">
-                  שים פה לינק לאתר שלך
+                  שימו פה לינק לאתר
                 </label>
                 <Input
                   type="url"

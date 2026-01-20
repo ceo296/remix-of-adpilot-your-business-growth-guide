@@ -84,7 +84,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
             {/* Account Type - larger buttons with gradients */}
             <div className="space-y-4">
               <label className="text-base font-semibold text-foreground block">
-                מי אתה?
+                מי אתם?
               </label>
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -242,7 +242,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-sm">
                       <Upload className="w-4 h-4 text-white" />
                     </div>
-                    <span className="font-medium">העלאת לוגו תעזור לנו להתאים את העיצובים בדיוק למותג שלך ✨</span>
+                    <span className="font-medium">העלאת לוגו תעזור לנו להתאים את העיצובים בדיוק למותג ✨</span>
                   </div>
                 )}
 
