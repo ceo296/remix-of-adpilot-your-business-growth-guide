@@ -116,7 +116,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
           <CardContent className="p-8 text-center space-y-6">
             <h3 className="font-bold text-lg text-foreground flex items-center justify-center gap-2">
               <Upload className="w-5 h-5 text-primary" />
-              הלוגו שלך
+              הלוגו שלכם
             </h3>
             
             <input

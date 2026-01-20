@@ -254,7 +254,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                     <Textarea
                       value={otherXFactor}
                       onChange={(e) => handleOtherXFactorChange(e.target.value)}
-                      placeholder="תאר את הגורם המבדל הייחודי שלך..."
+                      placeholder="תארו את הגורם המבדל הייחודי..."
                       className={`min-h-[60px] text-sm bg-white ${otherNeedsText ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                     {otherNeedsText && (
@@ -271,8 +271,8 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
       <Card className="border-border overflow-hidden">
         <CardContent className="p-6 space-y-6">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground mb-1">בוא נהיה כנים - איפה היתרון יושב?</h3>
-            <p className="text-sm text-muted-foreground">לחץ על הצד שמתאים יותר לעסק שלך</p>
+            <h3 className="text-lg font-semibold text-foreground mb-1">בואו נהיה כנים - איפה היתרון יושב?</h3>
+            <p className="text-sm text-muted-foreground">לחצו על הצד שמתאים יותר לעסק</p>
           </div>
           
           {/* Visual Toggle Cards */}
@@ -357,8 +357,8 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
       <Card className="border-border">
         <CardContent className="p-6 md:p-8 space-y-10">
           <div className="text-center">
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-3">איפה אתה ממוקם בשוק?</h3>
-            <p className="text-lg text-muted-foreground">הגדר את הפוזיציה שלך בשני צירים פשוטים</p>
+            <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-3">איפה אתם ממוקמים בשוק?</h3>
+            <p className="text-lg text-muted-foreground">הגדירו את הפוזיציה בשני צירים פשוטים</p>
           </div>
 
           {/* Price Positioning - Enhanced Design */}
@@ -456,7 +456,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 אני
               </div>
               <div>
-                <p className="font-bold text-xl text-foreground">הפוזיציה שלך:</p>
+                <p className="font-bold text-xl text-foreground">הפוזיציה שלכם:</p>
                 <p className="text-lg text-muted-foreground mt-2">
                   {mri.myPosition.x < -30 ? 'זול ומשתלם' : mri.myPosition.x > 30 ? 'פרימיום ויוקרתי' : 'מחיר ביניים'}
                   {' • '}
