@@ -353,10 +353,11 @@ const DashboardHub = () => {
     const publishedItems = mediaItems.filter((item: any) => item.status === 'published');
     const pendingItems = mediaItems.filter((item: any) => item.status !== 'published');
 
-    const STATUS_LABELS: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
-      draft: { label: 'טיוטה', variant: 'secondary' },
-      pending_approval: { label: 'ממתין לאישור', variant: 'outline' },
-      active: { label: 'פעיל', variant: 'default' },
+    const STATUS_LABELS: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline'; color: string }> = {
+      none: { label: 'אין קמפיין', variant: 'secondary', color: 'text-muted-foreground' },
+      draft: { label: 'טיוטה', variant: 'secondary', color: 'text-muted-foreground' },
+      pending_approval: { label: 'ממתין לאישור', variant: 'outline', color: 'text-amber-600' },
+      active: { label: 'באוויר', variant: 'default', color: 'text-green-600' },
     };
 
     const statusInfo = STATUS_LABELS[activeCampaign.status] || STATUS_LABELS.draft;
@@ -377,7 +378,12 @@ const DashboardHub = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-2xl font-bold text-foreground">{activeCampaign.name}</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-foreground">{activeCampaign.name}</h2>
+                  <Badge variant={statusInfo.variant} className={`text-sm px-3 py-1 ${statusInfo.color}`}>
+                    סטטוס: {statusInfo.label}
+                  </Badge>
+                </div>
                 <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
                   {activeCampaign.start_date && (
                     <span className="flex items-center gap-1">
@@ -388,9 +394,6 @@ const DashboardHub = () => {
                   )}
                 </div>
               </div>
-              <Badge variant={statusInfo.variant} className="text-sm px-3 py-1">
-                {statusInfo.label}
-              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -537,7 +540,7 @@ const DashboardHub = () => {
                 <Newspaper className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">גזרי עיתונים והוכחות פרסום</h3>
+                <h3 className="font-semibold text-foreground">מבט על חומרים שפורסמו</h3>
                 <p className="text-sm text-muted-foreground">{mediaProofs.length} תמונות</p>
               </div>
             </div>
