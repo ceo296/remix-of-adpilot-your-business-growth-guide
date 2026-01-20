@@ -11,7 +11,8 @@ import {
   Instagram,
   Linkedin,
   Music2,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Globe
 } from 'lucide-react';
 
 export interface ContactAssets {
@@ -19,6 +20,7 @@ export interface ContactAssets {
   contact_whatsapp: string;
   contact_email: string;
   contact_address: string;
+  website_url: string;
   contact_youtube: string;
   social_facebook: string;
   social_instagram: string;
@@ -36,6 +38,7 @@ const CONTACT_FIELDS = [
   { key: 'contact_whatsapp', label: 'וואטסאפ', icon: MessageCircle, placeholder: '050-1234567', type: 'tel', required: false },
   { key: 'contact_email', label: 'מייל', icon: Mail, placeholder: 'info@business.com', type: 'email', required: true },
   { key: 'contact_address', label: 'כתובת', icon: MapPin, placeholder: 'רחוב הדוגמה 10, בני ברק', type: 'text', required: false },
+  { key: 'website_url', label: 'אתר / דף נחיתה', icon: Globe, placeholder: 'www.example.co.il', type: 'url', required: false },
 ] as const;
 
 const SOCIAL_FIELDS = [
