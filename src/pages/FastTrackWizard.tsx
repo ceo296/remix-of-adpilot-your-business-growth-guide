@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
@@ -26,7 +28,9 @@ import {
   Sparkles, 
   Heart,
   Wand2,
-  Building2
+  Building2,
+  Gift,
+  Lightbulb
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -63,13 +67,16 @@ const FastTrackWizard = () => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Campaign data
+  // Step 1: Campaign Brief
   const [campaignName, setCampaignName] = useState('');
+  const [campaignOffer, setCampaignOffer] = useState('');
   const [goal, setGoal] = useState<string | null>(null);
+  
+  // Step 2: Dates
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   
-  // Budget & Audience data
+  // Step 3: Budget & Audience data
   const [budget, setBudget] = useState<number>(0);
   const [targetStream, setTargetStream] = useState<string>('');
   const [targetGender, setTargetGender] = useState<string>('');
@@ -150,7 +157,7 @@ const FastTrackWizard = () => {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return goal !== null;
+        return campaignOffer.trim().length > 0 && goal !== null;
       case 2:
         return startDate !== undefined;
       case 3:
@@ -209,43 +216,75 @@ const FastTrackWizard = () => {
       </div>
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Step 1: Goal & Vibe */}
+        {/* Step 1: Campaign Brief - Message & Goal */}
         {step === 1 && (
           <div className="space-y-8 animate-fade-in">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-2">מה המטרה הפעם?</h2>
-              <p className="text-muted-foreground">בחר את סוג הקמפיין והאווירה הרצויה</p>
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
+                <Gift className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">מה המסר הפרסומי?</h2>
+              <p className="text-muted-foreground">בלי זה אי אפשר להתחיל - ספר לנו מה רוצים לפרסם</p>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>מטרת הקמפיין</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {CAMPAIGN_GOALS.map((g) => (
-                    <div
-                      key={g.id}
-                      onClick={() => setGoal(g.id)}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${
-                        goal === g.id
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/30'
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center ${
-                        goal === g.id ? 'bg-primary/20' : 'bg-muted'
-                      }`}>
-                        <g.icon className={`w-5 h-5 ${goal === g.id ? 'text-primary' : 'text-muted-foreground'}`} />
-                      </div>
-                      <p className="font-medium text-foreground">{g.label}</p>
-                      <p className="text-xs text-muted-foreground">{g.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Campaign Name */}
+            <div className="space-y-3">
+              <Label htmlFor="campaign-name" className="text-foreground font-medium flex items-center gap-2">
+                <Lightbulb className="w-4 h-4 text-primary" />
+                שם הקמפיין (לשימוש פנימי)
+              </Label>
+              <Input
+                id="campaign-name"
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                placeholder="לדוגמה: מבצע פסח תשפ״ה, השקת קולקציית חורף..."
+                className="text-lg"
+              />
+            </div>
 
+            {/* Campaign Offer - REQUIRED */}
+            <div className="space-y-3">
+              <Label htmlFor="campaign-offer" className="text-foreground font-medium flex items-center gap-2">
+                <Gift className="w-4 h-4 text-primary" />
+                מה ההצעה הפרסומית? *
+              </Label>
+              <Textarea
+                id="campaign-offer"
+                value={campaignOffer}
+                onChange={(e) => setCampaignOffer(e.target.value)}
+                placeholder="תאר בקצרה את המסר המרכזי של הקמפיין. לדוגמה: 30% הנחה על כל מערכות הישיבה, השקת טעמים חדשים לסדרת המאפים..."
+                className="min-h-[120px] text-base"
+              />
+              <p className="text-xs text-muted-foreground">
+                זה יעזור לנו לכוון את הקריאייטיב והמסרים
+              </p>
+            </div>
+
+            {/* Campaign Goal */}
+            <div className="space-y-4">
+              <Label className="text-foreground font-medium">מה המטרה של הקמפיין? *</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {CAMPAIGN_GOALS.map((g) => (
+                  <div
+                    key={g.id}
+                    onClick={() => setGoal(g.id)}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${
+                      goal === g.id
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/30'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center ${
+                      goal === g.id ? 'bg-primary/20' : 'bg-muted'
+                    }`}>
+                      <g.icon className={`w-5 h-5 ${goal === g.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                    </div>
+                    <p className="font-medium text-foreground">{g.label}</p>
+                    <p className="text-xs text-muted-foreground">{g.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -256,19 +295,6 @@ const FastTrackWizard = () => {
               <h2 className="text-2xl font-bold text-foreground mb-2">מתי מתחילים?</h2>
               <p className="text-muted-foreground">קבע את תאריכי הקמפיין</p>
             </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>שם הקמפיין (אופציונלי)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Input
-                  value={campaignName}
-                  onChange={(e) => setCampaignName(e.target.value)}
-                  placeholder="לדוגמה: מבצע פסח תשפ״ה"
-                />
-              </CardContent>
-            </Card>
 
             <div className="grid md:grid-cols-2 gap-4">
               <Card>
