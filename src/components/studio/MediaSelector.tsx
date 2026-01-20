@@ -78,11 +78,12 @@ interface MediaSelectorProps {
   selectedMedia?: SelectedMedia | null;
 }
 
+// "general" first as the primary option (כלל הציבור החרדי)
 const SECTORS = [
+  { id: 'general', label: 'כלל הציבור החרדי' },
   { id: 'litvish', label: 'ליטאי' },
   { id: 'chassidish', label: 'חסידי' },
   { id: 'sefardi', label: 'ספרדי' },
-  { id: 'general', label: 'כללי' },
 ];
 
 const SPECIAL_TAGS = {
