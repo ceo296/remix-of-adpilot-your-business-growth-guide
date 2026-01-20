@@ -359,6 +359,7 @@ const OnboardingWizard = () => {
               social_linkedin: wizardData.contactAssets.social_linkedin || null,
               is_agency_profile: false,
               onboarding_completed: true,
+              honorific_preference: wizardData.honorific,
             })
             .eq('user_id', user.id);
 
@@ -399,6 +400,7 @@ const OnboardingWizard = () => {
               social_linkedin: wizardData.contactAssets.social_linkedin || null,
               is_agency_profile: false,
               onboarding_completed: true,
+              honorific_preference: wizardData.honorific,
             }]);
 
           if (clientError) throw clientError;
