@@ -376,43 +376,31 @@ export const StudioAutopilot = ({
         })}
       </div>
 
-      {/* Actions - simplified with new CTA */}
+      {/* Actions - single CTA to design immediately */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border">
         <Button variant="outline" onClick={onGenerateConcepts} disabled={isGenerating}>
           <RefreshCw className={cn("h-4 w-4 ml-2", isGenerating && "animate-spin")} />
           רעיונות חדשים
         </Button>
         
-        <div className="flex items-center gap-3">
-          {/* New button for people who need to see it designed */}
-          <Button
-            variant="secondary"
-            onClick={onExecuteConcept}
-            disabled={!selectedConcept || isGenerating}
-          >
-            <Image className="h-4 w-4 ml-2" />
-            תראה לי את זה מעוצב
-          </Button>
-          
-          <Button
-            variant="gradient"
-            size="lg"
-            onClick={onExecuteConcept}
-            disabled={!selectedConcept || isGenerating}
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                מייצר...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4 ml-2" />
-                אהבתי, רוץ עם זה!
-              </>
-            )}
-          </Button>
-        </div>
+        <Button
+          variant="gradient"
+          size="lg"
+          onClick={onExecuteConcept}
+          disabled={!selectedConcept || isGenerating}
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin ml-2" />
+              מעצב...
+            </>
+          ) : (
+            <>
+              <Wand2 className="h-4 w-4 ml-2" />
+              תראה לי את זה מעוצב
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );

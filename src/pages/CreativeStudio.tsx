@@ -24,6 +24,7 @@ import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 type AssetChoice = 'has-product' | 'no-product' | 'text-only';
 type TreatmentChoice = 'as-is' | 'ai-magic';
 type FeedbackMode = 'none' | 'another-round' | 'small-fixes';
+type FeedbackType = 'copy' | 'visual' | null;
 
 interface GeneratedImage {
   id: string;
@@ -162,6 +163,7 @@ const CreativeStudio = () => {
   // Feedback state
   const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('none');
   const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackType, setFeedbackType] = useState<FeedbackType>(null);
   
   // Autopilot state
   const [concepts, setConcepts] = useState<CreativeConcept[]>([]);
@@ -572,6 +574,7 @@ const CreativeStudio = () => {
     setShowSuccess(false);
     setConcepts([]);
     setSelectedConcept(null);
+    setFeedbackType(null);
   };
 
   // Quote handling functions
@@ -616,6 +619,7 @@ const CreativeStudio = () => {
     
     setFeedbackMode('none');
     setFeedbackText('');
+    setFeedbackType(null);
   };
 
   const handleProceedToMediaSelection = () => {
@@ -1253,21 +1257,17 @@ const CreativeStudio = () => {
                           className="gap-2 bg-card border-2 border-border hover:bg-muted"
                         >
                           <MessageSquare className="h-5 w-5" />
-                          אהבתי! יש לי כמה תיקונים
+                          יש לי כמה תיקונים
                         </Button>
                       </div>
                     )}
 
-                    {/* Feedback Text Area */}
-                    {feedbackMode !== 'none' && (
+                    {/* Feedback Type Selection - Copy vs Visual */}
+                    {feedbackMode === 'small-fixes' && !feedbackType && (
                       <Card className="p-5 max-w-2xl mx-auto animate-fade-in">
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-lg">
-                              {feedbackMode === 'another-round' 
-                                ? 'מה היית רוצה לשנות בסבב הבא?' 
-                                : 'אילו תיקונים נדרשים?'}
-                            </h3>
+                            <h3 className="font-bold text-lg">איפה נדרש התיקון?</h3>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -1279,13 +1279,70 @@ const CreativeStudio = () => {
                               ביטול
                             </Button>
                           </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <Button
+                              variant="outline"
+                              size="lg"
+                              onClick={() => setFeedbackType('copy')}
+                              className="flex flex-col h-auto py-6 gap-2 border-2 hover:border-primary hover:bg-primary/5"
+                            >
+                              <Type className="h-8 w-8 text-blue-500" />
+                              <span className="font-bold">הקופי / המלל</span>
+                              <span className="text-xs text-muted-foreground">כותרות, טקסטים, ניסוחים</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="lg"
+                              onClick={() => setFeedbackType('visual')}
+                              className="flex flex-col h-auto py-6 gap-2 border-2 hover:border-primary hover:bg-primary/5"
+                            >
+                              <ImageIcon className="h-8 w-8 text-pink-500" />
+                              <span className="font-bold">הוויזואל / העיצוב</span>
+                              <span className="text-xs text-muted-foreground">תמונות, צבעים, פריסה</span>
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    )}
+
+                    {/* Feedback Text Area - appears after selecting type or for another-round */}
+                    {(feedbackMode === 'another-round' || (feedbackMode === 'small-fixes' && feedbackType)) && (
+                      <Card className="p-5 max-w-2xl mx-auto animate-fade-in">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-lg">
+                              {feedbackMode === 'another-round' 
+                                ? 'מה היית רוצה לשנות בסבב הבא?' 
+                                : feedbackType === 'copy' 
+                                  ? 'מה לתקן בקופי/מלל?' 
+                                  : 'מה לתקן בוויזואל/עיצוב?'}
+                            </h3>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setFeedbackMode('none');
+                                setFeedbackText('');
+                                setFeedbackType(null);
+                              }}
+                            >
+                              ביטול
+                            </Button>
+                          </div>
+                          {feedbackType && (
+                            <Badge variant="secondary" className="mb-2">
+                              {feedbackType === 'copy' ? '📝 תיקון קופי' : '🎨 תיקון וויזואל'}
+                            </Badge>
+                          )}
                           <Textarea
                             value={feedbackText}
                             onChange={(e) => setFeedbackText(e.target.value)}
                             placeholder={
                               feedbackMode === 'another-round'
-                                ? 'פרט מה לא התחבר, מה חשוב להדגיש יותר - ברמת המלל או העיצוב...'
-                                : 'פרט את התיקונים הנדרשים...'
+                                ? 'פרט מה לא התחבר, מה חשוב להדגיש יותר...'
+                                : feedbackType === 'copy'
+                                  ? 'פרט את התיקונים בטקסט - כותרות, ניסוחים, מסרים...'
+                                  : 'פרט את התיקונים בעיצוב - צבעים, תמונות, פריסה...'
                             }
                             className="min-h-[120px] text-right"
                             dir="rtl"
