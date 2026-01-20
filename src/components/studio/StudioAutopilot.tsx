@@ -65,17 +65,20 @@ const CONCEPT_COLORS = {
   'pain-point': 'border-emerald-500/50 bg-emerald-500/5',
 };
 
+// Media options with vibrant color schemes
 const MEDIA_OPTIONS: { 
   id: MediaType; 
   label: string; 
   icon: React.ElementType;
+  gradient: string;
+  shadowColor: string;
 }[] = [
-  { id: 'radio', label: 'רדיו', icon: Radio },
-  { id: 'ad', label: 'מודעות', icon: Newspaper },
-  { id: 'banner', label: 'באנרים', icon: Monitor },
-  { id: 'billboard', label: 'שלטי חוצות', icon: RectangleHorizontal },
-  { id: 'social', label: 'סושיאל', icon: Share2 },
-  { id: 'all', label: 'קמפיין 360°', icon: Layers },
+  { id: 'radio', label: 'רדיו', icon: Radio, gradient: 'from-violet-500 to-purple-600', shadowColor: 'shadow-purple-500/30' },
+  { id: 'ad', label: 'מודעות', icon: Newspaper, gradient: 'from-blue-500 to-cyan-500', shadowColor: 'shadow-cyan-500/30' },
+  { id: 'banner', label: 'באנרים', icon: Monitor, gradient: 'from-emerald-500 to-teal-500', shadowColor: 'shadow-teal-500/30' },
+  { id: 'billboard', label: 'שלטי חוצות', icon: RectangleHorizontal, gradient: 'from-orange-500 to-amber-500', shadowColor: 'shadow-amber-500/30' },
+  { id: 'social', label: 'סושיאל', icon: Share2, gradient: 'from-pink-500 to-rose-500', shadowColor: 'shadow-rose-500/30' },
+  { id: 'all', label: 'קמפיין 360°', icon: Layers, gradient: 'from-primary to-red-500', shadowColor: 'shadow-primary/30' },
 ];
 
 // Truncate text helper
@@ -294,37 +297,39 @@ export const StudioAutopilot = ({
         {/* Media Type Selection */}
         <div className="w-full max-w-2xl mb-6">
           <p className="text-sm font-medium text-muted-foreground mb-3">איזה חומר פרסומי תרצו ליצור? (ניתן לבחור כמה)</p>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
             {MEDIA_OPTIONS.map((option) => (
               <Card
                 key={option.id}
                 className={cn(
-                  'cursor-pointer transition-all duration-300 border-2 relative',
+                  'cursor-pointer transition-all duration-300 border-2 relative group hover:scale-105',
                   isSelected(option.id)
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-border hover:border-primary/50'
+                    ? `border-transparent bg-gradient-to-br ${option.gradient} shadow-lg ${option.shadowColor}`
+                    : 'border-border hover:border-primary/50 bg-card'
                 )}
                 onClick={() => handleToggleMediaType(option.id)}
               >
-                <CardContent className="p-3 flex flex-col items-center gap-2">
+                <CardContent className="p-4 flex flex-col items-center gap-2">
                   <div className={cn(
-                    'w-10 h-10 rounded-lg flex items-center justify-center',
-                    isSelected(option.id) ? 'bg-primary/20' : 'bg-muted'
+                    'w-12 h-12 rounded-xl flex items-center justify-center transition-all',
+                    isSelected(option.id) 
+                      ? 'bg-white/20' 
+                      : `bg-gradient-to-br ${option.gradient} shadow-md ${option.shadowColor}`
                   )}>
                     <option.icon className={cn(
-                      'w-5 h-5',
-                      isSelected(option.id) ? 'text-primary' : 'text-muted-foreground'
+                      'w-6 h-6 transition-transform group-hover:scale-110',
+                      isSelected(option.id) ? 'text-white' : 'text-white'
                     )} />
                   </div>
                   <span className={cn(
-                    'text-xs font-medium',
-                    isSelected(option.id) ? 'text-primary' : 'text-muted-foreground'
+                    'text-sm font-semibold',
+                    isSelected(option.id) ? 'text-white' : 'text-foreground'
                   )}>
                     {option.label}
                   </span>
                   {isSelected(option.id) && (
-                    <div className="absolute top-1 left-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="w-3 h-3 text-primary-foreground" />
+                    <div className="absolute top-2 left-2 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-md">
+                      <Check className="w-3 h-3 text-primary" />
                     </div>
                   )}
                 </CardContent>
