@@ -13,6 +13,7 @@ interface StepPastMaterialsProps {
 
 const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMaterialsProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [showNudge, setShowNudge] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = (files: FileList | null) => {
@@ -155,13 +156,6 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
         </Card>
       </div>
 
-      {/* Skip Message - more visible */}
-      {data.pastMaterials.length === 0 && (
-        <p className="text-center text-base text-muted-foreground bg-amber-50 p-4 rounded-xl max-w-xl mx-auto border border-amber-200">
-          💡 חבל, זה יכול לעזור לנו לדייק. בטוח אין איזה PDF ישן?
-        </p>
-      )}
-
       {/* Navigation - larger buttons */}
       <div className="flex flex-col items-center gap-6 max-w-3xl mx-auto pt-6">
         {/* Primary CTA - only enabled when materials uploaded */}
@@ -176,16 +170,44 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           <ArrowLeft className="w-6 h-6 mr-2" />
         </Button>
         
-        {/* Secondary skip option - more visible */}
-        {data.pastMaterials.length === 0 && (
+        {/* Secondary skip option - show nudge on first click */}
+        {data.pastMaterials.length === 0 && !showNudge && (
           <Button 
             variant="ghost" 
             size="lg" 
-            onClick={onNext}
+            onClick={() => setShowNudge(true)}
             className="text-muted-foreground hover:text-foreground text-base"
           >
             אין לי שום חומרי פרסום להציג
           </Button>
+        )}
+
+        {/* Nudge message after clicking skip */}
+        {showNudge && data.pastMaterials.length === 0 && (
+          <div className="w-full max-w-xl space-y-4">
+            <p className="text-center text-base text-muted-foreground bg-amber-50 p-4 rounded-xl border border-amber-200">
+              💡 חבל, זה יכול לעזור לנו לדייק. בטוח אין איזה PDF ישן?
+            </p>
+            <div className="flex justify-center gap-4">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={() => fileInputRef.current?.click()}
+                className="text-base"
+              >
+                <Upload className="w-5 h-5 ml-2" />
+                בעצם יש לי משהו
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="lg" 
+                onClick={onNext}
+                className="text-muted-foreground text-base"
+              >
+                באמת אין לי, נמשיך
+              </Button>
+            </div>
+          </div>
         )}
         
         {/* Back button - more visible */}
