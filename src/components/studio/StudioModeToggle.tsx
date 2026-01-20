@@ -82,7 +82,7 @@ export const StudioModeToggle = ({ value, onChange }: StudioModeToggleProps) => 
           
           {/* Description */}
           <p className="text-muted-foreground text-sm leading-relaxed">
-            אין לי רעיון ספציפי - תנו ל-AI ליצור קונספטים מותאמים אישית על סמך המותג שלי
+            אין לי רעיון ספציפי - תיצרו לי אתם קונספטים מותאמים אישית על סמך המותג שלי
           </p>
 
           {/* Selected indicator */}
