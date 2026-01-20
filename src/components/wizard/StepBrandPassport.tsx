@@ -354,28 +354,15 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                    <div>
-                      <h4 className="text-lg font-bold text-foreground flex items-center gap-2">
-                        <Bot className="w-5 h-5 text-primary" />
-                        {isValidating ? 'בודק את המידע...' : 'דברים שקפצו לנו'}
-                      </h4>
-                      {!isValidating && validationIssues.length > 0 && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          מומלץ לשים לב ולערוך, אבל לא חייבים
-                        </p>
-                      )}
-                    </div>
-                    {!isValidating && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-7 text-xs gap-1"
-                        onClick={runValidation}
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                        בדוק שוב
-                      </Button>
+                  <div className="mb-3">
+                    <h4 className="text-lg font-bold text-foreground flex items-center gap-2">
+                      <Bot className="w-5 h-5 text-primary" />
+                      {isValidating ? 'בודק את המידע...' : 'דברים שקפצו לנו'}
+                    </h4>
+                    {!isValidating && validationIssues.length > 0 && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        מומלץ לשים לב ולערוך, אבל לא חייבים
+                      </p>
                     )}
                   </div>
                   
