@@ -63,11 +63,8 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
 
   return (
     <div className="space-y-10">
-      {/* Header - larger and more prominent */}
-      <div className="text-center space-y-6">
-        <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
-          <FolderOpen className="w-12 h-12 text-primary" />
-        </div>
+      {/* Header - simpler without folder icon */}
+      <div className="text-center space-y-4">
         <h2 className="text-3xl md:text-4xl font-bold text-foreground">
           מה עשיתם עד היום?
         </h2>
@@ -76,7 +73,7 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
         </p>
       </div>
 
-      {/* Drop Zone - larger and more prominent */}
+      {/* Drop Zone - framed with upload icon and text together */}
       <div className="max-w-3xl mx-auto">
         <input
           ref={fileInputRef}
@@ -88,10 +85,10 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
         />
         
         <Card
-          className={`border-3 border-dashed transition-all cursor-pointer ${
+          className={`border-2 transition-all cursor-pointer shadow-lg ${
             isDragging
               ? 'border-primary bg-primary/10 shadow-glow'
-              : 'border-primary/40 hover:border-primary hover:bg-primary/5'
+              : 'border-border hover:border-primary/50 hover:shadow-xl'
           }`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -101,16 +98,19 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           <CardContent className="p-12 md:p-16">
             {data.pastMaterials.length === 0 ? (
               <div className="text-center space-y-6">
-                <div className="w-24 h-24 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <Upload className="w-12 h-12 text-primary" />
-                </div>
-                <div className="space-y-3">
-                  <p className="text-2xl font-bold text-foreground">
-                    גררו לפה קבצים או לחצו להעלאה
-                  </p>
-                  <p className="text-lg text-muted-foreground">
-                    תמונות, PDF, כל מה שיש לכם
-                  </p>
+                {/* Framed upload area with icon and text */}
+                <div className="inline-flex flex-col items-center gap-4 p-8 rounded-2xl border-3 border-dashed border-primary/40 bg-primary/5">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <Upload className="w-10 h-10 text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xl font-bold text-foreground">
+                      גררו לפה קבצים או לחצו להעלאה
+                    </p>
+                    <p className="text-base text-muted-foreground">
+                      תמונות, PDF, כל מה שיש לכם
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (
