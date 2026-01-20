@@ -214,6 +214,8 @@ const CreativeStudio = () => {
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
+  const [mediaStartDate, setMediaStartDate] = useState<Date | undefined>();
+  const [mediaEndDate, setMediaEndDate] = useState<Date | undefined>();
   const [mediaTargetStream, setMediaTargetStream] = useState<string>('');
   const [mediaTargetGender, setMediaTargetGender] = useState<string>('');
   const [mediaTargetCity, setMediaTargetCity] = useState<string>('nationwide');
@@ -663,10 +665,16 @@ const CreativeStudio = () => {
       const campaignData = {
         user_id: user.id,
         client_profile_id: profile.id,
-        name: `קמפיין ${new Date().toLocaleDateString('he-IL')}`,
+        name: campaignBrief.title || `קמפיין ${new Date().toLocaleDateString('he-IL')}`,
         status: 'pending_approval',
         vibe: style,
-        goal: visualPrompt,
+        goal: campaignBrief.goal || visualPrompt,
+        start_date: mediaStartDate?.toISOString().split('T')[0] || null,
+        end_date: mediaEndDate?.toISOString().split('T')[0] || null,
+        budget: mediaBudget,
+        target_stream: mediaTargetStream,
+        target_gender: mediaTargetGender,
+        target_city: mediaTargetCity,
         selected_media: quoteData.mediaItems as unknown as import('@/integrations/supabase/types').Json,
         creatives: generatedImages.map(img => ({
           id: img.id,
@@ -1111,14 +1119,18 @@ const CreativeStudio = () => {
                 חזרה לסקיצות
               </Button>
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-2">בחירת מדיה ותקציב</h2>
-                <p className="text-muted-foreground">הגדר את קהל היעד והתקציב, ונתאים לך חבילות מדיה מושלמות</p>
+                <h2 className="text-2xl font-bold mb-2">תאריכים, תקציב ומדיה</h2>
+                <p className="text-muted-foreground">הגדר את לוח הזמנים, התקציב וקהל היעד</p>
               </div>
             </div>
             
             <BudgetAudienceStep
               budget={mediaBudget}
               onBudgetChange={setMediaBudget}
+              startDate={mediaStartDate}
+              onStartDateChange={setMediaStartDate}
+              endDate={mediaEndDate}
+              onEndDateChange={setMediaEndDate}
               targetStream={mediaTargetStream}
               onTargetStreamChange={setMediaTargetStream}
               targetGender={mediaTargetGender}
