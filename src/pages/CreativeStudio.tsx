@@ -19,6 +19,7 @@ import { StudioAutopilot, CreativeConcept, HolidaySeason, HOLIDAY_LABELS } from 
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
 import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/studio/StudioBriefStep';
 import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaTypeStep';
+import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 
 type AssetChoice = 'has-product' | 'no-product' | 'text-only';
@@ -90,7 +91,8 @@ const getStepTitles = (mediaTypes: MediaType[]) => {
     'בריף קמפיין',
     'סוג מדיה',
     'בחירת נכס',
-    'עיבוד תמונה',
+    'העלאת תמונה',
+    'קופי',
     'סגנון עיצובי',
     'תיאור ותוכן',
   ];
@@ -205,6 +207,8 @@ const CreativeStudio = () => {
   const [treatment, setTreatment] = useState<TreatmentChoice | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [style, setStyle] = useState<StyleChoice | null>(null);
+  const [copyChoice, setCopyChoice] = useState<CopyChoice | null>(null);
+  const [userCopyText, setUserCopyText] = useState('');
   const [visualPrompt, setVisualPrompt] = useState('');
   const [textPrompt, setTextPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('square');
@@ -295,18 +299,19 @@ const CreativeStudio = () => {
 
   // Calculate actual steps based on asset choice and media type
   const getSteps = () => {
-    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment, 4=Style, 5=Prompt
+    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment, 4=Copy, 5=Style, 6=Prompt
     // If only radio is selected, skip visual steps
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (isOnlyRadio) {
       // Radio doesn't need visual steps
-      return [0, 1, 5]; // Brief, MediaType, Prompt (for script)
+      return [0, 1, 6]; // Brief, MediaType, Prompt (for script)
     }
     if (assetChoice === 'no-product' || assetChoice === 'text-only') {
-      // Skip treatment step for no-product and text-only flows
-      return [0, 1, 2, 4, 5]; // Brief, MediaType, Asset, Style, Prompt
+      // Skip treatment and copy steps for no-product and text-only flows
+      return [0, 1, 2, 5, 6]; // Brief, MediaType, Asset, Style, Prompt
     }
-    return [0, 1, 2, 3, 4, 5]; // All steps
+    // has-product flow: includes Treatment and Copy steps
+    return [0, 1, 2, 3, 4, 5, 6]; // All steps including Copy
   };
 
   const steps = getSteps();
@@ -319,8 +324,9 @@ const CreativeStudio = () => {
       case 1: return mediaTypes.length > 0;
       case 2: return assetChoice !== null;
       case 3: return uploadedImage !== null && treatment !== null;
-      case 4: return style !== null;
-      case 5: return visualPrompt.trim().length > 0;
+      case 4: return copyChoice !== null && (copyChoice === 'generate-copy' || userCopyText.trim().length > 0);
+      case 5: return style !== null;
+      case 6: return visualPrompt.trim().length > 0;
       default: return false;
     }
   };
@@ -336,8 +342,9 @@ const CreativeStudio = () => {
     if (currentStep === 1) return 'כדי להמשיך צריך לבחור סוג מדיה';
     if (currentStep === 2) return 'כדי להמשיך צריך לבחור סוג נכס';
     if (currentStep === 3) return 'כדי להמשיך צריך להעלות תמונה ולבחור עיבוד';
-    if (currentStep === 4) return 'כדי להמשיך צריך לבחור סגנון';
-    if (currentStep === 5) return 'כדי להמשיך צריך למלא תיאור/תוכן';
+    if (currentStep === 4) return copyChoice === 'has-copy' && !userCopyText.trim() ? 'כדי להמשיך צריך להזין את הטקסט למודעה' : 'כדי להמשיך צריך לבחור אם יש לך קופי או לא';
+    if (currentStep === 5) return 'כדי להמשיך צריך לבחור סגנון';
+    if (currentStep === 6) return 'כדי להמשיך צריך למלא תיאור/תוכן';
     return null;
   };
 
@@ -366,9 +373,9 @@ const CreativeStudio = () => {
   const handleNext = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (currentStep === 1 && isOnlyRadio) {
-      setCurrentStep(5); // Skip to prompt for radio
+      setCurrentStep(6); // Skip to prompt for radio
     } else if (currentStep === 2 && (assetChoice === 'no-product' || assetChoice === 'text-only')) {
-      setCurrentStep(4); // Skip treatment to style
+      setCurrentStep(5); // Skip treatment and copy to style
     } else if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
     }
@@ -376,9 +383,9 @@ const CreativeStudio = () => {
 
   const handleBack = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
-    if (currentStep === 5 && isOnlyRadio) {
+    if (currentStep === 6 && isOnlyRadio) {
       setCurrentStep(1); // Go back to media type for radio
-    } else if (currentStep === 4 && (assetChoice === 'no-product' || assetChoice === 'text-only')) {
+    } else if (currentStep === 5 && (assetChoice === 'no-product' || assetChoice === 'text-only')) {
       setCurrentStep(2); // Go back to asset
     } else if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
@@ -955,8 +962,17 @@ const CreativeStudio = () => {
           />
         );
       case 4:
-        return <StudioStyleStep value={style} onChange={setStyle} />;
+        return (
+          <StudioCopyStep
+            value={copyChoice}
+            onChange={setCopyChoice}
+            copyText={userCopyText}
+            onCopyTextChange={setUserCopyText}
+          />
+        );
       case 5:
+        return <StudioStyleStep value={style} onChange={setStyle} />;
+      case 6:
         return (
           <StudioPromptStep
             visualPrompt={visualPrompt}
