@@ -29,10 +29,13 @@ import {
   RefreshCw,
   FileText,
   AlertOctagon,
-  Star
+  Star,
+  MessageCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { HonorificType } from '@/types/wizard';
+import { getGreeting } from '@/lib/honorific-utils';
 
 const X_FACTORS = [
   { id: 'veteran', label: 'הוותק והניסיון', icon: Trophy },
@@ -41,6 +44,12 @@ const X_FACTORS = [
   { id: 'service', label: 'השירות והיחס', icon: Heart },
   { id: 'brand', label: 'הבטחה פרסומית', icon: Sparkles },
 ] as const;
+
+const HONORIFIC_OPTIONS: { value: HonorificType; label: string; description: string }[] = [
+  { value: 'mr', label: 'אדון', description: 'פניה בלשון זכר' },
+  { value: 'mrs', label: 'גברת', description: 'פניה בלשון נקבה' },
+  { value: 'neutral', label: 'ניטרלי', description: 'פניה בלשון רבים' },
+];
 
 const ClientProfilePage = () => {
   const navigate = useNavigate();
@@ -60,6 +69,9 @@ const ClientProfilePage = () => {
   const [newCompetitor, setNewCompetitor] = useState('');
   const [advantageSlider, setAdvantageSlider] = useState(profile?.advantage_slider || 50);
   const [targetAudience, setTargetAudience] = useState(profile?.target_audience || '');
+  const [honorificPreference, setHonorificPreference] = useState<HonorificType>(
+    ((profile as any)?.honorific_preference as HonorificType) || 'neutral'
+  );
   
   // Personal Hall of Fame and Red Lines
   const [successfulCampaigns, setSuccessfulCampaigns] = useState<string[]>((profile as any)?.successful_campaigns || []);
@@ -79,6 +91,7 @@ const ClientProfilePage = () => {
       setTargetAudience(profile.target_audience || '');
       setSuccessfulCampaigns((profile as any).successful_campaigns || []);
       setPersonalRedLines((profile as any).personal_red_lines || []);
+      setHonorificPreference(((profile as any).honorific_preference as HonorificType) || 'neutral');
     }
   }, [profile]);
 
@@ -158,6 +171,7 @@ const ClientProfilePage = () => {
         target_audience: targetAudience,
         successful_campaigns: successfulCampaigns,
         personal_red_lines: personalRedLines,
+        honorific_preference: honorificPreference,
       } as any);
       toast.success('הפרופיל עודכן בהצלחה!');
       setIsEditing(false);
@@ -260,6 +274,57 @@ const ClientProfilePage = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
+        {/* Personal Greeting Preference */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-primary" />
+              העדפת פנייה
+            </CardTitle>
+            <CardDescription>איך נפנה אליך באפליקציה?</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground mb-2">
+                {getGreeting(honorificPreference, businessName)}
+              </div>
+              {isEditing ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {HONORIFIC_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setHonorificPreference(option.value)}
+                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                        honorificPreference === option.value
+                          ? option.value === 'mr' 
+                            ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-md'
+                            : option.value === 'mrs'
+                            ? 'border-pink-500 bg-gradient-to-br from-pink-50 to-rose-50 shadow-md'
+                            : 'border-purple-500 bg-gradient-to-br from-purple-50 to-violet-50 shadow-md'
+                          : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                      }`}
+                    >
+                      <span className={`font-bold text-lg ${
+                        honorificPreference === option.value 
+                          ? option.value === 'mr' ? 'text-blue-700' 
+                            : option.value === 'mrs' ? 'text-pink-700' 
+                            : 'text-purple-700'
+                          : ''
+                      }`}>{option.label}</span>
+                      <span className="text-xs text-muted-foreground">{option.description}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <Badge variant="default" className="text-sm">
+                  {HONORIFIC_OPTIONS.find(o => o.value === honorificPreference)?.label || 'ניטרלי'} - {HONORIFIC_OPTIONS.find(o => o.value === honorificPreference)?.description}
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Business Identity */}
         <Card>
           <CardHeader>
