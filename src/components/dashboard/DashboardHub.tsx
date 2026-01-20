@@ -54,11 +54,21 @@ const DashboardHub = () => {
   const [activeCampaign, setActiveCampaign] = useState<CampaignStatus | null>(null);
   const [mediaProofs, setMediaProofs] = useState<MediaProof[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasAnyCampaigns, setHasAnyCampaigns] = useState(false);
 
   useEffect(() => {
-    const fetchActiveCampaign = async () => {
+    const fetchCampaignData = async () => {
       if (!user) return;
 
+      // Check if user has any campaigns at all
+      const { count } = await supabase
+        .from('campaigns')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      setHasAnyCampaigns((count || 0) > 0);
+
+      // Fetch active campaign
       const { data } = await supabase
         .from('campaigns')
         .select('id, name, status, budget, start_date, end_date, selected_media')
@@ -88,7 +98,7 @@ const DashboardHub = () => {
       setLoading(false);
     };
 
-    fetchActiveCampaign();
+    fetchCampaignData();
   }, [user]);
 
   const handleNewCampaign = (type: 'create' | 'upload' | 'internal') => {
@@ -101,6 +111,64 @@ const DashboardHub = () => {
     }
   };
 
+  // New user view - no campaigns yet
+  const renderNewUserView = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-foreground mb-2">ברוך הבא! 🎉</h2>
+        <p className="text-muted-foreground">מה תרצה ליצור?</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto px-4">
+        {/* Create Campaign with AI */}
+        <Card 
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-primary bg-primary/5 hover:bg-primary/10"
+          onClick={() => handleNewCampaign('create')}
+        >
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-4">
+              <Sparkles className="w-10 h-10 text-primary-foreground" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-2">קמפיין פרסומי</h3>
+            <p className="text-muted-foreground mb-3 text-sm">
+              יצירה עם AI
+            </p>
+            <p className="text-xs text-muted-foreground">
+              נבנה יחד את המסר הפרסומי, נבחר סגנון ונייצר קריאייטיבים
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Internal Materials */}
+        <Card 
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 hover:border-secondary"
+          onClick={() => handleNewCampaign('internal')}
+        >
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-secondary flex items-center justify-center mb-4">
+              <Building2 className="w-10 h-10 text-secondary-foreground" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-2">חומרים פנימיים</h3>
+            <p className="text-muted-foreground mb-3 text-sm">
+              לשימוש עסקי
+            </p>
+            <p className="text-xs text-muted-foreground">
+              מצגות, פרוספקטים, ניוזלטרים וחומרי שיווק פנימיים
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Personal Area Note */}
+      <div className="text-center mt-8 pt-6 border-t border-border max-w-2xl mx-auto">
+        <p className="text-sm text-muted-foreground">
+          💡 <span className="font-medium">טיפ:</span> לאחר יצירת הקמפיין הראשון שלך, האזור האישי יתעדכן עם היסטוריה וסטטוס קמפיינים
+        </p>
+      </div>
+    </div>
+  );
+
+  // Returning user view - has campaigns
   const renderMainView = () => (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
@@ -515,7 +583,7 @@ const DashboardHub = () => {
 
   return (
     <div className="min-h-[400px] flex flex-col justify-center">
-      {currentView === 'main' && renderMainView()}
+      {currentView === 'main' && (hasAnyCampaigns ? renderMainView() : renderNewUserView())}
       {currentView === 'new-campaign' && renderNewCampaignView()}
       {currentView === 'history' && renderHistoryView()}
       {currentView === 'status' && renderStatusView()}
