@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ArrowRight, Trophy, Package, Tag, Heart, Sparkles, Users, User, Plus, X, GripHorizontal, Bot, Edit3 } from 'lucide-react';
+import { getYourWord } from '@/lib/honorific-utils';
 
 interface StepProps {
   data: WizardData;
@@ -148,7 +149,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
       {/* Header */}
       <div className="text-center">
         <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">תעודת הזהות העסקית</h2>
-        <p className="text-muted-foreground">לפני שמדברים על עיצוב, בואו נבין את ה-DNA האסטרטגי שלכם</p>
+        <p className="text-muted-foreground">לפני שמדברים על עיצוב, בואו נבין את ה-DNA האסטרטגי {getYourWord(data.honorific)}</p>
       </div>
 
       {/* Section 1: The 'Why You?' */}

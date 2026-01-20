@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WizardData, initialWizardData, ContactAssets, HonorificType } from '@/types/wizard';
+import { getGreeting, getTitlePrefix } from '@/lib/honorific-utils';
 import WizardProgress from '@/components/wizard/WizardProgress';
 import StepWelcome from '@/components/wizard/StepWelcome';
 import StepSelectClient from '@/components/wizard/StepSelectClient';
@@ -519,7 +520,10 @@ const OnboardingWizard = () => {
           <div className="flex items-center gap-4">
             {wizardData.userName && (
               <span className="text-sm font-medium text-foreground">
-                שלום, {wizardData.userName}
+                {wizardData.honorific === 'neutral' 
+                  ? `שלום, ${wizardData.userName}`
+                  : `שלום ${getTitlePrefix(wizardData.honorific)} ${wizardData.userName}`
+                }
               </span>
             )}
             <span className="text-sm text-muted-foreground">

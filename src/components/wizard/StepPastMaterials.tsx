@@ -3,6 +3,7 @@ import { WizardData, UploadedMaterial } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, Image, FileText, X, ArrowRight, ArrowLeft, FolderOpen } from 'lucide-react';
+import { getYourWord } from '@/lib/honorific-utils';
 
 interface StepPastMaterialsProps {
   data: WizardData;
@@ -71,7 +72,7 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           מה עשיתם עד היום? אל תתקמצנו...
         </h2>
         <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
-          תעלו לפה חומרי פרסום שעשיתם לאחרונה. זה יעזור לנו לשמור על הקו שלכם.
+          תעלו לפה חומרי פרסום שעשיתם לאחרונה. זה יעזור לנו לשמור על הקו {getYourWord(data.honorific)}.
         </p>
       </div>
 

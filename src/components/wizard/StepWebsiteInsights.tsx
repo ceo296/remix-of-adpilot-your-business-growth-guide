@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getYourWord } from '@/lib/honorific-utils';
 
 interface StepWebsiteInsightsProps {
   data: WizardData;
@@ -132,7 +133,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
         </h2>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
           {isManualMode 
-            ? 'מלאו את הפרטים כדי שנוכל להתאים לכם את הקמפיין' 
+            ? `מלאו את הפרטים כדי שנוכל להתאים ${getYourWord(data.honorific)} את הקמפיין`
             : hasAIPredictions 
               ? 'בדקו שהפרטים נכונים - אפשר לערוך אם משהו לא מדויק'
               : 'אם משהו לא מדויק - אפשר לערוך'

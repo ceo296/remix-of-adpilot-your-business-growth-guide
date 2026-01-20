@@ -7,6 +7,7 @@ import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft, Wand2 } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
+import { getYourWord, getGreeting } from '@/lib/honorific-utils';
 
 interface StepMagicLinkProps {
   data: WizardData;
@@ -127,8 +128,8 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
             </div>
           </div>
           <div className="space-y-3">
-            <p className="text-3xl font-bold text-foreground animate-pulse">
-              ✨ מנתחים את העסק שלכם ✨
+           <p className="text-3xl font-bold text-foreground animate-pulse">
+              ✨ מנתחים את העסק {getYourWord(data.honorific)} ✨
             </p>
             <p className="text-lg text-muted-foreground">
               הקסם קורה עכשיו...
@@ -152,7 +153,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
             אז {data.userName || 'חבר'}, איך נלמד על {data.brand.name || 'העסק'}?
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
-            נלמד על העסק שלכם כדי להתאים את הקמפיין בצורה מושלמת
+            נלמד על העסק {getYourWord(data.honorific)} כדי להתאים את הקמפיין בצורה מושלמת
           </p>
         </div>
 
@@ -171,7 +172,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
                 תשאבו מהאתר שלי
               </h3>
               <p className="text-muted-foreground text-base">
-                תנו לנו לינק ונלמד את השפה, הצבעים והסגנון שלכם אוטומטית
+                תנו לנו לינק ונלמד את השפה, הצבעים והסגנון {getYourWord(data.honorific)} אוטומטית
               </p>
               <div className="pt-4">
                 <span className="inline-flex items-center gap-2 text-primary text-lg font-bold bg-primary/10 px-4 py-2 rounded-full">
@@ -370,8 +371,8 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
         <h2 className="text-3xl md:text-4xl font-bold text-foreground">
           בואו נכיר רגע, בלי דיבורים מיותרים
         </h2>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
-          תנו לנו את הלינק לאתר ואנחנו נלמד את השפה שלכם בעצמנו
+          <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
+            תנו לנו את הלינק לאתר ואנחנו נלמד את השפה {getYourWord(data.honorific)} בעצמנו
         </p>
       </div>
 
@@ -419,7 +420,7 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
               </div>
               <div className="space-y-3">
                 <p className="text-2xl font-bold text-foreground">
-                  מנתחים את העסק שלכם...
+                  מנתחים את העסק {getYourWord(data.honorific)}...
                 </p>
                 <p className="text-lg text-muted-foreground animate-pulse">
                   רק רגע, הקסם קורה...
