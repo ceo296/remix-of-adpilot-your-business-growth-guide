@@ -67,9 +67,9 @@ const TopNavbar = () => {
 
   return (
     <header className="h-16 border-b border-border bg-card/95 backdrop-blur-sm sticky top-0 z-50">
-      <div className="h-full px-4 md:px-6 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-2">
+      <div className="container mx-auto h-full px-4 flex items-center gap-4">
+        {/* Logo - Fixed width */}
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-xl md:text-2xl font-bold tracking-tight">
             <span className="logo-black">AD</span>
             <span className="logo-red">KOP</span>
@@ -77,14 +77,14 @@ const TopNavbar = () => {
           <span className="text-xs text-muted-foreground hidden sm:block">| בס״ד</span>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex items-center gap-1 md:gap-2">
+        {/* Navigation - Centered with flex-1 */}
+        <nav className="flex-1 flex items-center justify-center gap-1 md:gap-2">
           {menuItems.map((item) => (
             <NavLink
               key={item.title}
               to={item.url}
               className={`
-                flex items-center gap-1.5 px-2 md:px-3 py-2 rounded-lg transition-all duration-200 text-sm
+                flex items-center gap-1.5 px-2 md:px-3 py-2 rounded-lg transition-all duration-200 text-sm whitespace-nowrap
                 ${isActive(item.url) 
                   ? 'bg-primary text-primary-foreground shadow-md' 
                   : 'text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -98,7 +98,7 @@ const TopNavbar = () => {
         </nav>
 
         {/* Right side - Admin selector, Agency selector & Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {isAdmin && (
             <div className="hidden md:block">
               <AdminClientSelector />
