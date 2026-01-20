@@ -192,15 +192,20 @@ ${campaignContext.targetGender ? `- מגדר יעד: ${campaignContext.targetGen
     // Build enhanced prompt
     let fullPrompt = '';
     
+    // Ensure we have some visual prompt
+    const effectiveVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
+    
     // Base system prompt for Haredi audience
-    const baseSystemPrompt = `אתה מעצב גרפי מומחה ליצירת פרסומות לקהילה החרדית בישראל.
+    const baseSystemPrompt = `צור תמונת פרסומת בעברית. אתה מעצב גרפי מומחה ליצירת פרסומות לקהילה החרדית בישראל.
 
 חוקים קריטיים שחובה לשמור:
 - אין להציג תמונות נשים או ילדות כלל!
 - שמירה על צניעות מלאה בכל אלמנט
 - עיצוב נקי, מכובד ומקצועי
 - טקסט בעברית בלבד (מימין לשמאל)
-- אין תוכן פוגעני או לא צנוע`;
+- אין תוכן פוגעני או לא צנוע
+
+חובה: צור ותחזיר תמונה!`;
 
     if (engine === 'nano-banana' || !engine) {
       // Gemini Pro Image - highest quality with Hebrew text support
@@ -217,7 +222,7 @@ ${templatePrompt ? `=== פורמט ===
 ${templatePrompt}` : ''}
 
 === הסצנה ===
-${visualPrompt}
+${effectiveVisualPrompt}
 
 ${additionalHints ? `הנחיות נוספות: ${additionalHints}` : ''}
 
@@ -232,7 +237,9 @@ ${textPrompt ? `=== טקסט עברי לשלב ===
 ${dimensions ? `מידות: ${dimensions.width}x${dimensions.height} פיקסלים` : ''}
 
 ${brandContext?.colors?.primary ? `חובה: השתמש בצבעי המותג (${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}) כצבעים הדומיננטיים!` : ''}
-${campaignContext?.offer ? `המסר "${campaignContext.offer}" צריך להיות המוקד המרכזי` : ''}`;
+${campaignContext?.offer ? `המסר "${campaignContext.offer}" צריך להיות המוקד המרכזי` : ''}
+
+צור עכשיו את התמונה!`;
 
     } else {
       // Flux model for non-text photorealism
@@ -249,7 +256,7 @@ ${templatePrompt ? `=== פורמט ===
 ${templatePrompt}` : ''}
 
 === הסצנה ===
-${visualPrompt}
+${effectiveVisualPrompt}
 
 ${additionalHints ? `הנחיות נוספות: ${additionalHints}` : ''}
 
@@ -259,7 +266,9 @@ ${additionalHints ? `הנחיות נוספות: ${additionalHints}` : ''}
 - ללא טקסט בתמונה
 - מותאם לקהל חרדי - צניעות מלאה
 - איכות פרסום מסחרי
-${brandContext?.colors?.primary ? `- סכמת הצבעים תואמת למותג: ${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}` : ''}`;
+${brandContext?.colors?.primary ? `- סכמת הצבעים תואמת למותג: ${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}` : ''}
+
+צור עכשיו את התמונה!`;
     }
 
     console.log("Enhanced prompt length:", fullPrompt.length);
