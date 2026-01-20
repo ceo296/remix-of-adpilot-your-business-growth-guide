@@ -364,6 +364,9 @@ const CreativeStudio = () => {
       setCurrentStep(2); // Go back to asset
     } else if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
+    } else {
+      // On first step, go back to mode selection
+      setMode(null);
     }
   };
 
@@ -1024,14 +1027,7 @@ const CreativeStudio = () => {
             ) : (
               /* Manual Mode */
               <div>
-                {/* Back to mode selection */}
-                <button
-                  onClick={() => setMode(null)}
-                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                  <span>חזרה לבחירת מסלול</span>
-                </button>
+                {/* Removed separate "back to mode selection" button - now handled by main back button */}
                 {/* Progress */}
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-2">
@@ -1058,7 +1054,6 @@ const CreativeStudio = () => {
                   <Button
                     variant="outline"
                     onClick={handleBack}
-                    disabled={actualStepIndex === 0}
                   >
                     <ChevronRight className="h-4 w-4 ml-1" />
                     הקודם
