@@ -466,47 +466,53 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
             </div>
           </div>
 
-          {/* Competitors Section - Required */}
-          <div className="pt-4 border-t border-border">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-foreground">מתחרים עיקריים</span>
-                <span className="text-xs text-destructive">*</span>
+          {/* Competitors Section - Required - Prominent Card */}
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-gray-100 border-2 border-slate-200 space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-gray-700 shadow-md flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <span className="text-lg font-bold text-foreground">מתחרים עיקריים</span>
+                  <span className="text-destructive mr-1">*</span>
+                </div>
               </div>
-              <span className="text-xs text-muted-foreground">עד 3 מתחרים</span>
+              <span className="text-sm text-muted-foreground bg-white px-3 py-1 rounded-full">עד 3 מתחרים</span>
             </div>
             
             {!noCompetitors && (
               <>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <Input
                     value={newCompetitor}
                     onChange={(e) => setNewCompetitor(e.target.value)}
                     placeholder="שם המתחרה..."
                     onKeyDown={(e) => e.key === 'Enter' && addCompetitor()}
                     disabled={mri.competitors.length >= 3}
-                    className={!hasValidCompetitors ? 'border-destructive' : ''}
+                    className={`h-14 text-lg bg-white ${!hasValidCompetitors ? 'border-destructive border-2' : 'border-slate-300'}`}
                   />
                   <Button
                     onClick={addCompetitor}
                     disabled={!newCompetitor.trim() || mri.competitors.length >= 3}
                     variant="outline"
-                    size="icon"
+                    size="lg"
+                    className="h-14 w-14 border-2"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-6 h-6" />
                   </Button>
                 </div>
 
                 {mri.competitors.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap gap-3 mt-4">
                     {mri.competitors.map((comp, idx) => (
-                      <Badge key={idx} variant="outline" className="pl-3 pr-1.5 py-1.5 gap-2 bg-muted/50">
+                      <Badge key={idx} variant="outline" className="pl-4 pr-2 py-2.5 gap-3 text-base bg-white border-2 border-slate-300">
                         {comp}
                         <button
                           onClick={() => removeCompetitor(idx)}
-                          className="hover:bg-destructive/20 rounded-full p-0.5"
+                          className="hover:bg-destructive/20 rounded-full p-1"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-4 h-4" />
                         </button>
                       </Badge>
                     ))}
@@ -517,10 +523,10 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
 
             <button
               onClick={toggleNoCompetitors}
-              className={`mt-3 px-4 py-2 rounded-full border transition-all text-sm ${
+              className={`px-6 py-3 rounded-xl border-2 transition-all text-base font-medium ${
                 noCompetitors
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border hover:border-primary/50 text-muted-foreground'
+                  ? 'border-primary bg-primary text-primary-foreground shadow-md'
+                  : 'border-slate-300 bg-white hover:border-primary/50 text-muted-foreground hover:shadow-md'
               }`}
             >
               אין לי מתחרים
