@@ -21,17 +21,6 @@ interface StepWebsiteInsightsProps {
   onPrev: () => void;
 }
 
-interface InsightField {
-  id: string;
-  label: string;
-  sublabel: string;
-  value: string;
-  placeholder: string;
-  icon: React.ReactNode;
-  type: 'text' | 'select';
-  options?: string[];
-}
-
 const INDUSTRY_OPTIONS = [
   'ריהוט לבית ולמשרד',
   'מזון ומאפים',
@@ -61,7 +50,6 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
   const isManualMode = !data.websiteUrl;
   const hasAIPredictions = !!(data.websiteInsights.industry || data.websiteInsights.audience);
   
-  // Form values - start with existing data (from AI predictions or previous input)
   const [formValues, setFormValues] = useState({
     businessName: data.brand.name || '',
     industry: data.websiteInsights.industry || '',
@@ -76,7 +64,6 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
   };
 
   const handleConfirm = () => {
-    // Validate all required fields
     if (!formValues.businessName.trim()) {
       toast.error('נא להזין שם עסק');
       return;
@@ -102,10 +89,8 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
       return;
     }
 
-    // Determine the final audience value
     const finalAudience = formValues.audience === 'אחר' ? formValues.audienceOther : formValues.audience;
 
-    // Save insights to wizard data
     updateData({
       brand: {
         ...data.brand,
@@ -128,13 +113,13 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="text-center space-y-4">
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center">
           {isManualMode ? (
-            <Building2 className="w-10 h-10 text-primary" />
+            <Building2 className="w-10 h-10 text-white" />
           ) : hasAIPredictions ? (
-            <Sparkles className="w-10 h-10 text-primary" />
+            <Sparkles className="w-10 h-10 text-white" />
           ) : (
-            <Check className="w-10 h-10 text-success" />
+            <Check className="w-10 h-10 text-white" />
           )}
         </div>
         <h2 className="text-3xl font-bold text-foreground">
@@ -151,51 +136,47 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
       </div>
 
       {/* Form Card */}
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-2xl mx-auto border-2 shadow-xl">
         <CardContent className="p-6 space-y-6">
           {/* Business Name */}
-          <div className="space-y-2">
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200/50 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Building2 className="h-5 w-5" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md shadow-blue-500/30 flex items-center justify-center">
+                <Building2 className="h-5 w-5 text-white" />
               </div>
-              <div className="flex-1">
-                <Label htmlFor="businessName" className="text-sm font-medium">
-                  שם העסק *
-                </Label>
-              </div>
+              <Label htmlFor="businessName" className="text-sm font-semibold text-blue-800">
+                שם העסק *
+              </Label>
             </div>
             <Input
               id="businessName"
               value={formValues.businessName}
               onChange={(e) => handleValueChange('businessName', e.target.value)}
               placeholder="לדוגמה: רהיטי הבית"
-              className="text-lg"
+              className="text-lg h-12 bg-white border-blue-200 hover:border-blue-400 focus:border-blue-500"
             />
           </div>
 
           {/* Industry */}
-          <div className="space-y-2">
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Star className="h-5 w-5" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-md shadow-amber-500/30 flex items-center justify-center">
+                <Star className="h-5 w-5 text-white" />
               </div>
-              <div className="flex-1">
-                <Label htmlFor="industry" className="text-sm font-medium">
-                  תחום עיסוק *
-                </Label>
-              </div>
+              <Label htmlFor="industry" className="text-sm font-semibold text-amber-800">
+                תחום עיסוק *
+              </Label>
             </div>
             <Select
               value={formValues.industry}
               onValueChange={(value) => handleValueChange('industry', value)}
             >
-              <SelectTrigger className="text-lg bg-background">
+              <SelectTrigger className="text-lg h-12 bg-white border-amber-200 hover:border-amber-400">
                 <SelectValue placeholder="בחרו תחום עיסוק" />
               </SelectTrigger>
-              <SelectContent className="bg-popover border border-border z-50">
+              <SelectContent className="bg-white border border-amber-200 z-50">
                 {INDUSTRY_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>
+                  <SelectItem key={option} value={option} className="hover:bg-amber-50">
                     {option}
                   </SelectItem>
                 ))}
@@ -206,73 +187,69 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
                 value={formValues.coreOffering}
                 onChange={(e) => handleValueChange('coreOffering', e.target.value)}
                 placeholder="פרטו את תחום העיסוק"
-                className="mt-2"
+                className="mt-2 bg-white border-amber-200"
               />
             )}
           </div>
 
           {/* Seniority */}
-          <div className="space-y-2">
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200/50 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Clock className="h-5 w-5" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md shadow-violet-500/30 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-white" />
               </div>
-              <div className="flex-1">
-                <Label htmlFor="seniority" className="text-sm font-medium">
-                  ותק וניסיון *
-                </Label>
-              </div>
+              <Label htmlFor="seniority" className="text-sm font-semibold text-violet-800">
+                ותק וניסיון *
+              </Label>
             </div>
             <Input
               id="seniority"
               value={formValues.seniority}
               onChange={(e) => handleValueChange('seniority', e.target.value)}
               placeholder="לדוגמה: פעילים משנת 2010 (14 שנה)"
+              className="h-12 bg-white border-violet-200 hover:border-violet-400 focus:border-violet-500"
             />
           </div>
 
           {/* Core Offering */}
-          <div className="space-y-2">
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/50 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Star className="h-5 w-5" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-md shadow-emerald-500/30 flex items-center justify-center">
+                <Star className="h-5 w-5 text-white" />
               </div>
-              <div className="flex-1">
-                <Label htmlFor="coreOffering" className="text-sm font-medium">
-                  המוצר/שירות המרכזי *
-                </Label>
-              </div>
+              <Label htmlFor="coreOffering" className="text-sm font-semibold text-emerald-800">
+                המוצר/שירות המרכזי *
+              </Label>
             </div>
             <Input
               id="coreOffering"
               value={formValues.coreOffering}
               onChange={(e) => handleValueChange('coreOffering', e.target.value)}
               placeholder="לדוגמה: מערכות ישיבה בהתאמה אישית"
+              className="h-12 bg-white border-emerald-200 hover:border-emerald-400 focus:border-emerald-500"
             />
           </div>
 
           {/* Audience */}
-          <div className="space-y-2">
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200/50 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Users className="h-5 w-5" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 shadow-md shadow-pink-500/30 flex items-center justify-center">
+                <Users className="h-5 w-5 text-white" />
               </div>
-              <div className="flex-1">
-                <Label htmlFor="audience" className="text-sm font-medium">
-                  קהל היעד *
-                </Label>
-              </div>
+              <Label htmlFor="audience" className="text-sm font-semibold text-pink-800">
+                קהל היעד *
+              </Label>
             </div>
             <Select
               value={formValues.audience}
               onValueChange={(value) => handleValueChange('audience', value)}
             >
-              <SelectTrigger className={`bg-background ${!formValues.audience ? 'border-destructive/50' : ''}`}>
+              <SelectTrigger className={`h-12 bg-white border-pink-200 hover:border-pink-400 ${!formValues.audience ? 'border-pink-300' : ''}`}>
                 <SelectValue placeholder="בחרו קהל יעד" />
               </SelectTrigger>
-              <SelectContent className="bg-popover border border-border z-50">
+              <SelectContent className="bg-white border border-pink-200 z-50">
                 {AUDIENCE_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>
+                  <SelectItem key={option} value={option} className="hover:bg-pink-50">
                     {option}
                   </SelectItem>
                 ))}
@@ -283,7 +260,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
                 value={formValues.audienceOther}
                 onChange={(e) => handleValueChange('audienceOther', e.target.value)}
                 placeholder="פרטו את קהל היעד"
-                className="mt-2"
+                className="mt-2 bg-white border-pink-200"
               />
             )}
           </div>

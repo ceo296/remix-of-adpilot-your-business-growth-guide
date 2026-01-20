@@ -152,17 +152,33 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
       </div>
 
       {/* Section 1: The 'Why You?' */}
-      <Card className="border-border">
+      <Card className="border-2 shadow-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <Trophy className="w-5 h-5" />
+            למה שהלקוח יבחר דווקא בך?
+          </h3>
+          <p className="text-sm text-white/80">בחר את הגורמים המבדלים (אפשר יותר מאחד, ואז לסמן את העיקרי)</p>
+        </div>
         <CardContent className="p-6 space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">למה שהלקוח יבחר דווקא בך?</h3>
-            <p className="text-sm text-muted-foreground">בחר את הגורמים המבדלים (אפשר יותר מאחד, ואז לסמן את העיקרי)</p>
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {X_FACTORS.map((factor) => {
               const isSelected = mri.xFactors.includes(factor.id);
               const isPrimary = mri.primaryXFactor === factor.id;
+              const gradients: Record<string, string> = {
+                veteran: 'from-amber-500 to-orange-500',
+                product: 'from-blue-500 to-cyan-500',
+                price: 'from-emerald-500 to-teal-500',
+                service: 'from-pink-500 to-rose-500',
+                brand: 'from-violet-500 to-purple-600',
+              };
+              const shadows: Record<string, string> = {
+                veteran: 'shadow-amber-500/30',
+                product: 'shadow-blue-500/30',
+                price: 'shadow-emerald-500/30',
+                service: 'shadow-pink-500/30',
+                brand: 'shadow-violet-500/30',
+              };
               return (
                 <div
                   key={factor.id}
@@ -170,9 +186,9 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                   className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                     isSelected
                       ? isPrimary
-                        ? 'border-primary bg-primary/10'
+                        ? 'border-primary bg-primary/10 shadow-lg'
                         : 'border-primary/50 bg-primary/5'
-                      : 'border-border bg-card hover:border-primary/30'
+                      : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
                   }`}
                 >
                   {isSelected && (
@@ -183,21 +199,23 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                       }}
                       className={`absolute top-2 left-2 text-xs px-2 py-0.5 rounded-full ${
                         isPrimary
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-sm'
                           : 'bg-muted text-muted-foreground hover:bg-primary/20'
                       }`}
                     >
-                      {isPrimary ? 'עיקרי' : 'הפוך לעיקרי'}
+                      {isPrimary ? '⭐ עיקרי' : 'הפוך לעיקרי'}
                     </button>
                   )}
                   <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      isSelected ? 'bg-primary/20' : 'bg-muted'
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                      isSelected 
+                        ? `bg-gradient-to-br ${gradients[factor.id]} shadow-md ${shadows[factor.id]}` 
+                        : 'bg-muted'
                     }`}>
-                      <factor.icon className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <factor.icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-muted-foreground'}`} />
                     </div>
                     <div className="flex-1 mt-1">
-                      <p className="font-medium text-foreground">{factor.label}</p>
+                      <p className="font-semibold text-foreground">{factor.label}</p>
                       <p className="text-xs text-muted-foreground mt-1">{factor.description}</p>
                     </div>
                     </div>
@@ -211,19 +229,23 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                   isOtherSelected
                     ? otherNeedsText
-                      ? 'border-destructive bg-destructive/5'
-                      : 'border-primary/50 bg-primary/5'
-                    : 'border-border bg-card hover:border-primary/30'
+                      ? 'border-destructive bg-gradient-to-br from-red-50 to-rose-50'
+                      : 'border-primary/50 bg-gradient-to-br from-slate-50 to-gray-50'
+                    : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    isOtherSelected ? (otherNeedsText ? 'bg-destructive/20' : 'bg-primary/20') : 'bg-muted'
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                    isOtherSelected 
+                      ? otherNeedsText 
+                        ? 'bg-gradient-to-br from-red-500 to-rose-500 shadow-md shadow-red-500/30' 
+                        : 'bg-gradient-to-br from-slate-600 to-gray-700 shadow-md shadow-slate-500/30'
+                      : 'bg-muted'
                   }`}>
-                    <Edit3 className={`w-5 h-5 ${isOtherSelected ? (otherNeedsText ? 'text-destructive' : 'text-primary') : 'text-muted-foreground'}`} />
+                    <Edit3 className={`w-6 h-6 ${isOtherSelected ? 'text-white' : 'text-muted-foreground'}`} />
                   </div>
                   <div className="flex-1 mt-1">
-                    <p className="font-medium text-foreground">אחר</p>
+                    <p className="font-semibold text-foreground">אחר</p>
                     <p className="text-xs text-muted-foreground mt-1">יש לי סיבה ייחודית משלי</p>
                   </div>
                 </div>
@@ -233,7 +255,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                       value={otherXFactor}
                       onChange={(e) => handleOtherXFactorChange(e.target.value)}
                       placeholder="תאר את הגורם המבדל הייחודי שלך..."
-                      className={`min-h-[60px] text-sm ${otherNeedsText ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                      className={`min-h-[60px] text-sm bg-white ${otherNeedsText ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                     {otherNeedsText && (
                       <p className="text-xs text-destructive mt-1">יש למלא את השדה</p>
@@ -339,13 +361,13 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
             <p className="text-sm text-muted-foreground">הגדר את הפוזיציה שלך בשני צירים פשוטים</p>
           </div>
 
-          {/* Price Positioning - Cleaner Design */}
-          <div className="p-6 rounded-2xl bg-muted/30 border border-border space-y-5">
+          {/* Price Positioning - Enhanced Design */}
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/50 space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Tag className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-md shadow-emerald-500/30 flex items-center justify-center">
+                <Tag className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-semibold text-foreground">רמת מחיר</span>
+              <span className="text-lg font-semibold text-emerald-800">רמת מחיר</span>
             </div>
             
             <div className="relative pt-2" dir="ltr">
@@ -359,29 +381,35 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
               <div className="flex justify-between mt-4 text-sm" dir="rtl">
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-lg">💰</span>
-                  <span className="text-muted-foreground font-medium">זול / משתלם</span>
+                  <span className="text-emerald-700 font-medium">זול / משתלם</span>
                 </div>
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-lg">💎</span>
-                  <span className="text-muted-foreground font-medium">פרימיום / יוקרה</span>
+                  <span className="text-emerald-700 font-medium">פרימיום / יוקרה</span>
                 </div>
               </div>
             </div>
 
             <div className="text-center">
-              <Badge variant="secondary" className="text-sm px-4 py-1">
+              <Badge className={`text-sm px-4 py-1.5 ${
+                mri.myPosition.x < -30 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white' 
+                  : mri.myPosition.x > 30 
+                    ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white' 
+                    : 'bg-gradient-to-r from-slate-500 to-gray-500 text-white'
+              }`}>
                 {mri.myPosition.x < -30 ? '💰 זול / משתלם' : mri.myPosition.x > 30 ? '💎 פרימיום / יוקרה' : '⚖️ מחיר ביניים'}
               </Badge>
             </div>
           </div>
 
-          {/* Style Positioning - Cleaner Design */}
-          <div className="p-6 rounded-2xl bg-muted/30 border border-border space-y-5">
+          {/* Style Positioning - Enhanced Design */}
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200/50 space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md shadow-violet-500/30 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-semibold text-foreground">סגנון תקשורת</span>
+              <span className="text-lg font-semibold text-violet-800">סגנון תקשורת</span>
             </div>
             
             <div className="relative pt-2" dir="ltr">
@@ -395,17 +423,23 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
               <div className="flex justify-between mt-4 text-sm" dir="rtl">
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-lg">🏛️</span>
-                  <span className="text-muted-foreground font-medium">קלאסי / מסורתי</span>
+                  <span className="text-violet-700 font-medium">קלאסי / מסורתי</span>
                 </div>
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-lg">✨</span>
-                  <span className="text-muted-foreground font-medium">מודרני / חדשני</span>
+                  <span className="text-violet-700 font-medium">מודרני / חדשני</span>
                 </div>
               </div>
             </div>
 
             <div className="text-center">
-              <Badge variant="secondary" className="text-sm px-4 py-1">
+              <Badge className={`text-sm px-4 py-1.5 ${
+                mri.myPosition.y < -30 
+                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white' 
+                  : mri.myPosition.y > 30 
+                    ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white' 
+                    : 'bg-gradient-to-r from-slate-500 to-gray-500 text-white'
+              }`}>
                 {mri.myPosition.y < -30 ? '🏛️ קלאסי / מסורתי' : mri.myPosition.y > 30 ? '✨ מודרני / חדשני' : '⚖️ סגנון מאוזן'}
               </Badge>
             </div>
@@ -492,37 +526,41 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
       </Card>
 
       {/* Section 4: Target Audience - Selection Options */}
-      <Card className="border-border">
+      <Card className="border-2 shadow-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-4">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            למי אתם פונים?
+          </h3>
+          <p className="text-sm text-white/80">בחרו את סוג הלקוחות שלכם</p>
+        </div>
         <CardContent className="p-6 space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">למי אתם פונים?</h3>
-            <p className="text-sm text-muted-foreground">בחרו את סוג הלקוחות שלכם</p>
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* B2C - Private Customers */}
             <div
               onClick={() => updateMRI({ endConsumer: 'private', decisionMaker: '' })}
               className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                 mri.endConsumer === 'private'
-                  ? 'border-primary bg-primary/10 shadow-md'
-                  : 'border-border bg-card hover:border-primary/30'
+                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-lg'
+                  : 'border-border bg-card hover:border-blue-300 hover:shadow-md'
               }`}
             >
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  mri.endConsumer === 'private' ? 'bg-primary/20' : 'bg-muted'
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                  mri.endConsumer === 'private' 
+                    ? 'bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md shadow-blue-500/30' 
+                    : 'bg-muted'
                 }`}>
-                  <User className={`w-6 h-6 ${mri.endConsumer === 'private' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <User className={`w-6 h-6 ${mri.endConsumer === 'private' ? 'text-white' : 'text-muted-foreground'}`} />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-foreground mb-1">לקוחות פרטיים</h4>
+                  <h4 className={`font-semibold mb-1 ${mri.endConsumer === 'private' ? 'text-blue-700' : 'text-foreground'}`}>לקוחות פרטיים</h4>
                   <p className="text-sm text-muted-foreground">אנשים פרטיים, משפחות, צרכנים</p>
                 </div>
               </div>
               {mri.endConsumer === 'private' && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 shadow-sm flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -534,24 +572,26 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
               onClick={() => updateMRI({ endConsumer: 'b2b', decisionMaker: '' })}
               className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                 mri.endConsumer === 'b2b'
-                  ? 'border-primary bg-primary/10 shadow-md'
-                  : 'border-border bg-card hover:border-primary/30'
+                  ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-violet-50 shadow-lg'
+                  : 'border-border bg-card hover:border-purple-300 hover:shadow-md'
               }`}
             >
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  mri.endConsumer === 'b2b' ? 'bg-primary/20' : 'bg-muted'
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                  mri.endConsumer === 'b2b' 
+                    ? 'bg-gradient-to-br from-purple-500 to-violet-600 shadow-md shadow-purple-500/30' 
+                    : 'bg-muted'
                 }`}>
-                  <Users className={`w-6 h-6 ${mri.endConsumer === 'b2b' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <Users className={`w-6 h-6 ${mri.endConsumer === 'b2b' ? 'text-white' : 'text-muted-foreground'}`} />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-foreground mb-1">ארגונים וחברות</h4>
+                  <h4 className={`font-semibold mb-1 ${mri.endConsumer === 'b2b' ? 'text-purple-700' : 'text-foreground'}`}>ארגונים וחברות</h4>
                   <p className="text-sm text-muted-foreground">רשויות, מוסדות, עסקים, חברות</p>
                 </div>
               </div>
               {mri.endConsumer === 'b2b' && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 shadow-sm flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -563,27 +603,29 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
               onClick={() => updateMRI({ endConsumer: 'both', decisionMaker: '' })}
               className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                 mri.endConsumer === 'both'
-                  ? 'border-primary bg-primary/10 shadow-md'
-                  : 'border-border bg-card hover:border-primary/30'
+                  ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-orange-50 shadow-lg'
+                  : 'border-border bg-card hover:border-amber-300 hover:shadow-md'
               }`}
             >
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  mri.endConsumer === 'both' ? 'bg-primary/20' : 'bg-muted'
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                  mri.endConsumer === 'both' 
+                    ? 'bg-gradient-to-br from-amber-500 to-orange-500 shadow-md shadow-amber-500/30' 
+                    : 'bg-muted'
                 }`}>
                   <div className="relative">
-                    <User className={`w-5 h-5 absolute -right-1 -top-1 ${mri.endConsumer === 'both' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <Users className={`w-5 h-5 absolute -left-1 -bottom-1 ${mri.endConsumer === 'both' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <User className={`w-5 h-5 absolute -right-1 -top-1 ${mri.endConsumer === 'both' ? 'text-white' : 'text-muted-foreground'}`} />
+                    <Users className={`w-5 h-5 absolute -left-1 -bottom-1 ${mri.endConsumer === 'both' ? 'text-white' : 'text-muted-foreground'}`} />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-foreground mb-1">גם וגם</h4>
+                  <h4 className={`font-semibold mb-1 ${mri.endConsumer === 'both' ? 'text-amber-700' : 'text-foreground'}`}>גם וגם</h4>
                   <p className="text-sm text-muted-foreground">פרטיים וגם ארגונים</p>
                 </div>
               </div>
               {mri.endConsumer === 'both' && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 shadow-sm flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
