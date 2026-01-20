@@ -139,7 +139,7 @@ const CreativeStudio = () => {
   const [clientProfile, setClientProfile] = useState<ClientProfile | null>(null);
   
   // Mode state
-  const [mode, setMode] = useState<StudioMode>('manual');
+  const [mode, setMode] = useState<StudioMode>(null);
   
   // Feedback state
   const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('none');
@@ -933,34 +933,51 @@ const CreativeStudio = () => {
       <div className="container mx-auto px-4 py-6">
         {!showResults ? (
           <div className="max-w-3xl mx-auto">
-            {/* Mode Toggle - only show after brief step */}
-            {currentStep > 0 && (
-              <div className="mb-8">
+            {/* Mode Selection Screen - shown first before any wizard steps */}
+            {mode === null ? (
+              <div className="py-8">
                 <StudioModeToggle value={mode} onChange={setMode} />
               </div>
-            )}
-
-            {mode === 'autopilot' && currentStep > 0 ? (
+            ) : mode === 'autopilot' ? (
               /* Autopilot Mode */
-              <StudioAutopilot
-                isGenerating={isGeneratingConcepts || isGenerating}
-                concepts={concepts}
-                selectedConcept={selectedConcept}
-                clientInfo={clientProfile ? {
-                  business_name: clientProfile.business_name,
-                  target_audience: clientProfile.target_audience
-                } : null}
-                selectedMediaTypes={mediaTypes}
-                onMediaTypesChange={setMediaTypes}
-                onGenerateConcepts={handleGenerateConcepts}
-                onSelectConcept={setSelectedConcept}
-                onExecuteConcept={handleExecuteConcept}
-                selectedHoliday={selectedHoliday}
-                onHolidayChange={setSelectedHoliday}
-              />
+              <div>
+                {/* Back to mode selection */}
+                <button
+                  onClick={() => setMode(null)}
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                  <span>חזרה לבחירת מסלול</span>
+                </button>
+                
+                <StudioAutopilot
+                  isGenerating={isGeneratingConcepts || isGenerating}
+                  concepts={concepts}
+                  selectedConcept={selectedConcept}
+                  clientInfo={clientProfile ? {
+                    business_name: clientProfile.business_name,
+                    target_audience: clientProfile.target_audience
+                  } : null}
+                  selectedMediaTypes={mediaTypes}
+                  onMediaTypesChange={setMediaTypes}
+                  onGenerateConcepts={handleGenerateConcepts}
+                  onSelectConcept={setSelectedConcept}
+                  onExecuteConcept={handleExecuteConcept}
+                  selectedHoliday={selectedHoliday}
+                  onHolidayChange={setSelectedHoliday}
+                />
+              </div>
             ) : (
               /* Manual Mode */
-              <>
+              <div>
+                {/* Back to mode selection */}
+                <button
+                  onClick={() => setMode(null)}
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                  <span>חזרה לבחירת מסלול</span>
+                </button>
                 {/* Progress */}
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-2">
@@ -1021,7 +1038,7 @@ const CreativeStudio = () => {
                     </Button>
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         ) : showSuccess ? (
