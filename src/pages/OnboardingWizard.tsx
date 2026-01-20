@@ -447,7 +447,7 @@ const OnboardingWizard = () => {
         case 2:
           return <StepSelectClient onNext={handleSelectClient} onPrev={prevStep} />;
         case 3:
-          return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} />;
+          return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 4:
           return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 5:
@@ -477,7 +477,7 @@ const OnboardingWizard = () => {
       case 1:
         return <StepWelcome onNext={handleWelcomeComplete} />;
       case 2:
-        return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} />;
+        return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 3:
         return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 4:

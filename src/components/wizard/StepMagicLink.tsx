@@ -13,11 +13,12 @@ interface StepMagicLinkProps {
   data: WizardData;
   updateData: (data: Partial<WizardData>) => void;
   onNext: () => void;
+  onPrev?: () => void;
 }
 
 type InputMode = null | 'website' | 'manual';
 
-const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
+const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps) => {
   const [isScanning, setIsScanning] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showSparkles, setShowSparkles] = useState(false);
@@ -207,6 +208,20 @@ const StepMagicLink = ({ data, updateData, onNext }: StepMagicLinkProps) => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Back to previous step */}
+        {onPrev && (
+          <div className="text-center">
+            <Button
+              onClick={onPrev}
+              variant="ghost"
+              size="lg"
+              className="text-base gap-2"
+            >
+              ← חזרה לשלב הקודם
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
