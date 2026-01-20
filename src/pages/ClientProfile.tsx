@@ -315,12 +315,20 @@ const ClientProfilePage = () => {
       <main className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
         {/* Personal Greeting Preference */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-primary" />
-              העדפת פנייה
-            </CardTitle>
-            <CardDescription>איך נפנה אליך באפליקציה?</CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-primary" />
+                העדפת פנייה
+              </CardTitle>
+              <CardDescription>איך נפנה אליך באפליקציה?</CardDescription>
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
+                <Sparkles className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -366,12 +374,20 @@ const ClientProfilePage = () => {
 
         {/* Business Identity */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="w-5 h-5 text-primary" />
-              זהות המותג
-            </CardTitle>
-            <CardDescription>הלוגו, הצבעים והפונטים שלכם</CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="w-5 h-5 text-primary" />
+                זהות המותג
+              </CardTitle>
+              <CardDescription>הלוגו, הצבעים והפונטים שלכם</CardDescription>
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
+                <Sparkles className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
@@ -530,12 +546,20 @@ const ClientProfilePage = () => {
 
         {/* Strategic DNA */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              ה-DNA האסטרטגי
-            </CardTitle>
-            <CardDescription>מה מבדל אתכם מהמתחרים</CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                ה-DNA האסטרטגי
+              </CardTitle>
+              <CardDescription>מה מבדל אתכם מהמתחרים</CardDescription>
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
+                <Sparkles className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -598,12 +622,20 @@ const ClientProfilePage = () => {
 
         {/* Competitors */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
-              מתחרים
-            </CardTitle>
-            <CardDescription>מי מפריע לכם לישון בלילה?</CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                מתחרים
+              </CardTitle>
+              <CardDescription>מי מפריע לכם לישון בלילה?</CardDescription>
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
+                <Sparkles className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {isEditing && (
@@ -639,12 +671,20 @@ const ClientProfilePage = () => {
 
         {/* Target Audience */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" />
-              קהל יעד
-            </CardTitle>
-            <CardDescription>למי אנחנו מדברים?</CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5 text-primary" />
+                קהל יעד
+              </CardTitle>
+              <CardDescription>למי אנחנו מדברים?</CardDescription>
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
+                <Sparkles className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
@@ -671,14 +711,22 @@ const ClientProfilePage = () => {
 
         {/* Personal Hall of Fame */}
         <Card className="border-success/30 bg-success/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-success" />
-              היכל התהילה האישי שלי
-            </CardTitle>
-            <CardDescription>
-              מה עבד לכם בעבר? תארו קמפיינים מוצלחים, סגנונות שעבדו, או מסרים שהצליחו - הAI ילמד מה הסגנון שעובד לכם
-            </CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-success" />
+                היכל התהילה האישי שלי
+              </CardTitle>
+              <CardDescription>
+                מה עבד לכם בעבר? תארו קמפיינים מוצלחים, סגנונות שעבדו, או מסרים שהצליחו - אנחנו נלמד מה הסגנון שעובד לכם
+              </CardDescription>
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
+                <Sparkles className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {isEditing && (
@@ -717,14 +765,22 @@ const ClientProfilePage = () => {
 
         {/* Personal Red Lines */}
         <Card className="border-destructive/30 bg-destructive/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertOctagon className="w-5 h-5 text-destructive" />
-              הקווים האדומים שלי
-            </CardTitle>
-            <CardDescription>
-              מה לא לומר או להציג בפרסומות שלכם? מילים שאתם לא אוהבים, נושאים רגישים, דברים שלא רוצים להזכיר
-            </CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <AlertOctagon className="w-5 h-5 text-destructive" />
+                הקווים האדומים שלי
+              </CardTitle>
+              <CardDescription>
+                מה לא לומר או להציג בפרסומות שלכם? מילים שאתם לא אוהבים, נושאים רגישים, דברים שלא רוצים להזכיר
+              </CardDescription>
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
+                <Sparkles className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {isEditing && (
