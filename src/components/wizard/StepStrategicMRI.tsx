@@ -331,33 +331,24 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
         </CardContent>
       </Card>
 
-      {/* Section 3: The Arena - Simplified */}
+      {/* Section 3: The Arena - Simplified & Cleaner */}
       <Card className="border-border">
-        <CardContent className="p-6 space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">איפה אתה ממוקם בשוק?</h3>
+        <CardContent className="p-6 md:p-8 space-y-8">
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-foreground mb-2">איפה אתה ממוקם בשוק?</h3>
             <p className="text-sm text-muted-foreground">הגדר את הפוזיציה שלך בשני צירים פשוטים</p>
           </div>
 
-          {/* Price Positioning */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Tag className="w-4 h-4 text-primary" />
-                </div>
-                <span className="font-medium text-foreground">רמת מחיר</span>
+          {/* Price Positioning - Cleaner Design */}
+          <div className="p-6 rounded-2xl bg-muted/30 border border-border space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Tag className="w-5 h-5 text-primary" />
               </div>
-              <Badge variant="secondary" className="text-xs">
-                {mri.myPosition.x < -30 ? 'זול / משתלם' : mri.myPosition.x > 30 ? 'פרימיום / יוקרה' : 'ביניים'}
-              </Badge>
+              <span className="text-lg font-semibold text-foreground">רמת מחיר</span>
             </div>
             
-            <div className="relative px-2">
-              <div className="flex justify-between text-xs text-muted-foreground mb-3">
-                <span>💰 זול / משתלם</span>
-                <span>💎 פרימיום / יוקרה</span>
-              </div>
+            <div className="relative pt-2" dir="ltr">
               <Slider
                 value={[mri.myPosition.x + 100]}
                 onValueChange={(value) => updateMRI({ myPosition: { ...mri.myPosition, x: value[0] - 100 } })}
@@ -365,38 +356,35 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 step={10}
                 className="w-full"
               />
-              <div className="flex justify-between mt-2">
-                {['הכי זול', 'מתחת לממוצע', 'ממוצע', 'מעל הממוצע', 'הכי יקר'].map((label, i) => (
-                  <div key={i} className="flex flex-col items-center">
-                    <div className={`w-1.5 h-1.5 rounded-full ${
-                      Math.abs((mri.myPosition.x + 100) - (i * 50)) < 25 ? 'bg-primary' : 'bg-border'
-                    }`} />
-                    <span className="text-[10px] text-muted-foreground mt-1 hidden md:block">{label}</span>
-                  </div>
-                ))}
+              <div className="flex justify-between mt-4 text-sm" dir="rtl">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">💰</span>
+                  <span className="text-muted-foreground font-medium">זול / משתלם</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">💎</span>
+                  <span className="text-muted-foreground font-medium">פרימיום / יוקרה</span>
+                </div>
               </div>
+            </div>
+
+            <div className="text-center">
+              <Badge variant="secondary" className="text-sm px-4 py-1">
+                {mri.myPosition.x < -30 ? '💰 זול / משתלם' : mri.myPosition.x > 30 ? '💎 פרימיום / יוקרה' : '⚖️ מחיר ביניים'}
+              </Badge>
             </div>
           </div>
 
-          {/* Style Positioning */}
-          <div className="space-y-4 pt-4 border-t border-border">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                </div>
-                <span className="font-medium text-foreground">סגנון תקשורת</span>
+          {/* Style Positioning - Cleaner Design */}
+          <div className="p-6 rounded-2xl bg-muted/30 border border-border space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary" />
               </div>
-              <Badge variant="secondary" className="text-xs">
-                {mri.myPosition.y < -30 ? 'קלאסי / מסורתי' : mri.myPosition.y > 30 ? 'מודרני / חדשני' : 'מאוזן'}
-              </Badge>
+              <span className="text-lg font-semibold text-foreground">סגנון תקשורת</span>
             </div>
             
-            <div className="relative px-2">
-              <div className="flex justify-between text-xs text-muted-foreground mb-3">
-                <span>🏛️ קלאסי / אולד סקול</span>
-                <span>✨ מודרני / חדשני</span>
-              </div>
+            <div className="relative pt-2" dir="ltr">
               <Slider
                 value={[mri.myPosition.y + 100]}
                 onValueChange={(value) => updateMRI({ myPosition: { ...mri.myPosition, y: value[0] - 100 } })}
@@ -404,28 +392,34 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 step={10}
                 className="w-full"
               />
-              <div className="flex justify-between mt-2">
-                {['קלאסי מאוד', 'נוטה לקלאסי', 'מאוזן', 'נוטה למודרני', 'מודרני מאוד'].map((label, i) => (
-                  <div key={i} className="flex flex-col items-center">
-                    <div className={`w-1.5 h-1.5 rounded-full ${
-                      Math.abs((mri.myPosition.y + 100) - (i * 50)) < 25 ? 'bg-primary' : 'bg-border'
-                    }`} />
-                    <span className="text-[10px] text-muted-foreground mt-1 hidden md:block">{label}</span>
-                  </div>
-                ))}
+              <div className="flex justify-between mt-4 text-sm" dir="rtl">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">🏛️</span>
+                  <span className="text-muted-foreground font-medium">קלאסי / מסורתי</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">✨</span>
+                  <span className="text-muted-foreground font-medium">מודרני / חדשני</span>
+                </div>
               </div>
+            </div>
+
+            <div className="text-center">
+              <Badge variant="secondary" className="text-sm px-4 py-1">
+                {mri.myPosition.y < -30 ? '🏛️ קלאסי / מסורתי' : mri.myPosition.y > 30 ? '✨ מודרני / חדשני' : '⚖️ סגנון מאוזן'}
+              </Badge>
             </div>
           </div>
 
-          {/* Summary Card */}
-          <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
+          {/* Summary Card - Prominent */}
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/30">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold shrink-0">
                 אני
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">הפוזיציה שלך:</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="font-semibold text-foreground">הפוזיציה שלך:</p>
+                <p className="text-sm text-muted-foreground mt-1">
                   {mri.myPosition.x < -30 ? 'זול ומשתלם' : mri.myPosition.x > 30 ? 'פרימיום ויוקרתי' : 'מחיר ביניים'}
                   {' • '}
                   {mri.myPosition.y < -30 ? 'סגנון קלאסי ומסורתי' : mri.myPosition.y > 30 ? 'סגנון מודרני וחדשני' : 'סגנון מאוזן'}
