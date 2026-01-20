@@ -58,7 +58,7 @@ export const StepContactAssets = ({ data, onChange }: StepContactAssetsProps) =>
           פרטי יצירת קשר
         </h2>
         <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
-          הזן את הפרטים שיופיעו בפרסומים שלך
+          בעת יצירת הקמפיין תוכלו לבחור אילו פרטים יופיעו בפרסום
         </p>
       </div>
 
