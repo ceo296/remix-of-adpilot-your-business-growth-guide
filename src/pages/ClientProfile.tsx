@@ -59,9 +59,11 @@ const ClientProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isExtractingColors, setIsExtractingColors] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   
   // Editable fields
   const [businessName, setBusinessName] = useState(profile?.business_name || '');
+  const [logoUrl, setLogoUrl] = useState(profile?.logo_url || '');
   const [primaryColor, setPrimaryColor] = useState(profile?.primary_color || '#E31E24');
   const [secondaryColor, setSecondaryColor] = useState(profile?.secondary_color || '#000000');
   const [xFactors, setXFactors] = useState<string[]>(profile?.x_factors || []);
@@ -83,6 +85,7 @@ const ClientProfilePage = () => {
   useEffect(() => {
     if (profile) {
       setBusinessName(profile.business_name);
+      setLogoUrl(profile.logo_url || '');
       setPrimaryColor(profile.primary_color || '#E31E24');
       setSecondaryColor(profile.secondary_color || '#000000');
       setXFactors(profile.x_factors || []);
@@ -163,6 +166,7 @@ const ClientProfilePage = () => {
     try {
       await updateProfile({
         business_name: businessName,
+        logo_url: logoUrl,
         primary_color: primaryColor,
         secondary_color: secondaryColor,
         x_factors: xFactors,
@@ -179,6 +183,35 @@ const ClientProfilePage = () => {
       toast.error(error.message || 'שגיאה בעדכון הפרופיל');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsUploadingLogo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('client-assets')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('client-assets')
+        .getPublicUrl(filePath);
+
+      setLogoUrl(publicUrl);
+      toast.success('הלוגו הועלה בהצלחה!');
+    } catch (error: any) {
+      toast.error(error.message || 'שגיאה בהעלאת הלוגו');
+    } finally {
+      setIsUploadingLogo(false);
     }
   };
 
@@ -357,23 +390,68 @@ const ClientProfilePage = () => {
               
               <div>
                 <Label>לוגו</Label>
-                {profile.logo_url ? (
-                  profile.logo_url.toLowerCase().endsWith('.pdf') ? (
-                    <div className="h-12 w-12 mt-1 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-primary" />
-                    </div>
-                  ) : (
-                    <img src={profile.logo_url} alt="Logo" className="h-12 mt-1 object-contain" />
-                  )
-                ) : (
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                      <Upload className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    {isEditing && (
-                      <Button variant="outline" size="sm">העלה לוגו</Button>
+                {isEditing ? (
+                  <div className="flex items-center gap-3 mt-2">
+                    {logoUrl ? (
+                      logoUrl.toLowerCase().endsWith('.pdf') ? (
+                        <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-primary" />
+                        </div>
+                      ) : (
+                        <img src={logoUrl} alt="Logo" className="h-16 object-contain rounded-lg border border-border" />
+                      )
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
+                        <Upload className="w-6 h-6 text-muted-foreground" />
+                      </div>
                     )}
+                    <div className="flex flex-col gap-2">
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={handleLogoUpload}
+                          className="hidden"
+                          disabled={isUploadingLogo}
+                        />
+                        <Button variant="outline" size="sm" asChild disabled={isUploadingLogo}>
+                          <span>
+                            <Upload className="w-4 h-4 ml-2" />
+                            {isUploadingLogo ? 'מעלה...' : logoUrl ? 'החלף לוגו' : 'העלה לוגו'}
+                          </span>
+                        </Button>
+                      </label>
+                      {logoUrl && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setLogoUrl('')}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <X className="w-4 h-4 ml-2" />
+                          הסר לוגו
+                        </Button>
+                      )}
+                    </div>
                   </div>
+                ) : (
+                  <>
+                    {(logoUrl || profile.logo_url) ? (
+                      (logoUrl || profile.logo_url)?.toLowerCase().endsWith('.pdf') ? (
+                        <div className="h-12 w-12 mt-1 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <FileText className="w-6 h-6 text-primary" />
+                        </div>
+                      ) : (
+                        <img src={logoUrl || profile.logo_url} alt="Logo" className="h-12 mt-1 object-contain" />
+                      )
+                    ) : (
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                          <Upload className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
