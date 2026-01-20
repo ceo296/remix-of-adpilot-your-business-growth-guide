@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import Dashboard from "./pages/Dashboard";
 import CreativeStudio from "./pages/CreativeStudio";
+import InternalStudio from "./pages/InternalStudio";
 import SectorBrain from "./pages/SectorBrain";
 import ClientProfile from "./pages/ClientProfile";
 import FastTrackWizard from "./pages/FastTrackWizard";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/onboarding" element={<OnboardingWizard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/studio" element={<CreativeStudio />} />
+            <Route path="/internal-studio" element={<InternalStudio />} />
             <Route path="/brain" element={<SectorBrain />} />
             <Route path="/profile" element={<ClientProfile />} />
             <Route path="/new-campaign" element={<FastTrackWizard />} />

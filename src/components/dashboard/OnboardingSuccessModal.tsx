@@ -38,7 +38,7 @@ const OnboardingSuccessModal = ({ userName = 'שם', brandName = 'העסק' }: O
 
   const handleCreateInternalMaterials = () => {
     setIsOpen(false);
-    navigate('/studio?type=internal');
+    navigate('/internal-studio');
   };
 
   const handleStayOnDashboard = () => {
