@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, Heart, Upload, User, Building2, AlertCircle, FileText, X } from 'lucide-react';
+import { Sparkles, Heart, Upload, User, Building2, FileText, X } from 'lucide-react';
 import { BrandingStudio } from './BrandingStudio';
 
 interface UploadedFile {
@@ -40,7 +40,6 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
         };
         reader.readAsDataURL(file);
       });
-      // Clear input to allow re-uploading same file
       e.target.value = '';
     }
   };
@@ -50,16 +49,13 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
   };
 
   const handleContinue = () => {
-    // Agencies don't need files at this stage
     const filesRequired = isAgency === false;
     if (userName.trim() && brandName.trim() && isAgency !== null && (!filesRequired || files.length > 0)) {
-      // Pass first file as logo for backward compatibility
       const logoData = files.length > 0 ? files[0].dataUrl : null;
       onNext(userName.trim(), brandName.trim(), logoData, isAgency);
     }
   };
 
-  // Agencies don't need files at this stage
   const filesRequired = isAgency === false;
   const isValid = userName.trim() && brandName.trim() && isAgency !== null && (!filesRequired || files.length > 0);
 
@@ -68,8 +64,8 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
       <div className="space-y-10">
         {/* Header - larger and more prominent */}
         <div className="text-center space-y-6">
-          <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
-            <Heart className="w-12 h-12 text-primary" />
+          <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg shadow-rose-500/30 flex items-center justify-center">
+            <Heart className="w-12 h-12 text-white" />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">
             ברוכים הבאים ל-
@@ -85,7 +81,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
         {/* Form - enhanced spacing and visibility */}
         <Card className="max-w-2xl mx-auto border-2 border-primary/20 shadow-xl">
           <CardContent className="p-8 md:p-10 space-y-8">
-            {/* Account Type - larger buttons */}
+            {/* Account Type - larger buttons with gradients */}
             <div className="space-y-4">
               <label className="text-base font-semibold text-foreground block">
                 מי אתה?
@@ -96,16 +92,18 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   onClick={() => setIsAgency(false)}
                   className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${
                     isAgency === false
-                      ? 'border-primary bg-primary/10 text-primary shadow-lg scale-[1.02]'
-                      : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-lg scale-[1.02]'
+                      : 'border-border hover:border-blue-300 hover:bg-blue-50/50'
                   }`}
                 >
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-                    isAgency === false ? 'bg-primary/20' : 'bg-muted'
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
+                    isAgency === false 
+                      ? 'bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md shadow-blue-500/30' 
+                      : 'bg-muted'
                   }`}>
-                    <User className="w-7 h-7" />
+                    <User className={`w-7 h-7 ${isAgency === false ? 'text-white' : 'text-muted-foreground'}`} />
                   </div>
-                  <span className="font-bold text-lg">לקוח פרטי</span>
+                  <span className={`font-bold text-lg ${isAgency === false ? 'text-blue-700' : ''}`}>לקוח פרטי</span>
                   <span className="text-sm text-muted-foreground">עסק אחד, קמפיינים משלי</span>
                 </button>
                 <button
@@ -113,56 +111,73 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   onClick={() => setIsAgency(true)}
                   className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${
                     isAgency === true
-                      ? 'border-primary bg-primary/10 text-primary shadow-lg scale-[1.02]'
-                      : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                      ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-violet-50 shadow-lg scale-[1.02]'
+                      : 'border-border hover:border-purple-300 hover:bg-purple-50/50'
                   }`}
                 >
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-                    isAgency === true ? 'bg-primary/20' : 'bg-muted'
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
+                    isAgency === true 
+                      ? 'bg-gradient-to-br from-purple-500 to-violet-600 shadow-md shadow-purple-500/30' 
+                      : 'bg-muted'
                   }`}>
-                    <Building2 className="w-7 h-7" />
+                    <Building2 className={`w-7 h-7 ${isAgency === true ? 'text-white' : 'text-muted-foreground'}`} />
                   </div>
-                  <span className="font-bold text-lg">סוכנות שיווק</span>
+                  <span className={`font-bold text-lg ${isAgency === true ? 'text-purple-700' : ''}`}>סוכנות שיווק</span>
                   <span className="text-sm text-muted-foreground">מנהל כמה לקוחות</span>
                 </button>
               </div>
             </div>
 
-            {/* User Name - larger input */}
+            {/* User Name - enhanced input */}
             <div className="space-y-3">
-              <label className="text-base font-semibold text-foreground block">
-                איך לקרוא לך?
-              </label>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-md shadow-emerald-500/30 flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <label className="text-base font-semibold text-foreground">
+                  איך לקרוא לך?
+                </label>
+              </div>
               <Input
                 type="text"
                 placeholder="שמך הפרטי"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                className="text-lg h-16 text-xl"
+                className="text-lg h-14 text-xl border-2 border-emerald-200 focus:border-emerald-400 bg-gradient-to-br from-emerald-50/50 to-teal-50/50"
               />
             </div>
 
-            {/* Brand Name - larger input */}
+            {/* Brand Name - enhanced input */}
             <div className="space-y-3">
-              <label className="text-base font-semibold text-foreground block">
-                {isAgency ? 'שם הסוכנות?' : 'שם המותג/העסק?'}
-              </label>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-md shadow-amber-500/30 flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-white" />
+                </div>
+                <label className="text-base font-semibold text-foreground">
+                  {isAgency ? 'שם הסוכנות?' : 'שם המותג/העסק?'}
+                </label>
+              </div>
               <Input
                 type="text"
                 placeholder={isAgency ? 'שם הסוכנות' : 'שם העסק'}
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
-                className="text-lg h-16 text-xl"
+                className="text-lg h-14 text-xl border-2 border-amber-200 focus:border-amber-400 bg-gradient-to-br from-amber-50/50 to-orange-50/50"
               />
             </div>
 
             {/* Logo/Brand Book Upload - Only required for private clients */}
             {isAgency === false && (
               <div className="space-y-4">
-                <label className="text-base font-semibold text-foreground flex items-center gap-2">
-                  העלה לוגו / ספר מותג
-                  <span className="text-destructive text-lg">*</span>
-                </label>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-md shadow-indigo-500/30 flex items-center justify-center">
+                    <Upload className="w-5 h-5 text-white" />
+                  </div>
+                  <label className="text-base font-semibold text-foreground flex items-center gap-2">
+                    העלה לוגו / ספר מותג
+                    <span className="text-destructive text-lg">*</span>
+                  </label>
+                </div>
                 
                 <input
                   ref={fileInputRef}
@@ -173,17 +188,17 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   className="hidden"
                 />
                 
-                {/* Upload area - larger and more prominent */}
+                {/* Upload area - enhanced with gradient */}
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full min-h-[120px] rounded-2xl border-3 border-dashed flex items-center justify-center overflow-hidden transition-all cursor-pointer group border-primary/40 hover:border-primary hover:bg-primary/5 bg-primary/5"
+                  className="w-full min-h-[120px] rounded-2xl border-3 border-dashed flex items-center justify-center overflow-hidden transition-all cursor-pointer group border-indigo-300 hover:border-indigo-500 bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100"
                 >
                   <div className="text-center p-6 group-hover:scale-105 transition-transform">
-                    <div className="w-16 h-16 mx-auto rounded-xl bg-primary/20 flex items-center justify-center mb-3">
-                      <Upload className="w-8 h-8 text-primary" />
+                    <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-md shadow-indigo-500/30 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Upload className="w-8 h-8 text-white" />
                     </div>
-                    <span className="text-base font-medium text-foreground">לחץ להעלאה</span>
-                    <span className="text-sm text-muted-foreground block mt-1">(תמונות או PDF)</span>
+                    <span className="text-base font-medium text-indigo-700">לחץ להעלאה</span>
+                    <span className="text-sm text-indigo-500 block mt-1">(תמונות או PDF)</span>
                   </div>
                 </div>
 
@@ -193,7 +208,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                     {files.map((file, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-4 p-4 rounded-xl bg-success/10 border-2 border-success/30"
+                        className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300"
                       >
                         {file.type.startsWith('image/') ? (
                           <img
@@ -202,8 +217,8 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                             className="h-14 w-14 object-contain rounded-lg"
                           />
                         ) : (
-                          <div className="h-14 w-14 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <FileText className="w-7 h-7 text-primary" />
+                          <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-md shadow-green-500/30">
+                            <FileText className="w-7 h-7 text-white" />
                           </div>
                         )}
                         <span className="flex-1 text-base font-medium text-foreground truncate">{file.name}</span>
@@ -213,7 +228,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                             e.stopPropagation();
                             removeFile(index);
                           }}
-                          className="p-2 hover:bg-destructive/10 rounded-lg transition-colors"
+                          className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                         >
                           <X className="w-5 h-5 text-destructive" />
                         </button>
@@ -223,22 +238,24 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                 )}
 
                 {files.length === 0 && (
-                  <div className="flex items-center gap-3 text-blue-700 bg-blue-50 p-4 rounded-xl border border-blue-200">
-                    <Upload className="w-6 h-6 flex-shrink-0" />
+                  <div className="flex items-center gap-3 text-blue-700 bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-xl border border-blue-200">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-sm">
+                      <Upload className="w-4 h-4 text-white" />
+                    </div>
                     <span className="font-medium">העלאת לוגו תעזור לנו להתאים את העיצובים בדיוק למותג שלך ✨</span>
                   </div>
                 )}
 
-                {/* No branding button - more prominent */}
+                {/* No branding button - enhanced */}
                 <button
                   type="button"
                   onClick={() => setShowBrandingStudio(true)}
-                  className="w-full p-4 rounded-xl border-2 border-dashed border-primary/40 hover:border-primary bg-primary/5 hover:bg-primary/10 transition-all flex items-center justify-center gap-3 group"
+                  className="w-full p-4 rounded-xl border-2 border-dashed border-violet-300 hover:border-violet-500 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 transition-all flex items-center justify-center gap-3 group"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Sparkles className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 shadow-md shadow-violet-500/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-lg font-semibold text-primary">אין לי מיתוג - תעזרו לי</span>
+                  <span className="text-lg font-semibold text-violet-700">אין לי מיתוג - תעזרו לי</span>
                 </button>
               </div>
             )}
@@ -256,7 +273,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
             </Button>
 
             {!isValid && (
-              <p className="text-center text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+              <p className="text-center text-sm text-muted-foreground bg-gradient-to-br from-slate-50 to-gray-100 p-3 rounded-lg border border-slate-200">
                 {isAgency === false 
                   ? '📝 יש למלא את כל השדות ולהעלות לוגו כדי להמשיך'
                   : '📝 יש למלא את כל השדות כדי להמשיך'

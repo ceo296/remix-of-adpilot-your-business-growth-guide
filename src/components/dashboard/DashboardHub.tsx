@@ -122,15 +122,15 @@ const DashboardHub = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto px-4">
         {/* Create Campaign with AI */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-primary bg-primary/5 hover:bg-primary/10"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
           onClick={() => handleNewCampaign('create')}
         >
           <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-4">
-              <Sparkles className="w-10 h-10 text-primary-foreground" />
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Sparkles className="w-10 h-10 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">קמפיין פרסומי</h3>
-            <p className="text-muted-foreground mb-3 text-sm">
+            <h3 className="text-xl font-bold text-violet-800 mb-2">קמפיין פרסומי</h3>
+            <p className="text-violet-600 mb-3 text-sm">
               יצירה עם AI
             </p>
             <p className="text-xs text-muted-foreground">
@@ -141,15 +141,15 @@ const DashboardHub = () => {
 
         {/* Internal Materials */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 hover:border-secondary"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100"
           onClick={() => handleNewCampaign('internal')}
         >
           <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-secondary flex items-center justify-center mb-4">
-              <Building2 className="w-10 h-10 text-secondary-foreground" />
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center mb-4">
+              <Building2 className="w-10 h-10 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">חומרים פנימיים</h3>
-            <p className="text-muted-foreground mb-3 text-sm">
+            <h3 className="text-xl font-bold text-emerald-800 mb-2">חומרים פנימיים</h3>
+            <p className="text-emerald-600 mb-3 text-sm">
               לשימוש עסקי
             </p>
             <p className="text-xs text-muted-foreground">
@@ -179,15 +179,15 @@ const DashboardHub = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto px-4">
         {/* Campaign History Card */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 group border-2"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100"
           onClick={() => setCurrentView('history')}
         >
           <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-secondary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Layers className="w-8 h-8 text-secondary-foreground" />
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Layers className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">היסטוריית קמפיינים</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="text-xl font-bold text-blue-800 mb-2">היסטוריית קמפיינים</h3>
+            <p className="text-sm text-blue-600">
               צפה בקמפיינים קודמים
             </p>
           </CardContent>
@@ -196,23 +196,30 @@ const DashboardHub = () => {
         {/* Campaign Status Card - CENTER */}
         <Card 
           className={cn(
-            "cursor-pointer transition-all duration-300 hover:shadow-lg group border-2 md:order-none order-first",
-            activeCampaign ? "hover:border-primary/50 border-primary" : "hover:border-muted-foreground/30"
+            "cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 md:order-none order-first",
+            activeCampaign 
+              ? "border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100" 
+              : "border-slate-300 bg-gradient-to-br from-slate-50 to-gray-50 hover:from-slate-100 hover:to-gray-100"
           )}
           onClick={() => setCurrentView('status')}
         >
           <CardContent className="p-8 text-center">
             <div className={cn(
-              "w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform",
-              activeCampaign ? "bg-primary" : "bg-muted"
+              "w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg",
+              activeCampaign 
+                ? "bg-gradient-to-br from-amber-500 to-orange-500 shadow-amber-500/30" 
+                : "bg-gradient-to-br from-slate-500 to-gray-600 shadow-slate-500/30"
             )}>
-              <Activity className={cn(
-                "w-10 h-10",
-                activeCampaign ? "text-primary-foreground" : "text-muted-foreground"
-              )} />
+              <Activity className="w-10 h-10 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">סטטוס קמפיין</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className={cn(
+              "text-xl font-bold mb-2",
+              activeCampaign ? "text-amber-800" : "text-slate-700"
+            )}>סטטוס קמפיין</h3>
+            <p className={cn(
+              "text-sm",
+              activeCampaign ? "text-amber-600" : "text-slate-500"
+            )}>
               {activeCampaign ? "עקוב אחרי הקמפיין הפעיל" : "צפה בסטטוס ופרטי התקציב"}
             </p>
           </CardContent>
@@ -220,15 +227,15 @@ const DashboardHub = () => {
 
         {/* New Campaign Card */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 group border-2"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
           onClick={() => setCurrentView('new-campaign')}
         >
           <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Plus className="w-8 h-8 text-primary-foreground" />
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Plus className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">קמפיין חדש</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="text-xl font-bold text-violet-800 mb-2">קמפיין חדש</h3>
+            <p className="text-sm text-violet-600">
               צור קמפיין חדש או העלה חומרים קיימים
             </p>
           </CardContent>
@@ -256,15 +263,15 @@ const DashboardHub = () => {
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {/* Create with AI */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-primary bg-primary/5 hover:bg-primary/10"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
           onClick={() => handleNewCampaign('create')}
         >
           <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-primary flex items-center justify-center mb-4">
-              <Sparkles className="w-8 h-8 text-primary-foreground" />
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center mb-4">
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">קמפיין חדש</h3>
-            <p className="text-muted-foreground mb-3 text-sm">
+            <h3 className="text-xl font-bold text-violet-800 mb-2">קמפיין חדש</h3>
+            <p className="text-violet-600 mb-3 text-sm">
               יצירה עם AI
             </p>
             <p className="text-xs text-muted-foreground">
@@ -275,15 +282,15 @@ const DashboardHub = () => {
 
         {/* Upload Existing */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 hover:border-primary/50"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100"
           onClick={() => handleNewCampaign('upload')}
         >
           <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-muted flex items-center justify-center mb-4">
-              <FileUp className="w-8 h-8 text-muted-foreground" />
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/30 flex items-center justify-center mb-4">
+              <FileUp className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">העלאת קמפיין</h3>
-            <p className="text-muted-foreground mb-3 text-sm">
+            <h3 className="text-xl font-bold text-blue-800 mb-2">העלאת קמפיין</h3>
+            <p className="text-blue-600 mb-3 text-sm">
               חומרים קיימים
             </p>
             <p className="text-xs text-muted-foreground">
@@ -294,15 +301,15 @@ const DashboardHub = () => {
 
         {/* Internal Materials */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 hover:border-secondary"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100"
           onClick={() => handleNewCampaign('internal')}
         >
           <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-secondary flex items-center justify-center mb-4">
-              <Building2 className="w-8 h-8 text-secondary-foreground" />
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center mb-4">
+              <Building2 className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">חומרים פנימיים</h3>
-            <p className="text-muted-foreground mb-3 text-sm">
+            <h3 className="text-xl font-bold text-emerald-800 mb-2">חומרים פנימיים</h3>
+            <p className="text-emerald-600 mb-3 text-sm">
               לשימוש עסקי
             </p>
             <p className="text-xs text-muted-foreground">
