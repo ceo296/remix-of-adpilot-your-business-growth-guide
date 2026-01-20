@@ -117,39 +117,30 @@ const CampaignHistory = () => {
         </Link>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {campaigns.map((campaign) => {
             const status = STATUS_LABELS[campaign.status || 'draft'] || STATUS_LABELS.draft;
-            const goalLabel = campaign.goal ? GOAL_LABELS[campaign.goal] || campaign.goal : null;
             
             return (
               <Link 
                 key={campaign.id} 
                 to={`/studio?campaign=${campaign.id}`}
-                className="block p-4 rounded-lg border border-border bg-background hover:bg-accent/50 transition-colors"
+                className="block p-3 rounded-lg border border-border bg-background hover:bg-accent/50 transition-colors"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-foreground truncate">{campaign.name}</h4>
-                      <Badge variant={status.variant} className="shrink-0">
-                        {status.label}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      {goalLabel && (
-                        <span className="flex items-center gap-1">
-                          <Target className="w-3 h-3" />
-                          {goalLabel}
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {format(new Date(campaign.created_at), 'd בMMM yyyy', { locale: he })}
-                      </span>
-                    </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <h4 className="font-medium text-foreground truncate">{campaign.name}</h4>
+                    <Badge variant={status.variant} className="shrink-0 text-xs">
+                      {status.label}
+                    </Badge>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {format(new Date(campaign.created_at), 'd.M.yy', { locale: he })}
+                    </span>
+                    <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+                  </div>
                 </div>
               </Link>
             );
