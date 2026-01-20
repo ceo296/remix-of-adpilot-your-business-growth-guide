@@ -260,12 +260,18 @@ const ClientProfilePage = () => {
               חזרה לדשבורד
             </Button>
             {isEditing ? (
-              <Button variant="gradient" onClick={handleSave} disabled={isSaving}>
-                <Save className="w-4 h-4 ml-2" />
+              <Button variant="gradient" size="lg" onClick={handleSave} disabled={isSaving} className="text-base px-6 py-3 shadow-lg">
+                <Save className="w-5 h-5 ml-2" />
                 {isSaving ? 'שומר...' : 'שמור שינויים'}
               </Button>
             ) : (
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
+              <Button 
+                variant="gradient" 
+                size="lg" 
+                onClick={() => setIsEditing(true)}
+                className="text-base px-6 py-3 shadow-lg animate-pulse hover:animate-none"
+              >
+                <Sparkles className="w-5 h-5 ml-2" />
                 ערוך פרופיל
               </Button>
             )}
