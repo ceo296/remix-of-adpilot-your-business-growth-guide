@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   DollarSign, 
   Users, 
@@ -13,10 +15,13 @@ import {
   Package,
   Sparkles,
   Star,
-  MousePointerClick
+  MousePointerClick,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { MediaSelector } from '@/components/studio/MediaSelector';
+import { format } from 'date-fns';
+import { he } from 'date-fns/locale';
 
 interface MediaPackage {
   id: string;
@@ -35,6 +40,10 @@ interface MediaPackage {
 interface BudgetAudienceStepProps {
   budget: number;
   onBudgetChange: (value: number) => void;
+  startDate?: Date;
+  onStartDateChange?: (date: Date | undefined) => void;
+  endDate?: Date;
+  onEndDateChange?: (date: Date | undefined) => void;
   targetStream: string;
   onTargetStreamChange: (value: string) => void;
   targetGender: string;
@@ -74,6 +83,10 @@ const CITIES = [
 export const BudgetAudienceStep = ({
   budget,
   onBudgetChange,
+  startDate,
+  onStartDateChange,
+  endDate,
+  onEndDateChange,
   targetStream,
   onTargetStreamChange,
   targetGender,
@@ -219,6 +232,63 @@ export const BudgetAudienceStep = ({
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Campaign Dates */}
+      {onStartDateChange && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-primary" />
+              תאריכי הקמפיין
+            </CardTitle>
+            <CardDescription>מתי הקמפיין יופעל?</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="font-medium">תאריך התחלה</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start h-12 text-base">
+                      <CalendarIcon className="w-4 h-4 ml-2 text-muted-foreground" />
+                      {startDate ? format(startDate, 'dd/MM/yyyy', { locale: he }) : 'בחר תאריך'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={onStartDateChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-medium">תאריך סיום</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start h-12 text-base">
+                      <CalendarIcon className="w-4 h-4 ml-2 text-muted-foreground" />
+                      {endDate ? format(endDate, 'dd/MM/yyyy', { locale: he }) : 'בחר תאריך'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={onEndDateChange}
+                      disabled={(date) => startDate ? date < startDate : false}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Budget Input */}
       <Card>
         <CardHeader>
