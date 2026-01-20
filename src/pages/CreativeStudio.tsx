@@ -68,14 +68,32 @@ interface MediaPackage {
   recommended?: boolean;
 }
 
-const STEP_TITLES = [
-  'בריף קמפיין',
-  'סוג מדיה',
-  'בחירת נכס',
-  'עיבוד תמונה',
-  'סגנון עיצובי',
-  'תיאור ותוכן',
-];
+// Dynamic step titles based on media type selection
+const getStepTitles = (mediaTypes: MediaType[]) => {
+  // Determine the display name based on selected media type
+  let mediaLabel = 'קריאייטיב';
+  if (mediaTypes.length === 1) {
+    switch (mediaTypes[0]) {
+      case 'banner': mediaLabel = 'באנר'; break;
+      case 'ad': mediaLabel = 'מודעה'; break;
+      case 'billboard': mediaLabel = 'שלט חוצות'; break;
+      case 'social': mediaLabel = 'פוסט'; break;
+      case 'radio': mediaLabel = 'ספוט רדיו'; break;
+      case 'all': mediaLabel = 'קמפיין 360°'; break;
+    }
+  } else if (mediaTypes.length > 1) {
+    mediaLabel = 'קריאייטיבים';
+  }
+  
+  return [
+    'בריף קמפיין',
+    'סוג מדיה',
+    'בחירת נכס',
+    'עיבוד תמונה',
+    'סגנון עיצובי',
+    'תיאור ותוכן',
+  ];
+};
 
 // Success Screen Component with Confetti
 const SuccessScreen = ({ onReset }: { onReset: () => void }) => {
@@ -238,8 +256,8 @@ const CreativeStudio = () => {
       // Radio doesn't need visual steps
       return [0, 1, 5]; // Brief, MediaType, Prompt (for script)
     }
-    if (assetChoice === 'no-product') {
-      // Skip treatment step for no-product flow
+    if (assetChoice === 'no-product' || assetChoice === 'text-only') {
+      // Skip treatment step for no-product and text-only flows
       return [0, 1, 2, 4, 5]; // Brief, MediaType, Asset, Style, Prompt
     }
     return [0, 1, 2, 3, 4, 5]; // All steps
@@ -303,7 +321,7 @@ const CreativeStudio = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (currentStep === 1 && isOnlyRadio) {
       setCurrentStep(5); // Skip to prompt for radio
-    } else if (currentStep === 2 && assetChoice === 'no-product') {
+    } else if (currentStep === 2 && (assetChoice === 'no-product' || assetChoice === 'text-only')) {
       setCurrentStep(4); // Skip treatment to style
     } else if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
@@ -314,7 +332,7 @@ const CreativeStudio = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (currentStep === 5 && isOnlyRadio) {
       setCurrentStep(1); // Go back to media type for radio
-    } else if (currentStep === 4 && assetChoice === 'no-product') {
+    } else if (currentStep === 4 && (assetChoice === 'no-product' || assetChoice === 'text-only')) {
       setCurrentStep(2); // Go back to asset
     } else if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
@@ -984,7 +1002,7 @@ const CreativeStudio = () => {
                     <span className="text-sm text-muted-foreground">
                       שלב {actualStepIndex + 1} מתוך {totalSteps}
                     </span>
-                    <span className="text-sm font-medium">{STEP_TITLES[currentStep]}</span>
+                    <span className="text-sm font-medium">{getStepTitles(mediaTypes)[currentStep]}</span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
