@@ -76,44 +76,46 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-          <Palette className="w-10 h-10 text-primary" />
+    <div className="space-y-10">
+      {/* Header - larger and more prominent */}
+      <div className="text-center space-y-6">
+        <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
+          <Palette className="w-12 h-12 text-primary" />
         </div>
-        <h2 className="text-3xl font-bold text-foreground">
+        <h2 className="text-3xl md:text-4xl font-bold text-foreground">
           זה מה שתפסנו עליכם, מדויק?
         </h2>
-        <p className="text-lg text-muted-foreground max-w-md mx-auto">
+        <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
           אם משהו לא מדויק - לחצו ותקנו. אנחנו לא נעלבים.
         </p>
       </div>
 
-      {/* Brand Name */}
-      <div className="max-w-xl mx-auto">
-        <Card className="border-2 border-border">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <Pencil className="w-5 h-5 text-muted-foreground" />
+      {/* Brand Name - larger */}
+      <div className="max-w-2xl mx-auto">
+        <Card className="border-2 border-primary/20 shadow-lg">
+          <CardContent className="p-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Pencil className="w-6 h-6 text-primary" />
+              </div>
               <Input
                 value={data.brand.name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="שם העסק"
-                className="text-2xl font-bold border-0 p-0 h-auto focus-visible:ring-0"
+                className="text-3xl font-bold border-0 p-0 h-auto focus-visible:ring-0"
               />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Brand Cards Grid */}
-      <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      {/* Brand Cards Grid - larger cards */}
+      <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
         {/* Logo Card */}
-        <Card className="border-2 border-border hover:border-primary/50 transition-colors cursor-pointer group">
-          <CardContent className="p-6 text-center space-y-4">
-            <h3 className="font-semibold text-foreground flex items-center justify-center gap-2">
-              <Upload className="w-4 h-4" />
+        <Card className="border-2 border-border hover:border-primary/50 transition-colors cursor-pointer group shadow-lg">
+          <CardContent className="p-8 text-center space-y-6">
+            <h3 className="font-bold text-lg text-foreground flex items-center justify-center gap-2">
+              <Upload className="w-5 h-5 text-primary" />
               הלוגו שלך
             </h3>
             
@@ -127,13 +129,13 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
             
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="w-32 h-32 mx-auto rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden hover:border-primary/50 transition-colors cursor-pointer"
+              className="w-36 h-36 mx-auto rounded-2xl border-3 border-dashed border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-all cursor-pointer group-hover:bg-primary/5"
             >
               {data.brand.logo ? (
                 data.brand.logo.startsWith('data:application/pdf') ? (
                   <div className="w-full h-full bg-primary/10 flex flex-col items-center justify-center">
-                    <FileText className="w-10 h-10 text-primary mb-1" />
-                    <span className="text-xs text-primary">ספר מותג</span>
+                    <FileText className="w-12 h-12 text-primary mb-2" />
+                    <span className="text-sm text-primary font-medium">ספר מותג</span>
                   </div>
                 ) : (
                   <img 
@@ -144,9 +146,9 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
                 )
               ) : (
                 <div className="text-center p-4">
-                  <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                  <span className="text-xs text-muted-foreground">לחץ להעלאה</span>
-                  <span className="text-[10px] text-muted-foreground block">(תמונה או PDF)</span>
+                  <Upload className="w-10 h-10 mx-auto text-primary mb-3" />
+                  <span className="text-sm font-medium text-foreground">לחץ להעלאה</span>
+                  <span className="text-xs text-muted-foreground block mt-1">(תמונה או PDF)</span>
                 </div>
               )}
             </div>
@@ -154,30 +156,30 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         </Card>
 
         {/* Colors Card */}
-        <Card className="border-2 border-border">
-          <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold text-foreground flex items-center justify-center gap-2">
-              <Palette className="w-4 h-4" />
+        <Card className="border-2 border-border shadow-lg">
+          <CardContent className="p-8 space-y-6">
+            <h3 className="font-bold text-lg text-foreground flex items-center justify-center gap-2">
+              <Palette className="w-5 h-5 text-primary" />
               הצבעים שלכם
             </h3>
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-sm text-muted-foreground text-center">
               שלא ייצא בטעות כתום במקום אדום...
             </p>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               {(['primary', 'secondary', 'background'] as const).map((colorType) => (
-                <div key={colorType} className="flex items-center gap-3">
+                <div key={colorType} className="flex items-center gap-4">
                   <div className="relative">
                     <input
                       type="color"
                       value={data.brand.colors[colorType]}
                       onChange={(e) => handleColorChange(colorType, e.target.value)}
-                      className="w-10 h-10 rounded-lg cursor-pointer border-2 border-border"
+                      className="w-14 h-14 rounded-xl cursor-pointer border-2 border-border shadow-md"
                     />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{colorLabels[colorType]}</p>
-                    <p className="text-xs text-muted-foreground uppercase">
+                    <p className="text-base font-semibold">{colorLabels[colorType]}</p>
+                    <p className="text-sm text-muted-foreground uppercase">
                       {data.brand.colors[colorType]}
                     </p>
                   </div>
@@ -188,26 +190,26 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         </Card>
 
         {/* Fonts Card */}
-        <Card className="border-2 border-border">
-          <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold text-foreground flex items-center justify-center gap-2">
-              <Type className="w-4 h-4" />
+        <Card className="border-2 border-border shadow-lg">
+          <CardContent className="p-8 space-y-6">
+            <h3 className="font-bold text-lg text-foreground flex items-center justify-center gap-2">
+              <Type className="w-5 h-5 text-primary" />
               הפונטים
             </h3>
             
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm text-muted-foreground">כותרות</label>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-base font-semibold text-foreground">כותרות</label>
                 <Select
                   value={data.brand.headerFont}
                   onValueChange={(value) => handleFontChange('headerFont', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-14 text-base">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {FONT_OPTIONS.map((font) => (
-                      <SelectItem key={font} value={font}>
+                      <SelectItem key={font} value={font} className="text-base py-3">
                         {font}
                       </SelectItem>
                     ))}
@@ -215,18 +217,18 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm text-muted-foreground">טקסט רגיל</label>
+              <div className="space-y-3">
+                <label className="text-base font-semibold text-foreground">טקסט רגיל</label>
                 <Select
                   value={data.brand.bodyFont}
                   onValueChange={(value) => handleFontChange('bodyFont', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-14 text-base">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {FONT_OPTIONS.map((font) => (
-                      <SelectItem key={font} value={font}>
+                      <SelectItem key={font} value={font} className="text-base py-3">
                         {font}
                       </SelectItem>
                     ))}
@@ -238,15 +240,15 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         </Card>
       </div>
 
-      {/* Navigation */}
-      <div className="flex justify-between max-w-4xl mx-auto pt-6">
-        <Button variant="outline" size="lg" onClick={onPrev}>
-          <ArrowRight className="w-4 h-4 ml-2" />
+      {/* Navigation - larger buttons */}
+      <div className="flex justify-between max-w-5xl mx-auto pt-8">
+        <Button variant="outline" size="lg" onClick={onPrev} className="h-14 px-8 text-lg">
+          <ArrowRight className="w-5 h-5 ml-2" />
           חזרה
         </Button>
-        <Button variant="gradient" size="lg" onClick={onNext}>
+        <Button variant="gradient" size="xl" onClick={onNext} className="h-14 px-10 text-lg font-bold">
           נראה טוב, ממשיכים
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-5 h-5 mr-2" />
         </Button>
       </div>
     </div>

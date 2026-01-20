@@ -65,64 +65,72 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
 
   return (
     <>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <Heart className="w-10 h-10 text-primary" />
+      <div className="space-y-10">
+        {/* Header - larger and more prominent */}
+        <div className="text-center space-y-6">
+          <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
+            <Heart className="w-12 h-12 text-primary" />
           </div>
-          <h2 className="text-3xl font-bold text-foreground">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground">
             ברוכים הבאים ל-
             <span className="logo-black">AD</span>
             <span className="logo-red">KOP</span>
             . בואו נכיר.
           </h2>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
             לפני שמתחילים לעבוד, חשוב לנו לדעת עם מי יש לנו עסק.
           </p>
         </div>
 
-        {/* Form */}
-        <Card className="max-w-xl mx-auto border-2 border-primary/20">
-          <CardContent className="p-8 space-y-6">
-            {/* Account Type */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">
+        {/* Form - enhanced spacing and visibility */}
+        <Card className="max-w-2xl mx-auto border-2 border-primary/20 shadow-xl">
+          <CardContent className="p-8 md:p-10 space-y-8">
+            {/* Account Type - larger buttons */}
+            <div className="space-y-4">
+              <label className="text-base font-semibold text-foreground block">
                 מי אתה?
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
                   onClick={() => setIsAgency(false)}
-                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                  className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${
                     isAgency === false
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border hover:border-primary/50'
+                      ? 'border-primary bg-primary/10 text-primary shadow-lg scale-[1.02]'
+                      : 'border-border hover:border-primary/50 hover:bg-primary/5'
                   }`}
                 >
-                  <User className="w-6 h-6" />
-                  <span className="font-medium">לקוח פרטי</span>
-                  <span className="text-xs text-muted-foreground">עסק אחד, קמפיינים משלי</span>
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+                    isAgency === false ? 'bg-primary/20' : 'bg-muted'
+                  }`}>
+                    <User className="w-7 h-7" />
+                  </div>
+                  <span className="font-bold text-lg">לקוח פרטי</span>
+                  <span className="text-sm text-muted-foreground">עסק אחד, קמפיינים משלי</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsAgency(true)}
-                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                  className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${
                     isAgency === true
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border hover:border-primary/50'
+                      ? 'border-primary bg-primary/10 text-primary shadow-lg scale-[1.02]'
+                      : 'border-border hover:border-primary/50 hover:bg-primary/5'
                   }`}
                 >
-                  <Building2 className="w-6 h-6" />
-                  <span className="font-medium">סוכנות שיווק</span>
-                  <span className="text-xs text-muted-foreground">מנהל כמה לקוחות</span>
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+                    isAgency === true ? 'bg-primary/20' : 'bg-muted'
+                  }`}>
+                    <Building2 className="w-7 h-7" />
+                  </div>
+                  <span className="font-bold text-lg">סוכנות שיווק</span>
+                  <span className="text-sm text-muted-foreground">מנהל כמה לקוחות</span>
                 </button>
               </div>
             </div>
 
-            {/* User Name */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
+            {/* User Name - larger input */}
+            <div className="space-y-3">
+              <label className="text-base font-semibold text-foreground block">
                 איך לקרוא לך?
               </label>
               <Input
@@ -130,13 +138,13 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                 placeholder="שמך הפרטי"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                className="text-lg h-14"
+                className="text-lg h-16 text-xl"
               />
             </div>
 
-            {/* Brand Name */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
+            {/* Brand Name - larger input */}
+            <div className="space-y-3">
+              <label className="text-base font-semibold text-foreground block">
                 {isAgency ? 'שם הסוכנות?' : 'שם המותג/העסק?'}
               </label>
               <Input
@@ -144,16 +152,16 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                 placeholder={isAgency ? 'שם הסוכנות' : 'שם העסק'}
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
-                className="text-lg h-14"
+                className="text-lg h-16 text-xl"
               />
             </div>
 
             {/* Logo/Brand Book Upload - Only required for private clients */}
             {isAgency === false && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground flex items-center gap-1">
+              <div className="space-y-4">
+                <label className="text-base font-semibold text-foreground flex items-center gap-2">
                   העלה לוגו / ספר מותג
-                  <span className="text-destructive">*</span>
+                  <span className="text-destructive text-lg">*</span>
                 </label>
                 
                 <input
@@ -165,46 +173,49 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   className="hidden"
                 />
                 
-                {/* Upload area */}
+                {/* Upload area - larger and more prominent */}
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full min-h-[80px] rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors cursor-pointer group border-muted-foreground/30 hover:border-primary/50"
+                  className="w-full min-h-[120px] rounded-2xl border-3 border-dashed flex items-center justify-center overflow-hidden transition-all cursor-pointer group border-primary/40 hover:border-primary hover:bg-primary/5 bg-primary/5"
                 >
-                  <div className="text-center p-4 group-hover:scale-105 transition-transform">
-                    <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
-                    <span className="text-sm text-muted-foreground">לחץ להעלאה (תמונות או PDF)</span>
+                  <div className="text-center p-6 group-hover:scale-105 transition-transform">
+                    <div className="w-16 h-16 mx-auto rounded-xl bg-primary/20 flex items-center justify-center mb-3">
+                      <Upload className="w-8 h-8 text-primary" />
+                    </div>
+                    <span className="text-base font-medium text-foreground">לחץ להעלאה</span>
+                    <span className="text-sm text-muted-foreground block mt-1">(תמונות או PDF)</span>
                   </div>
                 </div>
 
                 {/* Uploaded files list */}
                 {files.length > 0 && (
-                  <div className="space-y-2 mt-2">
+                  <div className="space-y-3 mt-4">
                     {files.map((file, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-3 p-2 rounded-lg bg-primary/5 border border-primary/20"
+                        className="flex items-center gap-4 p-4 rounded-xl bg-success/10 border-2 border-success/30"
                       >
                         {file.type.startsWith('image/') ? (
                           <img
                             src={file.dataUrl}
                             alt={file.name}
-                            className="h-10 w-10 object-contain rounded"
+                            className="h-14 w-14 object-contain rounded-lg"
                           />
                         ) : (
-                          <div className="h-10 w-10 bg-primary/10 rounded flex items-center justify-center">
-                            <FileText className="w-5 h-5 text-primary" />
+                          <div className="h-14 w-14 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <FileText className="w-7 h-7 text-primary" />
                           </div>
                         )}
-                        <span className="flex-1 text-sm text-foreground truncate">{file.name}</span>
+                        <span className="flex-1 text-base font-medium text-foreground truncate">{file.name}</span>
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             removeFile(index);
                           }}
-                          className="p-1 hover:bg-destructive/10 rounded transition-colors"
+                          className="p-2 hover:bg-destructive/10 rounded-lg transition-colors"
                         >
-                          <X className="w-4 h-4 text-destructive" />
+                          <X className="w-5 h-5 text-destructive" />
                         </button>
                       </div>
                     ))}
@@ -212,41 +223,41 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                 )}
 
                 {files.length === 0 && (
-                  <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 p-2 rounded-lg">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>חובה להעלות לוגו או ספר מותג כדי ליצור קמפיינים מותאמים</span>
+                  <div className="flex items-center gap-3 text-amber-700 bg-amber-100 p-4 rounded-xl border border-amber-200">
+                    <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                    <span className="font-medium">חובה להעלות לוגו או ספר מותג כדי ליצור קמפיינים מותאמים</span>
                   </div>
                 )}
 
-                {/* No branding link - opens Branding Studio */}
+                {/* No branding link - more prominent */}
                 <button
                   type="button"
                   onClick={() => setShowBrandingStudio(true)}
-                  className="text-sm text-primary hover:underline underline-offset-4 flex items-center gap-1 mx-auto"
+                  className="text-base text-primary hover:underline underline-offset-4 flex items-center gap-2 mx-auto font-medium py-2"
                 >
+                  <Sparkles className="w-5 h-5" />
                   אין לי מיתוג - תעזרו לי
-                  <span className="text-xs">←</span>
                 </button>
               </div>
             )}
 
-            {/* Continue Button */}
+            {/* Continue Button - larger */}
             <Button
               onClick={handleContinue}
               disabled={!isValid}
               size="xl"
               variant="gradient"
-              className="w-full"
+              className="w-full h-16 text-xl font-bold"
             >
-              <Sparkles className="w-5 h-5 ml-2" />
+              <Sparkles className="w-6 h-6 ml-2" />
               המשך
             </Button>
 
             {!isValid && (
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
                 {isAgency === false 
-                  ? 'יש למלא את כל השדות ולהעלות לוגו כדי להמשיך'
-                  : 'יש למלא את כל השדות כדי להמשיך'
+                  ? '📝 יש למלא את כל השדות ולהעלות לוגו כדי להמשיך'
+                  : '📝 יש למלא את כל השדות כדי להמשיך'
                 }
               </p>
             )}
@@ -254,8 +265,8 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
         </Card>
 
         {/* Trust Note */}
-        <p className="text-center text-sm text-muted-foreground">
-          הפרטים שלכם נשמרים בצורה מאובטחת ומשמשים רק להתאמה אישית של החוויה
+        <p className="text-center text-base text-muted-foreground">
+          🔒 הפרטים שלכם נשמרים בצורה מאובטחת ומשמשים רק להתאמה אישית של החוויה
         </p>
       </div>
 
