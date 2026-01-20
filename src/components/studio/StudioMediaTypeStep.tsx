@@ -24,54 +24,69 @@ interface StudioMediaTypeStepProps {
   onChange: (types: MediaType[]) => void;
 }
 
+// Media options with vibrant color schemes
 const MEDIA_OPTIONS: { 
   id: MediaType; 
   label: string; 
   description: string; 
   icon: React.ElementType;
   tags: string[];
+  gradient: string;
+  shadowColor: string;
 }[] = [
   { 
     id: 'radio', 
     label: 'רדיו', 
     description: 'ספוט פרסומי לשידור בתחנות רדיו', 
     icon: Radio,
-    tags: ['אודיו', 'ספוטים']
+    tags: ['אודיו', 'ספוטים'],
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-purple-500/30'
   },
   { 
     id: 'ad', 
     label: 'מודעות', 
     description: 'פרסום בעיתונות, מגזינים ועלוני קהילה', 
     icon: Newspaper,
-    tags: ['עיתונות', 'מגזינים']
+    tags: ['עיתונות', 'מגזינים'],
+    gradient: 'from-blue-500 to-cyan-500',
+    shadowColor: 'shadow-cyan-500/30'
   },
   { 
     id: 'banner', 
     label: 'באנרים', 
     description: 'באנרים לאתרים, אפליקציות ופלטפורמות דיגיטליות', 
     icon: Monitor,
-    tags: ['דיגיטלי', 'אונליין']
+    tags: ['דיגיטלי', 'אונליין'],
+    gradient: 'from-emerald-500 to-teal-500',
+    shadowColor: 'shadow-teal-500/30'
   },
   { 
     id: 'billboard', 
     label: 'שלטי חוצות', 
     description: 'שילוט חוצות, ביגבורד ושלטים בתחנות אוטובוס', 
     icon: RectangleHorizontal,
-    tags: ['חוצות', 'OOH']
+    tags: ['חוצות', 'OOH'],
+    gradient: 'from-orange-500 to-amber-500',
+    shadowColor: 'shadow-amber-500/30'
   },
   { 
     id: 'social', 
     label: 'סושיאל מדיה', 
     description: 'פוסטים לרשתות חברתיות, וואטסאפ וניוזלטר', 
     icon: Share2,
-    tags: ['דיגיטלי', 'וירלי']
+    tags: ['דיגיטלי', 'וירלי'],
+    gradient: 'from-pink-500 to-rose-500',
+    shadowColor: 'shadow-rose-500/30'
   },
   { 
     id: 'all', 
     label: 'קמפיין 360°', 
     description: 'קמפיין מקיף שמשלב את כל סוגי המדיה', 
     icon: Layers,
-    tags: ['מקיף', 'מומלץ']
+    tags: ['מקיף', 'מומלץ'],
+    gradient: 'from-primary to-red-500',
+    shadowColor: 'shadow-primary/30'
   },
 ];
 
@@ -144,22 +159,21 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
             <Card
               key={option.id}
               className={cn(
-                'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden',
+                'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
                 isSelected(option.id)
-                  ? 'border-primary bg-primary/5 shadow-lg'
+                  ? 'border-transparent bg-card shadow-xl'
                   : 'border-border hover:border-primary/50'
               )}
               onClick={() => handleToggle(option.id)}
             >
               <CardContent className="p-6 flex items-start gap-4">
                 <div className={cn(
-                  'w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0',
-                  isSelected(option.id) ? 'bg-primary/20' : 'bg-muted'
+                  'w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all',
+                  isSelected(option.id) 
+                    ? `bg-gradient-to-br ${option.gradient} shadow-lg ${option.shadowColor}` 
+                    : `bg-gradient-to-br ${option.gradient} shadow-md ${option.shadowColor}`
                 )}>
-                  <option.icon className={cn(
-                    'w-7 h-7',
-                    isSelected(option.id) ? 'text-primary' : 'text-muted-foreground'
-                  )} />
+                  <option.icon className="w-7 h-7 text-white transition-transform group-hover:scale-110" />
                 </div>
                 <div className="flex-1">
                   <h4 className="text-lg font-bold text-foreground">{option.label}</h4>
@@ -179,8 +193,11 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
                   </div>
                 </div>
                 {isSelected(option.id) && (
-                  <div className="absolute top-3 left-3 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                    <Check className="w-4 h-4 text-primary-foreground" />
+                  <div className={cn(
+                    "absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center shadow-md",
+                    `bg-gradient-to-br ${option.gradient}`
+                  )}>
+                    <Check className="w-4 h-4 text-white" />
                   </div>
                 )}
               </CardContent>
