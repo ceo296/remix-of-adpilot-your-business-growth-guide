@@ -28,7 +28,7 @@ interface StepBrandPassportProps {
 const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPassportProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExtractingColors, setIsExtractingColors] = useState(false);
-  const [editMode, setEditMode] = useState<'fonts' | 'business' | null>(null);
+  const [editMode, setEditMode] = useState<'fonts' | 'business' | 'colors' | null>(null);
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [isValidating, setIsValidating] = useState(false);
   const [hasValidated, setHasValidated] = useState(false);
@@ -39,6 +39,11 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
   const [editedFonts, setEditedFonts] = useState({
     headerFont: data.brand.headerFont,
     bodyFont: data.brand.bodyFont,
+  });
+  const [editedColors, setEditedColors] = useState({
+    primary: data.brand.colors.primary,
+    secondary: data.brand.colors.secondary,
+    background: data.brand.colors.background,
   });
   const [editedBusiness, setEditedBusiness] = useState({
     industry: data.websiteInsights?.industry || '',
@@ -148,6 +153,21 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
     });
     setEditMode(null);
     toast.success('הפונטים עודכנו');
+  };
+
+  const handleSaveColors = () => {
+    updateData({
+      brand: {
+        ...data.brand,
+        colors: {
+          primary: editedColors.primary,
+          secondary: editedColors.secondary,
+          background: editedColors.background,
+        },
+      }
+    });
+    setEditMode(null);
+    toast.success('הצבעים עודכנו');
   };
 
   const handleSaveBusiness = () => {
@@ -431,7 +451,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
             <div className="flex items-center justify-between">
               <div>
                 <Badge variant="secondary" className="bg-white/20 text-white border-0 mb-2">
-                  דרכון מותג + קמפיין
+                  פרופיל מותג
                 </Badge>
                 <h3 className="text-2xl font-bold">{data.brand.name || 'שם העסק'}</h3>
               </div>
@@ -461,46 +481,96 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                     <Palette className="w-4 h-4 text-primary" />
                     פלטת הצבעים
                   </span>
-                  {data.brand.logo && !data.brand.logo.toLowerCase().endsWith('.pdf') && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 text-xs gap-1"
-                      onClick={handleExtractColorsFromLogo}
-                      disabled={isExtractingColors}
-                    >
-                      {isExtractingColors ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <Sparkles className="w-3 h-3" />
-                      )}
-                      חלץ מהלוגו
-                    </Button>
-                  )}
+                  <div className="flex gap-1">
+                    {editMode === 'colors' ? (
+                      <>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode(null)}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-600" onClick={handleSaveColors}>
+                          <Check className="w-3 h-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        {data.brand.logo && !data.brand.logo.toLowerCase().endsWith('.pdf') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 text-xs gap-1"
+                            onClick={handleExtractColorsFromLogo}
+                            disabled={isExtractingColors}
+                          >
+                            {isExtractingColors ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Sparkles className="w-3 h-3" />
+                            )}
+                            חלץ מהלוגו
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode('colors')}>
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </h4>
-                <div className="flex gap-3">
-                  <div className="text-center">
-                    <div 
-                      className="w-14 h-14 rounded-xl border-2 border-border shadow-sm"
-                      style={{ backgroundColor: data.brand.colors.primary }}
-                    />
-                    <span className="text-xs text-muted-foreground mt-1 block">ראשי</span>
+                {editMode === 'colors' ? (
+                  <div className="flex gap-3">
+                    <div className="text-center space-y-2">
+                      <input
+                        type="color"
+                        value={editedColors.primary}
+                        onChange={(e) => setEditedColors(prev => ({ ...prev, primary: e.target.value }))}
+                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm cursor-pointer"
+                      />
+                      <span className="text-xs text-muted-foreground block">ראשי</span>
+                    </div>
+                    <div className="text-center space-y-2">
+                      <input
+                        type="color"
+                        value={editedColors.secondary}
+                        onChange={(e) => setEditedColors(prev => ({ ...prev, secondary: e.target.value }))}
+                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm cursor-pointer"
+                      />
+                      <span className="text-xs text-muted-foreground block">משני</span>
+                    </div>
+                    <div className="text-center space-y-2">
+                      <input
+                        type="color"
+                        value={editedColors.background}
+                        onChange={(e) => setEditedColors(prev => ({ ...prev, background: e.target.value }))}
+                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm cursor-pointer"
+                      />
+                      <span className="text-xs text-muted-foreground block">רקע</span>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div 
-                      className="w-14 h-14 rounded-xl border-2 border-border shadow-sm"
-                      style={{ backgroundColor: data.brand.colors.secondary }}
-                    />
-                    <span className="text-xs text-muted-foreground mt-1 block">משני</span>
+                ) : (
+                  <div className="flex gap-3">
+                    <div className="text-center">
+                      <div 
+                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm"
+                        style={{ backgroundColor: data.brand.colors.primary }}
+                      />
+                      <span className="text-xs text-muted-foreground mt-1 block">ראשי</span>
+                    </div>
+                    <div className="text-center">
+                      <div 
+                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm"
+                        style={{ backgroundColor: data.brand.colors.secondary }}
+                      />
+                      <span className="text-xs text-muted-foreground mt-1 block">משני</span>
+                    </div>
+                    <div className="text-center">
+                      <div 
+                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm"
+                        style={{ backgroundColor: data.brand.colors.background }}
+                      />
+                      <span className="text-xs text-muted-foreground mt-1 block">רקע</span>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div 
-                      className="w-14 h-14 rounded-xl border-2 border-border shadow-sm"
-                      style={{ backgroundColor: data.brand.colors.background }}
-                    />
-                    <span className="text-xs text-muted-foreground mt-1 block">רקע</span>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Fonts */}
