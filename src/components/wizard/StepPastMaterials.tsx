@@ -60,21 +60,21 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-          <FolderOpen className="w-10 h-10 text-primary" />
+    <div className="space-y-10">
+      {/* Header - larger and more prominent */}
+      <div className="text-center space-y-6">
+        <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
+          <FolderOpen className="w-12 h-12 text-primary" />
         </div>
-        <h2 className="text-3xl font-bold text-foreground">
+        <h2 className="text-3xl md:text-4xl font-bold text-foreground">
           מה עשיתם עד היום? אל תתקמצנו...
         </h2>
-        <p className="text-lg text-muted-foreground max-w-md mx-auto">
+        <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
           תעלו לפה חומרי פרסום שעשיתם לאחרונה. זה יעזור לנו לשמור על הקו שלכם.
         </p>
       </div>
 
-      {/* Drop Zone */}
+      {/* Drop Zone - larger and more prominent */}
       <div className="max-w-3xl mx-auto">
         <input
           ref={fileInputRef}
@@ -86,67 +86,67 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
         />
         
         <Card
-          className={`border-2 border-dashed transition-all cursor-pointer ${
+          className={`border-3 border-dashed transition-all cursor-pointer ${
             isDragging
-              ? 'border-primary bg-primary/5'
-              : 'border-muted-foreground/30 hover:border-primary/50'
+              ? 'border-primary bg-primary/10 shadow-glow'
+              : 'border-primary/40 hover:border-primary hover:bg-primary/5'
           }`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onClick={() => fileInputRef.current?.click()}
         >
-          <CardContent className="p-12">
+          <CardContent className="p-12 md:p-16">
             {data.pastMaterials.length === 0 ? (
-              <div className="text-center space-y-4">
-                <div className="w-20 h-20 mx-auto rounded-2xl bg-secondary flex items-center justify-center">
-                  <Upload className="w-10 h-10 text-muted-foreground" />
+              <div className="text-center space-y-6">
+                <div className="w-24 h-24 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Upload className="w-12 h-12 text-primary" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-xl font-semibold text-foreground">
+                <div className="space-y-3">
+                  <p className="text-2xl font-bold text-foreground">
                     גררו לפה קבצים או לחצו להעלאה
                   </p>
-                  <p className="text-muted-foreground">
+                  <p className="text-lg text-muted-foreground">
                     תמונות, PDF, כל מה שיש לכם
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {data.pastMaterials.map((material) => (
                   <div
                     key={material.id}
-                    className="relative group rounded-lg overflow-hidden border border-border"
+                    className="relative group rounded-xl overflow-hidden border-2 border-border shadow-md"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {material.type === 'image' ? (
                       <img
                         src={material.preview}
                         alt={material.name}
-                        className="w-full h-32 object-cover"
+                        className="w-full h-36 object-cover"
                       />
                     ) : (
-                      <div className="w-full h-32 bg-secondary flex items-center justify-center">
-                        <FileText className="w-10 h-10 text-muted-foreground" />
+                      <div className="w-full h-36 bg-secondary flex items-center justify-center">
+                        <FileText className="w-12 h-12 text-muted-foreground" />
                       </div>
                     )}
                     <button
                       onClick={() => removeMaterial(material.id)}
-                      className="absolute top-2 left-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-3 left-3 w-8 h-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-5 h-5" />
                     </button>
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                      <p className="text-xs text-white truncate">{material.name}</p>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                      <p className="text-sm text-white truncate font-medium">{material.name}</p>
                     </div>
                   </div>
                 ))}
                 
                 {/* Add More */}
-                <div className="rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center h-32 hover:border-primary/50 transition-colors">
+                <div className="rounded-xl border-3 border-dashed border-primary/40 flex items-center justify-center h-36 hover:border-primary hover:bg-primary/5 transition-all">
                   <div className="text-center">
-                    <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
-                    <span className="text-xs text-muted-foreground">הוסף עוד</span>
+                    <Upload className="w-8 h-8 mx-auto text-primary mb-2" />
+                    <span className="text-sm font-medium text-primary">הוסף עוד</span>
                   </div>
                 </div>
               </div>
@@ -155,42 +155,42 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
         </Card>
       </div>
 
-      {/* Skip Message */}
+      {/* Skip Message - more visible */}
       {data.pastMaterials.length === 0 && (
-        <p className="text-center text-sm text-muted-foreground">
-          חבל, זה יכול לעזור לנו לדייק. בטוח אין איזה PDF ישן?
+        <p className="text-center text-base text-muted-foreground bg-amber-50 p-4 rounded-xl max-w-xl mx-auto border border-amber-200">
+          💡 חבל, זה יכול לעזור לנו לדייק. בטוח אין איזה PDF ישן?
         </p>
       )}
 
-      {/* Navigation */}
-      <div className="flex flex-col items-center gap-4 max-w-3xl mx-auto pt-6">
+      {/* Navigation - larger buttons */}
+      <div className="flex flex-col items-center gap-6 max-w-3xl mx-auto pt-6">
         {/* Primary CTA - only enabled when materials uploaded */}
         <Button 
           variant="gradient" 
-          size="lg" 
+          size="xl" 
           onClick={onNext}
           disabled={data.pastMaterials.length === 0}
-          className="w-full max-w-md"
+          className="w-full max-w-md h-16 text-xl font-bold"
         >
           קדימה, ממשיכים
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-6 h-6 mr-2" />
         </Button>
         
-        {/* Secondary skip option */}
+        {/* Secondary skip option - more visible */}
         {data.pastMaterials.length === 0 && (
           <Button 
             variant="ghost" 
-            size="sm" 
+            size="lg" 
             onClick={onNext}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground text-base"
           >
             אין לי שום חומרי פרסום להציג
           </Button>
         )}
         
-        {/* Back button */}
-        <Button variant="outline" size="sm" onClick={onPrev} className="mt-2">
-          <ArrowRight className="w-4 h-4 ml-2" />
+        {/* Back button - more visible */}
+        <Button variant="outline" size="lg" onClick={onPrev} className="mt-2 text-base">
+          <ArrowRight className="w-5 h-5 ml-2" />
           חזרה
         </Button>
       </div>
