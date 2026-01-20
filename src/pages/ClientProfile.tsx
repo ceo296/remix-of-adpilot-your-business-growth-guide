@@ -269,7 +269,7 @@ const ClientProfilePage = () => {
                 variant="gradient" 
                 size="lg" 
                 onClick={() => setIsEditing(true)}
-                className="text-base px-6 py-3 shadow-lg animate-pulse hover:animate-none"
+                className="text-base px-6 py-3 shadow-lg"
               >
                 <Sparkles className="w-5 h-5 ml-2" />
                 ערוך פרופיל
