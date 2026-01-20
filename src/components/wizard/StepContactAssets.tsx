@@ -130,7 +130,7 @@ export const StepContactAssets = ({ data, onChange }: StepContactAssetsProps) =>
       </Card>
 
       <p className="text-base text-muted-foreground text-center bg-muted/50 p-4 rounded-xl max-w-2xl mx-auto">
-        💡 הפרטים יישמרו בפרופיל ותוכל לבחור מה להציג בכל קמפיין בנפרד
+        💡 הפרטים יישמרו בפרופיל ותוכלו לבחור מה להציג בכל קמפיין בנפרד
       </p>
     </div>
   );

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { getYourWord } from '@/lib/honorific-utils';
 
 interface StepBrandPassportProps {
   data: WizardData;
@@ -174,7 +175,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
           אז בוא נראה אם הבנו אתכם נכון
         </h2>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          הנה ה"דרכון" של המותג והקמפיין שלכם - בדקו שהכל מדויק
+          הנה ה"דרכון" של המותג והקמפיין {getYourWord(data.honorific)} - בדקו שהכל מדויק
         </p>
       </div>
 
