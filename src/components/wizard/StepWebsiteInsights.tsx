@@ -236,7 +236,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
           </div>
 
           {/* Audience */}
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200/50 space-y-3">
+          <div className={`p-5 rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 border-2 space-y-3 transition-all ${!formValues.audience ? 'border-destructive/50 ring-2 ring-destructive/20' : 'border-pink-200/50'}`}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 shadow-md shadow-pink-500/30 flex items-center justify-center">
                 <Users className="h-5 w-5 text-white" />
@@ -244,12 +244,17 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
               <Label htmlFor="audience" className="text-sm font-semibold text-pink-800">
                 קהל היעד *
               </Label>
+              {!formValues.audience && (
+                <span className="text-xs text-destructive font-medium bg-destructive/10 px-2 py-1 rounded-full">
+                  שדה חובה
+                </span>
+              )}
             </div>
             <Select
               value={formValues.audience}
               onValueChange={(value) => handleValueChange('audience', value)}
             >
-              <SelectTrigger className={`h-12 bg-white border-pink-200 hover:border-pink-400 ${!formValues.audience ? 'border-pink-300' : ''}`}>
+              <SelectTrigger className={`h-12 bg-white hover:border-pink-400 ${!formValues.audience ? 'border-destructive' : 'border-pink-200'}`}>
                 <SelectValue placeholder="בחרו קהל יעד" />
               </SelectTrigger>
               <SelectContent className="bg-white border border-pink-200 z-50">
@@ -278,27 +283,27 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
       </p>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+      <div className="flex flex-col gap-4 justify-center max-w-lg mx-auto">
         <Button
           onClick={handleConfirm}
           size="xl"
-          variant="gradient"
-          className="flex-1"
+          variant={isValid ? "gradient" : "secondary"}
+          className="w-full"
           disabled={!isValid}
         >
           <Check className="w-5 h-5 ml-2" />
-          מעולה! אפשר להתקדם
+          {isValid ? 'מעולה! אפשר להתקדם' : 'יש למלא את כל השדות'}
         </Button>
-      </div>
 
-      {/* Back Link */}
-      <div className="text-center">
-        <button
+        {/* Back Button - Prominent */}
+        <Button
           onClick={onPrev}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+          variant="outline"
+          size="lg"
+          className="w-full border-2 border-muted-foreground/30 hover:border-primary hover:bg-primary/5"
         >
-          חזרה לשלב הקודם
-        </button>
+          ← חזרה לשלב הקודם
+        </Button>
       </div>
     </div>
   );
