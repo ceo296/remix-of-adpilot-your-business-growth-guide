@@ -227,6 +227,30 @@ const CreativeStudio = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep, showResults, showMediaSelection, showQuote, showSuccess]);
 
+  // Load campaign brief from session storage (from FastTrackWizard)
+  useEffect(() => {
+    const savedBrief = sessionStorage.getItem('campaignBrief');
+    if (savedBrief) {
+      try {
+        const briefData = JSON.parse(savedBrief);
+        setCampaignBrief(prev => ({
+          ...prev,
+          title: briefData.campaignName || '',
+          offer: briefData.campaignOffer || '',
+          goal: briefData.goal || null,
+        }));
+        // If brief is pre-filled, skip to step 1 (media type selection)
+        if (briefData.campaignOffer && briefData.goal) {
+          setCurrentStep(1);
+        }
+        // Clear the session storage after loading
+        sessionStorage.removeItem('campaignBrief');
+      } catch (e) {
+        console.error('Failed to parse campaign brief from session storage:', e);
+      }
+    }
+  }, []);
+
   // Fetch client profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
