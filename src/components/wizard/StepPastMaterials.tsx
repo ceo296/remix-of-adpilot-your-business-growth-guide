@@ -69,7 +69,7 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           מה עשיתם עד היום?
         </h2>
         <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
-          תעלו לפה חומרי פרסום שעשיתם לאחרונה. זה יעזור לנו לשמור על הקו {getYourWord(data.honorific)}.
+          תעלו לפה חומרי פרסום שעשיתם לאחרונה. זה יעזור לנו לשמור על הקו.
         </p>
       </div>
 
@@ -185,25 +185,27 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
 
         {/* Nudge message after clicking skip */}
         {showNudge && data.pastMaterials.length === 0 && (
-          <div className="w-full max-w-xl space-y-4">
-            <p className="text-center text-base text-muted-foreground bg-amber-50 p-4 rounded-xl border border-amber-200">
-              💡 חבל, זה יכול לעזור לנו לדייק. בטוח אין איזה PDF ישן?
-            </p>
-            <div className="flex justify-center gap-4">
+          <div className="w-full max-w-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-6 rounded-2xl border-2 border-amber-300 shadow-lg">
+              <p className="text-center text-lg font-medium text-amber-900">
+                💡 חבל, זה יכול לעזור לנו לדייק. בטוח אין איזה PDF ישן?
+              </p>
+            </div>
+            <div className="flex justify-center gap-6">
               <Button 
-                variant="outline" 
-                size="lg" 
+                variant="default" 
+                size="xl" 
                 onClick={() => fileInputRef.current?.click()}
-                className="text-base"
+                className="h-14 px-8 text-lg font-bold shadow-lg hover:shadow-xl transition-shadow"
               >
-                <Upload className="w-5 h-5 ml-2" />
+                <Upload className="w-6 h-6 ml-2" />
                 בעצם יש לי משהו
               </Button>
               <Button 
-                variant="ghost" 
-                size="lg" 
+                variant="outline" 
+                size="xl" 
                 onClick={onNext}
-                className="text-muted-foreground text-base"
+                className="h-14 px-8 text-lg font-medium"
               >
                 באמת אין לי, נמשיך
               </Button>
