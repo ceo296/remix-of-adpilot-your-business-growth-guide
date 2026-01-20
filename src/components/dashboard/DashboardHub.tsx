@@ -108,9 +108,10 @@ const DashboardHub = () => {
 
   const handleNewCampaign = (type: 'create' | 'upload' | 'internal') => {
     if (type === 'create') {
-      navigate('/studio');
+      // First go to campaign goal/setup wizard, then to studio
+      navigate('/new-campaign');
     } else if (type === 'internal') {
-      navigate('/studio?mode=internal');
+      navigate('/internal-studio');
     } else {
       navigate('/studio?mode=upload');
     }
