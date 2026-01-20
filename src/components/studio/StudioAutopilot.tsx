@@ -338,44 +338,59 @@ export const StudioAutopilot = ({
           </div>
         </div>
 
-        {/* Holiday/Season Selection */}
+        {/* Holiday/Season Selection - Enhanced Design */}
         {onHolidayChange && (
           <div className="w-full max-w-md mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <Label className="text-sm font-medium">חג/עונה (אופציונלי)</Label>
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-md shadow-amber-500/30 flex items-center justify-center">
+                  <Calendar className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <Label className="text-base font-semibold text-foreground">חג/עונה</Label>
+                  <p className="text-xs text-muted-foreground">אופציונלי - להתאמת סגנון</p>
+                </div>
+              </div>
+              <Select 
+                value={selectedHoliday} 
+                onValueChange={(v) => onHolidayChange(v as HolidaySeason)}
+              >
+                <SelectTrigger className="w-full h-12 bg-white border-amber-200 hover:border-amber-400 transition-colors text-base">
+                  <SelectValue placeholder="בחר חג או עונה רלוונטית לקמפיין" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-amber-200">
+                  {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key} className="text-base py-3 hover:bg-amber-50 cursor-pointer">
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-amber-700/70 mt-2 flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                בחירת חג תביא דוגמאות מותאמות לעונה ותשפיע על סגנון הקריאייטיב
+              </p>
             </div>
-            <Select 
-              value={selectedHoliday} 
-              onValueChange={(v) => onHolidayChange(v as HolidaySeason)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="בחר חג או עונה רלוונטית לקמפיין" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground mt-1">
-              בחירת חג תביא דוגמאות מותאמות לעונה ותשפיע על סגנון הקריאייטיב
-            </p>
           </div>
         )}
         
-        {/* Personalized info card */}
+        {/* Personalized info card - Enhanced Design */}
         {clientInfo && (
-          <div className="bg-muted/50 border border-border rounded-lg p-4 mb-6 max-w-md">
-            <p className="text-sm text-muted-foreground mb-2">מייצרים קונספטים עבור:</p>
-            <p className="font-bold text-lg text-foreground">{clientInfo.business_name}</p>
+          <div className="bg-gradient-to-br from-slate-50 to-gray-100 border border-slate-200 rounded-2xl p-5 mb-6 max-w-md shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 shadow-md shadow-slate-500/30 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">מייצרים קונספטים עבור:</p>
+            </div>
+            <p className="font-bold text-xl text-foreground">{clientInfo.business_name}</p>
             {clientInfo.target_audience && (
-              <p className="text-sm text-muted-foreground mt-1">
-                קהל יעד: <span className="text-foreground">{clientInfo.target_audience}</span>
+              <p className="text-sm text-muted-foreground mt-2">
+                קהל יעד: <span className="text-foreground font-medium">{clientInfo.target_audience}</span>
               </p>
             )}
             {selectedHoliday && selectedHoliday !== 'year_round' && (
-              <Badge variant="secondary" className="mt-2">
+              <Badge className="mt-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-sm">
                 <Calendar className="h-3 w-3 ml-1" />
                 {HOLIDAY_LABELS[selectedHoliday]}
               </Badge>
