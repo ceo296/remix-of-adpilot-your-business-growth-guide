@@ -10,19 +10,20 @@ import { Label } from '@/components/ui/label';
 
 export type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round' | '';
 
+// Ordered with "year_round" first as the primary option
 export const HOLIDAY_LABELS: Record<string, string> = {
-  pesach: 'פסח',
-  sukkot: 'סוכות',
-  chanukah: 'חנוכה',
-  purim: 'פורים',
-  shavuot: 'שבועות',
-  lag_baomer: 'ל"ג בעומר',
-  tu_bishvat: 'ט"ו בשבט',
-  summer: 'קיץ',
-  bein_hazmanim: 'בין הזמנים',
+  year_round: 'כל השנה',
   rosh_hashana: 'ראש השנה',
   yom_kippur: 'ימים נוראים',
-  year_round: 'כל השנה',
+  sukkot: 'סוכות',
+  chanukah: 'חנוכה',
+  tu_bishvat: 'ט"ו בשבט',
+  purim: 'פורים',
+  pesach: 'פסח',
+  lag_baomer: 'ל"ג בעומר',
+  shavuot: 'שבועות',
+  summer: 'קיץ',
+  bein_hazmanim: 'בין הזמנים',
 };
 
 export interface CreativeConcept {

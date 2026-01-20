@@ -48,10 +48,11 @@ const MEDIA_TYPES: { id: MediaType; label: string; icon: React.ElementType; desc
   { id: 'radio', label: 'רדיו', icon: Radio, description: 'ספוטים וג׳ינגלים' },
 ];
 
+// "general" first as the primary option
 const STREAM_LABELS: Record<StreamType, string> = {
-  hasidic: 'חסידי',
+  general: 'כלל הציבור החרדי',
   litvish: 'ליטאי',
-  general: 'כללי',
+  hasidic: 'חסידי',
   sephardic: 'ספרדי',
 };
 
