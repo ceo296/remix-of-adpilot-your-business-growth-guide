@@ -209,14 +209,14 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
           </Card>
         </div>
 
-        {/* Back to previous step */}
+        {/* Back to previous step - always visible */}
         {onPrev && (
-          <div className="text-center">
+          <div className="text-center pt-6">
             <Button
               onClick={onPrev}
-              variant="ghost"
+              variant="outline"
               size="lg"
-              className="text-base gap-2"
+              className="text-lg gap-2 px-8 h-14"
             >
               ← חזרה לשלב הקודם
             </Button>
