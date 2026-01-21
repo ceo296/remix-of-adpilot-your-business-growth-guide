@@ -22,7 +22,7 @@ import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaT
 import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 
-type AssetChoice = 'has-product' | 'no-product' | 'text-only';
+type AssetChoice = 'full-campaign' | 'has-visual' | 'has-copy';
 type TreatmentChoice = 'as-is' | 'ai-magic';
 type FeedbackMode = 'none' | 'another-round' | 'small-fixes';
 type FeedbackType = 'copy' | 'visual' | null;
@@ -299,19 +299,27 @@ const CreativeStudio = () => {
 
   // Calculate actual steps based on asset choice and media type
   const getSteps = () => {
-    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment, 4=Copy, 5=Style, 6=Prompt
+    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt
     // If only radio is selected, skip visual steps
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (isOnlyRadio) {
       // Radio doesn't need visual steps
       return [0, 1, 6]; // Brief, MediaType, Prompt (for script)
     }
-    if (assetChoice === 'no-product' || assetChoice === 'text-only') {
-      // Skip treatment and copy steps for no-product and text-only flows
-      return [0, 1, 2, 5, 6]; // Brief, MediaType, Asset, Style, Prompt
+    if (assetChoice === 'full-campaign') {
+      // User has everything - just upload and submit
+      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
     }
-    // has-product flow: includes Treatment and Copy steps
-    return [0, 1, 2, 3, 4, 5, 6]; // All steps including Copy
+    if (assetChoice === 'has-visual') {
+      // User has visual, needs copy - upload visual, we generate copy
+      return [0, 1, 2, 3, 5, 6]; // Brief, MediaType, Asset, Upload, Style, Prompt
+    }
+    if (assetChoice === 'has-copy') {
+      // User has copy, needs visual - input copy, we generate visual
+      return [0, 1, 2, 4, 5, 6]; // Brief, MediaType, Asset, Copy, Style, Prompt
+    }
+    // Default flow
+    return [0, 1, 2, 3, 4, 5, 6];
   };
 
   const steps = getSteps();
@@ -374,8 +382,8 @@ const CreativeStudio = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (currentStep === 1 && isOnlyRadio) {
       setCurrentStep(6); // Skip to prompt for radio
-    } else if (currentStep === 2 && (assetChoice === 'no-product' || assetChoice === 'text-only')) {
-      setCurrentStep(5); // Skip treatment and copy to style
+    } else if (currentStep === 2 && assetChoice === 'has-copy') {
+      setCurrentStep(4); // Skip upload to copy step
     } else if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
     }
@@ -385,8 +393,8 @@ const CreativeStudio = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (currentStep === 6 && isOnlyRadio) {
       setCurrentStep(1); // Go back to media type for radio
-    } else if (currentStep === 5 && (assetChoice === 'no-product' || assetChoice === 'text-only')) {
-      setCurrentStep(2); // Go back to asset
+    } else if (currentStep === 4 && assetChoice === 'has-copy') {
+      setCurrentStep(2); // Go back to asset selection
     } else if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
     } else {
@@ -397,15 +405,15 @@ const CreativeStudio = () => {
 
   // Determine which AI model to use based on selections
   const getEngineConfig = () => {
-    if (assetChoice === 'no-product') {
-      // Full generation with Hebrew text
+    if (assetChoice === 'has-copy') {
+      // User has copy, needs visual - full generation
       return { engine: 'nano-banana', mode: 'generate' };
     }
-    if (treatment === 'as-is') {
-      // Simple layout engine (Canva-like)
+    if (assetChoice === 'full-campaign' || treatment === 'as-is') {
+      // Simple layout engine (Canva-like) for full campaigns
       return { engine: 'layout', mode: 'compose' };
     }
-    // AI Magic - Inpainting
+    // AI Magic - Inpainting for has-visual
     return { engine: 'flux-realism', mode: 'inpaint' };
   };
 
@@ -609,7 +617,7 @@ const CreativeStudio = () => {
   const getQuoteData = (): QuoteData => {
     const creativeMode: QuoteData['creativeMode'] = 
       mode === 'autopilot' ? 'autopilot' : 
-      assetChoice === 'has-product' && treatment === 'as-is' ? 'uploaded' : 'manual';
+      assetChoice === 'full-campaign' ? 'uploaded' : 'manual';
     
     const creativeCost = creativeMode === 'uploaded' ? 0 : 500;
     
@@ -797,7 +805,7 @@ const CreativeStudio = () => {
     setVisualPrompt(selectedConcept.idea);
     setTextPrompt(selectedConcept.copy);
     setStyle('modern'); // Default style for autopilot
-    setAssetChoice('no-product'); // Autopilot generates from scratch
+    setAssetChoice('has-copy'); // Autopilot generates visual from scratch
     
     // Generate the images
     setIsGenerating(true);
@@ -980,7 +988,7 @@ const CreativeStudio = () => {
             textPrompt={textPrompt}
             onTextPromptChange={setTextPrompt}
             style={style}
-            hasProduct={assetChoice === 'has-product'}
+            hasProduct={assetChoice === 'has-visual' || assetChoice === 'full-campaign'}
             aspectRatio={aspectRatio}
             onAspectRatioChange={setAspectRatio}
             mediaType={mediaTypes[0] || null}
