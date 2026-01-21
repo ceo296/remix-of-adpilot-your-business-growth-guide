@@ -71,7 +71,8 @@ interface MediaPackage {
 }
 
 // Dynamic step titles based on media type selection
-const getStepTitles = (mediaTypes: MediaType[]) => {
+// Dynamic step titles based on media type selection and asset choice
+const getStepTitles = (mediaTypes: MediaType[], assetChoice: string | null) => {
   // Determine the display name based on selected media type
   let mediaLabel = 'קריאייטיב';
   if (mediaTypes.length === 1) {
@@ -86,15 +87,23 @@ const getStepTitles = (mediaTypes: MediaType[]) => {
   } else if (mediaTypes.length > 1) {
     mediaLabel = 'קריאייטיבים';
   }
+
+  // Dynamic step 3 title based on asset choice
+  let uploadStepTitle = 'העלאת תמונה';
+  if (assetChoice === 'full-campaign') {
+    uploadStepTitle = 'העלאת קמפיין';
+  } else if (assetChoice === 'has-visual') {
+    uploadStepTitle = 'העלאת ויז\'ואל';
+  }
   
   return [
-    'בריף קמפיין',
-    'סוג מדיה',
-    'בחירת נכס',
-    'העלאת תמונה',
-    'קופי',
-    'סגנון עיצובי',
-    'תיאור ותוכן',
+    'בריף קמפיין',      // 0
+    'סוג מדיה',         // 1
+    'מה יש לך מוכן?',   // 2 - asset choice
+    uploadStepTitle,    // 3 - upload
+    'קופי',             // 4 - copy input (for has-copy flow)
+    'סגנון עיצובי',     // 5 - style
+    'תיאור ותוכן',      // 6 - prompt
   ];
 };
 
@@ -303,23 +312,31 @@ const CreativeStudio = () => {
     // If only radio is selected, skip visual steps
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (isOnlyRadio) {
-      // Radio doesn't need visual steps
+      // Radio doesn't need visual steps - just script
       return [0, 1, 6]; // Brief, MediaType, Prompt (for script)
     }
     if (assetChoice === 'full-campaign') {
-      // User has everything - just upload and submit
-      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
+      // User has everything (visual + copy) - just upload and submit
+      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload (submits on upload)
     }
     if (assetChoice === 'has-visual') {
       // User has visual, needs copy - upload visual, we generate copy
-      return [0, 1, 2, 3, 5, 6]; // Brief, MediaType, Asset, Upload, Style, Prompt
+      // NO style/prompt needed - user already has the design!
+      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload (AI generates copy for existing visual)
     }
     if (assetChoice === 'has-copy') {
-      // User has copy, needs visual - input copy, we generate visual
-      return [0, 1, 2, 4, 5, 6]; // Brief, MediaType, Asset, Copy, Style, Prompt
+      // User has copy, needs visual - input copy, then style for visual generation
+      return [0, 1, 2, 4, 5, 6]; // Brief, MediaType, Asset, Copy, Style, Prompt (for visual generation)
     }
-    // Default flow
-    return [0, 1, 2, 3, 4, 5, 6];
+    // Default flow - shouldn't reach here normally
+    return [0, 1, 2];
+  };
+
+  // Check if this is the final step that should trigger generation/submission
+  const isFinalStep = () => {
+    const currentSteps = getSteps();
+    const lastStep = currentSteps[currentSteps.length - 1];
+    return currentStep === lastStep;
   };
 
   const steps = getSteps();
@@ -331,8 +348,21 @@ const CreativeStudio = () => {
       case 0: return campaignBrief.offer.trim().length > 0 && campaignBrief.structure !== null;
       case 1: return mediaTypes.length > 0;
       case 2: return assetChoice !== null;
-      case 3: return uploadedImage !== null && treatment !== null;
-      case 4: return copyChoice !== null && (copyChoice === 'generate-copy' || userCopyText.trim().length > 0);
+      case 3: 
+        // Upload step - requirements differ by flow type
+        if (assetChoice === 'full-campaign') {
+          // Full campaign needs both visual upload and copy text (or can be optional?)
+          return uploadedImage !== null;
+        }
+        if (assetChoice === 'has-visual') {
+          // Has visual - just needs image upload
+          return uploadedImage !== null;
+        }
+        // Default (shouldn't reach for has-copy since it skips this step)
+        return uploadedImage !== null && treatment !== null;
+      case 4: 
+        // Copy step - only for has-copy flow
+        return copyChoice !== null && (copyChoice === 'generate-copy' || userCopyText.trim().length > 0);
       case 5: return style !== null;
       case 6: return visualPrompt.trim().length > 0;
       default: return false;
@@ -349,7 +379,12 @@ const CreativeStudio = () => {
 
     if (currentStep === 1) return 'כדי להמשיך צריך לבחור סוג מדיה';
     if (currentStep === 2) return 'כדי להמשיך צריך לבחור סוג נכס';
-    if (currentStep === 3) return 'כדי להמשיך צריך להעלות תמונה ולבחור עיבוד';
+    if (currentStep === 3) {
+      if (assetChoice === 'full-campaign' || assetChoice === 'has-visual') {
+        return 'כדי להמשיך צריך להעלות תמונה';
+      }
+      return 'כדי להמשיך צריך להעלות תמונה ולבחור עיבוד';
+    }
     if (currentStep === 4) return copyChoice === 'has-copy' && !userCopyText.trim() ? 'כדי להמשיך צריך להזין את הטקסט למודעה' : 'כדי להמשיך צריך לבחור אם יש לך קופי או לא';
     if (currentStep === 5) return 'כדי להמשיך צריך לבחור סגנון';
     if (currentStep === 6) return 'כדי להמשיך צריך למלא תיאור/תוכן';
@@ -380,22 +415,42 @@ const CreativeStudio = () => {
 
   const handleNext = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
+    
+    // Special navigation for radio - skip to prompt
     if (currentStep === 1 && isOnlyRadio) {
-      setCurrentStep(6); // Skip to prompt for radio
-    } else if (currentStep === 2 && assetChoice === 'has-copy') {
-      setCurrentStep(4); // Skip upload to copy step
-    } else if (actualStepIndex < totalSteps - 1) {
+      setCurrentStep(6);
+      return;
+    }
+    
+    // For has-copy: skip upload (step 3) and go to copy input (step 4)
+    if (currentStep === 2 && assetChoice === 'has-copy') {
+      setCurrentStep(4);
+      return;
+    }
+    
+    // Normal progression
+    if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
     }
   };
 
   const handleBack = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
+    
+    // Special back navigation for radio
     if (currentStep === 6 && isOnlyRadio) {
-      setCurrentStep(1); // Go back to media type for radio
-    } else if (currentStep === 4 && assetChoice === 'has-copy') {
-      setCurrentStep(2); // Go back to asset selection
-    } else if (actualStepIndex > 0) {
+      setCurrentStep(1);
+      return;
+    }
+    
+    // For has-copy: from copy step go back to asset selection
+    if (currentStep === 4 && assetChoice === 'has-copy') {
+      setCurrentStep(2);
+      return;
+    }
+    
+    // Normal back progression
+    if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
     } else {
       // On first step, go back to mode selection
@@ -967,6 +1022,9 @@ const CreativeStudio = () => {
             onTreatmentChange={setTreatment}
             uploadedImage={uploadedImage}
             onImageUpload={setUploadedImage}
+            flowType={assetChoice === 'full-campaign' ? 'full-campaign' : assetChoice === 'has-visual' ? 'has-visual' : 'default'}
+            copyText={userCopyText}
+            onCopyTextChange={setUserCopyText}
           />
         );
       case 4:
@@ -1076,7 +1134,7 @@ const CreativeStudio = () => {
                     <span className="text-sm text-muted-foreground">
                       שלב {actualStepIndex + 1} מתוך {totalSteps}
                     </span>
-                    <span className="text-sm font-medium">{getStepTitles(mediaTypes)[currentStep]}</span>
+                    <span className="text-sm font-medium">{getStepTitles(mediaTypes, assetChoice)[currentStep]}</span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
@@ -1101,25 +1159,43 @@ const CreativeStudio = () => {
                     הקודם
                   </Button>
 
-                  {currentStep === 4 ? (
-                    <Button
-                      onClick={handleGenerate}
-                      disabled={!canProceed() || isGenerating}
-                      variant="gradient"
-                      className="min-w-[160px]"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                          מייצר...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4 ml-2" />
-                          צור עיצובים
-                        </>
-                      )}
-                    </Button>
+                  {isFinalStep() ? (
+                    // Final step button - different action based on flow type
+                    assetChoice === 'full-campaign' || assetChoice === 'has-visual' ? (
+                      // Upload flows - submit directly
+                      <Button
+                        onClick={() => {
+                          toast.success('החומרים הועלו בהצלחה! 📦');
+                          setShowResults(true);
+                        }}
+                        disabled={!canProceed()}
+                        variant="gradient"
+                        className="min-w-[160px]"
+                      >
+                        <CheckCircle2 className="h-4 w-4 ml-2" />
+                        {assetChoice === 'full-campaign' ? 'שלח קמפיין' : 'שלח ויז\'ואל לעיבוד'}
+                      </Button>
+                    ) : (
+                      // Generation flows - generate visuals
+                      <Button
+                        onClick={handleGenerate}
+                        disabled={!canProceed() || isGenerating}
+                        variant="gradient"
+                        className="min-w-[160px]"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                            מייצר...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 ml-2" />
+                            צור עיצובים
+                          </>
+                        )}
+                      </Button>
+                    )
                   ) : (
                     <Button
                       onClick={handleNextAttempt}
