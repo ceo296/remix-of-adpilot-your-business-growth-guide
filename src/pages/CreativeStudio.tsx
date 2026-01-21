@@ -345,7 +345,12 @@ const CreativeStudio = () => {
 
   const canProceed = () => {
     switch (currentStep) {
-      case 0: return campaignBrief.offer.trim().length > 0 && campaignBrief.structure !== null;
+      case 0: {
+        // Validate offer has meaningful content (not just random characters)
+        const offer = campaignBrief.offer.trim();
+        const hasValidOffer = offer.length >= 5 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
+        return hasValidOffer && campaignBrief.structure !== null;
+      }
       case 1: return mediaTypes.length > 0;
       case 2: return assetChoice !== null;
       case 3: 
@@ -372,7 +377,13 @@ const CreativeStudio = () => {
   const explainBlockedNext = () => {
     if (currentStep === 0) {
       const missing: string[] = [];
-      if (!campaignBrief.offer.trim()) missing.push('מה ההצעה הפרסומית');
+      const offer = campaignBrief.offer.trim();
+      const hasValidOffer = offer.length >= 5 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
+      if (!offer) {
+        missing.push('מה ההצעה הפרסומית');
+      } else if (!hasValidOffer) {
+        missing.push('יש להזין הצעה פרסומית תקינה (לפחות 5 תווים עם מילים בעברית או אנגלית)');
+      }
       if (!campaignBrief.structure) missing.push('מבנה הקמפיין');
       return missing.length ? `כדי להמשיך צריך למלא: ${missing.join(' + ')}` : null;
     }
