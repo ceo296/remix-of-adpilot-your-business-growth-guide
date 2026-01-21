@@ -165,6 +165,16 @@ const OnboardingWizard = () => {
 
       if (error) {
         console.error('Error extracting colors:', error);
+        // Check for payment/credits error
+        if (error.message?.includes('402') || error.message?.includes('Payment')) {
+          toast.info('חילוץ צבעים אוטומטי לא זמין כרגע - תוכל לבחור צבעים ידנית');
+        }
+        return null;
+      }
+
+      // Check for 402 in the response data
+      if (data?.error && (data.error.includes('402') || data.error.includes('Payment'))) {
+        toast.info('חילוץ צבעים אוטומטי לא זמין כרגע - תוכל לבחור צבעים ידנית');
         return null;
       }
 
