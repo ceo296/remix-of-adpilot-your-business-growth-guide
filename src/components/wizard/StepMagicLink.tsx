@@ -396,10 +396,14 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
         <CardContent className="p-8 md:p-10">
           {!isScanning && !isAnalyzing ? (
             <div className="space-y-8">
+              {/* Primary: Website URL */}
               <div className="space-y-3">
-                <label className="text-base font-semibold text-foreground block">
-                  שימו פה לינק לאתר
-                </label>
+                <div className="flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-primary" />
+                  <label className="text-base font-semibold text-foreground">
+                    לינק לאתר (עדיפות עליונה)
+                  </label>
+                </div>
                 <Input
                   type="url"
                   placeholder="https://www.example.co.il"
@@ -409,10 +413,31 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
                   dir="ltr"
                 />
               </div>
+
+              {/* Optional: Social Media Link */}
+              <div className="space-y-3 pt-2 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📱</span>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    או לינק לרשת חברתית (אופציונלי)
+                  </label>
+                </div>
+                <Input
+                  type="url"
+                  placeholder="לינק לפייסבוק, אינסטגרם, לינקדאין..."
+                  value={data.socialUrl || ''}
+                  onChange={(e) => updateData({ socialUrl: e.target.value })}
+                  className="text-lg h-14 text-left ltr"
+                  dir="ltr"
+                />
+                <p className="text-xs text-muted-foreground">
+                  אם אין לכם אתר, נוכל לשאוב מידע גם מהרשתות החברתיות
+                </p>
+              </div>
               
               <Button
                 onClick={handleScan}
-                disabled={!url.trim()}
+                disabled={!url.trim() && !data.socialUrl?.trim()}
                 size="xl"
                 variant="gradient"
                 className="w-full h-16 text-xl font-bold"

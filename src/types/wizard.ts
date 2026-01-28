@@ -114,6 +114,7 @@ export interface WizardData {
   
   // Step 1: Magic Link
   websiteUrl: string;
+  socialUrl: string; // Optional social media URL for data extraction
   isScanning: boolean;
   
   // Step 1.5: Website Insights Verification
@@ -155,6 +156,7 @@ export const initialWizardData: WizardData = {
   userName: '',
   honorific: 'neutral',
   websiteUrl: '',
+  socialUrl: '',
   isScanning: false,
   websiteInsights: {
     industry: '',
