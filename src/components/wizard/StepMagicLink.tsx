@@ -478,8 +478,8 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
           </Card>
         </div>
 
-        {/* Back Option - more visible */}
-        <div className="text-center">
+        {/* Back Options - more visible */}
+        <div className="text-center space-y-3">
           <Button
             onClick={() => setInputMode(null)}
             variant="ghost"
@@ -488,6 +488,18 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
           >
             ← חזרה לבחירה
           </Button>
+          {onPrev && (
+            <div>
+              <Button
+                onClick={onPrev}
+                variant="outline"
+                size="lg"
+                className="border-2 border-muted-foreground/30 hover:border-primary hover:bg-primary/5"
+              >
+                ← חזרה לשלב הקודם
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -595,9 +607,9 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
         </CardContent>
       </Card>
 
-      {/* Back Option - more visible */}
+      {/* Back Options - more visible */}
       {!isScanning && !isAnalyzing && (
-        <div className="text-center">
+        <div className="text-center space-y-3">
           <Button
             onClick={() => setInputMode(null)}
             variant="ghost"
@@ -606,6 +618,18 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
           >
             ← חזרה לבחירה
           </Button>
+          {onPrev && (
+            <div>
+              <Button
+                onClick={onPrev}
+                variant="outline"
+                size="lg"
+                className="border-2 border-muted-foreground/30 hover:border-primary hover:bg-primary/5"
+              >
+                ← חזרה לשלב הקודם
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
