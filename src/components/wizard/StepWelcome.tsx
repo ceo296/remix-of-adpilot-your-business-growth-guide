@@ -207,7 +207,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   <Building2 className="w-5 h-5 text-white" />
                 </div>
                 <label className="text-base font-semibold text-foreground">
-                  {isAgency ? 'שם הסוכנות?' : 'שם המותג/העסק?'}
+                  {isAgency ? 'שם הסוכנות?' : 'שם העסק/ארגון?'}
                 </label>
               </div>
               <Input
