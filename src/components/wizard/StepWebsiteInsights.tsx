@@ -37,10 +37,28 @@ const INDUSTRY_OPTIONS = [
   'טכנולוגיה ומחשוב',
   'חינוך והדרכה',
   'אירועים ושמחות',
+  'שיווק ופרסום',
+  'יבוא ומסחר',
+  'רכב ותחבורה',
+  'מוצרי יודאיקה',
   'אחר',
 ];
 
+// Helper function to find matching industry or return 'אחר'
+const findMatchingIndustry = (industry: string): string => {
+  if (!industry) return '';
+  // Try exact match first
+  if (INDUSTRY_OPTIONS.includes(industry)) return industry;
+  // Try partial match
+  const lowerIndustry = industry.toLowerCase();
+  const found = INDUSTRY_OPTIONS.find(opt => 
+    lowerIndustry.includes(opt.toLowerCase()) || opt.toLowerCase().includes(lowerIndustry)
+  );
+  return found || 'אחר';
+};
+
 const AUDIENCE_OPTIONS = [
+  'כלל הציבור החרדי',
   'משפחות חרדיות',
   'קהילות חסידיות',
   'ציבור ליטאי',
@@ -48,21 +66,46 @@ const AUDIENCE_OPTIONS = [
   'גברים חרדיים',
   'בעלי עסקים',
   'מוסדות חינוך',
-  'כלל הציבור החרדי',
+  'עמותות ומוסדות',
   'אחר',
 ];
+
+// Helper function to find matching audience or return the closest match
+const findMatchingAudience = (audience: string): string => {
+  if (!audience) return '';
+  // Try exact match first
+  if (AUDIENCE_OPTIONS.includes(audience)) return audience;
+  // Try partial match
+  const lowerAudience = audience.toLowerCase();
+  const found = AUDIENCE_OPTIONS.find(opt => 
+    lowerAudience.includes(opt.toLowerCase()) || opt.toLowerCase().includes(lowerAudience)
+  );
+  // Check for common patterns
+  if (lowerAudience.includes('בעלי עסקים') || lowerAudience.includes('מוסדות')) {
+    return 'בעלי עסקים';
+  }
+  if (lowerAudience.includes('כלל') || lowerAudience.includes('חרדי')) {
+    return 'כלל הציבור החרדי';
+  }
+  return found || 'אחר';
+};
 
 const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteInsightsProps) => {
   const isManualMode = !data.websiteUrl;
   const hasAIPredictions = !!(data.websiteInsights.industry || data.websiteInsights.audience);
   
+  // Map AI-detected industry to one of our options
+  const mappedIndustry = findMatchingIndustry(data.websiteInsights.industry || '');
+  const originalIndustryIfOther = mappedIndustry === 'אחר' && data.websiteInsights.industry ? data.websiteInsights.industry : '';
+  
   const [formValues, setFormValues] = useState({
     businessName: data.brand.name || '',
-    industry: data.websiteInsights.industry || '',
+    industry: mappedIndustry,
+    industryOther: originalIndustryIfOther, // Store original if mapped to 'אחר'
     seniority: data.websiteInsights.seniority || '',
     coreOffering: data.websiteInsights.coreOffering || '',
-    audience: data.websiteInsights.audience || '',
-    audienceOther: '',
+    audience: findMatchingAudience(data.websiteInsights.audience || ''),
+    audienceOther: findMatchingAudience(data.websiteInsights.audience || '') === 'אחר' && data.websiteInsights.audience ? data.websiteInsights.audience : '',
   });
 
   const handleValueChange = (field: string, value: string) => {
@@ -76,6 +119,10 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
     }
     if (!formValues.industry) {
       toast.error('נא לבחור תחום עיסוק');
+      return;
+    }
+    if (formValues.industry === 'אחר' && !formValues.industryOther.trim()) {
+      toast.error('נא לפרט את תחום העיסוק');
       return;
     }
     if (!formValues.seniority.trim()) {
@@ -95,6 +142,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
       return;
     }
 
+    const finalIndustry = formValues.industry === 'אחר' ? formValues.industryOther : formValues.industry;
     const finalAudience = formValues.audience === 'אחר' ? formValues.audienceOther : formValues.audience;
 
     updateData({
@@ -103,7 +151,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
         name: formValues.businessName,
       },
       websiteInsights: {
-        industry: formValues.industry,
+        industry: finalIndustry,
         seniority: formValues.seniority,
         coreOffering: formValues.coreOffering,
         audience: finalAudience,
@@ -113,7 +161,13 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
     onNext();
   };
 
-  const isValid = formValues.businessName.trim() && formValues.industry && formValues.seniority.trim() && formValues.coreOffering.trim() && formValues.audience && (formValues.audience !== 'אחר' || formValues.audienceOther.trim());
+  const isValid = formValues.businessName.trim() && 
+    formValues.industry && 
+    (formValues.industry !== 'אחר' || formValues.industryOther.trim()) &&
+    formValues.seniority.trim() && 
+    formValues.coreOffering.trim() && 
+    formValues.audience && 
+    (formValues.audience !== 'אחר' || formValues.audienceOther.trim());
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -190,8 +244,8 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
             </Select>
             {formValues.industry === 'אחר' && (
               <Input
-                value={formValues.coreOffering}
-                onChange={(e) => handleValueChange('coreOffering', e.target.value)}
+                value={formValues.industryOther}
+                onChange={(e) => handleValueChange('industryOther', e.target.value)}
                 placeholder="פרטו את תחום העיסוק"
                 className="mt-2 bg-white border-amber-200"
               />
