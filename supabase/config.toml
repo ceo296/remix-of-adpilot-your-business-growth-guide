@@ -23,3 +23,12 @@ verify_jwt = false
 
 [functions.analyze-brain-content]
 verify_jwt = false
+
+[functions.extract-logo-colors]
+verify_jwt = false
+
+[functions.validate-brand-passport]
+verify_jwt = false
+
+[functions.scrape-website]
+verify_jwt = false
