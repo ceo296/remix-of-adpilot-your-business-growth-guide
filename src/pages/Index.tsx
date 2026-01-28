@@ -121,10 +121,6 @@ const Index = () => {
       {/* Hero Section - Clean and centered */}
       <section className="flex-1 flex items-center justify-center container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto text-center animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-            <Zap className="w-4 h-4" />
-            בס״ד | פרסום חכם למגזר שלנו
-          </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
             שלום עליכם!
