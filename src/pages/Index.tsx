@@ -132,14 +132,14 @@ const Index = () => {
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            מתכנן מדיה + ארט-דירקטור בפלטפורמה אחת, בסייעתא דשמיא. 
-            בחר קהל, סגנון וערוצי מדיה – ואנחנו נבנה לך קמפיין מהמם.
+            לפרסם לקהל החרדי כבר לא מסובך כמו להכין קוגל ירושלמי,
+            הכל פה זז מהר כמו גאלע
           </p>
           
           <div className="flex justify-center">
             <Link to="/onboarding">
               <Button variant="gradient" size="xl">
-                מתחילים בסייעתא דשמיא
+                צרו קמפיין
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
             </Link>
