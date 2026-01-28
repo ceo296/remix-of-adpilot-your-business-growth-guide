@@ -139,7 +139,7 @@ const Index = () => {
           <div className="flex justify-center">
             <Link to="/onboarding">
               <Button variant="gradient" size="xl">
-                צרו קמפיין
+                מתחילים בסיעתא דשמיא
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
             </Link>
