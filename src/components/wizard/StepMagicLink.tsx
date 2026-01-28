@@ -18,12 +18,25 @@ interface StepMagicLinkProps {
 
 type InputMode = null | 'website' | 'manual';
 
+// URL validation helper
+const isValidUrl = (urlString: string): boolean => {
+  if (!urlString.trim()) return true; // Empty is valid (optional field)
+  try {
+    const url = new URL(urlString.startsWith('http') ? urlString : `https://${urlString}`);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps) => {
   const [isScanning, setIsScanning] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showSparkles, setShowSparkles] = useState(false);
   const [url, setUrl] = useState(data.websiteUrl);
   const [inputMode, setInputMode] = useState<InputMode>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const [socialUrlError, setSocialUrlError] = useState<string | null>(null);
 
   const handleAnalyze = async () => {
     if (!data.brand.name && !url.trim()) {
@@ -75,9 +88,37 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
     }
   };
 
+  const handleUrlChange = (value: string) => {
+    setUrl(value);
+    if (value.trim() && !isValidUrl(value)) {
+      setUrlError('כתובת האתר אינה תקינה. יש להזין כתובת מלאה (לדוגמה: www.example.co.il)');
+    } else {
+      setUrlError(null);
+    }
+  };
+
+  const handleSocialUrlChange = (value: string) => {
+    updateData({ socialUrl: value });
+    if (value.trim() && !isValidUrl(value)) {
+      setSocialUrlError('כתובת הלינק אינה תקינה. יש להזין כתובת מלאה');
+    } else {
+      setSocialUrlError(null);
+    }
+  };
+
   const handleScan = async () => {
     const targetUrl = url.trim() || data.socialUrl?.trim();
     if (!targetUrl) return;
+    
+    // Validate before scanning
+    if (url.trim() && !isValidUrl(url)) {
+      setUrlError('כתובת האתר אינה תקינה. יש להזין כתובת מלאה (לדוגמה: www.example.co.il)');
+      return;
+    }
+    if (data.socialUrl?.trim() && !isValidUrl(data.socialUrl)) {
+      setSocialUrlError('כתובת הלינק אינה תקינה. יש להזין כתובת מלאה');
+      return;
+    }
     
     setIsScanning(true);
     updateData({ websiteUrl: url, isScanning: true });
@@ -485,10 +526,13 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
                   type="url"
                   placeholder="https://www.example.co.il"
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="text-xl h-16 text-left ltr"
+                  onChange={(e) => handleUrlChange(e.target.value)}
+                  className={`text-xl h-16 text-left ltr ${urlError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                   dir="ltr"
                 />
+                {urlError && (
+                  <p className="text-sm text-red-500 mt-1">{urlError}</p>
+                )}
               </div>
 
               {/* Optional: Social Media Link */}
@@ -503,10 +547,13 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
                   type="url"
                   placeholder="לינק לפייסבוק, אינסטגרם, לינקדאין..."
                   value={data.socialUrl || ''}
-                  onChange={(e) => updateData({ socialUrl: e.target.value })}
-                  className="text-lg h-14 text-left ltr"
+                  onChange={(e) => handleSocialUrlChange(e.target.value)}
+                  className={`text-lg h-14 text-left ltr ${socialUrlError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                   dir="ltr"
                 />
+                {socialUrlError && (
+                  <p className="text-sm text-red-500 mt-1">{socialUrlError}</p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   אם אין לכם אתר, נוכל לשאוב מידע גם מהרשתות החברתיות
                 </p>
@@ -514,7 +561,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
               
               <Button
                 onClick={handleScan}
-                disabled={!url.trim() && !data.socialUrl?.trim()}
+                disabled={(!url.trim() && !data.socialUrl?.trim()) || !!urlError || !!socialUrlError}
                 size="xl"
                 variant="gradient"
                 className="w-full h-16 text-xl font-bold"
