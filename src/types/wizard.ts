@@ -105,6 +105,14 @@ export interface WebsiteInsights {
   confirmed: boolean;
 }
 
+// Scraped branding info from Firecrawl
+export interface ScrapedBranding {
+  primaryColor?: string;
+  secondaryColor?: string;
+  backgroundColor?: string;
+  logo?: string;
+}
+
 export type HonorificType = 'mr' | 'mrs' | 'neutral';
 
 export interface WizardData {
@@ -116,6 +124,7 @@ export interface WizardData {
   websiteUrl: string;
   socialUrl: string; // Optional social media URL for data extraction
   isScanning: boolean;
+  scrapedBranding?: ScrapedBranding; // Branding info from Firecrawl
   
   // Step 1.5: Website Insights Verification
   websiteInsights: WebsiteInsights;

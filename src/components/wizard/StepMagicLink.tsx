@@ -76,16 +76,93 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
   };
 
   const handleScan = async () => {
-    if (!url.trim()) return;
+    const targetUrl = url.trim() || data.socialUrl?.trim();
+    if (!targetUrl) return;
     
     setIsScanning(true);
     updateData({ websiteUrl: url, isScanning: true });
 
-    // Simulate initial scanning then proceed
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // First, try to scrape the website with Firecrawl
+      console.log('Scraping website with Firecrawl:', targetUrl);
+      
+      const { data: scrapeResult, error: scrapeError } = await supabase.functions.invoke('scrape-website', {
+        body: { 
+          url: targetUrl,
+          options: {
+            formats: ['markdown', 'branding'],
+            onlyMainContent: true,
+          }
+        }
+      });
+
+      if (scrapeError) {
+        console.error('Firecrawl scrape error:', scrapeError);
+        // Fallback to AI prediction if scraping fails
+        await handleAnalyze();
+      } else if (scrapeResult?.success && scrapeResult?.data) {
+        console.log('Firecrawl scrape successful:', scrapeResult);
+        
+        // Extract data from Firecrawl response
+        const scrapedData = scrapeResult.data;
+        const branding = scrapedData.branding;
+        const markdown = scrapedData.markdown || '';
+        
+        // Show sparkles animation
+        setShowSparkles(true);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setShowSparkles(false);
+        
+        // Now use AI to analyze the scraped content
+        const { data: aiResult, error: aiError } = await supabase.functions.invoke('predict-business', {
+          body: { 
+            brandName: data.brand.name,
+            websiteUrl: targetUrl,
+            scrapedContent: markdown.substring(0, 3000), // Limit content for AI
+            brandingInfo: branding,
+          }
+        });
+
+        if (aiError) {
+          console.error('AI analysis error:', aiError);
+        }
+
+        const predictions = aiResult?.predictions || {};
+        
+        // Combine scraped branding with AI predictions
+        updateData({
+          websiteUrl: url,
+          socialUrl: data.socialUrl,
+          isScanning: false,
+          websiteInsights: {
+            industry: predictions.industry || '',
+            seniority: predictions.seniority || '',
+            coreOffering: predictions.coreOffering || '',
+            audience: predictions.audience || '',
+            confirmed: false,
+          },
+          // Save scraped branding colors if available
+          scrapedBranding: branding ? {
+            primaryColor: branding.colors?.primary,
+            secondaryColor: branding.colors?.secondary,
+            backgroundColor: branding.colors?.background,
+            logo: branding.images?.logo || branding.logo,
+          } : undefined,
+        });
+        
+        toast.success('שאבנו נתונים מהאתר בהצלחה!');
+        onNext();
+      } else {
+        // Firecrawl returned but no data - fallback to AI
+        console.log('No scrape data, falling back to AI prediction');
+        await handleAnalyze();
+      }
+    } catch (error) {
+      console.error('Scan error:', error);
+      // Fallback to AI prediction on any error
+      await handleAnalyze();
+    }
     
-    // Use AI to analyze
-    await handleAnalyze();
     setIsScanning(false);
   };
 
