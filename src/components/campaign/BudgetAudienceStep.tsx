@@ -58,10 +58,10 @@ interface BudgetAudienceStepProps {
 
 // "general" first as the primary option (כלל הציבור החרדי)
 const STREAMS = [
-  { id: 'general', label: 'כלל הציבור החרדי', emoji: '🕎', primary: true },
-  { id: 'litvish', label: 'ליטאי', emoji: '📖' },
-  { id: 'hasidic', label: 'חסידי', emoji: '🎩' },
-  { id: 'sephardi', label: 'ספרדי', emoji: '🌟' },
+  { id: 'general', label: 'כלל הציבור החרדי', emoji: '👥', primary: true },
+  { id: 'litvish', label: 'ליטאי', emoji: '📘' },
+  { id: 'hasidic', label: 'חסידי', emoji: '💫' },
+  { id: 'sephardi', label: 'ספרדי', emoji: '☀️' },
 ];
 
 const GENDERS = [
