@@ -451,7 +451,7 @@ const OnboardingWizard = () => {
 
   const handleMediaOnlyChoice = () => {
     // Navigate to FastTrackWizard with media-only mode
-    navigate('/fast-track?mode=media-only');
+    navigate('/new-campaign?mode=media-only');
   };
 
   const handleCampaignChoice = () => {
