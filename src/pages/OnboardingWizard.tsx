@@ -226,10 +226,8 @@ const OnboardingWizard = () => {
       },
     }));
     
-    // Personalized greeting based on honorific
-    const greeting = honorific === 'mr' ? `שלום אדון ${userName}!` 
-      : honorific === 'mrs' ? `שלום גברת ${userName}!` 
-      : `שלום ${userName}!`;
+    // Personalized greeting - no אדון/גברת prefix, just the name
+    const greeting = `שלום ${userName}!`;
     toast.success(`${greeting} נעים להכיר`);
     nextStep();
   };

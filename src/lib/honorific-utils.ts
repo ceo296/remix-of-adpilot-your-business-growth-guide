@@ -5,14 +5,9 @@ import { HonorificType } from '@/types/wizard';
  */
 export const getGreeting = (honorific: HonorificType, userName?: string): string => {
   const name = userName || '';
-  switch (honorific) {
-    case 'mr':
-      return `שלום אדון ${name}`.trim();
-    case 'mrs':
-      return `שלום גברת ${name}`.trim();
-    default:
-      return name ? `שלום ${name}` : 'שלום';
-  }
+  // Always use simple greeting without אדון/גברת prefix
+  // Grammar conjugation handled elsewhere
+  return name ? `שלום ${name}` : 'שלום';
 };
 
 /**
@@ -86,17 +81,12 @@ export const getVerb = (verb: 'do' | 'choose' | 'continue' | 'tell' | 'upload' |
 };
 
 /**
- * Get a friendly title prefix
+ * Get a friendly title prefix - NOT USED IN UI
+ * Kept for reference only, UI should use grammar conjugation instead
  */
 export const getTitlePrefix = (honorific: HonorificType): string => {
-  switch (honorific) {
-    case 'mr':
-      return 'אדון';
-    case 'mrs':
-      return 'גברת';
-    default:
-      return '';
-  }
+  // Don't use אדון/גברת in ongoing usage
+  return '';
 };
 
 /**
