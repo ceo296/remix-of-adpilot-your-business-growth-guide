@@ -58,10 +58,10 @@ interface BudgetAudienceStepProps {
 
 // "general" first as the primary option (כלל הציבור החרדי)
 const STREAMS = [
-  { id: 'general', label: 'כלל הציבור החרדי', emoji: '👥', primary: true },
-  { id: 'litvish', label: 'ליטאי', emoji: '📘' },
-  { id: 'hasidic', label: 'חסידי', emoji: '💫' },
-  { id: 'sephardi', label: 'ספרדי', emoji: '☀️' },
+  { id: 'general', label: 'כלל הציבור החרדי', color: 'from-violet-500 to-purple-600', primary: true },
+  { id: 'litvish', label: 'ליטאי', color: 'from-blue-500 to-indigo-600' },
+  { id: 'hasidic', label: 'חסידי', color: 'from-amber-500 to-orange-600' },
+  { id: 'sephardi', label: 'ספרדי', color: 'from-emerald-500 to-teal-600' },
 ];
 
 const GENDERS = [
@@ -332,14 +332,15 @@ export const BudgetAudienceStep = ({
                   key={stream.id}
                   type="button"
                   onClick={() => onTargetStreamChange(stream.id)}
-                  className={`p-3 rounded-xl border-2 transition-all text-center ${
+                  className={`p-4 rounded-xl border-2 transition-all text-center relative overflow-hidden ${
                     targetStream === stream.id
-                      ? 'border-primary bg-primary/10'
+                      ? 'border-primary ring-2 ring-primary/30'
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <span className="text-2xl block mb-1">{stream.emoji}</span>
-                  <span className="font-medium text-sm">{stream.label}</span>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stream.color} opacity-${targetStream === stream.id ? '20' : '10'} transition-opacity`} />
+                  <span className="font-medium text-sm relative z-10">{stream.label}</span>
+                  <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${stream.color} mx-auto mt-2`} />
                 </button>
               ))}
             </div>
