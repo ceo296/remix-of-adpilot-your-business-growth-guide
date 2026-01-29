@@ -4,6 +4,7 @@ import { WizardData, initialWizardData, ContactAssets, HonorificType } from '@/t
 import { getGreeting, getTitlePrefix } from '@/lib/honorific-utils';
 import WizardProgress from '@/components/wizard/WizardProgress';
 import StepWelcome from '@/components/wizard/StepWelcome';
+import StepFlowChoice from '@/components/wizard/StepFlowChoice';
 import StepSelectClient from '@/components/wizard/StepSelectClient';
 import StepMagicLink from '@/components/wizard/StepMagicLink';
 import StepWebsiteInsights from '@/components/wizard/StepWebsiteInsights';
@@ -18,11 +19,12 @@ import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 
-const TOTAL_STEPS_REGULAR = 7;
-const TOTAL_STEPS_AGENCY = 8; // Extra step for client selection
+const TOTAL_STEPS_REGULAR = 8;
+const TOTAL_STEPS_AGENCY = 9; // Extra step for client selection
 
 const stepTitlesRegular = [
   'ברוכים הבאים',
+  'בחירת מסלול',
   'הלינק הקסום',
   'מה למדנו עליכם',
   'פרטי יצירת קשר',
@@ -34,6 +36,7 @@ const stepTitlesRegular = [
 const stepTitlesAgency = [
   'ברוכים הבאים',
   'בחירת לקוח',
+  'בחירת מסלול',
   'הלינק הקסום',
   'מה למדנו עליכם',
   'פרטי יצירת קשר',
@@ -446,6 +449,16 @@ const OnboardingWizard = () => {
     }));
   };
 
+  const handleMediaOnlyChoice = () => {
+    // Navigate to FastTrackWizard with media-only mode
+    navigate('/fast-track?mode=media-only');
+  };
+
+  const handleCampaignChoice = () => {
+    // Continue with full campaign onboarding
+    nextStep();
+  };
+
   const renderStep = () => {
     // Agency flow has an extra step after welcome
     if (isAgency) {
@@ -455,10 +468,21 @@ const OnboardingWizard = () => {
         case 2:
           return <StepSelectClient onNext={handleSelectClient} onPrev={prevStep} />;
         case 3:
-          return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+          return (
+            <StepFlowChoice
+              userName={wizardData.userName}
+              brandName={wizardData.brand.name}
+              honorific={wizardData.honorific}
+              onChooseMedia={handleMediaOnlyChoice}
+              onChooseCampaign={handleCampaignChoice}
+              onPrev={prevStep}
+            />
+          );
         case 4:
-          return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+          return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 5:
+          return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        case 6:
           const agencyContactValid = wizardData.contactAssets.contact_phone?.trim() && wizardData.contactAssets.contact_email?.trim();
           return (
             <div className="space-y-6">
@@ -469,11 +493,11 @@ const OnboardingWizard = () => {
               </div>
             </div>
           );
-        case 6:
-          return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 7:
-          return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+          return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 8:
+          return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        case 9:
           return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
         default:
           return null;
@@ -485,10 +509,21 @@ const OnboardingWizard = () => {
       case 1:
         return <StepWelcome onNext={handleWelcomeComplete} />;
       case 2:
-        return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return (
+          <StepFlowChoice
+            userName={wizardData.userName}
+            brandName={wizardData.brand.name}
+            honorific={wizardData.honorific}
+            onChooseMedia={handleMediaOnlyChoice}
+            onChooseCampaign={handleCampaignChoice}
+            onPrev={prevStep}
+          />
+        );
       case 3:
-        return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepMagicLink data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 4:
+        return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+      case 5:
         const contactValid = wizardData.contactAssets.contact_phone?.trim() && wizardData.contactAssets.contact_email?.trim();
         return (
           <div className="space-y-6">
@@ -499,11 +534,11 @@ const OnboardingWizard = () => {
             </div>
           </div>
         );
-      case 5:
-        return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 6:
-        return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+        return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 7:
+        return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
+      case 8:
         return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
       default:
         return null;

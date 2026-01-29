@@ -1,13 +1,20 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { WizardData } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft, Wand2 } from 'lucide-react';
+import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft, Wand2, Upload, FileText, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { getYourWord, getGreeting } from '@/lib/honorific-utils';
+import { BrandingStudio } from './BrandingStudio';
+
+interface UploadedFile {
+  name: string;
+  type: string;
+  dataUrl: string;
+}
 
 interface StepMagicLinkProps {
   data: WizardData;
@@ -37,6 +44,43 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
   const [inputMode, setInputMode] = useState<InputMode>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [socialUrlError, setSocialUrlError] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<UploadedFile | null>(null);
+  const [showBrandingStudio, setShowBrandingStudio] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const newFile: UploadedFile = {
+          name: file.name,
+          type: file.type,
+          dataUrl: event.target?.result as string,
+        };
+        setLogoFile(newFile);
+        // Update wizard data with the logo
+        updateData({
+          brand: {
+            ...data.brand,
+            logo: event.target?.result as string,
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    updateData({
+      brand: {
+        ...data.brand,
+        logo: null,
+      }
+    });
+  };
 
   const handleAnalyze = async () => {
     if (!data.brand.name && !url.trim()) {
@@ -262,85 +306,177 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
   // Choice Screen
   if (inputMode === null) {
     return (
-      <div className="space-y-10">
-        {/* Header - larger */}
-        <div className="text-center space-y-6">
-          <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
-            <Sparkles className="w-12 h-12 text-primary" />
+      <>
+        <div className="space-y-10">
+          {/* Header - larger */}
+          <div className="text-center space-y-6">
+            <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-12 h-12 text-primary" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+              אז {data.userName || 'חבר'}, בואו נלמד על {data.brand.name || 'העסק'}
+            </h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
+              קודם כל, נעלה את הלוגו ואז נלמד עוד על העסק
+            </p>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-            אז {data.userName || 'חבר'}, איך נלמד על {data.brand.name || 'העסק'}?
-          </h2>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
-            נלמד על העסק {getYourWord(data.honorific)} כדי להתאים את הקמפיין בצורה מושלמת
-          </p>
-        </div>
 
-        {/* Choice Cards - larger and more prominent */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Option A: Website */}
-          <Card 
-            className="border-3 border-primary/30 hover:border-primary cursor-pointer transition-all hover:shadow-2xl group hover:scale-[1.02]"
-            onClick={() => setInputMode('website')}
-          >
-            <CardContent className="p-10 text-center space-y-6">
-              <div className="w-20 h-20 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <Globe className="w-10 h-10 text-primary" />
+          {/* Logo Upload Section - Required */}
+          <Card className="max-w-2xl mx-auto border-2 border-primary/20 shadow-xl">
+            <CardContent className="p-8 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-md shadow-indigo-500/30 flex items-center justify-center">
+                  <Upload className="w-5 h-5 text-white" />
+                </div>
+                <label className="text-base font-semibold text-foreground flex items-center gap-2">
+                  העלה לוגו / ספר מותג
+                  <span className="text-destructive text-lg">*</span>
+                </label>
               </div>
-              <h3 className="text-2xl font-bold text-foreground">
-                תשאבו מהאתר שלי
-              </h3>
-              <p className="text-muted-foreground text-base">
-                תנו לנו לינק ונלמד את השפה, הצבעים והסגנון {getYourWord(data.honorific)} אוטומטית
-              </p>
-              <div className="pt-4">
-                <span className="inline-flex items-center gap-2 text-primary text-lg font-bold bg-primary/10 px-4 py-2 rounded-full">
-                  ⚡ המהיר ביותר
-                  <ArrowLeft className="w-5 h-5" />
-                </span>
-              </div>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf,application/pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              
+              {/* Upload area or preview */}
+              {logoFile || data.brand.logo ? (
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300">
+                  {(logoFile?.type?.startsWith('image/') || (data.brand.logo && !data.brand.logo.includes('.pdf'))) ? (
+                    <img
+                      src={logoFile?.dataUrl || data.brand.logo || ''}
+                      alt="לוגו"
+                      className="h-16 w-16 object-contain rounded-lg bg-white"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-md shadow-green-500/30">
+                      <FileText className="w-8 h-8 text-white" />
+                    </div>
+                  )}
+                  <span className="flex-1 text-base font-medium text-foreground truncate">
+                    {logoFile?.name || 'לוגו העסק'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={removeLogo}
+                    className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5 text-destructive" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full min-h-[120px] rounded-2xl border-3 border-dashed flex items-center justify-center overflow-hidden transition-all cursor-pointer group border-indigo-300 hover:border-indigo-500 bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100"
+                >
+                  <div className="text-center p-6 group-hover:scale-105 transition-transform">
+                    <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-md shadow-indigo-500/30 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Upload className="w-8 h-8 text-white" />
+                    </div>
+                    <span className="text-base font-medium text-indigo-700">לחץ להעלאה</span>
+                    <span className="text-sm text-indigo-500 block mt-1">(תמונות או PDF)</span>
+                  </div>
+                </div>
+              )}
+
+              {/* No branding button */}
+              {!logoFile && !data.brand.logo && (
+                <button
+                  type="button"
+                  onClick={() => setShowBrandingStudio(true)}
+                  className="w-full p-4 rounded-xl border-2 border-dashed border-violet-300 hover:border-violet-500 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 transition-all flex items-center justify-center gap-3 group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 shadow-md shadow-violet-500/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-lg font-semibold text-violet-700">אין לי מיתוג - תעזרו לי</span>
+                </button>
+              )}
             </CardContent>
           </Card>
 
-          {/* Option B: Manual */}
-          <Card 
-            className="border-2 border-muted hover:border-primary/50 cursor-pointer transition-all hover:shadow-xl group hover:scale-[1.02]"
-            onClick={() => setInputMode('manual')}
-          >
-            <CardContent className="p-10 text-center space-y-6">
-              <div className="w-20 h-20 mx-auto rounded-2xl bg-muted flex items-center justify-center group-hover:bg-muted/80 transition-colors">
-                <Keyboard className="w-10 h-10 text-foreground" />
+          {/* Choice Cards - How to learn about the business */}
+          {(logoFile || data.brand.logo) && (
+            <>
+              <div className="text-center">
+                <p className="text-lg font-semibold text-foreground">מעולה! עכשיו איך נלמד עוד על העסק?</p>
               </div>
-              <h3 className="text-2xl font-bold text-foreground">
-                אני אקליד ידנית
-              </h3>
-              <p className="text-muted-foreground text-base">
-                אין לי אתר או שאני מעדיף להזין את הפרטים בעצמי
-              </p>
-              <div className="pt-4">
-                <span className="inline-flex items-center gap-2 text-muted-foreground text-base font-medium">
-                  🎯 שליטה מלאה
-                  <ArrowLeft className="w-5 h-5" />
-                </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                {/* Option A: Website */}
+                <Card 
+                  className="border-3 border-primary/30 hover:border-primary cursor-pointer transition-all hover:shadow-2xl group hover:scale-[1.02]"
+                  onClick={() => setInputMode('website')}
+                >
+                  <CardContent className="p-10 text-center space-y-6">
+                    <div className="w-20 h-20 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <Globe className="w-10 h-10 text-primary" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-foreground">
+                      תשאבו מהאתר שלי
+                    </h3>
+                    <p className="text-muted-foreground text-base">
+                      תנו לנו לינק ונלמד את השפה והסגנון אוטומטית
+                    </p>
+                    <div className="pt-4">
+                      <span className="inline-flex items-center gap-2 text-primary text-lg font-bold bg-primary/10 px-4 py-2 rounded-full">
+                        ⚡ המהיר ביותר
+                        <ArrowLeft className="w-5 h-5" />
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Option B: Manual */}
+                <Card 
+                  className="border-2 border-muted hover:border-primary/50 cursor-pointer transition-all hover:shadow-xl group hover:scale-[1.02]"
+                  onClick={() => setInputMode('manual')}
+                >
+                  <CardContent className="p-10 text-center space-y-6">
+                    <div className="w-20 h-20 mx-auto rounded-2xl bg-muted flex items-center justify-center group-hover:bg-muted/80 transition-colors">
+                      <Keyboard className="w-10 h-10 text-foreground" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-foreground">
+                      אני אקליד ידנית
+                    </h3>
+                    <p className="text-muted-foreground text-base">
+                      אין לי אתר או שאני מעדיף להזין את הפרטים בעצמי
+                    </p>
+                    <div className="pt-4">
+                      <span className="inline-flex items-center gap-2 text-muted-foreground text-base font-medium">
+                        🎯 שליטה מלאה
+                        <ArrowLeft className="w-5 h-5" />
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
+            </>
+          )}
+
+          {/* Back to previous step - always visible */}
+          {onPrev && (
+            <div className="text-center pt-6">
+              <Button
+                onClick={onPrev}
+                variant="outline"
+                size="lg"
+                className="text-lg gap-2 px-8 h-14"
+              >
+                ← חזרה לשלב הקודם
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Back to previous step - always visible */}
-        {onPrev && (
-          <div className="text-center pt-6">
-            <Button
-              onClick={onPrev}
-              variant="outline"
-              size="lg"
-              className="text-lg gap-2 px-8 h-14"
-            >
-              ← חזרה לשלב הקודם
-            </Button>
-          </div>
-        )}
-      </div>
+        {/* Branding Studio Modal */}
+        <BrandingStudio 
+          isOpen={showBrandingStudio} 
+          onClose={() => setShowBrandingStudio(false)} 
+        />
+      </>
     );
   }
 

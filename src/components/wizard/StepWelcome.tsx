@@ -1,15 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, Heart, Upload, User, Building2, FileText, X } from 'lucide-react';
-import { BrandingStudio } from './BrandingStudio';
-
-interface UploadedFile {
-  name: string;
-  type: string;
-  dataUrl: string;
-}
+import { Sparkles, Heart, User, Building2 } from 'lucide-react';
 
 type HonorificType = 'mr' | 'mrs' | 'neutral';
 
@@ -20,47 +13,17 @@ interface StepWelcomeProps {
 const StepWelcome = ({ onNext }: StepWelcomeProps) => {
   const [userName, setUserName] = useState('');
   const [brandName, setBrandName] = useState('');
-  const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isAgency, setIsAgency] = useState<boolean | null>(null);
   const [honorific, setHonorific] = useState<HonorificType>('neutral');
-  const [showBrandingStudio, setShowBrandingStudio] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (selectedFiles) {
-      Array.from(selectedFiles).forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setFiles((prev) => [
-            ...prev,
-            {
-              name: file.name,
-              type: file.type,
-              dataUrl: event.target?.result as string,
-            },
-          ]);
-        };
-        reader.readAsDataURL(file);
-      });
-      e.target.value = '';
-    }
-  };
-
-  const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
 
   const handleContinue = () => {
-    const filesRequired = isAgency === false;
-    if (userName.trim() && brandName.trim() && isAgency !== null && (!filesRequired || files.length > 0)) {
-      const logoData = files.length > 0 ? files[0].dataUrl : null;
-      onNext(userName.trim(), brandName.trim(), logoData, isAgency, honorific);
+    if (userName.trim() && brandName.trim() && isAgency !== null) {
+      // Logo is now uploaded in Magic Link step, pass null here
+      onNext(userName.trim(), brandName.trim(), null, isAgency, honorific);
     }
   };
 
-  const filesRequired = isAgency === false;
-  const isValid = userName.trim() && brandName.trim() && isAgency !== null && (!filesRequired || files.length > 0);
+  const isValid = userName.trim() && brandName.trim() && isAgency !== null;
 
   return (
     <>
@@ -219,100 +182,6 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
               />
             </div>
 
-            {/* Logo/Brand Book Upload - Only required for private clients */}
-            {isAgency === false && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-md shadow-indigo-500/30 flex items-center justify-center">
-                    <Upload className="w-5 h-5 text-white" />
-                  </div>
-                  <label className="text-base font-semibold text-foreground flex items-center gap-2">
-                    העלה לוגו / ספר מותג
-                    <span className="text-destructive text-lg">*</span>
-                  </label>
-                </div>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.pdf,application/pdf"
-                  onChange={handleFileUpload}
-                  multiple
-                  className="hidden"
-                />
-                
-                {/* Upload area - enhanced with gradient */}
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full min-h-[120px] rounded-2xl border-3 border-dashed flex items-center justify-center overflow-hidden transition-all cursor-pointer group border-indigo-300 hover:border-indigo-500 bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100"
-                >
-                  <div className="text-center p-6 group-hover:scale-105 transition-transform">
-                    <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-md shadow-indigo-500/30 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <Upload className="w-8 h-8 text-white" />
-                    </div>
-                    <span className="text-base font-medium text-indigo-700">לחץ להעלאה</span>
-                    <span className="text-sm text-indigo-500 block mt-1">(תמונות או PDF)</span>
-                  </div>
-                </div>
-
-                {/* Uploaded files list */}
-                {files.length > 0 && (
-                  <div className="space-y-3 mt-4">
-                    {files.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300"
-                      >
-                        {file.type.startsWith('image/') ? (
-                          <img
-                            src={file.dataUrl}
-                            alt={file.name}
-                            className="h-14 w-14 object-contain rounded-lg"
-                          />
-                        ) : (
-                          <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-md shadow-green-500/30">
-                            <FileText className="w-7 h-7 text-white" />
-                          </div>
-                        )}
-                        <span className="flex-1 text-base font-medium text-foreground truncate">{file.name}</span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFile(index);
-                          }}
-                          className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                        >
-                          <X className="w-5 h-5 text-destructive" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {files.length === 0 && (
-                  <div className="flex items-center gap-3 text-blue-700 bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-xl border border-blue-200">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-sm">
-                      <Upload className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="font-medium">העלאת לוגו תעזור לנו להתאים את העיצובים בדיוק למותג ✨</span>
-                  </div>
-                )}
-
-                {/* No branding button - enhanced */}
-                <button
-                  type="button"
-                  onClick={() => setShowBrandingStudio(true)}
-                  className="w-full p-4 rounded-xl border-2 border-dashed border-violet-300 hover:border-violet-500 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 transition-all flex items-center justify-center gap-3 group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 shadow-md shadow-violet-500/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <span className="text-lg font-semibold text-violet-700">אין לי מיתוג - תעזרו לי</span>
-                </button>
-              </div>
-            )}
-
             {/* Continue Button - larger */}
             <Button
               onClick={handleContinue}
@@ -327,10 +196,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
 
             {!isValid && (
               <p className="text-center text-sm text-muted-foreground bg-gradient-to-br from-slate-50 to-gray-100 p-3 rounded-lg border border-slate-200">
-                {isAgency === false 
-                  ? '📝 יש למלא את כל השדות ולהעלות לוגו כדי להמשיך'
-                  : '📝 יש למלא את כל השדות כדי להמשיך'
-                }
+                📝 יש למלא את כל השדות כדי להמשיך
               </p>
             )}
           </CardContent>
@@ -341,12 +207,6 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
           🔒 הפרטים שלכם נשמרים בצורה מאובטחת ומשמשים רק להתאמה אישית של החוויה
         </p>
       </div>
-
-      {/* Branding Studio Modal */}
-      <BrandingStudio 
-        isOpen={showBrandingStudio} 
-        onClose={() => setShowBrandingStudio(false)} 
-      />
     </>
   );
 };
