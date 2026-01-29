@@ -52,13 +52,6 @@ const StepFlowChoice = ({
             <p className="text-muted-foreground text-base leading-relaxed">
               נלמד על העסק, נבנה אסטרטגיה, ניצור קריאייטיב ונבחר מדיה מתאימה
             </p>
-            <div className="pt-4">
-              <span className="inline-flex items-center gap-2 text-violet-600 text-lg font-bold bg-violet-100 px-4 py-2 rounded-full">
-                <Sparkles className="w-5 h-5" />
-                מומלץ למותגים חדשים
-                <ArrowLeft className="w-5 h-5" />
-              </span>
-            </div>
           </CardContent>
         </Card>
 
@@ -77,12 +70,6 @@ const StepFlowChoice = ({
             <p className="text-muted-foreground text-base leading-relaxed">
               יש לי חומרים מוכנים, רק רוצה לבחור איפה לפרסם ולהגדיר תקציב
             </p>
-            <div className="pt-4">
-              <span className="inline-flex items-center gap-2 text-amber-600 text-base font-medium bg-amber-100 px-4 py-2 rounded-full">
-                ⚡ מהיר ויעיל
-                <ArrowLeft className="w-5 h-5" />
-              </span>
-            </div>
           </CardContent>
         </Card>
       </div>
