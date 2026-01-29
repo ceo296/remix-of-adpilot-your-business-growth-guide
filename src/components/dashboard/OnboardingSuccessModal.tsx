@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Rocket, Brain, Sparkles, Megaphone, Palette, User, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Rocket, Brain, Sparkles, Megaphone, Palette, User, ArrowRight, Newspaper } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import { getGreeting, getWhatWouldYouLike } from '@/lib/honorific-utils';
@@ -45,6 +45,11 @@ const OnboardingSuccessModal = ({ userName: propUserName, brandName: propBrandNa
   const handleCreateInternalMaterials = () => {
     setIsOpen(false);
     navigate('/internal-studio');
+  };
+
+  const handleMediaPurchase = () => {
+    setIsOpen(false);
+    navigate('/new-campaign?mode=media-only');
   };
 
   const handleStayOnDashboard = () => {
@@ -126,32 +131,44 @@ const OnboardingSuccessModal = ({ userName: propUserName, brandName: propBrandNa
             </p>
           </div>
 
-          {/* Choice Cards */}
-          <div className="grid grid-cols-2 gap-4 w-full mb-6">
-            {/* Advertising Campaign */}
-            <button
-              onClick={handleCreateCampaign}
-              className="p-5 rounded-2xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary transition-all flex flex-col items-center gap-3 group"
-            >
-              <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Megaphone className="w-7 h-7 text-primary" />
-              </div>
-              <span className="font-bold text-foreground">קמפיין פרסומי</span>
-              <span className="text-xs text-muted-foreground">מודעות לעיתונים, באנרים, דיגיטל</span>
-            </button>
-
-            {/* Internal Materials */}
-            <button
-              onClick={handleCreateInternalMaterials}
-              className="p-5 rounded-2xl border-2 border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-all flex flex-col items-center gap-3 group"
-            >
-              <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Palette className="w-7 h-7 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-              <span className="font-bold text-foreground">חומרים פנימיים</span>
-              <span className="text-xs text-muted-foreground">כרטיסי ביקור, פליירים, מצגות</span>
-            </button>
+      {/* Choice Cards */}
+      <div className="grid grid-cols-3 gap-3 w-full mb-6">
+        {/* Advertising Campaign */}
+        <button
+          onClick={handleCreateCampaign}
+          className="p-4 rounded-2xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary transition-all flex flex-col items-center gap-2 group"
+        >
+          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <Megaphone className="w-6 h-6 text-primary" />
           </div>
+          <span className="font-bold text-foreground text-sm">קמפיין פרסומי</span>
+          <span className="text-[10px] text-muted-foreground text-center">מודעות לעיתונים, באנרים, דיגיטל</span>
+        </button>
+
+        {/* Direct Media Purchase */}
+        <button
+          onClick={handleMediaPurchase}
+          className="p-4 rounded-2xl border-2 border-amber-400/50 bg-amber-50 hover:bg-amber-100 hover:border-amber-500 transition-all flex flex-col items-center gap-2 group"
+        >
+          <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <Newspaper className="w-6 h-6 text-amber-600" />
+          </div>
+          <span className="font-bold text-foreground text-sm">רכישת מדיה</span>
+          <span className="text-[10px] text-muted-foreground text-center">בחירת עיתונים ופלטפורמות ישירות</span>
+        </button>
+
+        {/* Internal Materials */}
+        <button
+          onClick={handleCreateInternalMaterials}
+          className="p-4 rounded-2xl border-2 border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-all flex flex-col items-center gap-2 group"
+        >
+          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:scale-110 transition-transform">
+            <Palette className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+          </div>
+          <span className="font-bold text-foreground text-sm">חומרים פנימיים</span>
+          <span className="text-[10px] text-muted-foreground text-center">כרטיסי ביקור, פליירים, מצגות</span>
+        </button>
+      </div>
 
           {/* Personal Area Info */}
           <div className="w-full p-4 rounded-xl bg-muted/50 border border-border mb-4">
