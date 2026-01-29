@@ -65,9 +65,9 @@ const STREAMS = [
 ];
 
 const GENDERS = [
-  { id: 'men', label: 'גברים', emoji: '🧔' },
-  { id: 'women', label: 'נשים', emoji: '👒' },
-  { id: 'family', label: 'משפחה', emoji: '👨‍👩‍👧‍👦' },
+  { id: 'men', label: 'גברים', color: 'from-sky-500 to-blue-600' },
+  { id: 'women', label: 'נשים', color: 'from-rose-400 to-pink-600' },
+  { id: 'family', label: 'משפחה', color: 'from-teal-500 to-cyan-600' },
 ];
 
 const CITIES = [
@@ -355,14 +355,15 @@ export const BudgetAudienceStep = ({
                   key={gender.id}
                   type="button"
                   onClick={() => onTargetGenderChange(gender.id)}
-                  className={`p-3 rounded-xl border-2 transition-all text-center ${
+                  className={`p-4 rounded-xl border-2 transition-all text-center relative overflow-hidden ${
                     targetGender === gender.id
-                      ? 'border-primary bg-primary/10'
+                      ? 'border-primary ring-2 ring-primary/30'
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <span className="text-2xl block mb-1">{gender.emoji}</span>
-                  <span className="font-medium text-sm">{gender.label}</span>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gender.color} opacity-${targetGender === gender.id ? '20' : '10'} transition-opacity`} />
+                  <span className="font-medium text-sm relative z-10">{gender.label}</span>
+                  <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${gender.color} mx-auto mt-2`} />
                 </button>
               ))}
             </div>
