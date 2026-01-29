@@ -27,7 +27,10 @@ import {
   Gift,
   Lightbulb,
   Newspaper,
-  Check
+  Check,
+  Upload,
+  Image,
+  X
 } from 'lucide-react';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
@@ -70,6 +73,10 @@ const FastTrackWizard = () => {
   const [targetCity, setTargetCity] = useState('nationwide');
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [manualMediaSelection, setManualMediaSelection] = useState<any>(null);
+  
+  // Creative Upload (for media-only mode)
+  const [uploadedCreativeUrl, setUploadedCreativeUrl] = useState<string | null>(null);
+  const [isUploadingCreative, setIsUploadingCreative] = useState(false);
   
   // Quote
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -197,6 +204,7 @@ const FastTrackWizard = () => {
           target_gender: targetGender,
           target_city: targetCity,
           selected_media: quoteData.mediaItems as any,
+          creatives: uploadedCreativeUrl ? [{ url: uploadedCreativeUrl, type: 'uploaded' }] : [],
         })
         .select()
         .single();
@@ -328,6 +336,47 @@ const FastTrackWizard = () => {
     </div>
   );
 
+  // Handle creative file upload
+  const handleCreativeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingCreative(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('brand-assets')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('brand-assets')
+        .getPublicUrl(fileName);
+
+      setUploadedCreativeUrl(publicUrl);
+      toast({
+        title: 'הקריאייטיב הועלה בהצלחה',
+        description: 'הקובץ נשמר ויצורף להזמנה',
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: 'שגיאה בהעלאה',
+        description: 'אנא נסה שוב',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingCreative(false);
+    }
+  };
+
+  const removeUploadedCreative = () => {
+    setUploadedCreativeUrl(null);
+  };
+
   // Render Media Step
   const renderMediaStep = () => (
     <div className="space-y-6 animate-fade-in">
@@ -344,6 +393,59 @@ const FastTrackWizard = () => {
             : 'בחר היכן לפרסם את הקמפיין שלך'}
         </p>
       </div>
+
+      {/* Creative Upload Section - Only in media-only mode */}
+      {isMediaOnlyMode && (
+        <div className="bg-card border border-border rounded-2xl p-6 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
+              <Image className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">קריאייטיב קיים (אופציונלי)</h3>
+              <p className="text-sm text-muted-foreground">יש לך חומר פרסומי מוכן? העלה אותו כאן</p>
+            </div>
+          </div>
+
+          {uploadedCreativeUrl ? (
+            <div className="relative rounded-xl overflow-hidden border border-border bg-muted/30">
+              <img 
+                src={uploadedCreativeUrl} 
+                alt="Uploaded creative" 
+                className="w-full max-h-48 object-contain"
+              />
+              <button
+                onClick={removeUploadedCreative}
+                className="absolute top-2 left-2 w-8 h-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:opacity-90 transition-opacity"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all">
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleCreativeUpload}
+                className="hidden"
+                disabled={isUploadingCreative}
+              />
+              {isUploadingCreative ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm text-muted-foreground">מעלה...</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <Upload className="w-8 h-8 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">לחץ להעלאת קובץ</span>
+                  <span className="text-xs text-muted-foreground/70">תמונה או PDF</span>
+                </div>
+              )}
+            </label>
+          )}
+        </div>
+      )}
 
       <BudgetAudienceStep
         budget={budget}
