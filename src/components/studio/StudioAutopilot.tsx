@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check, Image, Calendar } from 'lucide-react';
+import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check, Image, Calendar, Target, Gift, Tag, Megaphone, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { MediaType } from './StudioMediaTypeStep';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round' | '';
 
@@ -40,6 +41,13 @@ interface ClientInfo {
   target_audience: string | null;
 }
 
+export type CampaignGoal = 'awareness' | 'promotion' | 'launch' | 'seasonal' | 'other';
+
+export interface AutopilotBrief {
+  offer: string;
+  goal: CampaignGoal | null;
+}
+
 interface StudioAutopilotProps {
   isGenerating: boolean;
   concepts: CreativeConcept[];
@@ -52,6 +60,9 @@ interface StudioAutopilotProps {
   onExecuteConcept: () => void;
   selectedHoliday?: HolidaySeason;
   onHolidayChange?: (holiday: HolidaySeason) => void;
+  // New brief props
+  brief?: AutopilotBrief;
+  onBriefChange?: (brief: AutopilotBrief) => void;
 }
 
 const CONCEPT_ICONS = {
@@ -98,6 +109,13 @@ const getVisualSuggestion = (concept: CreativeConcept): string => {
   return firstSentence.length > 40 ? firstSentence.substring(0, 40) + '...' : firstSentence;
 };
 
+const GOAL_OPTIONS: { id: CampaignGoal; label: string; description: string; icon: React.ElementType }[] = [
+  { id: 'awareness', label: 'מודעות למותג', description: 'להציג את העסק', icon: Megaphone },
+  { id: 'promotion', label: 'סייל / מבצע', description: 'לקדם הצעה', icon: Tag },
+  { id: 'launch', label: 'השקה', description: 'מוצר/שירות חדש', icon: Zap },
+  { id: 'seasonal', label: 'עונתי / חג', description: 'קמפיין עונתי', icon: Calendar },
+];
+
 export const StudioAutopilot = ({
   isGenerating,
   concepts,
@@ -110,6 +128,8 @@ export const StudioAutopilot = ({
   onExecuteConcept,
   selectedHoliday = '',
   onHolidayChange,
+  brief = { offer: '', goal: null },
+  onBriefChange,
 }: StudioAutopilotProps) => {
   const handleToggleMediaType = (id: MediaType) => {
     // If selecting 'all', clear others and select only 'all'
@@ -148,6 +168,63 @@ export const StudioAutopilot = ({
           תשברו אתם את הראש במקומי. המערכת תיצור 3 כיווני קריאייטיב מבוססי האסטרטגיה שלכם.
         </p>
         
+        {/* Campaign Brief Section - REQUIRED */}
+        {onBriefChange && (
+          <div className="w-full max-w-2xl mb-8 text-right">
+            {/* Campaign Offer */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 shadow-sm mb-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-md shadow-primary/30 flex items-center justify-center">
+                  <Gift className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <Label className="text-base font-semibold text-foreground">מה ההצעה הפרסומית? *</Label>
+                  <p className="text-xs text-muted-foreground">בלי זה אי אפשר ליצור קמפיין מותאם</p>
+                </div>
+              </div>
+              <Textarea
+                value={brief.offer}
+                onChange={(e) => onBriefChange({ ...brief, offer: e.target.value })}
+                placeholder="תאר בקצרה את המסר המרכזי. לדוגמה: 30% הנחה על כל מערכות הישיבה, השקת טעמים חדשים..."
+                className="min-h-[80px] text-base bg-white border-primary/20 focus:border-primary"
+                dir="rtl"
+              />
+            </div>
+
+            {/* Campaign Goal */}
+            <div className="mb-4">
+              <Label className="text-sm font-medium text-muted-foreground mb-3 block">מה המטרה של הקמפיין?</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {GOAL_OPTIONS.map((goal) => (
+                  <Card
+                    key={goal.id}
+                    className={cn(
+                      'cursor-pointer transition-all duration-200 border-2',
+                      brief.goal === goal.id
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-border hover:border-primary/30'
+                    )}
+                    onClick={() => onBriefChange({ ...brief, goal: goal.id })}
+                  >
+                    <CardContent className="p-3 text-center">
+                      <div className={cn(
+                        'w-8 h-8 mx-auto rounded-lg flex items-center justify-center mb-1',
+                        brief.goal === goal.id ? 'bg-primary/20' : 'bg-muted'
+                      )}>
+                        <goal.icon className={cn(
+                          'w-4 h-4',
+                          brief.goal === goal.id ? 'text-primary' : 'text-muted-foreground'
+                        )} />
+                      </div>
+                      <p className="font-medium text-xs">{goal.label}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Media Type Selection */}
         <div className="w-full max-w-2xl mb-6">
           <p className="text-sm font-medium text-muted-foreground mb-3">איזה חומר פרסומי תרצו ליצור? (ניתן לבחור כמה)</p>
@@ -256,7 +333,7 @@ export const StudioAutopilot = ({
           size="lg"
           variant="gradient"
           onClick={onGenerateConcepts}
-          disabled={selectedMediaTypes.length === 0}
+          disabled={selectedMediaTypes.length === 0 || !brief.offer.trim()}
           className="text-lg px-8"
         >
           <Wand2 className="h-5 w-5 ml-2" />
@@ -265,6 +342,9 @@ export const StudioAutopilot = ({
         
         {selectedMediaTypes.length === 0 && (
           <p className="text-xs text-muted-foreground mt-2">יש לבחור סוג מדיה להמשך</p>
+        )}
+        {selectedMediaTypes.length > 0 && !brief.offer.trim() && (
+          <p className="text-xs text-destructive mt-2">יש להזין הצעה פרסומית להמשך</p>
         )}
       </div>
     );

@@ -1133,6 +1133,17 @@ const CreativeStudio = () => {
                   onExecuteConcept={handleExecuteConcept}
                   selectedHoliday={selectedHoliday}
                   onHolidayChange={setSelectedHoliday}
+                  brief={{
+                    offer: campaignBrief.offer,
+                    goal: campaignBrief.goal,
+                  }}
+                  onBriefChange={(newBrief) => {
+                    setCampaignBrief(prev => ({
+                      ...prev,
+                      offer: newBrief.offer,
+                      goal: newBrief.goal,
+                    }));
+                  }}
                 />
               </div>
             ) : (
