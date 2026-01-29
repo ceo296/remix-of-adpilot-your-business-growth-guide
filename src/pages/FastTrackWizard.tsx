@@ -30,7 +30,13 @@ import {
   Check,
   Upload,
   Image,
-  X
+  X,
+  Radio,
+  Signpost,
+  Monitor,
+  Mail,
+  MessageCircle,
+  LayoutGrid
 } from 'lucide-react';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
@@ -44,7 +50,16 @@ const CAMPAIGN_GOALS = [
   { id: 'event', label: 'אירוע', description: 'כנס/אירוע', icon: Heart, gradient: 'from-rose-500 to-pink-600' },
 ];
 
-type WizardStep = 'brief' | 'media' | 'quote';
+const MEDIA_TYPES = [
+  { id: 'newspapers', label: 'עיתונות', description: 'עיתונים ומגזינים', icon: Newspaper, gradient: 'from-slate-600 to-slate-700' },
+  { id: 'radio', label: 'רדיו', description: 'פרסום קולי', icon: Radio, gradient: 'from-blue-500 to-cyan-600' },
+  { id: 'signage', label: 'שילוט', description: 'שלטי חוצות ומודעות', icon: Signpost, gradient: 'from-amber-500 to-orange-600' },
+  { id: 'digital', label: 'דיגיטל', description: 'אתרים ובאנרים', icon: Monitor, gradient: 'from-violet-500 to-purple-600' },
+  { id: 'email', label: 'מיילים', description: 'קמפיין מייל', icon: Mail, gradient: 'from-green-500 to-emerald-600' },
+  { id: 'whatsapp', label: 'ווטסאפ', description: 'הודעות ממוקדות', icon: MessageCircle, gradient: 'from-green-600 to-green-700' },
+];
+
+type WizardStep = 'brief' | 'mediaType' | 'media' | 'quote';
 
 const FastTrackWizard = () => {
   const navigate = useNavigate();
@@ -57,7 +72,10 @@ const FastTrackWizard = () => {
   const isMediaOnlyMode = searchParams.get('mode') === 'media-only';
   
   // Current step
-  const [currentStep, setCurrentStep] = useState<WizardStep>(isMediaOnlyMode ? 'media' : 'brief');
+  const [currentStep, setCurrentStep] = useState<WizardStep>(isMediaOnlyMode ? 'mediaType' : 'brief');
+  
+  // Media Type Selection (for media-only mode)
+  const [selectedMediaTypes, setSelectedMediaTypes] = useState<string[]>([]);
   
   // Campaign Brief
   const [campaignName, setCampaignName] = useState('');
@@ -101,7 +119,7 @@ const FastTrackWizard = () => {
   // Update step when mode changes
   useEffect(() => {
     if (isMediaOnlyMode) {
-      setCurrentStep('media');
+      setCurrentStep('mediaType');
       // Set default campaign name for media-only
       setCampaignName('רכישת מדיה');
     }
@@ -127,6 +145,10 @@ const FastTrackWizard = () => {
     navigate('/studio');
   };
 
+  const handleProceedToMediaType = () => {
+    setCurrentStep('mediaType');
+  };
+
   const handleProceedToMedia = () => {
     setCurrentStep('media');
   };
@@ -135,12 +157,28 @@ const FastTrackWizard = () => {
     setCurrentStep('quote');
   };
 
+  const handleBackFromMediaType = () => {
+    navigate('/dashboard');
+  };
+
   const handleBackFromMedia = () => {
     if (isMediaOnlyMode) {
-      navigate('/dashboard');
+      setCurrentStep('mediaType');
     } else {
       setCurrentStep('brief');
     }
+  };
+
+  const toggleMediaType = (mediaTypeId: string) => {
+    setSelectedMediaTypes(prev => 
+      prev.includes(mediaTypeId) 
+        ? prev.filter(id => id !== mediaTypeId)
+        : [...prev, mediaTypeId]
+    );
+  };
+
+  const canProceedMediaType = () => {
+    return selectedMediaTypes.length > 0;
   };
 
   const handleBackFromQuote = () => {
@@ -377,6 +415,77 @@ const FastTrackWizard = () => {
     setUploadedCreativeUrl(null);
   };
 
+  // Render Media Type Selection Step (for media-only mode)
+  const renderMediaTypeStep = () => (
+    <div className="space-y-10 animate-fade-in">
+      <div className="text-center">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-6 shadow-lg shadow-amber-500/30">
+          <LayoutGrid className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-foreground mb-3">איזה סוגי מדיה אתה צריך?</h2>
+        <p className="text-lg text-muted-foreground">בחר את סוגי המדיה שברצונך לרכוש (ניתן לבחור כמה)</p>
+      </div>
+
+      {/* Media Type Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {MEDIA_TYPES.map((mediaType) => {
+          const isSelected = selectedMediaTypes.includes(mediaType.id);
+          return (
+            <div
+              key={mediaType.id}
+              onClick={() => toggleMediaType(mediaType.id)}
+              className={`p-6 rounded-2xl border-2 cursor-pointer transition-all text-center hover:scale-[1.02] ${
+                isSelected
+                  ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
+                  : 'border-border hover:border-primary/40 hover:shadow-md'
+              }`}
+            >
+              <div className={`w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-md relative ${
+                isSelected 
+                  ? `bg-gradient-to-br ${mediaType.gradient}` 
+                  : `bg-gradient-to-br ${mediaType.gradient} opacity-60`
+              }`}>
+                <mediaType.icon className="w-7 h-7 text-white" />
+                {isSelected && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-3 h-3 text-primary-foreground" />
+                  </div>
+                )}
+              </div>
+              <p className="text-lg font-bold text-foreground mb-1">{mediaType.label}</p>
+              <p className="text-sm text-muted-foreground">{mediaType.description}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Selected Summary */}
+      {selectedMediaTypes.length > 0 && (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+          <p className="text-center text-foreground">
+            נבחרו: <span className="font-bold text-primary">
+              {selectedMediaTypes.map(id => MEDIA_TYPES.find(m => m.id === id)?.label).join(', ')}
+            </span>
+          </p>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <div className="flex justify-between pt-8">
+        <Button variant="ghost" onClick={handleBackFromMediaType}>
+          <ArrowRight className="w-4 h-4 ml-2" />
+          ביטול
+        </Button>
+        
+        <Button onClick={handleProceedToMedia} disabled={!canProceedMediaType()} variant="gradient">
+          <Check className="w-4 h-4 ml-2" />
+          המשך לבחירת מדיה
+          <ArrowLeft className="w-4 h-4 mr-2" />
+        </Button>
+      </div>
+    </div>
+  );
+
   // Render Media Step
   const renderMediaStep = () => (
     <div className="space-y-6 animate-fade-in">
@@ -545,6 +654,7 @@ const FastTrackWizard = () => {
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         {currentStep === 'brief' && renderBriefStep()}
+        {currentStep === 'mediaType' && renderMediaTypeStep()}
         {currentStep === 'media' && renderMediaStep()}
         {currentStep === 'quote' && renderQuoteStep()}
       </main>
