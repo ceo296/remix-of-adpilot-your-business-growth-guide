@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Newspaper, Palette, ArrowLeft, Zap, Sparkles } from 'lucide-react';
+import { Newspaper, Palette, ArrowRight, Zap } from 'lucide-react';
 import { HonorificType } from '@/types/wizard';
 
 interface StepFlowChoiceProps {
@@ -22,6 +22,21 @@ const StepFlowChoice = ({
 }: StepFlowChoiceProps) => {
   return (
     <div className="space-y-10">
+      {/* Back Button - Top */}
+      {onPrev && (
+        <div className="flex justify-start">
+          <Button
+            onClick={onPrev}
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowRight className="w-4 h-4" />
+            חזרה
+          </Button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center space-y-6">
         <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/30 flex items-center justify-center">
@@ -73,21 +88,6 @@ const StepFlowChoice = ({
           </CardContent>
         </Card>
       </div>
-
-      {/* Back button */}
-      {onPrev && (
-        <div className="text-center pt-6">
-          <Button
-            onClick={onPrev}
-            variant="outline"
-            size="lg"
-            className="text-lg gap-2 px-8 h-14"
-          >
-            ← חזרה לשלב הקודם
-          </Button>
-        </div>
-      )}
-
       {/* Trust Note */}
       <p className="text-center text-base text-muted-foreground">
         💡 תמיד אפשר לחזור ולשנות - המערכת שומרת את כל הנתונים שלך
