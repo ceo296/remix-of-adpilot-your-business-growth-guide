@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   Plus, Pencil, Trash2, Search, ChevronDown, ChevronRight, 
   Building2, Newspaper, Package, Ruler, MapPin, DollarSign, Upload, X, Image,
-  Radio, Globe, MessageSquare, Megaphone, type LucideIcon
+  Radio, Globe, MessageSquare, Megaphone, FileSpreadsheet, type LucideIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import * as XLSX from 'xlsx';
 import OutletRow from './OutletRow';
 
 // Types
@@ -786,10 +787,47 @@ const MediaDatabaseAdmin = () => {
           <h1 className="text-2xl font-bold">מאגר מדיה</h1>
           <p className="text-muted-foreground">ניהול היררכי: קטגוריה ← ערוץ ← מוצר ← מפרט</p>
         </div>
-        <Button onClick={openAddCategory}>
-          <Plus className="h-4 w-4 ml-2" />
-          הוסף קטגוריה
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={async () => {
+            const [cats, outlets, products, specs] = await Promise.all([
+              supabase.from('media_categories').select('*').order('sort_order'),
+              supabase.from('media_outlets').select('*').eq('is_active', true),
+              supabase.from('media_products').select('*').eq('is_active', true),
+              supabase.from('product_specs').select('*').eq('is_active', true),
+            ]);
+            const catMap = Object.fromEntries((cats.data || []).map(c => [c.id, c.name_he]));
+            const outletMap = Object.fromEntries((outlets.data || []).map(o => [o.id, o]));
+            const headers = ['קטגוריה','ערוץ','זרם','סקטור','עיר','אווירה','חשיפה','אזהרה','מוצר','סוג מוצר','מגדר','קהל יעד','מחיר בסיס מוצר','מחיר לקוח מוצר','תג מיוחד','מפרט','ממדים','מחיר בסיס מפרט','מחיר לקוח מפרט'];
+            const rows: any[][] = [];
+            for (const mp of (products.data || [])) {
+              const outlet = outletMap[mp.outlet_id];
+              if (!outlet) continue;
+              const cat = catMap[outlet.category_id] || '';
+              const matchingSpecs = (specs.data || []).filter((s: any) => s.product_id === mp.id);
+              if (matchingSpecs.length === 0) {
+                rows.push([cat, outlet.name_he || outlet.name, outlet.stream || '', outlet.sector || '', outlet.city || '', outlet.vibe_he || '', outlet.reach_info || '', outlet.warning_text || '', mp.name_he || mp.name, mp.product_type, mp.gender_target || '', mp.target_audience || '', mp.base_price || 0, mp.client_price || 0, mp.special_tag || '', '', '', 0, 0]);
+              } else {
+                for (const s of matchingSpecs) {
+                  rows.push([cat, outlet.name_he || outlet.name, outlet.stream || '', outlet.sector || '', outlet.city || '', outlet.vibe_he || '', outlet.reach_info || '', outlet.warning_text || '', mp.name_he || mp.name, mp.product_type, mp.gender_target || '', mp.target_audience || '', mp.base_price || 0, mp.client_price || 0, mp.special_tag || '', s.name_he || s.name, s.dimensions || '', s.base_price || 0, s.client_price || 0]);
+                }
+              }
+            }
+            rows.sort((a, b) => String(a[0]).localeCompare(String(b[0])) || String(a[1]).localeCompare(String(b[1])));
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+            ws['!cols'] = headers.map(() => ({ wch: 18 }));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'קטלוג מדיה');
+            XLSX.writeFile(wb, 'adkop-media-catalog.xlsx');
+            toast.success(`יוצאו ${rows.length} שורות בהצלחה`);
+          }}>
+            <FileSpreadsheet className="h-4 w-4 ml-2" />
+            ייצוא Excel
+          </Button>
+          <Button onClick={openAddCategory}>
+            <Plus className="h-4 w-4 ml-2" />
+            הוסף קטגוריה
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
