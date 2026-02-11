@@ -14,6 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
+        raleway: ['Raleway', 'sans-serif'],
         rubik: ['Rubik', 'sans-serif'],
         heebo: ['Heebo', 'sans-serif'],
       },
