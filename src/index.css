@@ -10,13 +10,13 @@
   :root {
     /* Dark navy palette from reference */
     --background: 234 30% 16%;
-    --foreground: 0 0% 95%;
+    --foreground: 0 0% 100%;
 
     --card: 234 25% 20%;
-    --card-foreground: 0 0% 95%;
+    --card-foreground: 0 0% 100%;
 
     --popover: 234 25% 20%;
-    --popover-foreground: 0 0% 95%;
+    --popover-foreground: 0 0% 100%;
 
     /* Accent Orange #f9b17a = hsl(30, 90%, 73%) */
     --primary: 30 90% 73%;
@@ -25,13 +25,13 @@
 
     /* Muted purple-gray */
     --secondary: 234 20% 28%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 234 20% 25%;
-    --muted-foreground: 234 15% 60%;
+    --muted-foreground: 234 10% 72%;
 
     --accent: 234 20% 28%;
-    --accent-foreground: 0 0% 95%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
@@ -68,26 +68,26 @@
 
   .dark {
     --background: 234 30% 10%;
-    --foreground: 0 0% 95%;
+    --foreground: 0 0% 100%;
 
     --card: 234 25% 14%;
-    --card-foreground: 0 0% 95%;
+    --card-foreground: 0 0% 100%;
 
     --popover: 234 25% 14%;
-    --popover-foreground: 0 0% 95%;
+    --popover-foreground: 0 0% 100%;
 
     --primary: 30 90% 73%;
     --primary-foreground: 234 30% 16%;
     --primary-hover: 30 90% 65%;
 
     --secondary: 234 20% 22%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 234 20% 18%;
-    --muted-foreground: 234 15% 55%;
+    --muted-foreground: 234 10% 68%;
 
     --accent: 234 20% 22%;
-    --accent-foreground: 0 0% 95%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
