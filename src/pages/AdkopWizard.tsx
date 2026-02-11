@@ -23,8 +23,8 @@ const AdkopWizard = () => {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-rubik font-bold">
-            <span className="text-primary">AD</span>
-            <span className="text-foreground">KOP</span>
+            <span className="text-foreground">AD</span>
+            <span className="text-primary">KOP</span>
           </h1>
           <span className="text-sm text-muted-foreground">מערכת פרסום חכמה</span>
         </div>
