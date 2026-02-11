@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface MediaRow {
   cat: string;
@@ -79,13 +80,15 @@ const MediaExport = () => {
     fetchData();
   }, []);
 
+  const headers = ['קטגוריה','ערוץ','זרם','סקטור','עיר','אווירה','חשיפה','אזהרה','מוצר','סוג מוצר','מגדר','קהל יעד','מחיר בסיס','מחיר לקוח','תג מיוחד','מפרט','ממדים','מחיר מפרט בסיס','מחיר מפרט לקוח'];
+
+  const toArray = (r: MediaRow) => [r.cat, r.outlet, r.stream, r.sector, r.city, r.vibe, r.reach, r.warning, r.product, r.ptype, r.gender, r.audience, r.mp_base, r.mp_client, r.tag, r.spec, r.dims, r.ps_base, r.ps_client];
+
   const downloadCSV = () => {
     const BOM = '\uFEFF';
-    const header = 'קטגוריה,ערוץ,זרם,סקטור,עיר,אווירה,חשיפה,אזהרה,מוצר,סוג מוצר,מגדר,קהל יעד,מחיר בסיס,מחיר לקוח,תג מיוחד,מפרט,ממדים,מחיר מפרט בסיס,מחיר מפרט לקוח';
+    const header = headers.join(',');
     const csvRows = rows.map(r =>
-      [r.cat, r.outlet, r.stream, r.sector, r.city, r.vibe, r.reach, r.warning, r.product, r.ptype, r.gender, r.audience, r.mp_base, r.mp_client, r.tag, r.spec, r.dims, r.ps_base, r.ps_client]
-        .map(v => `"${String(v).replace(/"/g, '""')}"`)
-        .join(',')
+      toArray(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
     );
     const csv = BOM + header + '\n' + csvRows.join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -97,6 +100,15 @@ const MediaExport = () => {
     URL.revokeObjectURL(url);
   };
 
+  const downloadExcel = () => {
+    const data = [headers, ...rows.map(toArray)];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = headers.map(() => ({ wch: 18 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'קטלוג מדיה');
+    XLSX.writeFile(wb, 'adkop-media-catalog.xlsx');
+  };
+
   return (
     <div className="min-h-screen bg-background p-8" dir="rtl" lang="he">
       <div className="max-w-5xl mx-auto">
@@ -105,10 +117,16 @@ const MediaExport = () => {
             <h1 className="text-3xl font-raleway font-bold text-foreground">ייצוא מאגר מדיה</h1>
             <p className="text-muted-foreground mt-1">{loading ? 'טוען נתונים...' : `${rows.length} שורות נמצאו`}</p>
           </div>
-          <Button onClick={downloadCSV} disabled={loading} size="lg" className="gap-2">
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-            הורד CSV
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={downloadExcel} disabled={loading} size="lg" className="gap-2">
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileSpreadsheet className="w-5 h-5" />}
+              הורד Excel
+            </Button>
+            <Button onClick={downloadCSV} disabled={loading} size="lg" variant="outline" className="gap-2">
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+              הורד CSV
+            </Button>
+          </div>
         </div>
 
         {!loading && (
