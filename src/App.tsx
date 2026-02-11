@@ -17,6 +17,7 @@ import AgencyClients from "./pages/AgencyClients";
 import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
 import MediaPortal from "./pages/MediaPortal";
+import AdkopWizard from "./pages/AdkopWizard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/admin-auth" element={<AdminAuth />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/media-portal" element={<MediaPortal />} />
+            <Route path="/adkop" element={<AdkopWizard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </HashRouter>
