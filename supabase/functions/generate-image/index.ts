@@ -83,9 +83,10 @@ serve(async (req) => {
   }
 
   try {
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
+      throw new Error('No API key configured (GOOGLE_GEMINI_API_KEY or LOVABLE_API_KEY)');
     }
 
     const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType } = await req.json();
@@ -231,68 +232,131 @@ ${campaignContext.targetGender ? `- מגדר יעד: ${campaignContext.targetGen
 
     console.log("Enhanced prompt length:", fullPrompt.length);
 
-    // Select model - use flash-image as primary (more stable), pro as fallback
-    const model = 'google/gemini-2.5-flash-image';
-
-    console.log("Using model:", model);
-
-    // Try primary model first, then fallback
-    const models = ['google/gemini-2.5-flash-image', 'google/gemini-3-pro-image-preview'];
-    
+    // Try Google Gemini API directly first, then Lovable gateway as fallback
     let response: Response | null = null;
-    let usedModel = model;
-    
-    for (const tryModel of models) {
-      console.log("Trying model:", tryModel);
-      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: tryModel,
-          messages: [
-            {
-              role: "user",
-              content: fullPrompt
-            }
-          ],
-          modalities: ["image", "text"]
-        }),
-      });
+    let usedModel = '';
 
-      if (response.ok) {
-        usedModel = tryModel;
-        break;
+    // Attempt 1: Direct Google Gemini API
+    if (GOOGLE_GEMINI_API_KEY) {
+      console.log("Trying direct Google Gemini API...");
+      try {
+        response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: fullPrompt }] }],
+              generationConfig: {
+                responseModalities: ["TEXT", "IMAGE"],
+              },
+            }),
+          }
+        );
+
+        if (response.ok) {
+          usedModel = 'gemini-2.0-flash-exp-direct';
+          const data = await response.json();
+          console.log("Google Gemini direct response received");
+
+          // Extract image from Google's response format
+          const parts = data.candidates?.[0]?.content?.parts || [];
+          let imageUrl = '';
+          let textContent = '';
+
+          for (const part of parts) {
+            if (part.inlineData) {
+              imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+            }
+            if (part.text) {
+              textContent = part.text;
+            }
+          }
+
+          if (imageUrl) {
+            // Log the generation
+            try {
+              await supabase.from('ai_generation_logs').insert({
+                media_type: configMediaType,
+                model_config_id: modelConfig?.id || null,
+                prompt_used: fullPrompt.substring(0, 5000),
+                generated_output: 'google-direct-base64',
+                generation_type: 'image',
+                success: true,
+                brand_context: brandContext || null,
+                campaign_context: campaignContext || null,
+              });
+            } catch (logError) {
+              console.error('Error logging generation:', logError);
+            }
+
+            return new Response(JSON.stringify({
+              imageUrl,
+              status: 'approved',
+              message: textContent,
+              model: usedModel,
+              configUsed: modelConfig?.media_type || 'default',
+            }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          } else {
+            console.error("No image in Google direct response");
+            response = null; // Fall through to gateway
+          }
+        } else {
+          const errorText = await response.text();
+          console.error("Google Gemini direct error:", response.status, errorText);
+          response = null; // Fall through to gateway
+        }
+      } catch (directError) {
+        console.error("Google Gemini direct fetch error:", directError);
+        response = null;
       }
+    }
+
+    // Attempt 2: Lovable AI Gateway fallback
+    if (!response && LOVABLE_API_KEY) {
+      const models = ['google/gemini-2.5-flash-image', 'google/gemini-3-pro-image-preview'];
       
-      const errorText = await response.text();
-      console.error(`Model ${tryModel} error:`, response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ 
-          error: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." 
-        }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      for (const tryModel of models) {
+        console.log("Trying Lovable gateway model:", tryModel);
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: tryModel,
+            messages: [{ role: "user", content: fullPrompt }],
+            modalities: ["image", "text"]
+          }),
         });
-      }
-      
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." 
-        }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      
-      // If 500, wait and try next model
-      if (response.status === 500 && tryModel !== models[models.length - 1]) {
-        console.log(`Model ${tryModel} returned 500, waiting 2s before fallback...`);
-        await new Promise(r => setTimeout(r, 2000));
-        continue;
+
+        if (response.ok) {
+          usedModel = tryModel;
+          break;
+        }
+        
+        const errorText = await response.text();
+        console.error(`Gateway model ${tryModel} error:`, response.status, errorText);
+        
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." }), {
+            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
+        if (response.status === 500 && tryModel !== models[models.length - 1]) {
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
+        response = null;
       }
     }
 
