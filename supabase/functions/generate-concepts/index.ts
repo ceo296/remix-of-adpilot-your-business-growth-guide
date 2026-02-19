@@ -99,8 +99,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
   const supabaseAuth = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
-  const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(authHeader.replace('Bearer ', ''));
-  if (claimsError || !claimsData?.claims) {
+  const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+  if (userError || !user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
@@ -254,7 +254,51 @@ ${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      throw new Error(`AI Gateway error: ${response.status}`);
+      // Instead of throwing, use fallback concepts
+      console.warn(`AI Gateway returned ${response.status}, using fallback concepts`);
+      const campaignOffer = campaignBrief?.offer || '';
+      const fallbackConcepts = {
+        concepts: [
+          {
+            type: 'emotional',
+            headline: 'הזווית המרגשת',
+            idea: isRadio 
+              ? `ספוט רדיו חם ומשפחתי עבור ${profile.business_name || 'העסק'}` 
+              : `תמונה חמימה של משפחה נהנית מ${profile.business_name || 'השירות'}`,
+            copy: isRadio 
+              ? `(קול קריין חם) "${profile.business_name || 'אנחנו'} - כי המשפחה שלכם מגיעה את הכי טוב. ${campaignOffer ? campaignOffer + '.' : ''} התקשרו עכשיו!"` 
+              : campaignOffer || 'כי המשפחה שלכם מגיעה את הכי טוב'
+          },
+          {
+            type: 'hard-sale',
+            headline: 'הזווית המכירתית',
+            idea: isRadio 
+              ? `ספוט אנרגטי עם מבצע מיוחד` 
+              : `תקריב על המוצר/שירות של ${profile.business_name || 'העסק'} עם רקע יוקרתי`,
+            copy: isRadio 
+              ? `(קול קריין נמרץ) "מבצע מיוחד ב${profile.business_name || 'העסק'}! ${campaignOffer ? campaignOffer + '!' : 'רק השבוע - מחירים שלא תאמינו!'} התקשרו עכשיו!"` 
+              : campaignOffer || 'הזדמנות מיוחדת - למהר לפני שנגמר!'
+          },
+          {
+            type: 'pain-point',
+            headline: 'פתרון הבעיה',
+            idea: isRadio 
+              ? `ספוט שמתחיל מהבעיה ומציע פתרון` 
+              : 'אדם רגוע ומחייך אחרי שמצא את הפתרון המושלם',
+            copy: isRadio 
+              ? `(קול קריין מבין) "נמאס לחפש? ${profile.business_name || 'אנחנו כאן'} - ${campaignOffer || profile.primary_x_factor || 'הפתרון המושלם'}. סוף סוף מישהו שמבין!"` 
+              : campaignOffer || `${profile.primary_x_factor || 'השירות המושלם'} - סוף סוף מישהו שמבין`
+          }
+        ]
+      };
+      const fallbackWithIds = fallbackConcepts.concepts.map((c: any, i: number) => ({
+        ...c,
+        id: `${c.type}-${Date.now()}-${i}`,
+        mediaType: mediaType || 'ad'
+      }));
+      return new Response(JSON.stringify({ concepts: fallbackWithIds }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
