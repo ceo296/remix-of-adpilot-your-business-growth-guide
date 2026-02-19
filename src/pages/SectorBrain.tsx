@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import BulkUpload from '@/components/admin/BulkUpload';
 
 interface UploadedAsset {
   id: string;
@@ -993,6 +994,11 @@ const SectorBrain = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Bulk Upload */}
+        <div className="mb-8">
+          <BulkUpload onUploadComplete={loadExamples} />
+        </div>
 
         {/* AI Insights Section */}
         <Card className="mb-8 border-2 border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20">
