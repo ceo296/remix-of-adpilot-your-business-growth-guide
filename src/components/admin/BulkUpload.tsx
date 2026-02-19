@@ -295,7 +295,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         >
           <Upload className="w-10 h-10 mx-auto text-primary mb-3" />
           <p className="font-medium text-foreground mb-1">גררו קבצים או תיקיות לכאן</p>
-          <p className="text-sm text-muted-foreground mb-4">או השתמשו בכפתורים למטה</p>
+          <p className="text-sm text-muted-foreground mb-4">ניתן לבחור תיקייה אחת בכל פעם — התיקיות מצטברות ברשימה</p>
           
           <div className="flex gap-3 justify-center">
             <div className="relative">
@@ -337,6 +337,22 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
               <Button variant="ghost" size="sm" onClick={clearAll} className="text-muted-foreground">
                 <X className="w-4 h-4 mr-1" /> נקה הכל
               </Button>
+              <span className="text-sm font-medium">{files.length} קבצים מ-{Object.keys(groupedByFolder).length} תיקיות</span>
+              <div className="relative">
+                <Button variant="outline" size="sm" className="gap-2 border-primary text-primary">
+                  <FolderUp className="w-4 h-4" />
+                  הוסף תיקייה נוספת
+                </Button>
+                <input
+                  type="file"
+                  // @ts-ignore
+                  webkitdirectory=""
+                  directory=""
+                  multiple
+                  onChange={handleFolderSelect}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+              </div>
             </div>
 
             <div className="max-h-64 overflow-y-auto space-y-2">
