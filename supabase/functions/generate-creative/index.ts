@@ -305,88 +305,108 @@ ${sectorBrainContext}${brandSection}${campaignSection}
 - סגנון: ${style || 'מודרני ונקי'}
 - יחס גובה-רוחב: ${aspectRatio || 'מרובע'}`;
 
-    // Call Lovable AI Gateway for image generation
+    // Try Google Gemini API directly first, then Lovable gateway as fallback
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
+    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
+      console.error('No API key configured');
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Calling Lovable AI Gateway for image generation...');
-    console.log('System prompt length:', systemPrompt.length);
+    const combinedPrompt = `${systemPrompt}\n\n${enhancedPrompt}`;
+    let imageUrl = '';
+    let usedMethod = '';
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: enhancedPrompt }
-        ],
-        modalities: ['image', 'text']
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI Gateway error:', aiResponse.status, errorText);
-      
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { 
-            status: 429, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    // Attempt 1: Direct Google Gemini API
+    if (GOOGLE_GEMINI_API_KEY) {
+      console.log('Trying direct Google Gemini API...');
+      try {
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: combinedPrompt }] }],
+              generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+            }),
           }
         );
-      }
-      
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
-          { 
-            status: 402, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+
+        if (directResponse.ok) {
+          const data = await directResponse.json();
+          const parts = data.candidates?.[0]?.content?.parts || [];
+          for (const part of parts) {
+            if (part.inlineData) {
+              imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+              usedMethod = 'google-direct';
+              break;
+            }
           }
-        );
-      }
-      
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate image' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          if (!imageUrl) console.error('No image in Google direct response');
+        } else {
+          const errorText = await directResponse.text();
+          console.error('Google Gemini direct error:', directResponse.status, errorText);
         }
-      );
+      } catch (directError) {
+        console.error('Google Gemini direct fetch error:', directError);
+      }
     }
 
-    const aiData = await aiResponse.json();
-    console.log('AI response received');
+    // Attempt 2: Lovable AI Gateway fallback
+    if (!imageUrl && LOVABLE_API_KEY) {
+      console.log('Falling back to Lovable AI Gateway...');
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-image',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: enhancedPrompt }
+          ],
+          modalities: ['image', 'text']
+        }),
+      });
 
-    // Extract the generated image URL
-    const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('AI Gateway error:', aiResponse.status, errorText);
+        
+        if (aiResponse.status === 429) {
+          return new Response(
+            JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (aiResponse.status === 402) {
+          return new Response(
+            JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
+            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } else {
+        const aiData = await aiResponse.json();
+        imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url || '';
+        usedMethod = 'lovable-gateway';
+      }
+    }
 
     if (!imageUrl) {
-      console.error('No image in AI response:', JSON.stringify(aiData).substring(0, 500));
       return new Response(
-        JSON.stringify({ error: 'No image generated' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ error: 'Failed to generate image from all sources' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Image generated via:', usedMethod);
 
     return new Response(
       JSON.stringify({
@@ -398,11 +418,10 @@ ${sectorBrainContext}${brandSection}${campaignSection}
         sectorExamplesUsed: prioritizedExamples.length,
         holidayExamplesUsed: holidayExamples.length,
         relevantHolidays,
+        model: usedMethod,
         message: 'Image generated successfully with Sector Brain knowledge',
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error in generate-creative function:', error);
