@@ -206,27 +206,30 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
   };
 
   const startUpload = async () => {
-    if (files.length === 0) return;
+    const pendingFiles = files.map((f, i) => ({ ...f, originalIndex: i })).filter(f => f.status === 'pending' || f.status === 'error');
+    if (pendingFiles.length === 0) {
+      toast.info('כל הקבצים כבר הועלו בהצלחה!');
+      return;
+    }
     setIsUploading(true);
     setCompleted(0);
     setProgress(0);
 
     let done = 0;
-    const total = files.length;
+    const total = pendingFiles.length;
 
-    for (let i = 0; i < files.length; i++) {
-      const bf = files[i];
+    for (const pf of pendingFiles) {
+      const i = pf.originalIndex;
       setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'uploading' } : f));
 
       try {
-        // Sanitize filename: replace Hebrew/non-ASCII chars with transliterated or safe names
-        const safeName = bf.file.name.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, '_').replace(/^[-_]+/, '') || 'file';
-        const ext = bf.file.name.split('.').pop() || 'png';
+        const safeName = pf.file.name.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, '_').replace(/^[-_]+/, '') || 'file';
+        const ext = pf.file.name.split('.').pop() || 'png';
         const sanitizedName = safeName.includes('.') ? safeName : `${safeName}.${ext}`;
-        const fileName = `bulk/${bf.mediaType}/${Date.now()}-${sanitizedName}`;
+        const fileName = `bulk/${pf.mediaType}/${Date.now()}-${sanitizedName}`;
         const { error: uploadError } = await supabase.storage
           .from('sector-brain')
-          .upload(fileName, bf.file);
+          .upload(fileName, pf.file);
 
         if (uploadError) throw uploadError;
 
@@ -234,13 +237,13 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           .from('sector_brain_examples')
           .insert({
             zone: 'fame',
-            name: bf.file.name,
+            name: pf.file.name,
             file_path: fileName,
-            file_type: bf.file.type,
-            media_type: bf.mediaType,
+            file_type: pf.file.type,
+            media_type: pf.mediaType,
             example_type: 'good',
-            topic_category: bf.topic,
-            holiday_season: bf.holiday,
+            topic_category: pf.topic,
+            holiday_season: pf.holiday,
           });
 
         if (dbError) throw dbError;
@@ -257,7 +260,6 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
     }
 
     setIsUploading(false);
-    const successCount = files.filter((_, i) => files[i]?.status !== 'error').length;
     toast.success(`${done} קבצים הועלו בהצלחה!`);
     onUploadComplete();
   };
