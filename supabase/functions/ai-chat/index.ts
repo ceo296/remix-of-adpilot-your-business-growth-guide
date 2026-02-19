@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 async function fetchSectorBrainFromDB(holidaySeason?: string | null) {
@@ -38,8 +39,6 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null) {
   } catch { return null; }
 }
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -51,8 +50,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
   const supabaseAuth = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
-  const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(authHeader.replace('Bearer ', ''));
-  if (claimsError || !claimsData?.claims) {
+  const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+  if (userError || !user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
@@ -66,9 +65,18 @@ serve(async (req) => {
 
     // Fetch sector brain references
     const sectorBrainData = await fetchSectorBrainFromDB();
-    const sectorContext = sectorBrainData 
-      ? `\n\nרפרנסים מגזריים (Sector Brain) - השתמש בהם כדי לתת עצות מבוססות:\n${JSON.stringify(sectorBrainData.zones)}`
-      : '';
+    console.log('[ai-chat] Sector Brain loaded:', sectorBrainData ? `${sectorBrainData.total_examples} examples, zones: ${Object.keys(sectorBrainData.zones).join(', ')}` : 'NONE');
+
+    // Build concise sector context
+    let sectorContext = '';
+    if (sectorBrainData) {
+      const summaries: string[] = [];
+      for (const [zone, items] of Object.entries(sectorBrainData.zones as Record<string, any[]>)) {
+        const names = items.slice(0, 10).map((i: any) => `"${i.name}"`).join(', ');
+        summaries.push(`[${zone}]: ${names}`);
+      }
+      sectorContext = `\nרפרנסים מגזריים להתייחסות: ${summaries.join(' | ')}`;
+    }
 
     // Build system prompt based on context
     const systemPrompt = `אתה עוזר AI חכם למערכת פרסום לקהילה החרדית.
@@ -105,28 +113,17 @@ ${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, nul
       console.error("AI gateway error:", response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(JSON.stringify({ 
-          error: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." 
-        }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      
       if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." 
-        }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
-      return new Response(JSON.stringify({ 
-        error: "שגיאה בתקשורת עם AI" 
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ error: "שגיאה בתקשורת עם AI" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
