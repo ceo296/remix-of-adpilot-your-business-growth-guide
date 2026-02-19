@@ -404,59 +404,19 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       }
     }
 
-    // Attempt 1: Direct Google Gemini API (text-only, no image vision)
-    if (GOOGLE_GEMINI_API_KEY) {
-      console.log('Trying direct Google Gemini API for analysis (text-only)...');
-      try {
-        // Build text-only content for Google API (skip images - fileData with external URLs not supported)
-        const textOnlyContent = userContent
-          .filter((item: any) => item.type === 'text')
-          .map((item: any) => item.text)
-          .join('\n\n');
+    // Build text-only content (image URLs cause errors in both Google API and Gateway)
+    const textOnlyPrompt = userContent
+      .filter((item: any) => item.type === 'text')
+      .map((item: any) => item.text)
+      .join('\n\n');
 
-        const directResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: systemPrompt }] },
-              contents: [{ parts: [{ text: textOnlyContent }] }],
-            }),
-          }
-        );
-
-        if (directResponse.ok) {
-          const data = await directResponse.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          
-          if (text) {
-            console.log('Google direct analysis succeeded, converting to SSE stream');
-            const sseData = `data: ${JSON.stringify({
-              choices: [{ delta: { content: text } }]
-            })}\n\ndata: [DONE]\n\n`;
-            
-            return new Response(sseData, {
-              headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-            });
-          }
-        } else {
-          const errorText = await directResponse.text();
-          console.error('Google direct analysis error:', directResponse.status, errorText);
-        }
-      } catch (directError) {
-        console.error('Google direct analysis fetch error:', directError);
-      }
-    }
-
-    // Attempt 2: Lovable AI Gateway (streaming, supports images)
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: 'שירות AI אינו זמין כרגע' }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log('Using Lovable AI Gateway with image support...');
+    console.log('Using Lovable AI Gateway (text-only)...');
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -467,7 +427,7 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
+          { role: "user", content: textOnlyPrompt },
         ],
         stream: true,
       }),
