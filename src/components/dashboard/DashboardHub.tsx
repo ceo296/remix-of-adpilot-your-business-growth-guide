@@ -271,15 +271,15 @@ const DashboardHub = () => {
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
         {/* Create with AI */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-violet-400/30 bg-card hover:bg-card/80"
           onClick={() => handleNewCampaign('create')}
         >
           <CardContent className="p-5 text-center">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center mb-3">
               <Sparkles className="w-7 h-7 text-white" />
             </div>
-            <h3 className="text-lg font-bold text-violet-800 mb-1">קמפיין חדש</h3>
-            <p className="text-violet-600 mb-2 text-xs">
+            <h3 className="text-lg font-bold text-foreground mb-1">קמפיין חדש</h3>
+            <p className="text-muted-foreground mb-2 text-xs">
               יצירה עם AI
             </p>
             <p className="text-[10px] text-muted-foreground">
@@ -290,15 +290,15 @@ const DashboardHub = () => {
 
         {/* Upload Existing */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-blue-400/30 bg-card hover:bg-card/80"
           onClick={() => handleNewCampaign('upload')}
         >
           <CardContent className="p-5 text-center">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/30 flex items-center justify-center mb-3">
               <FileUp className="w-7 h-7 text-white" />
             </div>
-            <h3 className="text-lg font-bold text-blue-800 mb-1">העלאת קמפיין</h3>
-            <p className="text-blue-600 mb-2 text-xs">
+            <h3 className="text-lg font-bold text-foreground mb-1">העלאת קמפיין</h3>
+            <p className="text-muted-foreground mb-2 text-xs">
               חומרים קיימים
             </p>
             <p className="text-[10px] text-muted-foreground">
@@ -309,15 +309,15 @@ const DashboardHub = () => {
 
         {/* Direct Media Purchase */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-amber-400/30 bg-card hover:bg-card/80"
           onClick={() => handleNewCampaign('media-only')}
         >
           <CardContent className="p-5 text-center">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/30 flex items-center justify-center mb-3">
               <Newspaper className="w-7 h-7 text-white" />
             </div>
-            <h3 className="text-lg font-bold text-amber-800 mb-1">רכישת מדיה</h3>
-            <p className="text-amber-600 mb-2 text-xs">
+            <h3 className="text-lg font-bold text-foreground mb-1">רכישת מדיה</h3>
+            <p className="text-muted-foreground mb-2 text-xs">
               ללא קריאייטיב
             </p>
             <p className="text-[10px] text-muted-foreground">
@@ -328,15 +328,15 @@ const DashboardHub = () => {
 
         {/* Internal Materials */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100"
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-emerald-400/30 bg-card hover:bg-card/80"
           onClick={() => handleNewCampaign('internal')}
         >
           <CardContent className="p-5 text-center">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center mb-3">
               <Building2 className="w-7 h-7 text-white" />
             </div>
-            <h3 className="text-lg font-bold text-emerald-800 mb-1">חומרים פנימיים</h3>
-            <p className="text-emerald-600 mb-2 text-xs">
+            <h3 className="text-lg font-bold text-foreground mb-1">חומרים פנימיים</h3>
+            <p className="text-muted-foreground mb-2 text-xs">
               לשימוש עסקי
             </p>
             <p className="text-[10px] text-muted-foreground">
