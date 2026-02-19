@@ -219,7 +219,11 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
       setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'uploading' } : f));
 
       try {
-        const fileName = `bulk/${bf.mediaType}/${Date.now()}-${bf.file.name}`;
+        // Sanitize filename: replace Hebrew/non-ASCII chars with transliterated or safe names
+        const safeName = bf.file.name.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, '_').replace(/^[-_]+/, '') || 'file';
+        const ext = bf.file.name.split('.').pop() || 'png';
+        const sanitizedName = safeName.includes('.') ? safeName : `${safeName}.${ext}`;
+        const fileName = `bulk/${bf.mediaType}/${Date.now()}-${sanitizedName}`;
         const { error: uploadError } = await supabase.storage
           .from('sector-brain')
           .upload(fileName, bf.file);
