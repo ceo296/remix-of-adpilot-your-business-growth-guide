@@ -23,11 +23,15 @@ serve(async (req) => {
   }
 
   try {
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
+      throw new Error('No AI service configured');
+    }
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Missing required environment variables');
     }
 
@@ -56,7 +60,6 @@ serve(async (req) => {
       console.error("Error fetching fame examples:", fameError);
     }
 
-    // Build the analysis prompt
     const redLinesCount = redLines?.length || 0;
     const fameCount = fameExamples?.length || 0;
 
@@ -94,50 +97,102 @@ If clear violations, mark as "rejected".`;
 
     console.log("Sending image for analysis");
 
-    // Use Gemini for vision analysis
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: analysisPrompt },
-              { type: "image_url", image_url: { url: imageUrl } }
-            ]
-          }
-        ],
-      }),
-    });
+    let content = '';
+    let aiSuccess = false;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI analysis error:", response.status, errorText);
-      
-      // Return safe default if analysis fails
+    // Attempt 1: Direct Google Gemini API (supports vision with URL in prompt)
+    if (GOOGLE_GEMINI_API_KEY) {
+      console.log('Trying direct Google Gemini API for kosher check...');
+      try {
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: `${analysisPrompt}\n\nImage URL to analyze: ${imageUrl}` },
+                ]
+              }],
+              generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
+            }),
+          }
+        );
+
+        if (directResponse.ok) {
+          const data = await directResponse.json();
+          content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (content) {
+            aiSuccess = true;
+            console.log('Google Gemini direct success for kosher check');
+          }
+        } else {
+          const errorText = await directResponse.text();
+          console.error('Google Gemini direct error:', directResponse.status, errorText);
+        }
+      } catch (err) {
+        console.error('Google Gemini direct fetch error:', err);
+      }
+    }
+
+    // Attempt 2: Lovable AI Gateway fallback
+    if (!aiSuccess && LOVABLE_API_KEY) {
+      console.log('Falling back to Lovable AI Gateway for kosher check...');
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: analysisPrompt },
+                { type: "image_url", image_url: { url: imageUrl } }
+              ]
+            }
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI analysis error:", response.status, errorText);
+        
+        return new Response(JSON.stringify({
+          status: 'needs-review',
+          confidence: 0,
+          issues: ['לא ניתן לבצע בדיקה אוטומטית'],
+          recommendation: 'נדרשת בדיקה אנושית'
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const data = await response.json();
+      content = data.choices?.[0]?.message?.content || '';
+    }
+
+    if (!content) {
       return new Response(JSON.stringify({
         status: 'needs-review',
         confidence: 0,
-        issues: ['לא ניתן לבצע בדיקה אוטומטית'],
+        issues: ['לא התקבלה תשובה מהמודל'],
         recommendation: 'נדרשת בדיקה אנושית'
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
     console.log("Analysis response:", content);
 
     // Parse JSON from response
     let analysis;
     try {
-      // Extract JSON from response (might be wrapped in markdown)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
