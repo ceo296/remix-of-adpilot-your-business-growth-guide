@@ -184,10 +184,12 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
 
   const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) processFiles(e.target.files);
+    e.target.value = ''; // Reset to allow re-selecting same folder
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) processFiles(e.target.files);
+    e.target.value = '';
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
