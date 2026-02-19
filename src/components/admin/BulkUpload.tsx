@@ -227,6 +227,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         const ext = pf.file.name.split('.').pop() || 'png';
         const sanitizedName = safeName.includes('.') ? safeName : `${safeName}.${ext}`;
         const fileName = `bulk/${pf.mediaType}/${Date.now()}-${sanitizedName}`;
+        const originalName = pf.file.name;
         const { error: uploadError } = await supabase.storage
           .from('sector-brain')
           .upload(fileName, pf.file);
@@ -237,7 +238,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           .from('sector_brain_examples')
           .insert({
             zone: 'fame',
-            name: pf.file.name,
+            name: originalName,
             file_path: fileName,
             file_type: pf.file.type,
             media_type: pf.mediaType,
