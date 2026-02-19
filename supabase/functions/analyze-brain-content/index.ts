@@ -84,12 +84,13 @@ serve(async (req) => {
   try {
     const { insightType = 'general' } = await req.json().catch(() => ({}));
     
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
+      throw new Error('No API key configured');
     }
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
@@ -403,6 +404,66 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       }
     }
 
+    // Attempt 1: Direct Google Gemini API (non-streaming, converted to SSE)
+    if (GOOGLE_GEMINI_API_KEY) {
+      console.log('Trying direct Google Gemini API for analysis...');
+      try {
+        // Build Google API parts from userContent
+        const googleParts: any[] = [];
+        for (const item of userContent) {
+          if (item.type === 'text') {
+            googleParts.push({ text: item.text });
+          } else if (item.type === 'image_url' && item.image_url?.url) {
+            // For URLs, pass as file_data or inline - Google API supports URLs via fileData
+            googleParts.push({ 
+              fileData: { mimeType: 'image/png', fileUri: item.image_url.url }
+            });
+          }
+        }
+
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ parts: googleParts }],
+            }),
+          }
+        );
+
+        if (directResponse.ok) {
+          const data = await directResponse.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          
+          if (text) {
+            console.log('Google direct analysis succeeded, converting to SSE stream');
+            // Convert to SSE format that the client expects
+            const sseData = `data: ${JSON.stringify({
+              choices: [{ delta: { content: text } }]
+            })}\n\ndata: [DONE]\n\n`;
+            
+            return new Response(sseData, {
+              headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+            });
+          }
+        } else {
+          const errorText = await directResponse.text();
+          console.error('Google direct analysis error:', directResponse.status, errorText);
+        }
+      } catch (directError) {
+        console.error('Google direct analysis fetch error:', directError);
+      }
+    }
+
+    // Attempt 2: Lovable AI Gateway (streaming)
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: 'AI service unavailable' }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -424,28 +485,17 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       console.error("AI gateway error:", response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(JSON.stringify({ 
-          error: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." 
-        }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      
       if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." 
-        }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
-      return new Response(JSON.stringify({ 
-        error: "שגיאה בתקשורת עם AI" 
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ error: "שגיאה בתקשורת עם AI" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
