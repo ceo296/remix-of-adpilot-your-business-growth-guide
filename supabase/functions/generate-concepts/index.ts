@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,6 +7,24 @@ const corsHeaders = {
 };
 
 // Media type specific instructions
+async function fetchSectorBrainFromDB() {
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data, error } = await supabase
+      .from('sector_brain_examples')
+      .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
+      .limit(100);
+    if (error || !data?.length) return null;
+    const grouped: Record<string, typeof data> = {};
+    for (const item of data) {
+      const zone = item.zone || 'general';
+      if (!grouped[zone]) grouped[zone] = [];
+      grouped[zone].push(item);
+    }
+    return { total_examples: data.length, zones: grouped };
+  } catch { return null; }
+}
+
 const MEDIA_TYPE_INSTRUCTIONS: Record<string, { name: string; format: string; example: string }> = {
   radio: {
     name: 'רדיו',
@@ -181,7 +200,13 @@ Use appropriate symbols, greetings, and messaging for the season.
 Remember: Each concept needs a different angle - one emotional, one hard-sale focused, and one addressing a pain point the audience has.
 ${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${campaignOffer}"` : ''}`;
 
-    console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType, 'Campaign offer:', campaignBrief?.offer, 'Holiday:', holidayName);
+    // Fetch sector brain references
+    const sectorBrainData = await fetchSectorBrainFromDB();
+    const sectorContext = sectorBrainData 
+      ? `\n\nIMPORTANT - Sector Brain References (use these as creative inspiration):\n${JSON.stringify(sectorBrainData.zones)}\nUse examples from "hall_of_fame" as positive inspiration. Avoid styles from "red_lines".`
+      : '';
+
+    console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType, 'Campaign offer:', campaignBrief?.offer, 'Holiday:', holidayName, 'Sector brain examples:', sectorBrainData?.total_examples || 0);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -192,7 +217,7 @@ ${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: systemPrompt + sectorContext },
           { role: 'user', content: userPrompt }
         ],
       }),

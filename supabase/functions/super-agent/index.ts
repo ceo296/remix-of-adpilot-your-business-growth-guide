@@ -6,6 +6,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function fetchSectorBrainFromDB() {
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data, error } = await supabase
+      .from('sector_brain_examples')
+      .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
+      .limit(100);
+    if (error || !data?.length) return null;
+    const grouped: Record<string, typeof data> = {};
+    for (const item of data) {
+      const zone = item.zone || 'general';
+      if (!grouped[zone]) grouped[zone] = [];
+      grouped[zone].push(item);
+    }
+    return { total_examples: data.length, zones: grouped, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
+  } catch { return null; }
+}
+
 const SYSTEM_PROMPT = `זהות ותפקיד:
 אתה סוכן AI בכיר המשמש כ־ איש פרסום חרדי וותיק עם ניסיון של מעל 10 שנים.
 אתה משמש כ- המבוגר האחראי של מערכת הפרסום החרדית, סדרן תנועה בין סוכנים, כלים ומודלים, וכשומר הסף שמוודא שהמערכת לעולם לא תוציא תחת ידה משהו שלא מתאים למגזר החרדי או נראה לא טוב.
@@ -72,7 +90,8 @@ serve(async (req) => {
   }
 
   try {
-    const { message, clientProfile, campaignContext, sectorBrainData, conversationHistory } = await req.json();
+    const { message, clientProfile, campaignContext, sectorBrainData: clientSectorData, conversationHistory } = await req.json();
+    const sectorBrainData = clientSectorData || await fetchSectorBrainFromDB();
 
     if (!message) {
       return new Response(JSON.stringify({ error: 'Missing message' }), {

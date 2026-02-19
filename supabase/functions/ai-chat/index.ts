@@ -5,6 +5,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function fetchSectorBrainFromDB() {
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data, error } = await supabase
+      .from('sector_brain_examples')
+      .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
+      .limit(100);
+    if (error || !data?.length) return null;
+    const grouped: Record<string, typeof data> = {};
+    for (const item of data) {
+      const zone = item.zone || 'general';
+      if (!grouped[zone]) grouped[zone] = [];
+      grouped[zone].push(item);
+    }
+    return { total_examples: data.length, zones: grouped };
+  } catch { return null; }
+}
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 serve(async (req) => {
@@ -31,6 +49,12 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    // Fetch sector brain references
+    const sectorBrainData = await fetchSectorBrainFromDB();
+    const sectorContext = sectorBrainData 
+      ? `\n\nרפרנסים מגזריים (Sector Brain) - השתמש בהם כדי לתת עצות מבוססות:\n${JSON.stringify(sectorBrainData.zones)}`
+      : '';
+
     // Build system prompt based on context
     const systemPrompt = `אתה עוזר AI חכם למערכת פרסום לקהילה החרדית.
 תפקידך לעזור בכתיבת טקסטים פרסומיים, סלוגנים, רעיונות לקמפיינים, ועצות שיווק.
@@ -41,8 +65,9 @@ serve(async (req) => {
 - הימנע מתוכן לא צנוע או לא מתאים
 - היה יצירתי אך מקצועי
 - אם מקבל פרטים על עסק, התאם את ההמלצות אליו
+- השתמש ברפרנסים מגזריים שצורפו כדי לתת עצות מבוססות על דוגמאות אמיתיות
 
-${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, null, 2)}` : ''}`;
+${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, null, 2)}` : ''}${sectorContext}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

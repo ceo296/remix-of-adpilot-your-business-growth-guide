@@ -6,6 +6,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function fetchSectorBrainFromDB() {
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data, error } = await supabase
+      .from('sector_brain_examples')
+      .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
+      .limit(100);
+    if (error || !data?.length) return null;
+    const grouped: Record<string, typeof data> = {};
+    for (const item of data) {
+      const zone = item.zone || 'general';
+      if (!grouped[zone]) grouped[zone] = [];
+      grouped[zone].push(item);
+    }
+    return { total_examples: data.length, zones: grouped, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
+  } catch { return null; }
+}
+
 const SYSTEM_PROMPT = `זהות ותפקיד:
 אתה קופירייטר חרדי בכיר, חד, יצירתי ופורץ דרך. אתה לא רק כותב "מילים", אתה "איש קונספט". המטרה שלך היא לייצר קמפיינים שגורמים לקהל החרדי לעצור, להתרגש ולהגיד "וואו". אתה פועל תחת הנחיות סוכן-העל (האסטרטג) ומחויב ל-DNA של המותג ולערכיו.
 
@@ -66,7 +84,8 @@ serve(async (req) => {
   }
 
   try {
-    const { message, superAgentPayload, brandContext, campaignContext, conversationHistory, sectorBrainData } = await req.json();
+    const { message, superAgentPayload, brandContext, campaignContext, conversationHistory, sectorBrainData: clientSectorData } = await req.json();
+    const sectorBrainData = clientSectorData || await fetchSectorBrainFromDB();
 
     if (!message) {
       return new Response(JSON.stringify({ error: 'Missing message' }), {
