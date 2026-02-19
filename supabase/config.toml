@@ -32,3 +32,15 @@ verify_jwt = false
 
 [functions.scrape-website]
 verify_jwt = false
+
+[functions.super-agent]
+verify_jwt = false
+
+[functions.creative-agent]
+verify_jwt = false
+
+[functions.studio-agent]
+verify_jwt = false
+
+[functions.media-agent]
+verify_jwt = false
