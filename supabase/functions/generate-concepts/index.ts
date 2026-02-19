@@ -223,20 +223,35 @@ ${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${
 
     console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType, 'Campaign offer:', campaignBrief?.offer, 'Holiday:', holidayName, 'Sector brain examples:', sectorBrainData?.total_examples || 0);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt + sectorContext },
-          { role: 'user', content: userPrompt }
-        ],
-      }),
-    });
+    // Try primary model, then fallback model
+    const modelsToTry = ['google/gemini-2.5-flash', 'openai/gpt-5-mini'];
+    let response: Response | null = null;
+    
+    for (const tryModel of modelsToTry) {
+      response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: tryModel,
+          messages: [
+            { role: 'system', content: systemPrompt + sectorContext },
+            { role: 'user', content: userPrompt }
+          ],
+        }),
+      });
+
+      if (response.ok) {
+        console.log(`Model ${tryModel} succeeded`);
+        break;
+      }
+      
+      console.warn(`Model ${tryModel} returned ${response.status}, trying next...`);
+      
+      if (response.status === 429 || response.status === 402) break; // Don't retry rate/payment issues
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

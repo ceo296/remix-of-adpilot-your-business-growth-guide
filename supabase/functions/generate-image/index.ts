@@ -77,8 +77,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
   const supabaseAuth = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
-  const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(authHeader.replace('Bearer ', ''));
-  if (claimsError || !claimsData?.claims) {
+  const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+  if (userError || !user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
@@ -291,27 +291,39 @@ ${brandContext?.colors?.primary ? `- סכמת הצבעים תואמת למותג
 
     console.log("Using model:", model);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          {
-            role: "user",
-            content: fullPrompt
-          }
-        ],
-        modalities: ["image", "text"]
-      }),
-    });
+    // Try primary model first, then fallback
+    const models = [model, model === 'google/gemini-3-pro-image-preview' ? 'google/gemini-2.5-flash-image' : 'google/gemini-3-pro-image-preview'];
+    
+    let response: Response | null = null;
+    let usedModel = model;
+    
+    for (const tryModel of models) {
+      console.log("Trying model:", tryModel);
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: tryModel,
+          messages: [
+            {
+              role: "user",
+              content: fullPrompt
+            }
+          ],
+          modalities: ["image", "text"]
+        }),
+      });
 
-    if (!response.ok) {
+      if (response.ok) {
+        usedModel = tryModel;
+        break;
+      }
+      
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error(`Model ${tryModel} error:`, response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
@@ -330,9 +342,17 @@ ${brandContext?.colors?.primary ? `- סכמת הצבעים תואמת למותג
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      
+      // If 500, try next model
+      if (response.status === 500 && tryModel !== models[models.length - 1]) {
+        console.log(`Model ${tryModel} returned 500, trying fallback...`);
+        continue;
+      }
+    }
 
+    if (!response || !response.ok) {
       return new Response(JSON.stringify({ 
-        error: "שגיאה ביצירת התמונה. נסה שוב." 
+        error: "שגיאה ביצירת התמונה. המודל אינו זמין כרגע, נסה שוב בעוד כמה דקות." 
       }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -379,7 +399,7 @@ ${brandContext?.colors?.primary ? `- סכמת הצבעים תואמת למותג
       imageUrl,
       status: 'approved',
       message: data.choices?.[0]?.message?.content || '',
-      model: model,
+      model: usedModel,
       configUsed: modelConfig?.media_type || 'default',
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
