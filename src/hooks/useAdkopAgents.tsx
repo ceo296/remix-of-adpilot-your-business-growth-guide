@@ -3,30 +3,52 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdkopWizardData, CreativeResult, MediaBudgetItem } from '@/types/adkop';
 import { toast } from 'sonner';
 
-const fetchSectorBrainData = async () => {
+const fetchSectorBrainData = async (topicCategory?: string) => {
   try {
-    const { data, error } = await supabase
+    // Fetch domain-relevant examples first (up to 50)
+    let domainExamples: any[] = [];
+    if (topicCategory) {
+      const { data } = await supabase
+        .from('sector_brain_examples')
+        .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type, file_path')
+        .eq('topic_category', topicCategory)
+        .limit(50);
+      domainExamples = data || [];
+    }
+
+    // Fetch general examples (no topic_category or different ones)
+    const generalQuery = supabase
       .from('sector_brain_examples')
       .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type, file_path')
-      .limit(100);
-
+      .limit(50);
+    
+    if (topicCategory) {
+      generalQuery.or(`topic_category.is.null,topic_category.neq.${topicCategory}`);
+    }
+    
+    const { data: generalData, error } = await generalQuery;
     if (error) {
       console.error('Failed to fetch sector brain data:', error);
       return null;
     }
 
-    if (!data || data.length === 0) return null;
+    const generalExamples = generalData || [];
+    const allExamples = [...domainExamples, ...generalExamples];
+    
+    if (allExamples.length === 0) return null;
 
-    // Group by zone for structured context
-    const grouped: Record<string, typeof data> = {};
-    for (const item of data) {
+    // Group by zone
+    const grouped: Record<string, typeof allExamples> = {};
+    for (const item of allExamples) {
       const zone = item.zone || 'general';
       if (!grouped[zone]) grouped[zone] = [];
       grouped[zone].push(item);
     }
 
     return {
-      total_examples: data.length,
+      total_examples: allExamples.length,
+      domain_specific_count: domainExamples.length,
+      domain_topic: topicCategory || null,
       zones: grouped,
       summary: Object.entries(grouped).map(([zone, items]) => 
         `${zone}: ${items.length} דוגמאות`
@@ -74,7 +96,10 @@ export const useAdkopAgents = () => {
 תזמון: ${campaign.timing}
 ערוצי מדיה: ${campaign.mediaChannels.join(', ') || 'לא נבחרו'}
 
-חשוב: התיאור הויזואלי צריך להיות מפורט מספיק כדי לשמש כפרומפט לייצור תמונה (סגנון, צבעים, אובייקטים, קומפוזיציה, אווירה).
+חשוב מאוד:
+1. התיאור הויזואלי צריך להיות מפורט מספיק כדי לשמש כפרומפט לייצור תמונה (סגנון, צבעים, אובייקטים, קומפוזיציה, אווירה).
+2. השתמש ברפרנסים מה-Sector Brain שצורפו. תעדיף במיוחד את הרפרנסים שמסומנים כרלוונטיים לתחום הזה (domain_specific), אבל השתמש גם ברפרנסים הכלליים כדי ללמוד סגנון וטון.
+3. אם יש רפרנסים מסוג "red_lines" — אל תלך בכיוון שלהם, הם דוגמאות למה שאסור.
 
 החזר JSON עם 3 אופציות בפורמט:
 \`\`\`json
@@ -85,7 +110,8 @@ export const useAdkopAgents = () => {
       "headline": "כותרת",
       "body_text": "גוף טקסט",
       "cta": "קריאה לפעולה",
-      "visual_description": "תיאור ויזואלי מפורט לייצור תמונה"
+      "visual_description": "תיאור ויזואלי מפורט לייצור תמונה",
+      "reference_used": "שם הרפרנס שהשפיע על הקונספט (אם יש)"
     }
   ]
 }
@@ -105,8 +131,30 @@ export const useAdkopAgents = () => {
         brandContext.secondaryColor = brand.extractedColors[1];
       }
 
-      // Fetch sector brain references
-      const sectorBrainData = await fetchSectorBrainData();
+      // Detect topic category from product description
+      const productText = (mri.productFunction + ' ' + mri.painProblem).toLowerCase();
+      const topicMap: Record<string, string[]> = {
+        'real_estate': ['דירה', 'נדל"ן', 'דיור', 'בנייה', 'פרויקט', 'דירות'],
+        'food': ['אוכל', 'מזון', 'מסעדה', 'קייטרינג', 'מאפה', 'בשר', 'עוף'],
+        'beauty': ['יופי', 'קוסמטיקה', 'טיפוח', 'שיער', 'פאה'],
+        'health': ['בריאות', 'רפואה', 'רופא', 'טיפול', 'תרופה'],
+        'womens_fashion': ['אופנה', 'שמלה', 'בגד', 'ביגוד נשים'],
+        'mens_fashion': ['חליפה', 'חולצה', 'כובע', 'ביגוד גברים'],
+        'kids_fashion': ['ילדים', 'תינוק', 'בגדי ילדים'],
+        'jewelry': ['תכשיט', 'טבעת', 'שרשרת', 'זהב'],
+        'electronics': ['אלקטרוניקה', 'מחשב', 'טלפון'],
+        'events': ['אירוע', 'חתונה', 'שמחה', 'אולם'],
+      };
+      let detectedTopic: string | undefined;
+      for (const [topic, keywords] of Object.entries(topicMap)) {
+        if (keywords.some(kw => productText.includes(kw))) {
+          detectedTopic = topic;
+          break;
+        }
+      }
+
+      // Fetch sector brain references, prioritizing domain-relevant ones
+      const sectorBrainData = await fetchSectorBrainData(detectedTopic);
 
       const { data, error } = await supabase.functions.invoke('creative-agent', {
         body: { message, campaignContext, brandContext, sectorBrainData },

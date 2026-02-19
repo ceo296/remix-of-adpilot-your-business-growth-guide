@@ -105,7 +105,12 @@ serve(async (req) => {
     }
 
     if (sectorBrainData) {
-      contextBlock += `\n=== דוגמאות מוצלחות ===\n${JSON.stringify(sectorBrainData)}\n`;
+      contextBlock += `\n=== רפרנסים מגזריים (Sector Brain) ===\n`;
+      if (sectorBrainData.domain_topic) {
+        contextBlock += `תחום רלוונטי: ${sectorBrainData.domain_topic} (${sectorBrainData.domain_specific_count} דוגמאות ספציפיות)\n`;
+        contextBlock += `חשוב: תעדיף את הרפרנסים מהתחום הזה. הם הכי רלוונטיים לקמפיין.\n`;
+      }
+      contextBlock += JSON.stringify(sectorBrainData.zones) + '\n';
     }
 
     const messages: Array<{role: string; content: string}> = [
