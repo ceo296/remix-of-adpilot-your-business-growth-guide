@@ -7,21 +7,36 @@ const corsHeaders = {
 };
 
 // Media type specific instructions
-async function fetchSectorBrainFromDB() {
+async function fetchSectorBrainFromDB(holidaySeason?: string | null) {
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const { data, error } = await supabase
+    let holidayExamples: any[] = [];
+    if (holidaySeason && holidaySeason !== 'year_round') {
+      const { data } = await supabase
+        .from('sector_brain_examples')
+        .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
+        .eq('holiday_season', holidaySeason)
+        .limit(50);
+      holidayExamples = data || [];
+    }
+    const generalQuery = supabase
       .from('sector_brain_examples')
       .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
-      .limit(100);
-    if (error || !data?.length) return null;
-    const grouped: Record<string, typeof data> = {};
-    for (const item of data) {
+      .limit(50);
+    if (holidaySeason && holidaySeason !== 'year_round') {
+      generalQuery.or(`holiday_season.is.null,holiday_season.eq.year_round`);
+    }
+    const { data: generalData, error } = await generalQuery;
+    if (error) return null;
+    const allExamples = [...holidayExamples, ...(generalData || [])];
+    if (!allExamples.length) return null;
+    const grouped: Record<string, typeof allExamples> = {};
+    for (const item of allExamples) {
       const zone = item.zone || 'general';
       if (!grouped[zone]) grouped[zone] = [];
       grouped[zone].push(item);
     }
-    return { total_examples: data.length, zones: grouped };
+    return { total_examples: allExamples.length, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped };
   } catch { return null; }
 }
 
@@ -200,10 +215,10 @@ Use appropriate symbols, greetings, and messaging for the season.
 Remember: Each concept needs a different angle - one emotional, one hard-sale focused, and one addressing a pain point the audience has.
 ${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${campaignOffer}"` : ''}`;
 
-    // Fetch sector brain references
-    const sectorBrainData = await fetchSectorBrainFromDB();
+    // Fetch sector brain references with holiday awareness
+    const sectorBrainData = await fetchSectorBrainFromDB(holidaySeason || null);
     const sectorContext = sectorBrainData 
-      ? `\n\nIMPORTANT - Sector Brain References (use these as creative inspiration):\n${JSON.stringify(sectorBrainData.zones)}\nUse examples from "hall_of_fame" as positive inspiration. Avoid styles from "red_lines".`
+      ? `\n\nIMPORTANT - Sector Brain References (${sectorBrainData.holiday_specific_count || 0} holiday-specific examples for "${holidayName || 'year round'}"):\n${JSON.stringify(sectorBrainData.zones)}\nUse examples from "hall_of_fame" as positive inspiration. Avoid styles from "red_lines". PRIORITIZE holiday-specific examples when creating seasonal campaigns.`
       : '';
 
     console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType, 'Campaign offer:', campaignBrief?.offer, 'Holiday:', holidayName, 'Sector brain examples:', sectorBrainData?.total_examples || 0);
