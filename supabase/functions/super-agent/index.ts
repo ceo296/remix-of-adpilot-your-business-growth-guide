@@ -6,21 +6,48 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function fetchSectorBrainFromDB() {
+async function fetchSectorBrainFromDB(holidaySeason?: string | null) {
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const { data, error } = await supabase
+    
+    // Fetch holiday-specific examples first if holiday provided
+    let holidayExamples: any[] = [];
+    if (holidaySeason && holidaySeason !== 'year_round') {
+      const { data } = await supabase
+        .from('sector_brain_examples')
+        .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
+        .eq('holiday_season', holidaySeason)
+        .limit(50);
+      holidayExamples = data || [];
+    }
+
+    // Fetch general examples
+    const generalQuery = supabase
       .from('sector_brain_examples')
       .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
-      .limit(100);
-    if (error || !data?.length) return null;
-    const grouped: Record<string, typeof data> = {};
-    for (const item of data) {
+      .limit(50);
+    if (holidaySeason && holidaySeason !== 'year_round') {
+      generalQuery.or(`holiday_season.is.null,holiday_season.eq.year_round`);
+    }
+    const { data: generalData, error } = await generalQuery;
+    if (error) return null;
+
+    const allExamples = [...holidayExamples, ...(generalData || [])];
+    if (!allExamples.length) return null;
+
+    const grouped: Record<string, typeof allExamples> = {};
+    for (const item of allExamples) {
       const zone = item.zone || 'general';
       if (!grouped[zone]) grouped[zone] = [];
       grouped[zone].push(item);
     }
-    return { total_examples: data.length, zones: grouped, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
+    return {
+      total_examples: allExamples.length,
+      holiday_specific_count: holidayExamples.length,
+      holiday: holidaySeason || null,
+      zones: grouped,
+      summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', '),
+    };
   } catch { return null; }
 }
 
@@ -91,7 +118,8 @@ serve(async (req) => {
 
   try {
     const { message, clientProfile, campaignContext, sectorBrainData: clientSectorData, conversationHistory } = await req.json();
-    const sectorBrainData = clientSectorData || await fetchSectorBrainFromDB();
+    const detectedHoliday = campaignContext?.timing || campaignContext?.holiday_season || null;
+    const sectorBrainData = clientSectorData || await fetchSectorBrainFromDB(detectedHoliday);
 
     if (!message) {
       return new Response(JSON.stringify({ error: 'Missing message' }), {
@@ -132,7 +160,12 @@ serve(async (req) => {
     }
 
     if (sectorBrainData) {
-      contextBlock += `\n=== ידע מגזרי (Sector Brain) ===\n${JSON.stringify(sectorBrainData)}\n`;
+      contextBlock += `\n=== ידע מגזרי (Sector Brain) ===\n`;
+      if (sectorBrainData.holiday) {
+        contextBlock += `חג/עונה: ${sectorBrainData.holiday} (${sectorBrainData.holiday_specific_count || 0} דוגמאות ספציפיות לחג)\n`;
+        contextBlock += `חשוב: התאם את הקריאייטיב לרוח החג — סמלים, אווירה, ביטויים ומסרים שמתאימים לעונה.\n`;
+      }
+      contextBlock += JSON.stringify(sectorBrainData.zones) + '\n';
     }
 
     const fullSystemPrompt = SYSTEM_PROMPT + contextBlock;
