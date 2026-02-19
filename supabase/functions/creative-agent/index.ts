@@ -109,8 +109,10 @@ serve(async (req) => {
       });
     }
 
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
+    
+    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: 'AI service not configured' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -158,30 +160,84 @@ serve(async (req) => {
 
     messages.push({ role: 'user', content: message });
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages,
-      }),
-    });
+    let content = '';
+    let aiSuccess = false;
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI Gateway error:', aiResponse.status, errorText);
-      const status = aiResponse.status === 429 ? 429 : aiResponse.status === 402 ? 402 : 500;
-      const errorMsg = status === 429 ? 'Rate limit exceeded' : status === 402 ? 'AI credits exhausted' : 'AI processing failed';
-      return new Response(JSON.stringify({ error: errorMsg }), {
-        status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    // Attempt 1: Direct Google Gemini API
+    if (GOOGLE_GEMINI_API_KEY) {
+      console.log('Trying direct Google Gemini API...');
+      try {
+        const systemContent = messages.find(m => m.role === 'system')?.content || '';
+        const userMessages = messages.filter(m => m.role !== 'system').map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+        if (userMessages.length > 0) {
+          userMessages[0].parts[0].text = systemContent + '\n\n' + userMessages[0].parts[0].text;
+        }
+
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: userMessages,
+              generationConfig: { temperature: 0.9, maxOutputTokens: 4096 },
+            }),
+          }
+        );
+
+        if (directResponse.ok) {
+          const data = await directResponse.json();
+          content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (content) {
+            aiSuccess = true;
+            console.log('Google Gemini direct success');
+          }
+        } else {
+          const errorText = await directResponse.text();
+          console.error('Google Gemini direct error:', directResponse.status, errorText);
+        }
+      } catch (err) {
+        console.error('Google Gemini direct fetch error:', err);
+      }
     }
 
-    const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content || '';
+    // Attempt 2: Lovable AI Gateway fallback
+    if (!aiSuccess && LOVABLE_API_KEY) {
+      console.log('Falling back to Lovable AI Gateway...');
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages,
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('AI Gateway error:', aiResponse.status, errorText);
+        const status = aiResponse.status === 429 ? 429 : aiResponse.status === 402 ? 402 : 500;
+        const errorMsg = status === 429 ? 'Rate limit exceeded' : status === 402 ? 'AI credits exhausted' : 'AI processing failed';
+        return new Response(JSON.stringify({ error: errorMsg }), {
+          status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const aiData = await aiResponse.json();
+      content = aiData.choices?.[0]?.message?.content || '';
+    }
+
+    if (!content) {
+      return new Response(JSON.stringify({ error: 'No response from AI' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     let systemCommand = null;
     const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
