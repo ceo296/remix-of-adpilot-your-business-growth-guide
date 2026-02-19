@@ -461,6 +461,7 @@ export type Database = {
           kosher_status: string
           style: string
           text_prompt: string | null
+          user_id: string | null
           visual_prompt: string
         }
         Insert: {
@@ -472,6 +473,7 @@ export type Database = {
           kosher_status?: string
           style: string
           text_prompt?: string | null
+          user_id?: string | null
           visual_prompt: string
         }
         Update: {
@@ -483,6 +485,7 @@ export type Database = {
           kosher_status?: string
           style?: string
           text_prompt?: string | null
+          user_id?: string | null
           visual_prompt?: string
         }
         Relationships: []
