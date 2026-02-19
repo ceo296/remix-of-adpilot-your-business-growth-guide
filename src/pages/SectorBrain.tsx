@@ -1002,96 +1002,98 @@ const SectorBrain = () => {
           </Card>
         )}
 
-        {/* Bulk Upload */}
-        <div className="mb-8">
-          <BulkUpload onUploadComplete={loadExamples} />
-        </div>
+        {/* Section 1: Bulk Upload - Collapsible */}
+        <Collapsible defaultOpen={false} className="mb-4">
+          <Card className="border-2 border-blue-500/30">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-3">
+                <CardTitle className="flex items-center justify-between text-lg">
+                  <span className="flex items-center gap-2">
+                    <Upload className="h-5 w-5 text-blue-500" />
+                    העלאה מרוכזת
+                  </span>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>העלאה מהירה של מספר קבצים בבת אחת</CardDescription>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <BulkUpload onUploadComplete={loadExamples} />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
-        {/* AI Insights Section */}
-        <Card className="mb-8 border-2 border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Sparkles className="h-5 w-5 text-purple-500" />
-              תובנות AI
-            </CardTitle>
-            <CardDescription>
-              בחר סוג ניתוח כדי לקבל תובנות ממוקדות
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Category Tabs */}
-            <div className="flex flex-wrap gap-2 border-b pb-3">
-              {INSIGHT_CATEGORIES.map((cat) => {
-                const Icon = cat.icon;
-                return (
-                  <Button
-                    key={cat.id}
-                    variant={insightCategory === cat.id ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setInsightCategory(cat.id)}
-                    className={cn(
-                      insightCategory === cat.id && "bg-purple-600 hover:bg-purple-700"
-                    )}
-                  >
-                    <Icon className="h-4 w-4 ml-1" />
-                    {cat.label}
-                  </Button>
-                );
-              })}
-            </div>
+        {/* Section 2: AI Insights - Collapsible */}
+        <Collapsible open={insightsOpen} onOpenChange={setInsightsOpen} className="mb-4">
+          <Card className="border-2 border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-purple-100/30 transition-colors pb-3">
+                <CardTitle className="flex items-center justify-between text-lg">
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-purple-500" />
+                    תובנות AI
+                  </span>
+                  <ChevronDown className={cn("h-5 w-5 text-muted-foreground transition-transform", insightsOpen && "rotate-180")} />
+                </CardTitle>
+                <CardDescription>בחר סוג ניתוח כדי לקבל תובנות ממוקדות</CardDescription>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
+                {/* Category Tabs */}
+                <div className="flex flex-wrap gap-2 border-b pb-3">
+                  {INSIGHT_CATEGORIES.map((cat) => {
+                    const Icon = cat.icon;
+                    return (
+                      <Button
+                        key={cat.id}
+                        variant={insightCategory === cat.id ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setInsightCategory(cat.id)}
+                        className={cn(insightCategory === cat.id && "bg-purple-600 hover:bg-purple-700")}
+                      >
+                        <Icon className="h-4 w-4 ml-1" />
+                        {cat.label}
+                      </Button>
+                    );
+                  })}
+                </div>
 
-            {/* Insight Type Selector based on category */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {INSIGHT_TYPES_BY_CATEGORY[insightCategory].map((type) => {
-                const Icon = type.icon;
-                const isSelected = selectedInsightType === type.id;
-                const isCurrentlyAnalyzing = isAnalyzing && selectedInsightType === type.id;
-                
-                return (
-                  <button
-                    key={type.id}
-                    onClick={() => analyzeContent(type.id)}
-                    disabled={isAnalyzing}
-                    className={cn(
-                      "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all",
-                      "hover:border-purple-400 hover:bg-purple-100/50 disabled:opacity-50 disabled:cursor-not-allowed",
-                      isSelected 
-                        ? "border-purple-500 bg-purple-100 dark:bg-purple-900/30" 
-                        : "border-transparent bg-white dark:bg-background"
-                    )}
-                  >
-                    {isCurrentlyAnalyzing ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-purple-500" />
-                    ) : (
-                      <Icon className={cn(
-                        "h-5 w-5",
-                        isSelected ? "text-purple-600" : "text-muted-foreground"
-                      )} />
-                    )}
-                    <span className={cn(
-                      "text-xs font-medium text-center",
-                      isSelected ? "text-purple-700 dark:text-purple-300" : "text-muted-foreground"
-                    )}>
-                      {type.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                {/* Insight Type Selector */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {INSIGHT_TYPES_BY_CATEGORY[insightCategory].map((type) => {
+                    const Icon = type.icon;
+                    const isSelected = selectedInsightType === type.id;
+                    const isCurrentlyAnalyzing = isAnalyzing && selectedInsightType === type.id;
+                    
+                    return (
+                      <button
+                        key={type.id}
+                        onClick={() => analyzeContent(type.id)}
+                        disabled={isAnalyzing}
+                        className={cn(
+                          "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all",
+                          "hover:border-purple-400 hover:bg-purple-100/50 disabled:opacity-50 disabled:cursor-not-allowed",
+                          isSelected ? "border-purple-500 bg-purple-100 dark:bg-purple-900/30" : "border-transparent bg-white dark:bg-background"
+                        )}
+                      >
+                        {isCurrentlyAnalyzing ? (
+                          <Loader2 className="h-5 w-5 animate-spin text-purple-500" />
+                        ) : (
+                          <Icon className={cn("h-5 w-5", isSelected ? "text-purple-600" : "text-muted-foreground")} />
+                        )}
+                        <span className={cn("text-xs font-medium text-center", isSelected ? "text-purple-700 dark:text-purple-300" : "text-muted-foreground")}>
+                          {type.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-            {/* Insights Display */}
-            {(aiInsights || isAnalyzing) && (
-              <Collapsible open={insightsOpen} onOpenChange={setInsightsOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-purple-100/50">
-                    <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <Brain className="h-4 w-4" />
-                      {isAnalyzing ? 'מקבל תובנות...' : `תובנות: ${selectedInsightType || ''}`}
-                    </span>
-                    {insightsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
+                {/* Insights Display */}
+                {(aiInsights || isAnalyzing) && (
                   <div className="p-4 bg-white dark:bg-background rounded-lg border border-purple-200 dark:border-purple-800">
                     {isAnalyzing && !aiInsights && (
                       <div className="flex items-center justify-center py-8">
@@ -1104,505 +1106,403 @@ const SectorBrain = () => {
                       </div>
                     )}
                   </div>
-                </CollapsibleContent>
-              </Collapsible>
-            )}
+                )}
 
-            {!aiInsights && !isAnalyzing && (
-              <p className="text-sm text-muted-foreground text-center py-2">
-                בחר קטגוריה ולחץ על אחת האפשרויות לקבלת תובנות ממוקדות
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                {!aiInsights && !isAnalyzing && (
+                  <p className="text-sm text-muted-foreground text-center py-2">
+                    בחר קטגוריה ולחץ על אחת האפשרויות לקבלת תובנות ממוקדות
+                  </p>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
-        {/* General Guidelines Section */}
-        <Card className="mb-8 border-2 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Lightbulb className="h-5 w-5 text-amber-500" />
-              כללי אצבע כלליים למגזר
-            </CardTitle>
-            <CardDescription>
-              הנחיות כלליות שתקפות לכל סוגי המדיה - המערכת תיישם אותן בכל יצירה
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Textarea
-                placeholder="הזן כלל אצבע כללי... לדוגמה: 'תמיד להשתמש בשפה מכבדת ועדינה', 'לא להשתמש בתמונות של נשים'"
-                value={generalGuidelineInput}
-                onChange={(e) => setGeneralGuidelineInput(e.target.value)}
-                className="flex-1 min-h-[80px] bg-white dark:bg-background"
-              />
-            </div>
-            <Button 
-              onClick={handleAddGeneralGuideline}
-              disabled={!generalGuidelineInput.trim()}
-              className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white"
-            >
-              <Plus className="h-4 w-4" />
-              הוסף כלל אצבע כללי
-            </Button>
-
-            {getGeneralGuidelines().length > 0 && (
-              <Collapsible open={generalGuidelinesOpen} onOpenChange={setGeneralGuidelinesOpen} className="pt-4 border-t">
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-amber-100/50">
-                    <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <BookOpen className="h-4 w-4" />
-                      כללים קיימים ({getGeneralGuidelines().length})
-                    </span>
-                    {generalGuidelinesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 pt-2">
-                  {getGeneralGuidelines().map((guideline) => (
-                    <div 
-                      key={guideline.id}
-                      className="flex items-start gap-2 p-2 bg-white dark:bg-background rounded border"
-                    >
-                      <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                      <p className="flex-1 text-sm">{guideline.text_content}</p>
-                      <button 
-                        onClick={() => removeGuideline(guideline.id)}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Media Type Tabs */}
-        <Tabs value={activeMediaType} onValueChange={(v) => setActiveMediaType(v as MediaType)} className="w-full">
-          <TabsList className="w-full h-auto flex-wrap gap-2 bg-transparent p-0 mb-6">
-            {MEDIA_TYPES.map((media) => {
-              const stats = getMediaStats(media.id);
-              return (
-                <TabsTrigger
-                  key={media.id}
-                  value={media.id}
-                  className={cn(
-                    "flex-1 min-w-[120px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
-                    "border-2 data-[state=active]:border-primary",
-                    "flex flex-col items-center gap-1 py-3 px-4"
-                  )}
-                >
-                  <media.icon className="h-5 w-5" />
-                  <span className="font-medium text-sm">{media.label}</span>
-                  {stats.total > 0 && (
-                    <span className="text-xs opacity-70">{stats.total} דוגמאות</span>
-                  )}
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
-
-          {MEDIA_TYPES.map((media) => (
-            <TabsContent key={media.id} value={media.id} className="mt-0">
-              {/* Media type header */}
-              <Card className="mb-6">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <media.icon className="h-5 w-5 text-primary" />
-                    {media.label}
-                  </CardTitle>
-                  <CardDescription>{media.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-success/10 border border-success/30">
-                      <ThumbsUp className="h-5 w-5 text-success" />
-                      <div>
-                        <div className="text-2xl font-bold text-success">{getFilteredUploads(media.id, 'good').length}</div>
-                        <div className="text-xs text-muted-foreground">דוגמאות טובות</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
-                      <ThumbsDown className="h-5 w-5 text-destructive" />
-                      <div>
-                        <div className="text-2xl font-bold text-destructive">{getFilteredUploads(media.id, 'bad').length}</div>
-                        <div className="text-xs text-muted-foreground">קווים אדומים</div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Example Type Toggle */}
-              <div className="flex gap-2 mb-6">
-                <Button
-                  variant={selectedExampleType === 'good' ? 'default' : 'outline'}
-                  onClick={() => setSelectedExampleType('good')}
-                  className={cn(
-                    "flex-1",
-                    selectedExampleType === 'good' && "bg-success hover:bg-success/90"
-                  )}
-                >
-                  <Trophy className="h-4 w-4 ml-2" />
-                  דוגמאות מוצלחות
-                </Button>
-                <Button
-                  variant={selectedExampleType === 'bad' ? 'default' : 'outline'}
-                  onClick={() => setSelectedExampleType('bad')}
-                  className={cn(
-                    "flex-1",
-                    selectedExampleType === 'bad' && "bg-destructive hover:bg-destructive/90"
-                  )}
-                >
-                  <AlertOctagon className="h-4 w-4 ml-2" />
-                  קווים אדומים
-                </Button>
-              </div>
-
-              {/* Upload Area */}
-              <Card 
-                className="mb-6 border-2 border-dashed transition-all hover:border-primary/50"
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-              >
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    {selectedExampleType === 'good' ? (
-                      <>
-                        <Trophy className="h-4 w-4 text-success" />
-                        הוסף דוגמה מוצלחת
-                      </>
-                    ) : (
-                      <>
-                        <AlertOctagon className="h-4 w-4 text-destructive" />
-                        הוסף קו אדום
-                      </>
+        {/* Section 3: General Guidelines - Collapsible */}
+        <Collapsible defaultOpen={false} className="mb-4">
+          <Card className="border-2 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-amber-100/30 transition-colors pb-3">
+                <CardTitle className="flex items-center justify-between text-lg">
+                  <span className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-amber-500" />
+                    כללי אצבע כלליים למגזר
+                    {getGeneralGuidelines().length > 0 && (
+                      <Badge variant="secondary" className="text-xs">{getGeneralGuidelines().length}</Badge>
                     )}
-                  </CardTitle>
-                  <CardDescription>
-                    {selectedExampleType === 'good' 
-                      ? 'העלה דוגמאות לתוכן מוצלח שהמערכת תלמד לחקות'
-                      : 'העלה דוגמאות לתוכן בעייתי שהמערכת תדע להימנע ממנו'
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Category selectors */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1 block">זרם</Label>
-                      <Select value={selectedStream} onValueChange={(v) => setSelectedStream(v as StreamType)}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="בחר זרם" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(STREAM_LABELS).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1 block">קהל יעד</Label>
-                      <Select value={selectedGender} onValueChange={(v) => setSelectedGender(v as GenderAudience)}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="בחר קהל" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(GENDER_LABELS).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1 block">נושא/תחום</Label>
-                      <Select value={selectedTopic} onValueChange={(v) => setSelectedTopic(v as TopicCategory)}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="בחר נושא" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(TOPIC_LABELS).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1 block">חג/עונה</Label>
-                      <Select value={selectedHoliday} onValueChange={(v) => setSelectedHoliday(v as HolidaySeason)}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="בחר חג" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  </span>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>הנחיות כלליות שתקפות לכל סוגי המדיה</CardDescription>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Textarea
+                    placeholder="הזן כלל אצבע כללי... לדוגמה: 'תמיד להשתמש בשפה מכבדת ועדינה'"
+                    value={generalGuidelineInput}
+                    onChange={(e) => setGeneralGuidelineInput(e.target.value)}
+                    className="flex-1 min-h-[80px] bg-white dark:bg-background"
+                  />
+                </div>
+                <Button 
+                  onClick={handleAddGeneralGuideline}
+                  disabled={!generalGuidelineInput.trim()}
+                  className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+                >
+                  <Plus className="h-4 w-4" />
+                  הוסף כלל אצבע כללי
+                </Button>
+
+                {getGeneralGuidelines().length > 0 && (
+                  <div className="space-y-2 pt-4 border-t">
+                    {getGeneralGuidelines().map((guideline) => (
+                      <div key={guideline.id} className="flex items-start gap-2 p-2 bg-white dark:bg-background rounded border">
+                        <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                        <p className="flex-1 text-sm">{guideline.text_content}</p>
+                        <button onClick={() => removeGuideline(guideline.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
-                  {/* Text input */}
-                  <div className="space-y-2">
-                    <Textarea
-                      placeholder={`הקלד ${selectedExampleType === 'good' ? 'דוגמה לטקסט מוצלח' : 'דוגמה לטקסט בעייתי'}...`}
-                      value={textInput}
-                      onChange={(e) => setTextInput(e.target.value)}
-                      className="min-h-[80px] resize-none"
-                    />
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={handleAddText}
-                        disabled={!textInput.trim()}
-                        className="flex-1"
-                      >
-                        <Plus className="h-4 w-4 ml-1" />
-                        הוסף טקסט
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={handlePaste}
-                      >
-                        <Clipboard className="h-4 w-4 ml-1" />
-                        הדבק תמונה
-                      </Button>
-                    </div>
-                  </div>
+        {/* Section 4: Media-specific Training - Collapsible */}
+        <Collapsible defaultOpen={true} className="mb-4">
+          <Card className="border-2 border-primary/30">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-3">
+                <CardTitle className="flex items-center justify-between text-lg">
+                  <span className="flex items-center gap-2">
+                    <Newspaper className="h-5 w-5 text-primary" />
+                    דוגמאות ואימון לפי מדיה
+                    <Badge variant="secondary" className="text-xs">{uploads.length} דוגמאות</Badge>
+                  </span>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>העלאת דוגמאות טובות וקווים אדומים לכל סוג מדיה</CardDescription>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                {/* Media Type Tabs */}
+                <Tabs value={activeMediaType} onValueChange={(v) => setActiveMediaType(v as MediaType)} className="w-full">
+                  <TabsList className="w-full h-auto flex-wrap gap-2 bg-transparent p-0 mb-6">
+                    {MEDIA_TYPES.map((media) => {
+                      const stats = getMediaStats(media.id);
+                      return (
+                        <TabsTrigger
+                          key={media.id}
+                          value={media.id}
+                          className={cn(
+                            "flex-1 min-w-[100px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+                            "border-2 data-[state=active]:border-primary",
+                            "flex flex-col items-center gap-1 py-2 px-3"
+                          )}
+                        >
+                          <media.icon className="h-4 w-4" />
+                          <span className="font-medium text-xs">{media.label}</span>
+                          {stats.total > 0 && <span className="text-[10px] opacity-70">{stats.total}</span>}
+                        </TabsTrigger>
+                      );
+                    })}
+                  </TabsList>
 
-                  {/* Link input */}
-                  <div className="space-y-2 border-t pt-4">
-                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Link2 className="h-3 w-3" />
-                      הוסף קישור
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="https://example.com/..."
-                        value={linkInput}
-                        onChange={(e) => setLinkInput(e.target.value)}
-                        className="flex-1"
-                        dir="ltr"
-                      />
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={handleAddLink}
-                        disabled={!linkInput.trim()}
-                      >
-                        <Plus className="h-4 w-4 ml-1" />
-                        הוסף
-                      </Button>
-                    </div>
-                  </div>
+                  {MEDIA_TYPES.map((media) => (
+                    <TabsContent key={media.id} value={media.id} className="mt-0 space-y-4">
+                      {/* Stats row */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-success/10 border border-success/30">
+                          <ThumbsUp className="h-4 w-4 text-success" />
+                          <div>
+                            <div className="text-lg font-bold text-success">{getFilteredUploads(media.id, 'good').length}</div>
+                            <div className="text-[10px] text-muted-foreground">דוגמאות טובות</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10 border border-destructive/30">
+                          <ThumbsDown className="h-4 w-4 text-destructive" />
+                          <div>
+                            <div className="text-lg font-bold text-destructive">{getFilteredUploads(media.id, 'bad').length}</div>
+                            <div className="text-[10px] text-muted-foreground">קווים אדומים</div>
+                          </div>
+                        </div>
+                      </div>
 
-                  {/* Guidelines input for this media type */}
-                  <div className="border-t pt-4 mt-4 space-y-2">
-                    <Label className="text-xs text-amber-600 flex items-center gap-1">
-                      <Lightbulb className="h-3 w-3" />
-                      כלל אצבע ל{media.label}
-                    </Label>
-                    <div className="flex gap-2">
-                      <Textarea
-                        placeholder={`הזן כלל אצבע ל${media.label}... לדוגמה: 'תמיד להשתמש בשפה מכבדת', 'להימנע מתמונות מסוימות'`}
-                        value={guidelineInput}
-                        onChange={(e) => setGuidelineInput(e.target.value)}
-                        className="min-h-[60px] resize-none flex-1"
-                      />
-                    </div>
-                    <Button 
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleAddGuideline(media.id)}
-                      disabled={!guidelineInput.trim()}
-                      className="w-full border-amber-500/50 text-amber-600 hover:bg-amber-50"
-                    >
-                      <Lightbulb className="h-4 w-4 ml-1" />
-                      הוסף כלל אצבע
-                    </Button>
+                      {/* Example Type Toggle */}
+                      <div className="flex gap-2">
+                        <Button
+                          variant={selectedExampleType === 'good' ? 'default' : 'outline'}
+                          onClick={() => setSelectedExampleType('good')}
+                          size="sm"
+                          className={cn("flex-1", selectedExampleType === 'good' && "bg-success hover:bg-success/90")}
+                        >
+                          <Trophy className="h-4 w-4 ml-1" />
+                          דוגמאות מוצלחות
+                        </Button>
+                        <Button
+                          variant={selectedExampleType === 'bad' ? 'default' : 'outline'}
+                          onClick={() => setSelectedExampleType('bad')}
+                          size="sm"
+                          className={cn("flex-1", selectedExampleType === 'bad' && "bg-destructive hover:bg-destructive/90")}
+                        >
+                          <AlertOctagon className="h-4 w-4 ml-1" />
+                          קווים אדומים
+                        </Button>
+                      </div>
 
-                    {/* Existing guidelines for this media type */}
-                    {getGuidelinesForMedia(media.id).length > 0 && (
-                      <Collapsible open={guidelinesOpen} onOpenChange={setGuidelinesOpen} className="pt-2">
+                      {/* Category selectors */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">זרם</Label>
+                          <Select value={selectedStream} onValueChange={(v) => setSelectedStream(v as StreamType)}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="בחר זרם" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(STREAM_LABELS).map(([key, label]) => (
+                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">קהל יעד</Label>
+                          <Select value={selectedGender} onValueChange={(v) => setSelectedGender(v as GenderAudience)}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="בחר קהל" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(GENDER_LABELS).map(([key, label]) => (
+                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">נושא</Label>
+                          <Select value={selectedTopic} onValueChange={(v) => setSelectedTopic(v as TopicCategory)}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="בחר נושא" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(TOPIC_LABELS).map(([key, label]) => (
+                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">חג/עונה</Label>
+                          <Select value={selectedHoliday} onValueChange={(v) => setSelectedHoliday(v as HolidaySeason)}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="בחר חג" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
+                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Upload inputs */}
+                      <div className="space-y-3 border rounded-lg p-3 bg-muted/20">
+                        <Textarea
+                          placeholder={`הקלד ${selectedExampleType === 'good' ? 'דוגמה לטקסט מוצלח' : 'דוגמה לטקסט בעייתי'}...`}
+                          value={textInput}
+                          onChange={(e) => setTextInput(e.target.value)}
+                          className="min-h-[60px] resize-none text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={handleAddText} disabled={!textInput.trim()} className="flex-1">
+                            <Plus className="h-3 w-3 ml-1" />
+                            הוסף טקסט
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={handlePaste}>
+                            <Clipboard className="h-3 w-3 ml-1" />
+                            הדבק תמונה
+                          </Button>
+                        </div>
+
+                        <div className="flex gap-2 pt-2 border-t">
+                          <Input
+                            placeholder="https://example.com/..."
+                            value={linkInput}
+                            onChange={(e) => setLinkInput(e.target.value)}
+                            className="flex-1 text-xs"
+                            dir="ltr"
+                          />
+                          <Button size="sm" variant="outline" onClick={handleAddLink} disabled={!linkInput.trim()}>
+                            <Plus className="h-3 w-3 ml-1" />
+                            קישור
+                          </Button>
+                        </div>
+
+                        {/* Drop zone */}
+                        <div
+                          className="min-h-[60px] bg-muted/30 rounded-lg flex flex-col items-center justify-center p-3 border border-dashed border-border/50"
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                        >
+                          <Upload className="h-5 w-5 text-muted-foreground mb-1" />
+                          <p className="text-xs text-muted-foreground">גרור ושחרר קבצים</p>
+                        </div>
+                      </div>
+
+                      {/* Media-specific guidelines */}
+                      <Collapsible className="border rounded-lg p-3 bg-amber-50/30 dark:bg-amber-950/10">
                         <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="sm" className="w-full justify-between h-8 text-xs hover:bg-amber-50/50">
-                            <span className="flex items-center gap-1 text-muted-foreground">
-                              <BookOpen className="h-3 w-3" />
-                              כללים קיימים ({getGuidelinesForMedia(media.id).length})
+                          <Button variant="ghost" size="sm" className="w-full justify-between h-8 text-xs hover:bg-amber-100/50">
+                            <span className="flex items-center gap-1 text-amber-600">
+                              <Lightbulb className="h-3 w-3" />
+                              כללי אצבע ל{media.label} ({getGuidelinesForMedia(media.id).length})
                             </span>
-                            {guidelinesOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                            <ChevronDown className="h-3 w-3" />
                           </Button>
                         </CollapsibleTrigger>
-                        <CollapsibleContent className="space-y-1 pt-1">
+                        <CollapsibleContent className="pt-3 space-y-2">
+                          <div className="flex gap-2">
+                            <Textarea
+                              placeholder={`כלל אצבע ל${media.label}...`}
+                              value={guidelineInput}
+                              onChange={(e) => setGuidelineInput(e.target.value)}
+                              className="min-h-[50px] resize-none flex-1 text-sm"
+                            />
+                          </div>
+                          <Button 
+                            size="sm" variant="outline"
+                            onClick={() => handleAddGuideline(media.id)}
+                            disabled={!guidelineInput.trim()}
+                            className="w-full border-amber-500/50 text-amber-600 hover:bg-amber-50"
+                          >
+                            <Lightbulb className="h-3 w-3 ml-1" />
+                            הוסף כלל
+                          </Button>
                           {getGuidelinesForMedia(media.id).map((guideline) => (
-                            <div 
-                              key={guideline.id}
-                              className="flex items-start gap-2 p-2 bg-amber-50/50 dark:bg-amber-950/20 rounded border border-amber-200/50 text-sm"
-                            >
+                            <div key={guideline.id} className="flex items-start gap-2 p-2 bg-amber-50/50 dark:bg-amber-950/20 rounded border border-amber-200/50 text-sm">
                               <Lightbulb className="h-3 w-3 text-amber-500 mt-0.5 shrink-0" />
                               <p className="flex-1 text-xs">{guideline.text_content}</p>
-                              <button 
-                                onClick={() => removeGuideline(guideline.id)}
-                                className="text-muted-foreground hover:text-destructive transition-colors"
-                              >
+                              <button onClick={() => removeGuideline(guideline.id)} className="text-muted-foreground hover:text-destructive">
                                 <Trash2 className="h-3 w-3" />
                               </button>
                             </div>
                           ))}
                         </CollapsibleContent>
                       </Collapsible>
-                    )}
-                  </div>
 
-                  {/* Drop zone */}
-                  <div className="min-h-[100px] bg-muted/30 rounded-lg flex flex-col items-center justify-center p-4 border border-border/50">
-                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground text-center">
-                      גרור ושחרר קבצים לכאן
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                      {/* Examples List */}
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {/* Good examples */}
+                        <Card className="border-success/30">
+                          <CardHeader className="pb-2 py-3">
+                            <CardTitle className="text-xs flex items-center gap-1 text-success">
+                              <Trophy className="h-3 w-3" />
+                              דוגמאות מוצלחות ({getFilteredUploads(media.id, 'good').length})
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-1 max-h-[300px] overflow-y-auto pt-0">
+                            {getFilteredUploads(media.id, 'good').map((upload) => (
+                              <div key={upload.id} className="flex items-center gap-2 p-1.5 bg-muted/50 rounded text-xs">
+                                {upload.type === 'image' && upload.preview ? (
+                                  <img src={upload.preview} alt="" className="w-8 h-8 rounded object-cover" />
+                                ) : (
+                                  <div className="w-8 h-8 rounded bg-muted flex items-center justify-center shrink-0">
+                                    <FileText className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="truncate">{upload.name}</p>
+                                  <div className="flex gap-1 flex-wrap">
+                                    {upload.topic_category && <Badge variant="secondary" className="text-[9px] py-0 px-1">{TOPIC_LABELS[upload.topic_category as TopicCategory]}</Badge>}
+                                    {upload.holiday_season && upload.holiday_season !== 'year_round' && <Badge variant="outline" className="text-[9px] py-0 px-1">{HOLIDAY_LABELS[upload.holiday_season as HolidaySeason]}</Badge>}
+                                  </div>
+                                </div>
+                                <button onClick={() => removeUpload(upload.id, upload.file_path)} className="text-muted-foreground hover:text-destructive">
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                            {getFilteredUploads(media.id, 'good').length === 0 && <p className="text-xs text-muted-foreground text-center py-3">אין דוגמאות עדיין</p>}
+                          </CardContent>
+                        </Card>
 
-              {/* Examples List */}
-              <div className="grid md:grid-cols-2 gap-4">
-                {/* Good examples */}
-                <Card className="border-success/30">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm flex items-center gap-2 text-success">
-                      <Trophy className="h-4 w-4" />
-                      דוגמאות מוצלחות ({getFilteredUploads(media.id, 'good').length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
-                    {getFilteredUploads(media.id, 'good').map((upload) => (
-                      <div key={upload.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-                        {upload.type === 'image' && upload.preview ? (
-                          <img src={upload.preview} alt="" className="w-10 h-10 rounded object-cover" />
-                        ) : upload.type === 'text' ? (
-                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                            <FileImage className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm truncate">{upload.name}</p>
-                          <div className="flex gap-1 flex-wrap mt-1">
-                            {upload.topic_category && (
-                              <Badge variant="secondary" className="text-[10px] py-0 px-1">
-                                {TOPIC_LABELS[upload.topic_category as TopicCategory]}
-                              </Badge>
-                            )}
-                            {upload.holiday_season && upload.holiday_season !== 'year_round' && (
-                              <Badge variant="outline" className="text-[10px] py-0 px-1">
-                                {HOLIDAY_LABELS[upload.holiday_season as HolidaySeason]}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => removeUpload(upload.id, upload.file_path)}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {/* Bad examples */}
+                        <Card className="border-destructive/30">
+                          <CardHeader className="pb-2 py-3">
+                            <CardTitle className="text-xs flex items-center gap-1 text-destructive">
+                              <AlertOctagon className="h-3 w-3" />
+                              קווים אדומים ({getFilteredUploads(media.id, 'bad').length})
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-1 max-h-[300px] overflow-y-auto pt-0">
+                            {getFilteredUploads(media.id, 'bad').map((upload) => (
+                              <div key={upload.id} className="flex items-center gap-2 p-1.5 bg-muted/50 rounded text-xs">
+                                {upload.type === 'image' && upload.preview ? (
+                                  <img src={upload.preview} alt="" className="w-8 h-8 rounded object-cover" />
+                                ) : (
+                                  <div className="w-8 h-8 rounded bg-muted flex items-center justify-center shrink-0">
+                                    <FileText className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="truncate">{upload.name}</p>
+                                  {upload.topic_category && <Badge variant="secondary" className="text-[9px] py-0 px-1">{TOPIC_LABELS[upload.topic_category as TopicCategory]}</Badge>}
+                                </div>
+                                <button onClick={() => removeUpload(upload.id, upload.file_path)} className="text-muted-foreground hover:text-destructive">
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                            {getFilteredUploads(media.id, 'bad').length === 0 && <p className="text-xs text-muted-foreground text-center py-3">אין קווים אדומים עדיין</p>}
+                          </CardContent>
+                        </Card>
                       </div>
-                    ))}
-                    {getFilteredUploads(media.id, 'good').length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        אין דוגמאות עדיין
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
-                {/* Bad examples */}
-                <Card className="border-destructive/30">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm flex items-center gap-2 text-destructive">
-                      <AlertOctagon className="h-4 w-4" />
-                      קווים אדומים ({getFilteredUploads(media.id, 'bad').length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
-                    {getFilteredUploads(media.id, 'bad').map((upload) => (
-                      <div key={upload.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-                        {upload.type === 'image' && upload.preview ? (
-                          <img src={upload.preview} alt="" className="w-10 h-10 rounded object-cover" />
-                        ) : upload.type === 'text' ? (
-                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                            <FileImage className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm truncate">{upload.name}</p>
-                          <div className="flex gap-1 flex-wrap mt-1">
-                            {upload.topic_category && (
-                              <Badge variant="secondary" className="text-[10px] py-0 px-1">
-                                {TOPIC_LABELS[upload.topic_category as TopicCategory]}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => removeUpload(upload.id, upload.file_path)}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                    {getFilteredUploads(media.id, 'bad').length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        אין קווים אדומים עדיין
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-
-        {/* Info Card */}
-        <Card className="mt-8 bg-muted/30">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Brain className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-2">איך זה עובד?</h3>
+        {/* Section 5: How it works - Collapsible */}
+        <Collapsible defaultOpen={false} className="mb-4">
+          <Card className="bg-muted/30">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors pb-3">
+                <CardTitle className="flex items-center justify-between text-lg">
+                  <span className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-primary" />
+                    איך זה עובד?
+                  </span>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
                 <p className="text-muted-foreground text-sm mb-4">
                   כל המודלים שלנו - יצירת תמונות, כתיבת קופי, צ'אט AI ועוד - לומדים מהדוגמאות שתעלו כאן.
                   ככל שתעלו יותר דוגמאות מגוונות, כך המערכת תבין טוב יותר מה מתאים ומה לא.
                 </p>
                 <div className="flex gap-3 flex-wrap">
-                  <Badge className="bg-success text-success-foreground">
-                    דוגמאות טובות = ללמוד ממנו ✓
-                  </Badge>
-                  <Badge className="bg-destructive text-destructive-foreground">
-                    קווים אדומים = להימנע ממנו ✗
-                  </Badge>
+                  <Badge className="bg-success text-success-foreground">דוגמאות טובות = ללמוד ממנו ✓</Badge>
+                  <Badge className="bg-destructive text-destructive-foreground">קווים אדומים = להימנע ממנו ✗</Badge>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Train Button */}
-        <div className="text-center mt-8">
+        <div className="text-center mt-6 mb-8">
           <Button
             onClick={startTraining}
             disabled={isTraining || uploads.length === 0}
@@ -1610,16 +1510,14 @@ const SectorBrain = () => {
             variant="gradient"
             className="px-12"
           >
-            {isTraining ? (
-              'המערכת לומדת...'
-            ) : (
+            {isTraining ? 'המערכת לומדת...' : (
               <>
                 <Brain className="h-5 w-5 ml-2" />
                 עדכן את כל המודלים
               </>
             )}
           </Button>
-          <p className="text-sm text-muted-foreground mt-3">
+          <p className="text-sm text-muted-foreground mt-2">
             סה"כ {uploads.length} דוגמאות במערכת
           </p>
         </div>

@@ -404,22 +404,15 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       }
     }
 
-    // Attempt 1: Direct Google Gemini API (non-streaming, converted to SSE)
+    // Attempt 1: Direct Google Gemini API (text-only, no image vision)
     if (GOOGLE_GEMINI_API_KEY) {
-      console.log('Trying direct Google Gemini API for analysis...');
+      console.log('Trying direct Google Gemini API for analysis (text-only)...');
       try {
-        // Build Google API parts from userContent
-        const googleParts: any[] = [];
-        for (const item of userContent) {
-          if (item.type === 'text') {
-            googleParts.push({ text: item.text });
-          } else if (item.type === 'image_url' && item.image_url?.url) {
-            // For URLs, pass as file_data or inline - Google API supports URLs via fileData
-            googleParts.push({ 
-              fileData: { mimeType: 'image/png', fileUri: item.image_url.url }
-            });
-          }
-        }
+        // Build text-only content for Google API (skip images - fileData with external URLs not supported)
+        const textOnlyContent = userContent
+          .filter((item: any) => item.type === 'text')
+          .map((item: any) => item.text)
+          .join('\n\n');
 
         const directResponse = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
@@ -428,7 +421,7 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: systemPrompt }] },
-              contents: [{ parts: googleParts }],
+              contents: [{ parts: [{ text: textOnlyContent }] }],
             }),
           }
         );
@@ -439,7 +432,6 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
           
           if (text) {
             console.log('Google direct analysis succeeded, converting to SSE stream');
-            // Convert to SSE format that the client expects
             const sseData = `data: ${JSON.stringify({
               choices: [{ delta: { content: text } }]
             })}\n\ndata: [DONE]\n\n`;
@@ -457,13 +449,14 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       }
     }
 
-    // Attempt 2: Lovable AI Gateway (streaming)
+    // Attempt 2: Lovable AI Gateway (streaming, supports images)
     if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: 'AI service unavailable' }), {
+      return new Response(JSON.stringify({ error: 'שירות AI אינו זמין כרגע' }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    console.log('Using Lovable AI Gateway with image support...');
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -499,7 +492,6 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       });
     }
 
-    // Return the stream directly
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
