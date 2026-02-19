@@ -200,99 +200,44 @@ ${campaignContext.targetGender ? `- מגדר יעד: ${campaignContext.targetGen
 המודעה חייבת להעביר בבירור את המסר: "${campaignContext.offer}"`;
     }
 
-    // Build enhanced prompt
-    let fullPrompt = '';
-    
-    // Ensure we have some visual prompt
+    // Build concise prompt - image models work best with shorter prompts
     const effectiveVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
     
-    // Base system prompt for Haredi audience
-    const baseSystemPrompt = `צור תמונת פרסומת בעברית. אתה מעצב גרפי מומחה ליצירת פרסומות לקהילה החרדית בישראל.
+    const promptParts: string[] = [
+      `Create a professional Hebrew advertisement image.`,
+      `Style: ${styleDesc.split('.')[0]}.`,
+      `Scene: ${effectiveVisualPrompt}`,
+    ];
 
-חוקים קריטיים שחובה לשמור:
-- אין להציג תמונות נשים או ילדות כלל!
-- שמירה על צניעות מלאה בכל אלמנט
-- עיצוב נקי, מכובד ומקצועי
-- טקסט בעברית בלבד (מימין לשמאל)
-- אין תוכן פוגעני או לא צנוע
-
-חובה: צור ותחזיר תמונה!`;
-
-    if (engine === 'nano-banana' || !engine) {
-      // Gemini Pro Image - highest quality with Hebrew text support
-      fullPrompt = `${baseSystemPrompt}
-
-=== סגנון ===
-${styleDesc}
-
-${modelRulesSection}
-${brandSection}
-${campaignSection}
-
-${templatePrompt ? `=== פורמט ===
-${templatePrompt}` : ''}
-
-=== הסצנה ===
-${effectiveVisualPrompt}
-
-${additionalHints ? `הנחיות נוספות: ${additionalHints}` : ''}
-
-${textPrompt ? `=== טקסט עברי לשלב ===
-"${textPrompt}"
-הטקסט העברי חייב להיות:
-- בולט וקריא לחלוטין
-- משולב באלגנטיות בעיצוב
-- בטיפוגרפיה מקצועית
-- מימין לשמאל כמובן` : 'אין לכלול טקסט בתמונה.'}
-
-${dimensions ? `מידות: ${dimensions.width}x${dimensions.height} פיקסלים` : ''}
-
-${brandContext?.colors?.primary ? `חובה: השתמש בצבעי המותג (${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}) כצבעים הדומיננטיים!` : ''}
-${campaignContext?.offer ? `המסר "${campaignContext.offer}" צריך להיות המוקד המרכזי` : ''}
-
-צור עכשיו את התמונה!`;
-
-    } else {
-      // Flux model for non-text photorealism
-      fullPrompt = `${baseSystemPrompt}
-
-=== סגנון ===
-${styleDesc}
-
-${modelRulesSection}
-${brandSection}
-${campaignSection}
-
-${templatePrompt ? `=== פורמט ===
-${templatePrompt}` : ''}
-
-=== הסצנה ===
-${effectiveVisualPrompt}
-
-${additionalHints ? `הנחיות נוספות: ${additionalHints}` : ''}
-
-דרישות:
-- איכות פוטו-ריאליסטית גבוהה
-- תאורה וקומפוזיציה מקצועיות
-- ללא טקסט בתמונה
-- מותאם לקהל חרדי - צניעות מלאה
-- איכות פרסום מסחרי
-${brandContext?.colors?.primary ? `- סכמת הצבעים תואמת למותג: ${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}` : ''}
-
-צור עכשיו את התמונה!`;
+    if (brandContext?.colors?.primary) {
+      promptParts.push(`Use brand colors: ${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}`);
     }
+
+    if (textPrompt) {
+      promptParts.push(`Include Hebrew text: "${textPrompt}" - bold and readable, right-to-left.`);
+    }
+
+    if (templatePrompt) {
+      promptParts.push(`Format: ${templatePrompt.split('.')[0]}.`);
+    }
+
+    promptParts.push(`Rules: No women/girls. Modest, professional, clean design.`);
+
+    if (modelConfig?.dos?.length) {
+      promptParts.push(`Do: ${modelConfig.dos.slice(0, 3).join('; ')}`);
+    }
+
+    const fullPrompt = promptParts.join('\n');
 
     console.log("Enhanced prompt length:", fullPrompt.length);
 
-    // Select best model based on requirements
-    const model = (engine === 'nano-banana' || textPrompt) 
-      ? 'google/gemini-3-pro-image-preview'  // Best for Hebrew text
-      : 'google/gemini-2.5-flash-image';      // Fast for no-text images
+    // Select model - use flash-image as primary (more stable), pro as fallback
+    const model = 'google/gemini-2.5-flash-image';
 
     console.log("Using model:", model);
 
     // Try primary model first, then fallback
-    const models = [model, model === 'google/gemini-3-pro-image-preview' ? 'google/gemini-2.5-flash-image' : 'google/gemini-3-pro-image-preview'];
+    const models = ['google/gemini-2.5-flash-image', 'google/gemini-3-pro-image-preview'];
     
     let response: Response | null = null;
     let usedModel = model;
@@ -343,9 +288,10 @@ ${brandContext?.colors?.primary ? `- סכמת הצבעים תואמת למותג
         });
       }
       
-      // If 500, try next model
+      // If 500, wait and try next model
       if (response.status === 500 && tryModel !== models[models.length - 1]) {
-        console.log(`Model ${tryModel} returned 500, trying fallback...`);
+        console.log(`Model ${tryModel} returned 500, waiting 2s before fallback...`);
+        await new Promise(r => setTimeout(r, 2000));
         continue;
       }
     }
