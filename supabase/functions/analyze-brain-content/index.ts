@@ -410,13 +410,79 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       .map((item: any) => item.text)
       .join('\n\n');
 
+    // Trim prompt if too large (keep under 30000 chars)
+    const trimmedPrompt = textOnlyPrompt.length > 30000 
+      ? textOnlyPrompt.substring(0, 30000) + '\n\n[תוכן נוסף נחתך עקב מגבלת גודל]'
+      : textOnlyPrompt;
+
+    console.log(`Prompt length: ${trimmedPrompt.length} chars`);
+
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
+
+    let streamResponse: Response | null = null;
+
+    // Attempt 1: Direct Google Gemini API (non-streaming, then convert to SSE)
+    if (GOOGLE_GEMINI_API_KEY) {
+      console.log('Trying direct Google Gemini API...');
+      try {
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: `${systemPrompt}\n\n${trimmedPrompt}` }]
+              }],
+              generationConfig: { temperature: 0.8, maxOutputTokens: 8192 },
+            }),
+          }
+        );
+
+        if (directResponse.ok) {
+          const data = await directResponse.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (text) {
+            console.log('Google Gemini direct success, converting to SSE');
+            // Convert to SSE format for client
+            const encoder = new TextEncoder();
+            const sseStream = new ReadableStream({
+              start(controller) {
+                // Send content in chunks
+                const chunkSize = 100;
+                for (let i = 0; i < text.length; i += chunkSize) {
+                  const chunk = text.substring(i, i + chunkSize);
+                  const sseData = JSON.stringify({
+                    choices: [{ delta: { content: chunk } }]
+                  });
+                  controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
+                }
+                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                controller.close();
+              }
+            });
+
+            return new Response(sseStream, {
+              headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+            });
+          }
+        } else {
+          const errorText = await directResponse.text();
+          console.error('Google Gemini direct error:', directResponse.status, errorText);
+        }
+      } catch (err) {
+        console.error('Google Gemini direct fetch error:', err);
+      }
+    }
+
+    // Attempt 2: Lovable AI Gateway fallback
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: 'שירות AI אינו זמין כרגע' }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log('Using Lovable AI Gateway (text-only)...');
+    console.log('Falling back to Lovable AI Gateway (text-only)...');
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -427,7 +493,7 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: textOnlyPrompt },
+          { role: "user", content: trimmedPrompt },
         ],
         stream: true,
       }),
