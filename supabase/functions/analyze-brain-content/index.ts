@@ -360,10 +360,21 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
           text: imgLabel
         });
         
-        // Add the image - Supabase storage URLs
-        const imageUrl = img.file_path.startsWith('http') 
-          ? img.file_path 
-          : `${SUPABASE_URL}/storage/v1/object/public/sector-brain/${img.file_path}`;
+        // Add the image - Supabase storage URLs (encode path segments for Hebrew filenames)
+        let imageUrl: string;
+        if (img.file_path.startsWith('http')) {
+          // Re-encode the path portion of existing URLs to handle Hebrew chars
+          try {
+            const parsed = new URL(img.file_path);
+            parsed.pathname = parsed.pathname.split('/').map(segment => encodeURIComponent(decodeURIComponent(segment))).join('/');
+            imageUrl = parsed.toString();
+          } catch {
+            imageUrl = img.file_path;
+          }
+        } else {
+          const encodedPath = img.file_path.split('/').map(segment => encodeURIComponent(segment)).join('/');
+          imageUrl = `${SUPABASE_URL}/storage/v1/object/public/sector-brain/${encodedPath}`;
+        }
         
         userContent.push({
           type: "image_url",
