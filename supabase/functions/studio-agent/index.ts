@@ -67,6 +67,7 @@ serve(async (req) => {
       generateImage,
       aspectRatio,
       conversationHistory,
+      sectorBrainData,
     } = await req.json();
 
     if (!message) {
@@ -101,6 +102,9 @@ serve(async (req) => {
     }
     if (aspectRatio) {
       contextBlock += `\nיחס גובה-רוחב: ${aspectRatio}\n`;
+    }
+    if (sectorBrainData) {
+      contextBlock += `\n=== רפרנסים מגזריים (Sector Brain) ===\n${JSON.stringify(sectorBrainData)}\n`;
     }
 
     const messages: Array<{role: string; content: string}> = [

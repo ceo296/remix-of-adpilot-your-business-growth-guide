@@ -1,7 +1,42 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AdkopWizardData, CreativeResult, MediaBudgetItem } from '@/types/adkop';
 import { toast } from 'sonner';
+
+const fetchSectorBrainData = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('sector_brain_examples')
+      .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type, file_path')
+      .limit(100);
+
+    if (error) {
+      console.error('Failed to fetch sector brain data:', error);
+      return null;
+    }
+
+    if (!data || data.length === 0) return null;
+
+    // Group by zone for structured context
+    const grouped: Record<string, typeof data> = {};
+    for (const item of data) {
+      const zone = item.zone || 'general';
+      if (!grouped[zone]) grouped[zone] = [];
+      grouped[zone].push(item);
+    }
+
+    return {
+      total_examples: data.length,
+      zones: grouped,
+      summary: Object.entries(grouped).map(([zone, items]) => 
+        `${zone}: ${items.length} דוגמאות`
+      ).join(', '),
+    };
+  } catch (err) {
+    console.error('Sector brain fetch error:', err);
+    return null;
+  }
+};
 
 interface AgentState {
   isGeneratingCreatives: boolean;
@@ -70,8 +105,11 @@ export const useAdkopAgents = () => {
         brandContext.secondaryColor = brand.extractedColors[1];
       }
 
+      // Fetch sector brain references
+      const sectorBrainData = await fetchSectorBrainData();
+
       const { data, error } = await supabase.functions.invoke('creative-agent', {
-        body: { message, campaignContext, brandContext },
+        body: { message, campaignContext, brandContext, sectorBrainData },
       });
 
       if (error) throw error;
