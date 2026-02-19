@@ -288,32 +288,45 @@ const SectorBrain = () => {
         setIsAnalyzing(false);
         return;
       }
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-brain-content`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({ insightType }),
-      });
+      
+      let response: Response;
+      try {
+        response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-brain-content`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ insightType }),
+        });
+      } catch (fetchErr) {
+        console.error('Network error:', fetchErr);
+        toast.error('שגיאת רשת - לא ניתן להתחבר לשרת');
+        setIsAnalyzing(false);
+        return;
+      }
 
       if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        console.error('Analyze response error:', response.status, errorText);
         if (response.status === 429) {
           toast.error('הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות.');
-          setIsAnalyzing(false);
-          return;
-        }
-        if (response.status === 402) {
+        } else if (response.status === 402) {
           toast.error('נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות.');
-          setIsAnalyzing(false);
-          return;
+        } else {
+          toast.error('שגיאה בניתוח התוכן. נסה שוב.');
         }
-        throw new Error('Failed to analyze');
+        setIsAnalyzing(false);
+        return;
       }
 
       const reader = response.body?.getReader();
-      if (!reader) throw new Error('No reader available');
+      if (!reader) {
+        toast.error('שגיאה בקריאת תשובת השרת');
+        setIsAnalyzing(false);
+        return;
+      }
 
       const decoder = new TextDecoder();
       let textBuffer = '';
