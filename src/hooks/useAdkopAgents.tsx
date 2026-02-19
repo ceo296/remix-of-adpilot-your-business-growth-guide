@@ -24,7 +24,12 @@ export const useAdkopAgents = () => {
     try {
       const { mri, campaign, brand } = wizardData;
 
-      const message = `צור 3 קונספטים קריאטיביים לקמפיין.
+      const message = `צור 3 קונספטים קריאטיביים לקמפיין — כל אחד מסוג שונה:
+
+1. **שכלית (rational)** — מודעה מבוססת עובדות, יתרונות מוצר, נתונים, הוכחה חברתית. טון רציני ומקצועי.
+2. **רגשית/הומוריסטית (emotional)** — מודעה שנוגעת בלב, מעוררת חיוך או התרגשות. טון חם, אנושי, אולי הומוריסטי.
+3. **מפתיעה/שנונה (creative)** — מודעה עם טוויסט, אנגל לא צפוי, קריאייטיבית ובלתי נשכחת. טון חד, מפתיע.
+
 מוצר: ${mri.productFunction}
 כאב: ${mri.painProblem}
 רגש מטרה: ${mri.targetEmotion || 'לא נבחר'}
@@ -34,15 +39,18 @@ export const useAdkopAgents = () => {
 תזמון: ${campaign.timing}
 ערוצי מדיה: ${campaign.mediaChannels.join(', ') || 'לא נבחרו'}
 
+חשוב: התיאור הויזואלי צריך להיות מפורט מספיק כדי לשמש כפרומפט לייצור תמונה (סגנון, צבעים, אובייקטים, קומפוזיציה, אווירה).
+
 החזר JSON עם 3 אופציות בפורמט:
 \`\`\`json
 {
   "creative_options": [
     {
+      "concept_type": "rational",
       "headline": "כותרת",
       "body_text": "גוף טקסט",
       "cta": "קריאה לפעולה",
-      "visual_description": "תיאור ויזואלי"
+      "visual_description": "תיאור ויזואלי מפורט לייצור תמונה"
     }
   ]
 }
@@ -73,6 +81,7 @@ export const useAdkopAgents = () => {
       const systemCommand = data?.systemCommand;
 
       if (systemCommand?.creative_options) {
+        const typeOrder = ['rational', 'emotional', 'creative'];
         systemCommand.creative_options.forEach((opt: any, i: number) => {
           creatives.push({
             id: String(i + 1),
