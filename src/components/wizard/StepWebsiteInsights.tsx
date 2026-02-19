@@ -246,7 +246,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
               <SelectTrigger className="text-lg h-12 bg-white text-gray-900 border-amber-200 hover:border-amber-400">
                 <SelectValue placeholder="בחרו תחום עיסוק" />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-amber-200 z-50">
+              <SelectContent className="bg-white border border-amber-200 z-[9999] shadow-lg" position="popper" sideOffset={4}>
                 {INDUSTRY_OPTIONS.map((option) => (
                   <SelectItem key={option} value={option} className="hover:bg-amber-50">
                     {option}
@@ -324,7 +324,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
               <SelectTrigger className={`h-12 bg-white text-gray-900 hover:border-pink-400 ${!formValues.audience ? 'border-destructive' : 'border-pink-200'}`}>
                 <SelectValue placeholder="בחרו קהל יעד" />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-pink-200 z-50">
+              <SelectContent className="bg-white border border-pink-200 z-[9999] shadow-lg" position="popper" sideOffset={4}>
                 {AUDIENCE_OPTIONS.map((option) => (
                   <SelectItem key={option} value={option} className="hover:bg-pink-50">
                     {option}
