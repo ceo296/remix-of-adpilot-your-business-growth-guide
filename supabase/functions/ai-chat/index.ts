@@ -58,9 +58,10 @@ serve(async (req) => {
   try {
     const { messages, context } = await req.json();
     
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
+      throw new Error('No AI API key configured');
     }
 
     // Fetch sector brain references
@@ -92,6 +93,59 @@ serve(async (req) => {
 
 ${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, null, 2)}` : ''}${sectorContext}`;
 
+    const allMessages = [
+      { role: "system", content: systemPrompt },
+      ...messages,
+    ];
+
+    // Try Google Gemini API first (non-streaming, convert to SSE)
+    if (GOOGLE_GEMINI_API_KEY) {
+      try {
+        console.log('[ai-chat] Trying Google Gemini API...');
+        const geminiMessages = allMessages.filter(m => m.role !== 'system');
+        const systemText = allMessages.find(m => m.role === 'system')?.content || '';
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemText }] },
+              contents: geminiMessages.map(m => ({
+                role: m.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: m.content }],
+              })),
+            }),
+          }
+        );
+
+        if (directResponse.ok) {
+          const data = await directResponse.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (text) {
+            console.log('[ai-chat] Google API succeeded');
+            const sseData = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
+            return new Response(sseData, {
+              headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+            });
+          }
+        } else {
+          const errText = await directResponse.text();
+          console.error('[ai-chat] Google API error:', directResponse.status, errText);
+        }
+      } catch (e) {
+        console.error('[ai-chat] Google API fetch error:', e);
+      }
+    }
+
+    // Fallback: Lovable AI Gateway (streaming)
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: "שירות AI אינו זמין" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log('[ai-chat] Using Lovable Gateway...');
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -100,10 +154,7 @@ ${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, nul
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
+        messages: allMessages,
         stream: true,
       }),
     });
@@ -127,7 +178,6 @@ ${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, nul
       });
     }
 
-    // Return the stream directly
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });

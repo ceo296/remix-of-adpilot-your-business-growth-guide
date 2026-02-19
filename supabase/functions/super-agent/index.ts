@@ -127,92 +127,79 @@ serve(async (req) => {
       });
     }
 
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
+    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: 'AI service not configured' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Build context from client profile and campaign
-    let contextBlock = '';
-    if (clientProfile) {
-      contextBlock += `\n=== פרופיל לקוח ===\n`;
-      if (clientProfile.business_name) contextBlock += `שם העסק: ${clientProfile.business_name}\n`;
-      if (clientProfile.primary_color) contextBlock += `צבע ראשי: ${clientProfile.primary_color}\n`;
-      if (clientProfile.secondary_color) contextBlock += `צבע משני: ${clientProfile.secondary_color}\n`;
-      if (clientProfile.target_audience) contextBlock += `קהל יעד: ${clientProfile.target_audience}\n`;
-      if (clientProfile.x_factors?.length) contextBlock += `גורמי X: ${clientProfile.x_factors.join(', ')}\n`;
-      if (clientProfile.primary_x_factor) contextBlock += `X-Factor ראשי: ${clientProfile.primary_x_factor}\n`;
-      if (clientProfile.winning_feature) contextBlock += `תכונה מנצחת: ${clientProfile.winning_feature}\n`;
-      if (clientProfile.competitors?.length) contextBlock += `מתחרים: ${clientProfile.competitors.join(', ')}\n`;
-      if (clientProfile.personal_red_lines?.length) contextBlock += `קווים אדומים: ${clientProfile.personal_red_lines.join(', ')}\n`;
-    }
+    // Try Google Gemini API first, fallback to Lovable Gateway
+    let content = '';
+    let aiSuccess = false;
 
-    if (campaignContext) {
-      contextBlock += `\n=== הקשר קמפיין ===\n`;
-      if (campaignContext.goal) contextBlock += `מטרה: ${campaignContext.goal}\n`;
-      if (campaignContext.vibe) contextBlock += `וייב: ${campaignContext.vibe}\n`;
-      if (campaignContext.budget) contextBlock += `תקציב: ${campaignContext.budget}\n`;
-      if (campaignContext.target_stream) contextBlock += `זרם: ${campaignContext.target_stream}\n`;
-      if (campaignContext.target_gender) contextBlock += `מגדר: ${campaignContext.target_gender}\n`;
-      if (campaignContext.target_city) contextBlock += `עיר: ${campaignContext.target_city}\n`;
-    }
-
-    if (sectorBrainData) {
-      contextBlock += `\n=== ידע מגזרי (Sector Brain) ===\n`;
-      if (sectorBrainData.holiday) {
-        contextBlock += `חג/עונה: ${sectorBrainData.holiday} (${sectorBrainData.holiday_specific_count || 0} דוגמאות ספציפיות לחג)\n`;
-        contextBlock += `חשוב: התאם את הקריאייטיב לרוח החג — סמלים, אווירה, ביטויים ומסרים שמתאימים לעונה.\n`;
+    if (GOOGLE_GEMINI_API_KEY) {
+      try {
+        console.log('Trying Google Gemini API...');
+        const geminiMessages = messages.filter(m => m.role !== 'system');
+        const systemText = messages.find(m => m.role === 'system')?.content || '';
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemText }] },
+              contents: geminiMessages.map(m => ({
+                role: m.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: m.content }],
+              })),
+            }),
+          }
+        );
+        if (directResponse.ok) {
+          const data = await directResponse.json();
+          content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (content) aiSuccess = true;
+        } else {
+          const errText = await directResponse.text();
+          console.error('Google API error:', directResponse.status, errText);
+        }
+      } catch (e) {
+        console.error('Google API fetch error:', e);
       }
-      contextBlock += JSON.stringify(sectorBrainData.zones) + '\n';
     }
 
-    const fullSystemPrompt = SYSTEM_PROMPT + contextBlock;
+    if (!aiSuccess && LOVABLE_API_KEY) {
+      console.log('Falling back to Lovable Gateway...');
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ model: 'google/gemini-2.5-flash', messages }),
+      });
 
-    // Build messages array
-    const messages: Array<{role: string; content: string}> = [
-      { role: 'system', content: fullSystemPrompt }
-    ];
-
-    if (conversationHistory?.length) {
-      messages.push(...conversationHistory);
-    }
-
-    messages.push({ role: 'user', content: message });
-
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI Gateway error:', aiResponse.status, errorText);
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('AI Gateway error:', aiResponse.status, errorText);
+        const status = aiResponse.status === 429 ? 429 : aiResponse.status === 402 ? 402 : 500;
+        return new Response(JSON.stringify({ error: status === 429 ? 'Rate limit exceeded' : status === 402 ? 'AI credits exhausted' : 'AI processing failed' }), {
+          status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      return new Response(JSON.stringify({ error: 'AI processing failed' }), {
+
+      const aiData = await aiResponse.json();
+      content = aiData.choices?.[0]?.message?.content || '';
+    }
+
+    if (!content) {
+      return new Response(JSON.stringify({ error: 'AI returned empty response' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
-
-    const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content || '';
 
     // Try to extract SYSTEM_COMMAND JSON from response
     let systemCommand = null;
