@@ -1,23 +1,70 @@
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MediaBudgetItem } from '@/types/adkop';
-import { Download, CheckCircle2 } from 'lucide-react';
+import { Download, CheckCircle2, Loader2, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
 
 interface Props {
   items: MediaBudgetItem[];
+  isLoading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
-const PLACEHOLDER_ITEMS: MediaBudgetItem[] = [
-  { channel: 'המודיע - עמוד שלם', reachReasoning: 'חדירה של 80% בציבור הליטאי, מתאים לקהל יעד שמרן', estimatedPrice: '₪4,500' },
-  { channel: 'בחדרי חרדים - באנר ראשי', reachReasoning: 'חשיפה דיגיטלית רחבה, 500K+ כניסות חודשיות', estimatedPrice: '₪2,200' },
-  { channel: 'שילוט רחוב - בני ברק', reachReasoning: 'נוכחות פיזית באזור מגורים מרכזי של קהל היעד', estimatedPrice: '₪1,800' },
-  { channel: 'רדיו קול חי - ספוט 30 שניות', reachReasoning: 'שעות שיא האזנה בקרב גברים, חדירה גבוהה', estimatedPrice: '₪3,000' },
-];
+const StepMediaBudget = ({ items, isLoading, error, onRetry }: Props) => {
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-rubik font-bold text-foreground">בונה תמהיל מדיה...</h2>
+          <p className="text-muted-foreground mt-2">סוכן המדיה סורק את מאגר הערוצים ובונה תמהיל מותאם</p>
+        </div>
+        <div className="flex flex-col items-center justify-center py-20 gap-6">
+          <Loader2 className="w-16 h-16 text-primary animate-spin" />
+          <div className="text-center space-y-2">
+            <p className="text-foreground font-medium">ממפה ערוצי מדיה רלוונטיים מהמאגר...</p>
+            <p className="text-sm text-muted-foreground">זה יכול לקחת כ-15-30 שניות</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-const StepMediaBudget = ({ items }: Props) => {
-  const displayItems = items.length > 0 ? items : PLACEHOLDER_ITEMS;
-  
-  const totalEstimate = displayItems.reduce((sum, item) => {
+  if (error) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-rubik font-bold text-foreground">סיכום מדיה ותקציב</h2>
+        </div>
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <AlertCircle className="w-12 h-12 text-destructive" />
+          <p className="text-foreground font-medium">{error}</p>
+          {onRetry && (
+            <Button onClick={onRetry} variant="outline" className="gap-2 mt-2">
+              <RefreshCw className="w-4 h-4" />
+              נסה שוב
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-rubik font-bold text-foreground">סיכום מדיה ותקציב</h2>
+          <p className="text-muted-foreground mt-2">התמהיל ייבנה אוטומטית כשתגיעו לשלב זה</p>
+        </div>
+        <div className="flex flex-col items-center justify-center py-16 gap-4 text-muted-foreground">
+          <Sparkles className="w-12 h-12" />
+          <p>מלאו את השלבים הקודמים כדי לקבל תמהיל מדיה מותאם</p>
+        </div>
+      </div>
+    );
+  }
+
+  const totalEstimate = items.reduce((sum, item) => {
     const num = parseInt(item.estimatedPrice.replace(/[^\d]/g, ''), 10);
     return sum + (isNaN(num) ? 0 : num);
   }, 0);
@@ -39,7 +86,7 @@ const StepMediaBudget = ({ items }: Props) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {displayItems.map((item, i) => (
+            {items.map((item, i) => (
               <TableRow key={i} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-semibold text-foreground">{item.channel}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{item.reachReasoning}</TableCell>
@@ -66,6 +113,15 @@ const StepMediaBudget = ({ items }: Props) => {
           הורד PDF
         </Button>
       </div>
+
+      {onRetry && (
+        <div className="flex justify-center">
+          <Button onClick={onRetry} variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+            <RefreshCw className="w-4 h-4" />
+            בנה תמהיל חדש
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

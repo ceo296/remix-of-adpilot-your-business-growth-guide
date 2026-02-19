@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import AdkopStepper from '@/components/adkop/AdkopStepper';
 import StepStrategicMRI from '@/components/adkop/StepStrategicMRI';
 import StepCampaignConfig from '@/components/adkop/StepCampaignConfig';
@@ -8,14 +8,43 @@ import StepBrandAssets from '@/components/adkop/StepBrandAssets';
 import StepCreativeResults from '@/components/adkop/StepCreativeResults';
 import StepMediaBudget from '@/components/adkop/StepMediaBudget';
 import { AdkopWizardData, initialAdkopData } from '@/types/adkop';
+import { useAdkopAgents } from '@/hooks/useAdkopAgents';
 
 const AdkopWizard = () => {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<AdkopWizardData>(initialAdkopData);
+  const { agentState, generateCreatives, generateMediaPlan } = useAdkopAgents();
 
   const totalSteps = 5;
   const canGoNext = step < totalSteps;
   const canGoBack = step > 1;
+  const isLoading = agentState.isGeneratingCreatives || agentState.isGeneratingMedia;
+
+  const handleNext = async () => {
+    if (!canGoNext || isLoading) return;
+
+    // Step 3 → 4: Trigger creative-agent
+    if (step === 3) {
+      setStep(4);
+      const creatives = await generateCreatives(data);
+      if (creatives.length > 0) {
+        setData(prev => ({ ...prev, creatives }));
+      }
+      return;
+    }
+
+    // Step 4 → 5: Trigger media-agent
+    if (step === 4) {
+      setStep(5);
+      const mediaBudget = await generateMediaPlan(data);
+      if (mediaBudget.length > 0) {
+        setData(prev => ({ ...prev, mediaBudget }));
+      }
+      return;
+    }
+
+    setStep(s => s + 1);
+  };
 
   return (
     <div className="min-h-screen bg-background" dir="rtl" lang="he">
@@ -53,8 +82,22 @@ const AdkopWizard = () => {
               onChange={(brand) => setData({ ...data, brand })}
             />
           )}
-          {step === 4 && <StepCreativeResults creatives={data.creatives} />}
-          {step === 5 && <StepMediaBudget items={data.mediaBudget} />}
+          {step === 4 && (
+            <StepCreativeResults
+              creatives={data.creatives}
+              isLoading={agentState.isGeneratingCreatives}
+              error={agentState.creativeError}
+              onRetry={() => generateCreatives(data).then(c => c.length > 0 && setData(prev => ({ ...prev, creatives: c })))}
+            />
+          )}
+          {step === 5 && (
+            <StepMediaBudget
+              items={data.mediaBudget}
+              isLoading={agentState.isGeneratingMedia}
+              error={agentState.mediaError}
+              onRetry={() => generateMediaPlan(data).then(m => m.length > 0 && setData(prev => ({ ...prev, mediaBudget: m })))}
+            />
+          )}
         </div>
 
         {/* Navigation */}
@@ -62,7 +105,7 @@ const AdkopWizard = () => {
           <Button
             variant="outline"
             size="lg"
-            disabled={!canGoBack}
+            disabled={!canGoBack || isLoading}
             onClick={() => setStep((s) => s - 1)}
             className="gap-2"
           >
@@ -77,11 +120,21 @@ const AdkopWizard = () => {
           {canGoNext ? (
             <Button
               size="lg"
-              onClick={() => setStep((s) => s + 1)}
+              onClick={handleNext}
+              disabled={isLoading}
               className="gap-2"
             >
-              הבא
-              <ArrowLeft className="w-4 h-4" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  מייצר...
+                </>
+              ) : (
+                <>
+                  הבא
+                  <ArrowLeft className="w-4 h-4" />
+                </>
+              )}
             </Button>
           ) : (
             <div />
