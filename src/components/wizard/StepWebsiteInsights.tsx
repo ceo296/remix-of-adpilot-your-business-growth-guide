@@ -225,7 +225,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
               value={formValues.businessName}
               onChange={(e) => handleValueChange('businessName', e.target.value)}
               placeholder="לדוגמה: רהיטי הבית"
-              className="text-lg h-12 bg-white border-blue-200 hover:border-blue-400 focus:border-blue-500"
+              className="text-lg h-12 bg-white text-gray-900 border-blue-200 hover:border-blue-400 focus:border-blue-500"
             />
           </div>
 
@@ -243,7 +243,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
               value={formValues.industry}
               onValueChange={(value) => handleValueChange('industry', value)}
             >
-              <SelectTrigger className="text-lg h-12 bg-white border-amber-200 hover:border-amber-400">
+              <SelectTrigger className="text-lg h-12 bg-white text-gray-900 border-amber-200 hover:border-amber-400">
                 <SelectValue placeholder="בחרו תחום עיסוק" />
               </SelectTrigger>
               <SelectContent className="bg-white border border-amber-200 z-50">
@@ -259,7 +259,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
                 value={formValues.industryOther}
                 onChange={(e) => handleValueChange('industryOther', e.target.value)}
                 placeholder="פרטו את תחום העיסוק"
-                className="mt-2 bg-white border-amber-200"
+                className="mt-2 bg-white text-gray-900 border-amber-200"
               />
             )}
           </div>
@@ -279,7 +279,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
               value={formValues.seniority}
               onChange={(e) => handleValueChange('seniority', e.target.value)}
               placeholder="לדוגמה: פעילים משנת 2010 (14 שנה)"
-              className="h-12 bg-white border-violet-200 hover:border-violet-400 focus:border-violet-500"
+              className="h-12 bg-white text-gray-900 border-violet-200 hover:border-violet-400 focus:border-violet-500"
             />
           </div>
 
@@ -298,7 +298,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
               value={formValues.coreOffering}
               onChange={(e) => handleValueChange('coreOffering', e.target.value)}
               placeholder="לדוגמה: מערכות ישיבה בהתאמה אישית"
-              className="h-12 bg-white border-emerald-200 hover:border-emerald-400 focus:border-emerald-500"
+              className="h-12 bg-white text-gray-900 border-emerald-200 hover:border-emerald-400 focus:border-emerald-500"
             />
           </div>
 
@@ -321,7 +321,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
               value={formValues.audience}
               onValueChange={(value) => handleValueChange('audience', value)}
             >
-              <SelectTrigger className={`h-12 bg-white hover:border-pink-400 ${!formValues.audience ? 'border-destructive' : 'border-pink-200'}`}>
+              <SelectTrigger className={`h-12 bg-white text-gray-900 hover:border-pink-400 ${!formValues.audience ? 'border-destructive' : 'border-pink-200'}`}>
                 <SelectValue placeholder="בחרו קהל יעד" />
               </SelectTrigger>
               <SelectContent className="bg-white border border-pink-200 z-50">
@@ -337,7 +337,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
                 value={formValues.audienceOther}
                 onChange={(e) => handleValueChange('audienceOther', e.target.value)}
                 placeholder="פרטו את קהל היעד"
-                className="mt-2 bg-white border-pink-200"
+                className="mt-2 bg-white text-gray-900 border-pink-200"
               />
             )}
           </div>
