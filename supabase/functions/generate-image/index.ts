@@ -92,7 +92,7 @@ serve(async (req) => {
     const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType } = await req.json();
     console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, brandContext: !!brandContext, campaignContext: !!campaignContext });
 
-    // Initialize Supabase to fetch model config
+    // Initialize Supabase to fetch model config + sector brain
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -100,17 +100,29 @@ serve(async (req) => {
     // Determine the media type for config lookup
     const configMediaType = mediaType || MEDIA_TYPE_MAP[templateId || ''] || 'print_ads';
     
-    // Fetch the model config for this media type
-    const { data: modelConfig, error: configError } = await supabase
-      .from('ai_model_configs')
-      .select('*')
-      .eq('media_type', configMediaType)
-      .eq('is_active', true)
-      .maybeSingle();
+    // Fetch model config AND sector brain examples in parallel
+    const [configResult, sectorResult] = await Promise.all([
+      supabase
+        .from('ai_model_configs')
+        .select('*')
+        .eq('media_type', configMediaType)
+        .eq('is_active', true)
+        .maybeSingle(),
+      supabase
+        .from('sector_brain_examples')
+        .select('zone, name, text_content, stream_type, gender_audience, topic_category')
+        .limit(30)
+    ]);
 
-    if (configError) {
-      console.error('Error fetching model config:', configError);
-    }
+    const modelConfig = configResult.data as AIModelConfig | null;
+    if (configResult.error) console.error('Error fetching model config:', configResult.error);
+
+    // Process sector brain examples for context
+    const sectorExamples = sectorResult.data || [];
+    const fameExamples = sectorExamples.filter((e: any) => e.zone === 'fame');
+    const redlineExamples = sectorExamples.filter((e: any) => e.zone === 'redlines');
+    const styleExamples = sectorExamples.filter((e: any) => e.zone === 'styles');
+    console.log(`Sector Brain: ${fameExamples.length} fame, ${redlineExamples.length} redlines, ${styleExamples.length} styles`);
 
     console.log("Using model config:", modelConfig?.media_type || 'default');
 
@@ -119,116 +131,63 @@ serve(async (req) => {
     
     // Get template-specific prompts if available
     const templatePrompt = templateId ? TEMPLATE_PROMPTS[templateId] || '' : '';
-    const additionalHints = templateHints || '';
 
-    // Build model-specific rules section
-    let modelRulesSection = '';
-    if (modelConfig) {
-      modelRulesSection = `
-=== הנחיות ספציפיות לסוג מדיה: ${modelConfig.media_type} ===
-
-${modelConfig.system_prompt}
-
-${modelConfig.logo_instructions ? `הנחיות לוגו:
-${modelConfig.logo_instructions}` : ''}
-
-${modelConfig.color_usage_rules ? `כללי צבעים:
-${modelConfig.color_usage_rules}` : ''}
-
-${modelConfig.typography_rules ? `כללי טיפוגרפיה:
-${modelConfig.typography_rules}` : ''}
-
-${modelConfig.design_rules?.length ? `כללי עיצוב:
-${modelConfig.design_rules.map((r: string) => `• ${r}`).join('\n')}` : ''}
-
-${modelConfig.text_rules?.length ? `כללי טקסט:
-${modelConfig.text_rules.map((r: string) => `• ${r}`).join('\n')}` : ''}
-
-${modelConfig.layout_principles?.length ? `עקרונות פריסה:
-${modelConfig.layout_principles.map((r: string) => `• ${r}`).join('\n')}` : ''}
-
-${modelConfig.dos?.length ? `לעשות:
-${modelConfig.dos.map((r: string) => `✓ ${r}`).join('\n')}` : ''}
-
-${modelConfig.donts?.length ? `לא לעשות:
-${modelConfig.donts.map((r: string) => `✗ ${r}`).join('\n')}` : ''}
-`;
-    }
-
-    // Build brand identity section for prompt
-    let brandSection = '';
-    if (brandContext) {
-      const colorParts: string[] = [];
-      if (brandContext.colors?.primary) colorParts.push(`צבע ראשי: ${brandContext.colors.primary}`);
-      if (brandContext.colors?.secondary) colorParts.push(`צבע משני: ${brandContext.colors.secondary}`);
-      if (brandContext.colors?.background) colorParts.push(`צבע רקע: ${brandContext.colors.background}`);
-      
-      brandSection = `
-=== זהות המותג ===
-- שם העסק: ${brandContext.businessName || 'לא צוין'}
-- קהל יעד: ${brandContext.targetAudience || 'קהל חרדי כללי'}
-- יתרון תחרותי: ${brandContext.primaryXFactor || 'איכות ושירות'}
-- פיצ'ר מנצח: ${brandContext.winningFeature || ''}
-${brandContext.xFactors?.length ? `- ערכי המותג: ${brandContext.xFactors.join(', ')}` : ''}
-
-${colorParts.length > 0 ? `צבעי המותג (חובה להשתמש בהם!):
-${colorParts.join('\n')}
-העיצוב חייב להשתמש בצבעים אלו כצבעים הדומיננטיים.` : ''}
-
-${brandContext.logoUrl ? `
-=== לוגו המותג ===
-יש לשלב את לוגו המותג בעיצוב בהתאם להנחיות הלוגו למעלה.
-כתובת הלוגו: ${brandContext.logoUrl}` : ''}
-
-${brandContext.fonts?.header ? `- סגנון פונט כותרות: ${brandContext.fonts.header}` : ''}`;
-    }
-
-    // Build campaign section for prompt
-    let campaignSection = '';
-    if (campaignContext) {
-      campaignSection = `
-=== הקמפיין ===
-- שם: ${campaignContext.title || 'קמפיין שיווקי'}
-- הצעה/מסר עיקרי: ${campaignContext.offer || visualPrompt}
-- מטרה: ${campaignContext.goal === 'awareness' ? 'מודעות למותג' : 
-                   campaignContext.goal === 'promotion' ? 'מבצע/הנחה' :
-                   campaignContext.goal === 'launch' ? 'השקה' :
-                   campaignContext.goal === 'seasonal' ? 'עונתי/חג' : 'שיווק כללי'}
-${campaignContext.vibe ? `- אווירה: ${campaignContext.vibe}` : ''}
-${campaignContext.targetStream ? `- זרם: ${campaignContext.targetStream}` : ''}
-${campaignContext.targetGender ? `- מגדר יעד: ${campaignContext.targetGender}` : ''}
-
-המודעה חייבת להעביר בבירור את המסר: "${campaignContext.offer}"`;
-    }
-
-    // Build concise prompt - image models work best with shorter prompts
+    // Build the prompt - VISUAL FIRST, minimal text approach
     const effectiveVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
     
-    const promptParts: string[] = [
-      `Create a professional Hebrew advertisement image.`,
-      `Style: ${styleDesc.split('.')[0]}.`,
-      `Scene: ${effectiveVisualPrompt}`,
-    ];
-
+    // Brand color instructions
+    let colorInstructions = '';
     if (brandContext?.colors?.primary) {
-      promptParts.push(`Use brand colors: ${brandContext.colors.primary}${brandContext.colors.secondary ? `, ${brandContext.colors.secondary}` : ''}`);
+      colorInstructions = `MANDATORY BRAND COLORS: Primary=${brandContext.colors.primary}${brandContext.colors.secondary ? `, Secondary=${brandContext.colors.secondary}` : ''}${brandContext.colors.background ? `, Background=${brandContext.colors.background}` : ''}. These colors MUST dominate the design.`;
     }
 
-    if (textPrompt) {
-      promptParts.push(`Include Hebrew text: "${textPrompt}" - bold and readable, right-to-left.`);
+    // Sector brain insights for prompt
+    let sectorInsights = '';
+    if (fameExamples.length > 0) {
+      sectorInsights += `\nSuccessful ad patterns to follow: ${fameExamples.slice(0, 5).map((e: any) => e.name + (e.text_content ? ` (${e.text_content.substring(0, 60)})` : '')).join('; ')}`;
+    }
+    if (redlineExamples.length > 0) {
+      sectorInsights += `\nFORBIDDEN patterns to AVOID: ${redlineExamples.slice(0, 5).map((e: any) => e.name + (e.text_content ? ` - ${e.text_content.substring(0, 40)}` : '')).join('; ')}`;
+    }
+    if (styleExamples.length > 0) {
+      sectorInsights += `\nPreferred visual styles: ${styleExamples.slice(0, 3).map((e: any) => e.name).join(', ')}`;
     }
 
-    if (templatePrompt) {
-      promptParts.push(`Format: ${templatePrompt.split('.')[0]}.`);
+    // Model-specific rules (concise)
+    let modelRules = '';
+    if (modelConfig) {
+      if (modelConfig.dos?.length) modelRules += `\nDo: ${modelConfig.dos.slice(0, 3).join('; ')}`;
+      if (modelConfig.donts?.length) modelRules += `\nDon't: ${modelConfig.donts.slice(0, 3).join('; ')}`;
+      if (modelConfig.logo_instructions) modelRules += `\nLogo: ${modelConfig.logo_instructions}`;
     }
 
-    promptParts.push(`Rules: No women/girls. Modest, professional, clean design.`);
+    const fullPrompt = `Generate a professional advertisement image. This is a VISUAL design - prioritize strong imagery over text.
 
-    if (modelConfig?.dos?.length) {
-      promptParts.push(`Do: ${modelConfig.dos.slice(0, 3).join('; ')}`);
-    }
+CRITICAL RULES:
+- This ad targets the Haredi (Ultra-Orthodox) Jewish community in Israel
+- ABSOLUTELY NO women or girls in any form
+- Full modesty standards - men in traditional attire if shown
+- Clean, premium, professional design
+- MINIMAL TEXT ONLY: Maximum 3-5 Hebrew words as headline. NO paragraphs, NO long sentences
+- Hebrew text must be RIGHT-TO-LEFT, clear and readable. If you cannot render Hebrew correctly, leave text areas EMPTY for later overlay
+- The design should be 80% visual, 20% text areas
+- DO NOT fill the image with text blocks - use bold typography for just the main headline
 
-    const fullPrompt = promptParts.join('\n');
+VISUAL CONCEPT: ${effectiveVisualPrompt}
+STYLE: ${styleDesc}
+${templatePrompt ? `FORMAT: ${templatePrompt}` : ''}
+${colorInstructions}
+
+${brandContext ? `BRAND: "${brandContext.businessName || ''}" - ${brandContext.targetAudience || 'Haredi audience'}. ${brandContext.primaryXFactor ? `Key differentiator: ${brandContext.primaryXFactor}` : ''}` : ''}
+
+${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
+
+${textPrompt ? `HEADLINE TEXT (render in large, bold Hebrew typography - ONLY these words): "${textPrompt}"` : 'Leave space for headline text to be added later as overlay.'}
+
+${sectorInsights}
+${modelRules}
+
+IMPORTANT: Create a VISUALLY STRIKING image. Think billboard/magazine ad - strong hero image, bold colors, minimal text. NOT a document or flyer full of text.`;
 
     console.log("Enhanced prompt length:", fullPrompt.length);
 
@@ -240,13 +199,27 @@ ${campaignContext.targetGender ? `- מגדר יעד: ${campaignContext.targetGen
     if (GOOGLE_GEMINI_API_KEY) {
       console.log("Trying direct Google Gemini API...");
       try {
+        // Build content parts - include logo image if available
+        const contentParts: any[] = [{ text: fullPrompt }];
+        
+        // If logo URL is a data URI or accessible URL, include it as reference
+        if (brandContext?.logoUrl && brandContext.logoUrl.startsWith('data:')) {
+          const match = brandContext.logoUrl.match(/^data:(.*?);base64,(.*)$/);
+          if (match) {
+            contentParts.push({
+              inlineData: { mimeType: match[1], data: match[2] }
+            });
+            contentParts.push({ text: "The image above is the brand logo. Integrate it naturally into the top corner of the advertisement design." });
+          }
+        }
+
         response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: fullPrompt }] }],
+              contents: [{ parts: contentParts }],
               generationConfig: {
                 responseModalities: ["TEXT", "IMAGE"],
               },
