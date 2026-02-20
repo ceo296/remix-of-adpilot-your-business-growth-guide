@@ -186,7 +186,7 @@ export const StudioAutopilot = ({
                 value={brief.offer}
                 onChange={(e) => onBriefChange({ ...brief, offer: e.target.value })}
                 placeholder="תאר בקצרה את המסר המרכזי. לדוגמה: 30% הנחה על כל מערכות הישיבה, השקת טעמים חדשים..."
-                className="min-h-[80px] text-base bg-white border-primary/20 focus:border-primary"
+                className="min-h-[80px] text-base bg-white text-gray-900 border-primary/20 focus:border-primary placeholder:text-gray-400"
                 dir="rtl"
               />
             </div>
@@ -286,10 +286,10 @@ export const StudioAutopilot = ({
                 value={selectedHoliday} 
                 onValueChange={(v) => onHolidayChange(v as HolidaySeason)}
               >
-                <SelectTrigger className="w-full h-12 bg-white border-amber-200 hover:border-amber-400 transition-colors text-base">
+                <SelectTrigger className="w-full h-12 bg-white text-gray-900 border-amber-200 hover:border-amber-400 transition-colors text-base">
                   <SelectValue placeholder="בחר חג או עונה רלוונטית לקמפיין" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-amber-200">
+                <SelectContent className="bg-white text-gray-900 border-amber-200">
                   {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
                     <SelectItem key={key} value={key} className="text-base py-3 hover:bg-amber-50 cursor-pointer">
                       {label}

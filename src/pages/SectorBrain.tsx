@@ -1080,7 +1080,7 @@ const SectorBrain = () => {
                           className={cn(
                             "p-3 rounded-lg border-2 transition-all text-sm text-center",
                             "hover:border-purple-400 hover:bg-purple-100/50 disabled:opacity-50",
-                            selectedInsightType === opt.id ? "border-purple-500 bg-purple-100 dark:bg-purple-900/30 font-medium" : "border-transparent bg-white dark:bg-background"
+                            selectedInsightType === opt.id ? "border-purple-500 bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-100 font-medium" : "border-transparent bg-card text-foreground"
                           )}
                         >
                           {isAnalyzing && selectedInsightType === opt.id ? (
@@ -1093,7 +1093,7 @@ const SectorBrain = () => {
 
                     {/* Results */}
                     {(aiInsights || isAnalyzing) && (
-                      <div className="p-4 bg-white dark:bg-background rounded-lg border border-purple-200 dark:border-purple-800">
+                      <div className="p-4 bg-card rounded-lg border border-purple-200 dark:border-purple-800">
                         {isAnalyzing && !aiInsights && (
                           <div className="flex items-center justify-center py-8">
                             <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
