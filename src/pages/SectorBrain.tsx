@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp, Sparkles, RefreshCw } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp, Sparkles, RefreshCw, Filter, BarChart3, Calendar, Tag, Eye, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import BulkUpload from '@/components/admin/BulkUpload';
@@ -40,16 +39,15 @@ type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'y
 type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_internet' | 'electronics' | 'hotels' | 'mens_fashion' | 'kids_fashion' | 'womens_fashion' | 'makeup' | 'education' | 'health' | 'finance' | 'events' | 'judaica' | 'toys' | 'furniture' | 'jewelry' | 'other';
 type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round';
 
-const MEDIA_TYPES: { id: MediaType; label: string; icon: React.ElementType; description: string }[] = [
-  { id: 'ads', label: 'מודעות', icon: Newspaper, description: 'עיתונות, מגזינים ומדיה מודפסת' },
-  { id: 'text', label: 'מלל וקופי', icon: FileText, description: 'סלוגנים, כותרות וטקסטים שיווקיים' },
-  { id: 'video', label: 'וידאו', icon: Video, description: 'סרטוני פרסום ותוכן וידאו' },
-  { id: 'signage', label: 'שילוט', icon: RectangleHorizontal, description: 'שלטי חוצות, באנרים ומדיה חוצות' },
-  { id: 'promo', label: 'קד"מ', icon: Megaphone, description: 'קידום מכירות, מבצעים והטבות' },
-  { id: 'radio', label: 'רדיו', icon: Radio, description: 'ספוטים וג׳ינגלים' },
+const MEDIA_TYPES: { id: MediaType; label: string; icon: React.ElementType }[] = [
+  { id: 'ads', label: 'מודעות', icon: Newspaper },
+  { id: 'text', label: 'מלל', icon: FileText },
+  { id: 'video', label: 'וידאו', icon: Video },
+  { id: 'signage', label: 'שילוט', icon: RectangleHorizontal },
+  { id: 'promo', label: 'קד"מ', icon: Megaphone },
+  { id: 'radio', label: 'רדיו', icon: Radio },
 ];
 
-// "general" first as the primary option
 const STREAM_LABELS: Record<StreamType, string> = {
   general: 'כלל הציבור החרדי',
   litvish: 'ליטאי',
@@ -90,6 +88,7 @@ const TOPIC_LABELS: Record<TopicCategory, string> = {
 };
 
 const HOLIDAY_LABELS: Record<HolidaySeason, string> = {
+  year_round: 'כל השנה',
   pesach: 'פסח',
   sukkot: 'סוכות',
   chanukah: 'חנוכה',
@@ -101,19 +100,20 @@ const HOLIDAY_LABELS: Record<HolidaySeason, string> = {
   bein_hazmanim: 'בין הזמנים',
   rosh_hashana: 'ראש השנה',
   yom_kippur: 'ימים נוראים',
-  year_round: 'כל השנה',
 };
+
+type ViewTab = 'dashboard' | 'browse' | 'upload' | 'insights';
 
 const SectorBrain = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [uploads, setUploads] = useState<UploadedAsset[]>([]);
-  const [trainingProgress, setTrainingProgress] = useState(0);
-  const [isTraining, setIsTraining] = useState(false);
+  const [guidelines, setGuidelines] = useState<UploadedAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Current selections
+  const [activeTab, setActiveTab] = useState<ViewTab>('dashboard');
+
+  // Upload form state
   const [activeMediaType, setActiveMediaType] = useState<MediaType>('ads');
   const [selectedExampleType, setSelectedExampleType] = useState<ExampleType>('good');
   const [selectedStream, setSelectedStream] = useState<StreamType | ''>('');
@@ -121,255 +121,49 @@ const SectorBrain = () => {
   const [selectedTopic, setSelectedTopic] = useState<TopicCategory | ''>('');
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason | ''>('');
   const [textInput, setTextInput] = useState('');
-  const [linkInput, setLinkInput] = useState('');
-  
-  // General guidelines
-  const [guidelines, setGuidelines] = useState<UploadedAsset[]>([]);
   const [guidelineInput, setGuidelineInput] = useState('');
-  const [generalGuidelineInput, setGeneralGuidelineInput] = useState('');
-  const [guidelinesOpen, setGuidelinesOpen] = useState(false);
-  const [generalGuidelinesOpen, setGeneralGuidelinesOpen] = useState(false);
-  const [expandedGuidelineId, setExpandedGuidelineId] = useState<string | null>(null);
 
-  // API link builder (optional query params)
-  const [apiQuery, setApiQuery] = useState('');
-  const [customApiLink, setCustomApiLink] = useState('');
-  
-  // General links management
-  interface GeneralLink {
-    id: string;
-    url: string;
-    media_type: string | null;
-    created_at: string;
-  }
-  const [generalLinks, setGeneralLinks] = useState<GeneralLink[]>([]);
-  const [newLinkInput, setNewLinkInput] = useState('');
-  
+  // Browse filters
+  const [filterTopic, setFilterTopic] = useState<string>('all');
+  const [filterHoliday, setFilterHoliday] = useState<string>('all');
+  const [filterMedia, setFilterMedia] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>('all');
+
   // AI Insights
   const [aiInsights, setAiInsights] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [insightsOpen, setInsightsOpen] = useState(false);
   const [selectedInsightType, setSelectedInsightType] = useState<string | null>(null);
   const [insightCategory, setInsightCategory] = useState<'general' | 'media' | 'stream' | 'holiday' | 'topic'>('general');
-
-  // Insight categories structure
-  const INSIGHT_CATEGORIES = [
-    { id: 'general' as const, label: 'כללי', icon: Brain },
-    { id: 'media' as const, label: 'לפי מדיה', icon: Newspaper },
-    { id: 'stream' as const, label: 'לפי זרם', icon: Sparkles },
-    { id: 'holiday' as const, label: 'לפי חג', icon: Sparkles },
-    { id: 'topic' as const, label: 'לפי תחום', icon: Sparkles },
-  ];
-
-  const INSIGHT_TYPES_BY_CATEGORY = {
-    general: [
-      { id: 'general', label: 'תובנות כלליות', icon: Brain, description: 'ניתוח כללי על פרסום במגזר החרדי' },
-    ],
-    media: MEDIA_TYPES.map(m => ({ id: `media_${m.id}`, label: m.label, icon: m.icon, description: m.description })),
-    stream: Object.entries(STREAM_LABELS).map(([id, label]) => ({ 
-      id: `stream_${id}`, label, icon: Sparkles, description: `תובנות לפרסום לקהל ${label}` 
-    })),
-    holiday: Object.entries(HOLIDAY_LABELS).map(([id, label]) => ({ 
-      id: `holiday_${id}`, label, icon: Sparkles, description: `תובנות לפרסום ב${label}` 
-    })),
-    topic: Object.entries(TOPIC_LABELS).map(([id, label]) => ({ 
-      id: `topic_${id}`, label, icon: Sparkles, description: `תובנות לתחום ${label}` 
-    })),
-  };
 
   // Check admin role
   useEffect(() => {
     const checkAdmin = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
         toast.error('יש להתחבר למערכת');
         navigate('/admin-auth');
         return;
       }
-
       const { data } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'admin')
         .maybeSingle();
-
       if (!data) {
         toast.error('עמוד זה זמין למנהלי מערכת בלבד');
         navigate('/dashboard');
         return;
       }
-
       setIsAdmin(true);
       setIsCheckingAuth(false);
     };
-
     checkAdmin();
   }, [navigate]);
 
-  // Load existing examples and links from database (only after admin check)
   useEffect(() => {
-    if (isAdmin) {
-      loadExamples();
-      loadGeneralLinks();
-    }
+    if (isAdmin) loadExamples();
   }, [isAdmin]);
-
-  const loadGeneralLinks = async () => {
-    const { data, error } = await supabase
-      .from('sector_brain_links')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error loading links:', error);
-    } else if (data) {
-      setGeneralLinks(data);
-    }
-  };
-
-  const handleAddGeneralLink = async () => {
-    const url = newLinkInput.trim();
-    if (!url) {
-      toast.error('נא להזין קישור');
-      return;
-    }
-
-    // Basic URL validation
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      toast.error('קישור חייב להתחיל ב-http:// או https://');
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from('sector_brain_links')
-      .insert({ url, media_type: null })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error adding link:', error);
-      toast.error('שגיאה בשמירת הקישור');
-      return;
-    }
-
-    setGeneralLinks(prev => [data, ...prev]);
-    setNewLinkInput('');
-    toast.success('הקישור נשמר בהצלחה');
-  };
-
-  const handleDeleteGeneralLink = async (id: string) => {
-    const { error } = await supabase
-      .from('sector_brain_links')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error deleting link:', error);
-      toast.error('שגיאה במחיקת הקישור');
-      return;
-    }
-
-    setGeneralLinks(prev => prev.filter(l => l.id !== id));
-    toast.success('הקישור נמחק');
-  };
-
-  const analyzeContent = async (insightType: string) => {
-    setSelectedInsightType(insightType);
-    setIsAnalyzing(true);
-    setAiInsights('');
-    setInsightsOpen(true);
-    
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        toast.error('יש להתחבר מחדש למערכת');
-        setIsAnalyzing(false);
-        return;
-      }
-      
-      let response: Response;
-      try {
-        response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-brain-content`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ insightType }),
-        });
-      } catch (fetchErr) {
-        console.error('Network error:', fetchErr);
-        toast.error('שגיאת רשת - לא ניתן להתחבר לשרת');
-        setIsAnalyzing(false);
-        return;
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => '');
-        console.error('Analyze response error:', response.status, errorText);
-        if (response.status === 429) {
-          toast.error('הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות.');
-        } else if (response.status === 402) {
-          toast.error('נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות.');
-        } else {
-          toast.error('שגיאה בניתוח התוכן. נסה שוב.');
-        }
-        setIsAnalyzing(false);
-        return;
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        toast.error('שגיאה בקריאת תשובת השרת');
-        setIsAnalyzing(false);
-        return;
-      }
-
-      const decoder = new TextDecoder();
-      let textBuffer = '';
-      let fullContent = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (line.startsWith(':') || line.trim() === '') continue;
-          if (!line.startsWith('data: ')) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              fullContent += content;
-              setAiInsights(fullContent);
-            }
-          } catch {
-            textBuffer = line + '\n' + textBuffer;
-            break;
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Analysis error:', error);
-      toast.error('שגיאה בניתוח התוכן');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
 
   const loadExamples = async () => {
     setIsLoading(true);
@@ -388,8 +182,6 @@ const SectorBrain = () => {
       data.forEach(item => {
         const isText = item.file_type === 'text';
         const isImage = !isText && item.file_type?.startsWith('image/');
-        
-        // Migrate old zone-based data to new structure
         let exampleType: ExampleType = (item.example_type as ExampleType) || 'good';
         if (!item.example_type) {
           exampleType = item.zone === 'redlines' ? 'bad' : 'good';
@@ -424,84 +216,60 @@ const SectorBrain = () => {
     setIsLoading(false);
   };
 
-  const handleAddGuideline = async (mediaType: MediaType) => {
-    const text = guidelineInput.trim();
-    if (!text) {
-      toast.error('נא להזין כלל אצבע');
-      return;
-    }
+  // === Stats Computations ===
+  const stats = useMemo(() => {
+    const byTopic: Record<string, number> = {};
+    const byHoliday: Record<string, number> = {};
+    const byMedia: Record<string, number> = {};
+    let untaggedTopic = 0;
+    let untaggedHoliday = 0;
 
-    const textName = text.substring(0, 50) + (text.length > 50 ? '...' : '');
+    uploads.forEach(u => {
+      if (u.topic_category) {
+        byTopic[u.topic_category] = (byTopic[u.topic_category] || 0) + 1;
+      } else {
+        untaggedTopic++;
+      }
+      if (u.holiday_season && u.holiday_season !== 'year_round') {
+        byHoliday[u.holiday_season] = (byHoliday[u.holiday_season] || 0) + 1;
+      } else {
+        untaggedHoliday++;
+      }
+      const mt = u.media_type || 'other';
+      byMedia[mt] = (byMedia[mt] || 0) + 1;
+    });
 
-    const { data: dbData, error: dbError } = await supabase
-      .from('sector_brain_examples')
-      .insert({
-        zone: 'fame',
-        name: textName,
-        file_path: 'guideline',
-        file_type: 'text',
-        text_content: text,
-        is_general_guideline: true,
-        media_type: mediaType,
-        example_type: 'good',
-      })
-      .select()
-      .single();
+    return { byTopic, byHoliday, byMedia, untaggedTopic, untaggedHoliday, total: uploads.length, guidelines: guidelines.length };
+  }, [uploads, guidelines]);
 
-    if (dbError) {
-      console.error('Database error:', dbError);
-      toast.error('שגיאה בשמירת הכלל');
-      return;
-    }
+  // === Filtered browse ===
+  const filteredUploads = useMemo(() => {
+    return uploads.filter(u => {
+      if (filterTopic !== 'all') {
+        if (filterTopic === 'untagged') {
+          if (u.topic_category) return false;
+        } else if (u.topic_category !== filterTopic) return false;
+      }
+      if (filterHoliday !== 'all') {
+        if (filterHoliday === 'year_round') {
+          if (u.holiday_season && u.holiday_season !== 'year_round') return false;
+        } else if (u.holiday_season !== filterHoliday) return false;
+      }
+      if (filterMedia !== 'all' && u.media_type !== filterMedia) return false;
+      if (filterType !== 'all' && u.example_type !== filterType) return false;
+      return true;
+    });
+  }, [uploads, filterTopic, filterHoliday, filterMedia, filterType]);
 
-    const newGuideline: UploadedAsset = {
-      id: dbData.id,
-      name: textName,
-      type: 'text',
-      example_type: 'good',
-      media_type: mediaType,
-      text_content: text,
-      is_general_guideline: true,
-    };
-
-    setGuidelines(prev => [newGuideline, ...prev]);
-    setGuidelineInput('');
-    toast.success('כלל האצבע נוסף בהצלחה');
-  };
-
-  const getGuidelinesForMedia = (mediaType: MediaType) => {
-    return guidelines.filter(g => g.media_type === mediaType);
-  };
-
-  const removeGuideline = async (id: string) => {
-    const { error } = await supabase
-      .from('sector_brain_examples')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Delete error:', error);
-      toast.error('שגיאה במחיקת הכלל');
-      return;
-    }
-
-    setGuidelines(prev => prev.filter(g => g.id !== id));
-    toast.success('הכלל נמחק');
-  };
-
+  // === Upload handlers ===
   const handleAddText = async () => {
     const text = textInput.trim();
-    if (!text) {
-      toast.error('נא להזין טקסט');
-      return;
-    }
-
+    if (!text) { toast.error('נא להזין טקסט'); return; }
     const textName = text.substring(0, 30) + (text.length > 30 ? '...' : '');
-
     const { data: dbData, error: dbError } = await supabase
       .from('sector_brain_examples')
       .insert({
-        zone: selectedExampleType === 'good' ? 'fame' : 'redlines', // Keep for backwards compat
+        zone: selectedExampleType === 'good' ? 'fame' : 'redlines',
         name: textName,
         file_path: '',
         file_type: 'text',
@@ -516,325 +284,166 @@ const SectorBrain = () => {
       .select()
       .single();
 
-    if (dbError) {
-      console.error('Database error:', dbError);
-      toast.error('שגיאה בשמירת הטקסט');
-      return;
-    }
+    if (dbError) { console.error('Database error:', dbError); toast.error('שגיאה בשמירת הטקסט'); return; }
 
-    const newUpload: UploadedAsset = {
-      id: dbData.id,
-      name: textName,
-      type: 'text',
-      example_type: selectedExampleType,
-      media_type: activeMediaType,
-      text_content: text,
-      stream_type: dbData.stream_type,
-      gender_audience: dbData.gender_audience,
-      topic_category: dbData.topic_category,
-      holiday_season: dbData.holiday_season,
-    };
-
-    setUploads(prev => [newUpload, ...prev]);
+    setUploads(prev => [{
+      id: dbData.id, name: textName, type: 'text', example_type: selectedExampleType,
+      media_type: activeMediaType, text_content: text,
+      stream_type: dbData.stream_type, gender_audience: dbData.gender_audience,
+      topic_category: dbData.topic_category, holiday_season: dbData.holiday_season,
+    }, ...prev]);
     setTextInput('');
     toast.success('הטקסט נוסף בהצלחה');
-  };
-
-  const handleAddLink = async () => {
-    const link = linkInput.trim();
-    if (!link) {
-      toast.error('נא להזין קישור');
-      return;
-    }
-
-    // Simple URL validation
-    if (!link.startsWith('http://') && !link.startsWith('https://')) {
-      toast.error('נא להזין קישור תקין (מתחיל ב-http:// או https://)');
-      return;
-    }
-
-    const linkName = link.length > 50 ? link.substring(0, 50) + '...' : link;
-
-    const { data: dbData, error: dbError } = await supabase
-      .from('sector_brain_examples')
-      .insert({
-        zone: selectedExampleType === 'good' ? 'fame' : 'redlines',
-        name: linkName,
-        file_path: link,
-        file_type: 'link',
-        text_content: link,
-        stream_type: selectedStream || null,
-        gender_audience: selectedGender || null,
-        topic_category: selectedTopic || null,
-        holiday_season: selectedHoliday || null,
-        media_type: activeMediaType,
-        example_type: selectedExampleType,
-      })
-      .select()
-      .single();
-
-    if (dbError) {
-      console.error('Database error:', dbError);
-      toast.error('שגיאה בשמירת הקישור');
-      return;
-    }
-
-    const newUpload: UploadedAsset = {
-      id: dbData.id,
-      name: linkName,
-      type: 'text',
-      example_type: selectedExampleType,
-      media_type: activeMediaType,
-      text_content: link,
-      file_path: link,
-      stream_type: dbData.stream_type,
-      gender_audience: dbData.gender_audience,
-      topic_category: dbData.topic_category,
-      holiday_season: dbData.holiday_season,
-    };
-
-    setUploads(prev => [newUpload, ...prev]);
-    setLinkInput('');
-    toast.success('הקישור נוסף בהצלחה');
-  };
-
-  const handleAddGeneralGuideline = async () => {
-    const text = generalGuidelineInput.trim();
-    if (!text) {
-      toast.error('נא להזין כלל אצבע');
-      return;
-    }
-
-    const textName = text.substring(0, 50) + (text.length > 50 ? '...' : '');
-
-    const { data: dbData, error: dbError } = await supabase
-      .from('sector_brain_examples')
-      .insert({
-        zone: 'fame',
-        name: textName,
-        file_path: 'general-guideline',
-        file_type: 'text',
-        text_content: text,
-        is_general_guideline: true,
-        media_type: null,
-        example_type: 'good',
-      })
-      .select()
-      .single();
-
-    if (dbError) {
-      console.error('Database error:', dbError);
-      toast.error('שגיאה בשמירת הכלל');
-      return;
-    }
-
-    const newGuideline: UploadedAsset = {
-      id: dbData.id,
-      name: textName,
-      type: 'text',
-      example_type: 'good',
-      media_type: null,
-      text_content: text,
-      is_general_guideline: true,
-    };
-
-    setGuidelines(prev => [newGuideline, ...prev]);
-    setGeneralGuidelineInput('');
-    toast.success('כלל האצבע נוסף בהצלחה');
-  };
-
-  const getGeneralGuidelines = () => {
-    return guidelines.filter(g => g.media_type === null);
   };
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
-    
     for (const file of files) {
       const fileName = `${activeMediaType}/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('sector-brain')
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        toast.error(`שגיאה בהעלאת ${file.name}`);
-        continue;
-      }
-
+      const { error: uploadError } = await supabase.storage.from('sector-brain').upload(fileName, file);
+      if (uploadError) { console.error('Upload error:', uploadError); toast.error(`שגיאה בהעלאת ${file.name}`); continue; }
       const { data: dbData, error: dbError } = await supabase
         .from('sector_brain_examples')
         .insert({
           zone: selectedExampleType === 'good' ? 'fame' : 'redlines',
-          name: file.name,
-          file_path: fileName,
-          file_type: file.type,
-          stream_type: selectedStream || null,
-          gender_audience: selectedGender || null,
-          topic_category: selectedTopic || null,
-          holiday_season: selectedHoliday || null,
-          media_type: activeMediaType,
-          example_type: selectedExampleType,
+          name: file.name, file_path: fileName, file_type: file.type,
+          stream_type: selectedStream || null, gender_audience: selectedGender || null,
+          topic_category: selectedTopic || null, holiday_season: selectedHoliday || null,
+          media_type: activeMediaType, example_type: selectedExampleType,
         })
-        .select()
-        .single();
-
-      if (dbError) {
-        console.error('Database error:', dbError);
-        toast.error(`שגיאה בשמירת ${file.name}`);
-        continue;
-      }
-
-      const newUpload: UploadedAsset = {
-        id: dbData.id,
-        name: file.name,
+        .select().single();
+      if (dbError) { console.error('Database error:', dbError); toast.error(`שגיאה בשמירת ${file.name}`); continue; }
+      setUploads(prev => [{
+        id: dbData.id, name: file.name,
         type: file.type.startsWith('image/') ? 'image' : 'document',
-        example_type: selectedExampleType,
-        media_type: activeMediaType,
-        file_path: fileName,
-        stream_type: dbData.stream_type,
-        gender_audience: dbData.gender_audience,
-        topic_category: dbData.topic_category,
-        holiday_season: dbData.holiday_season,
-        preview: file.type.startsWith('image/') 
-          ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}`
-          : undefined,
-      };
-
-      setUploads(prev => [newUpload, ...prev]);
+        example_type: selectedExampleType, media_type: activeMediaType, file_path: fileName,
+        stream_type: dbData.stream_type, gender_audience: dbData.gender_audience,
+        topic_category: dbData.topic_category, holiday_season: dbData.holiday_season,
+        preview: file.type.startsWith('image/') ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}` : undefined,
+      }, ...prev]);
     }
-    
     toast.success(`${files.length} קבצים נוספו`);
   }, [activeMediaType, selectedExampleType, selectedStream, selectedGender, selectedTopic, selectedHoliday]);
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
 
   const handlePaste = useCallback(async () => {
     try {
       const clipboardItems = await navigator.clipboard.read();
-      
       for (const item of clipboardItems) {
         const imageType = item.types.find(type => type.startsWith('image/'));
         if (imageType) {
           const blob = await item.getType(imageType);
           const file = new File([blob], `pasted-image-${Date.now()}.png`, { type: imageType });
-          
           const fileName = `${activeMediaType}/${Date.now()}-${file.name}`;
-          const { error: uploadError } = await supabase.storage
-            .from('sector-brain')
-            .upload(fileName, file);
-
-          if (uploadError) {
-            console.error('Upload error:', uploadError);
-            toast.error('שגיאה בהעלאת התמונה');
-            continue;
-          }
-
+          const { error: uploadError } = await supabase.storage.from('sector-brain').upload(fileName, file);
+          if (uploadError) { toast.error('שגיאה בהעלאת התמונה'); continue; }
           const { data: dbData, error: dbError } = await supabase
             .from('sector_brain_examples')
             .insert({
               zone: selectedExampleType === 'good' ? 'fame' : 'redlines',
-              name: file.name,
-              file_path: fileName,
-              file_type: file.type,
-              stream_type: selectedStream || null,
-              gender_audience: selectedGender || null,
-              topic_category: selectedTopic || null,
-              holiday_season: selectedHoliday || null,
-              media_type: activeMediaType,
-              example_type: selectedExampleType,
+              name: file.name, file_path: fileName, file_type: file.type,
+              stream_type: selectedStream || null, gender_audience: selectedGender || null,
+              topic_category: selectedTopic || null, holiday_season: selectedHoliday || null,
+              media_type: activeMediaType, example_type: selectedExampleType,
             })
-            .select()
-            .single();
-
-          if (dbError) {
-            console.error('Database error:', dbError);
-            toast.error('שגיאה בשמירת התמונה');
-            continue;
-          }
-
-          const newUpload: UploadedAsset = {
-            id: dbData.id,
-            name: file.name,
-            type: 'image',
-            example_type: selectedExampleType,
-            media_type: activeMediaType,
-            file_path: fileName,
-            stream_type: dbData.stream_type,
-            gender_audience: dbData.gender_audience,
-            topic_category: dbData.topic_category,
-            holiday_season: dbData.holiday_season,
+            .select().single();
+          if (dbError) { toast.error('שגיאה בשמירת התמונה'); continue; }
+          setUploads(prev => [{
+            id: dbData.id, name: file.name, type: 'image',
+            example_type: selectedExampleType, media_type: activeMediaType, file_path: fileName,
+            stream_type: dbData.stream_type, gender_audience: dbData.gender_audience,
+            topic_category: dbData.topic_category, holiday_season: dbData.holiday_season,
             preview: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${fileName}`,
-          };
-
-          setUploads(prev => [newUpload, ...prev]);
+          }, ...prev]);
           toast.success('התמונה הודבקה בהצלחה!');
         }
       }
-    } catch (error) {
-      console.error('Paste error:', error);
-      toast.error('לא ניתן להדביק. נסה להעתיק תמונה ללוח');
-    }
+    } catch (error) { toast.error('לא ניתן להדביק. נסה להעתיק תמונה ללוח'); }
   }, [activeMediaType, selectedExampleType, selectedStream, selectedGender, selectedTopic, selectedHoliday]);
 
   const removeUpload = async (id: string, filePath?: string) => {
-    if (filePath) {
+    if (filePath && filePath !== '' && filePath !== 'guideline' && filePath !== 'general-guideline') {
       await supabase.storage.from('sector-brain').remove([filePath]);
     }
-
-    const { error } = await supabase
-      .from('sector_brain_examples')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Delete error:', error);
-      toast.error('שגיאה במחיקת הקובץ');
-      return;
-    }
-
+    const { error } = await supabase.from('sector_brain_examples').delete().eq('id', id);
+    if (error) { toast.error('שגיאה במחיקת הקובץ'); return; }
     setUploads(prev => prev.filter(u => u.id !== id));
-    toast.success('הקובץ נמחק');
+    setGuidelines(prev => prev.filter(g => g.id !== id));
+    toast.success('נמחק בהצלחה');
   };
 
-  const getFilteredUploads = (mediaType: MediaType, exampleType: ExampleType) => {
-    return uploads.filter(u => {
-      // Handle old data without media_type
-      if (!u.media_type && mediaType === 'ads') {
-        return u.example_type === exampleType;
+  const handleAddGuideline = async () => {
+    const text = guidelineInput.trim();
+    if (!text) { toast.error('נא להזין כלל אצבע'); return; }
+    const textName = text.substring(0, 50) + (text.length > 50 ? '...' : '');
+    const { data: dbData, error: dbError } = await supabase
+      .from('sector_brain_examples')
+      .insert({
+        zone: 'fame', name: textName, file_path: 'general-guideline', file_type: 'text',
+        text_content: text, is_general_guideline: true, media_type: null, example_type: 'good',
+      })
+      .select().single();
+    if (dbError) { toast.error('שגיאה בשמירת הכלל'); return; }
+    setGuidelines(prev => [{ id: dbData.id, name: textName, type: 'text', example_type: 'good', media_type: null, text_content: text, is_general_guideline: true }, ...prev]);
+    setGuidelineInput('');
+    toast.success('כלל האצבע נוסף בהצלחה');
+  };
+
+  // AI Analysis
+  const analyzeContent = async (insightType: string) => {
+    setSelectedInsightType(insightType);
+    setIsAnalyzing(true);
+    setAiInsights('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) { toast.error('יש להתחבר מחדש למערכת'); setIsAnalyzing(false); return; }
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-brain-content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ insightType }),
+      });
+      if (!response.ok) {
+        if (response.status === 429) toast.error('הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות.');
+        else if (response.status === 402) toast.error('נגמרו הקרדיטים.');
+        else toast.error('שגיאה בניתוח התוכן.');
+        setIsAnalyzing(false);
+        return;
       }
-      return u.media_type === mediaType && u.example_type === exampleType;
-    });
+      const reader = response.body?.getReader();
+      if (!reader) { setIsAnalyzing(false); return; }
+      const decoder = new TextDecoder();
+      let textBuffer = '';
+      let fullContent = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) { fullContent += content; setAiInsights(fullContent); }
+          } catch { textBuffer = line + '\n' + textBuffer; break; }
+        }
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast.error('שגיאה בניתוח התוכן');
+    } finally { setIsAnalyzing(false); }
   };
 
-  const getMediaStats = (mediaType: MediaType) => {
-    const good = getFilteredUploads(mediaType, 'good').length;
-    const bad = getFilteredUploads(mediaType, 'bad').length;
-    return { good, bad, total: good + bad };
-  };
-
-  const startTraining = async () => {
-    if (uploads.length === 0) {
-      toast.error('יש להעלות לפחות קובץ אחד ללימוד');
-      return;
-    }
-
-    setIsTraining(true);
-    setTrainingProgress(0);
-
-    for (let i = 0; i <= 100; i += 5) {
-      await new Promise(resolve => setTimeout(resolve, 150));
-      setTrainingProgress(i);
-    }
-
-    setIsTraining(false);
-    toast.success('המערכת למדה בהצלחה! כעת כל המודלים מכירים את הסגנון שלכם.');
-  };
-
-  // Show loading while checking admin status
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
@@ -846,694 +455,667 @@ const SectorBrain = () => {
     );
   }
 
-  if (!isAdmin) {
-    return null;
-  }
+  if (!isAdmin) return null;
 
-  const currentStats = getMediaStats(activeMediaType);
-  const apiBaseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sector-brain-api`;
-  const apiFullUrl = `${apiBaseUrl}${apiQuery || ''}`;
+  const topTopics = Object.entries(stats.byTopic)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+
+  const topHolidays = Object.entries(stats.byHoliday)
+    .sort((a, b) => b[1] - a[1]);
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to="/admin-dashboard" className="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
               <ArrowRight className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="text-xl font-bold font-assistant flex items-center gap-2">
+              <h1 className="text-lg font-bold font-assistant flex items-center gap-2">
                 <Brain className="h-5 w-5 text-primary" />
-                אימון מערכת AI
+                אימון מערכת AI - המוח
               </h1>
-              <p className="text-sm text-muted-foreground">
-                כל המודלים (יצירת תמונות, קופי, צ'אט) ישאבו מידע מכאן
+              <p className="text-xs text-muted-foreground">
+                {stats.total} דוגמאות • {stats.guidelines} כללי אצבע
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Link2 className="h-4 w-4" />
-                  קישור API
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[420px]" align="end">
-                <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                  <div>
-                    <h4 className="font-medium text-sm mb-1">קישורים כלליים ללמידה</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      הוסף קישורים שילמדו את כל סוגי המדיה
-                    </p>
-                  </div>
-                  
-                  {/* Add new link */}
-                  <div className="flex gap-2">
-                    <Input
-                      value={newLinkInput}
-                      onChange={(e) => setNewLinkInput(e.target.value)}
-                      placeholder="הדבק קישור חדש כאן..."
-                      className="text-xs font-mono flex-1"
-                      dir="ltr"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleAddGeneralLink();
-                        }
-                      }}
-                    />
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={handleAddGeneralLink}
-                      disabled={!newLinkInput.trim()}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  {/* Existing links */}
-                  {generalLinks.length > 0 && (
-                    <div className="space-y-2 border-t pt-3">
-                      <p className="text-xs text-muted-foreground font-medium">קישורים קיימים ({generalLinks.length}):</p>
-                      {generalLinks.map((link) => (
-                        <div key={link.id} className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg group">
-                          <Link2 className="h-3 w-3 text-muted-foreground shrink-0" />
-                          <span 
-                            className="text-xs font-mono flex-1 truncate cursor-pointer hover:text-primary"
-                            onClick={() => window.open(link.url, '_blank')}
-                            title={link.url}
-                          >
-                            {link.url}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => {
-                              navigator.clipboard.writeText(link.url);
-                              toast.success('הקישור הועתק!');
-                            }}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDeleteGeneralLink(link.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {generalLinks.length === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-2">
-                      אין קישורים כלליים עדיין
-                    </p>
-                  )}
-
-                  <div className="border-t pt-3">
-                    <p className="text-xs text-muted-foreground mb-2">
-                      קישור API של המערכת:
-                    </p>
-                    <div className="flex gap-2">
-                      <Input
-                        readOnly
-                        value={apiBaseUrl}
-                        className="text-xs font-mono bg-muted/50"
-                        dir="ltr"
-                        onFocus={(e) => e.currentTarget.select()}
-                        onClick={(e) => (e.currentTarget as HTMLInputElement).select()}
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(apiBaseUrl);
-                          toast.success('קישור API הועתק!');
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <Link to="/admin-dashboard">
-              <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90">
-                <ArrowRight className="h-4 w-4 ml-2" />
-                חזרה
-              </Button>
-            </Link>
-          </div>
+          <Button variant="outline" size="sm" onClick={loadExamples} disabled={isLoading}>
+            <RefreshCw className={cn("h-4 w-4 ml-1", isLoading && "animate-spin")} />
+            רענן
+          </Button>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Training Status */}
-        {isTraining && (
-          <Card className="mb-6 border-primary/30 bg-primary/5">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <Brain className="h-8 w-8 text-primary animate-pulse" />
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-2">לימוד המערכת בתהליך...</h3>
-                  <Progress value={trainingProgress} className="h-2" />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {trainingProgress}% - כל המודלים לומדים את הסגנון שלכם
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Section 1: Bulk Upload - Collapsible */}
-        <Collapsible defaultOpen={false} className="mb-4">
-          <Card className="border-2 border-blue-500/30">
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-3">
-                <CardTitle className="flex items-center justify-between text-lg">
-                  <span className="flex items-center gap-2">
-                    <Upload className="h-5 w-5 text-blue-500" />
-                    העלאה מרוכזת
-                  </span>
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                </CardTitle>
-                <CardDescription>העלאה מהירה של מספר קבצים בבת אחת</CardDescription>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent>
-                <BulkUpload onUploadComplete={loadExamples} />
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Section 2: AI Insights - Collapsible */}
-        <Collapsible open={insightsOpen} onOpenChange={setInsightsOpen} className="mb-4">
-          <Card className="border-2 border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20">
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-purple-100/30 transition-colors pb-3">
-                <CardTitle className="flex items-center justify-between text-lg">
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-purple-500" />
-                    תובנות AI
-                  </span>
-                  <ChevronDown className={cn("h-5 w-5 text-muted-foreground transition-transform", insightsOpen && "rotate-180")} />
-                </CardTitle>
-                <CardDescription>בחר סוג ניתוח כדי לקבל תובנות ממוקדות</CardDescription>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="space-y-4">
-                {/* Category Tabs */}
-                <div className="flex flex-wrap gap-2 border-b pb-3">
-                  {INSIGHT_CATEGORIES.map((cat) => {
-                    const Icon = cat.icon;
-                    return (
-                      <Button
-                        key={cat.id}
-                        variant={insightCategory === cat.id ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setInsightCategory(cat.id)}
-                        className={cn(insightCategory === cat.id && "bg-purple-600 hover:bg-purple-700")}
-                      >
-                        <Icon className="h-4 w-4 ml-1" />
-                        {cat.label}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                {/* Insight Type Selector */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {INSIGHT_TYPES_BY_CATEGORY[insightCategory].map((type) => {
-                    const Icon = type.icon;
-                    const isSelected = selectedInsightType === type.id;
-                    const isCurrentlyAnalyzing = isAnalyzing && selectedInsightType === type.id;
-                    
-                    return (
-                      <button
-                        key={type.id}
-                        onClick={() => analyzeContent(type.id)}
-                        disabled={isAnalyzing}
-                        className={cn(
-                          "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all",
-                          "hover:border-purple-400 hover:bg-purple-100/50 disabled:opacity-50 disabled:cursor-not-allowed",
-                          isSelected ? "border-purple-500 bg-purple-100 dark:bg-purple-900/30" : "border-transparent bg-white dark:bg-background"
-                        )}
-                      >
-                        {isCurrentlyAnalyzing ? (
-                          <Loader2 className="h-5 w-5 animate-spin text-purple-500" />
-                        ) : (
-                          <Icon className={cn("h-5 w-5", isSelected ? "text-purple-600" : "text-muted-foreground")} />
-                        )}
-                        <span className={cn("text-xs font-medium text-center", isSelected ? "text-purple-700 dark:text-purple-300" : "text-muted-foreground")}>
-                          {type.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Insights Display */}
-                {(aiInsights || isAnalyzing) && (
-                  <div className="p-4 bg-white dark:bg-background rounded-lg border border-purple-200 dark:border-purple-800">
-                    {isAnalyzing && !aiInsights && (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
-                      </div>
-                    )}
-                    {aiInsights && (
-                      <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                        {aiInsights}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {!aiInsights && !isAnalyzing && (
-                  <p className="text-sm text-muted-foreground text-center py-2">
-                    בחר קטגוריה ולחץ על אחת האפשרויות לקבלת תובנות ממוקדות
-                  </p>
-                )}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Section 3: General Guidelines - Collapsible */}
-        <Collapsible defaultOpen={false} className="mb-4">
-          <Card className="border-2 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-amber-100/30 transition-colors pb-3">
-                <CardTitle className="flex items-center justify-between text-lg">
-                  <span className="flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5 text-amber-500" />
-                    כללי אצבע כלליים למגזר
-                    {getGeneralGuidelines().length > 0 && (
-                      <Badge variant="secondary" className="text-xs">{getGeneralGuidelines().length}</Badge>
-                    )}
-                  </span>
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                </CardTitle>
-                <CardDescription>הנחיות כלליות שתקפות לכל סוגי המדיה</CardDescription>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Textarea
-                    placeholder="הזן כלל אצבע כללי... לדוגמה: 'תמיד להשתמש בשפה מכבדת ועדינה'"
-                    value={generalGuidelineInput}
-                    onChange={(e) => setGeneralGuidelineInput(e.target.value)}
-                    className="flex-1 min-h-[80px] bg-white dark:bg-background"
-                  />
-                </div>
-                <Button 
-                  onClick={handleAddGeneralGuideline}
-                  disabled={!generalGuidelineInput.trim()}
-                  className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+      {/* Tab Navigation */}
+      <div className="border-b border-border bg-card/30">
+        <div className="container mx-auto px-4">
+          <div className="flex gap-1 py-1">
+            {[
+              { id: 'dashboard' as ViewTab, label: 'סקירה כללית', icon: BarChart3 },
+              { id: 'browse' as ViewTab, label: 'עיון וסינון', icon: FolderOpen },
+              { id: 'upload' as ViewTab, label: 'העלאה ואימון', icon: Upload },
+              { id: 'insights' as ViewTab, label: 'תובנות AI', icon: Sparkles },
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors",
+                    activeTab === tab.id
+                      ? "bg-background text-primary border border-b-0 border-border"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  )}
                 >
-                  <Plus className="h-4 w-4" />
-                  הוסף כלל אצבע כללי
-                </Button>
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-                {getGeneralGuidelines().length > 0 && (
-                  <div className="space-y-2 pt-4 border-t">
-                    {getGeneralGuidelines().map((guideline) => (
-                      <div key={guideline.id} className="flex items-start gap-2 p-2 bg-white dark:bg-background rounded border">
-                        <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                        <p className="flex-1 text-sm">{guideline.text_content}</p>
-                        <button onClick={() => removeGuideline(guideline.id)} className="text-muted-foreground hover:text-destructive transition-colors">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <>
+            {/* === DASHBOARD TAB === */}
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                {/* Summary cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card className="border-primary/30">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-3xl font-bold text-primary">{stats.total}</div>
+                      <div className="text-xs text-muted-foreground mt-1">סה"כ דוגמאות</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-success/30">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-3xl font-bold text-success">{uploads.filter(u => u.example_type === 'good').length}</div>
+                      <div className="text-xs text-muted-foreground mt-1">דוגמאות מוצלחות</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-destructive/30">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-3xl font-bold text-destructive">{uploads.filter(u => u.example_type === 'bad').length}</div>
+                      <div className="text-xs text-muted-foreground mt-1">קווים אדומים</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-amber-500/30">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-3xl font-bold text-amber-500">{stats.guidelines}</div>
+                      <div className="text-xs text-muted-foreground mt-1">כללי אצבע</div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* By Topic */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-primary" />
+                      לפי תחום עסקי
+                    </CardTitle>
+                    <CardDescription>מה המערכת יודעת על כל תחום</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {topTopics.length > 0 ? (
+                      <div className="space-y-2">
+                        {topTopics.map(([key, count]) => {
+                          const maxCount = topTopics[0][1];
+                          return (
+                            <div key={key} className="flex items-center gap-3">
+                              <span className="text-sm w-32 text-right shrink-0">{TOPIC_LABELS[key as TopicCategory] || key}</span>
+                              <div className="flex-1 bg-muted rounded-full h-6 overflow-hidden">
+                                <div
+                                  className="h-full bg-primary/70 rounded-full flex items-center justify-end px-2 transition-all"
+                                  style={{ width: `${Math.max((count / maxCount) * 100, 15)}%` }}
+                                >
+                                  <span className="text-xs font-bold text-primary-foreground">{count}</span>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost" size="sm" className="h-7 px-2"
+                                onClick={() => { setFilterTopic(key); setActiveTab('browse'); }}
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                        {stats.untaggedTopic > 0 && (
+                          <div className="flex items-center gap-3 opacity-60">
+                            <span className="text-sm w-32 text-right shrink-0">ללא תיוג</span>
+                            <div className="flex-1 bg-muted rounded-full h-6 overflow-hidden">
+                              <div
+                                className="h-full bg-muted-foreground/30 rounded-full flex items-center justify-end px-2"
+                                style={{ width: `${Math.max((stats.untaggedTopic / topTopics[0][1]) * 100, 15)}%` }}
+                              >
+                                <span className="text-xs font-bold">{stats.untaggedTopic}</span>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost" size="sm" className="h-7 px-2"
+                              onClick={() => { setFilterTopic('untagged'); setActiveTab('browse'); }}
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    ))}
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">אין דוגמאות מתויגות לפי תחום</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* By Holiday */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      לפי חג / עונה
+                    </CardTitle>
+                    <CardDescription>מה שייך לחג ספציפי ומה לכל השנה</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {/* Year round first */}
+                      <div
+                        className="p-3 rounded-lg border-2 border-primary/30 bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors"
+                        onClick={() => { setFilterHoliday('year_round'); setActiveTab('browse'); }}
+                      >
+                        <div className="text-2xl font-bold text-primary">{stats.untaggedHoliday}</div>
+                        <div className="text-xs text-muted-foreground">כל השנה / כללי</div>
+                      </div>
+                      {topHolidays.map(([key, count]) => (
+                        <div
+                          key={key}
+                          className="p-3 rounded-lg border border-border bg-card cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => { setFilterHoliday(key); setActiveTab('browse'); }}
+                        >
+                          <div className="text-2xl font-bold">{count}</div>
+                          <div className="text-xs text-muted-foreground">{HOLIDAY_LABELS[key as HolidaySeason] || key}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* By Media */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Newspaper className="h-4 w-4 text-primary" />
+                      לפי סוג מדיה
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                      {MEDIA_TYPES.map(m => {
+                        const count = stats.byMedia[m.id] || 0;
+                        const Icon = m.icon;
+                        return (
+                          <div
+                            key={m.id}
+                            className={cn(
+                              "p-3 rounded-lg border text-center cursor-pointer hover:bg-muted/50 transition-colors",
+                              count > 0 ? "border-primary/30" : "border-border opacity-50"
+                            )}
+                            onClick={() => { setFilterMedia(m.id); setActiveTab('browse'); }}
+                          >
+                            <Icon className="h-5 w-5 mx-auto mb-1 text-primary" />
+                            <div className="text-lg font-bold">{count}</div>
+                            <div className="text-[10px] text-muted-foreground">{m.label}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Guidelines preview */}
+                {guidelines.length > 0 && (
+                  <Card className="border-amber-500/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-amber-500" />
+                        כללי אצבע ({guidelines.length})
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {guidelines.slice(0, 5).map(g => (
+                          <div key={g.id} className="flex items-start gap-2 p-2 bg-amber-50/50 dark:bg-amber-950/20 rounded text-sm">
+                            <Lightbulb className="h-3 w-3 text-amber-500 mt-1 shrink-0" />
+                            <p className="flex-1 text-xs">{g.text_content}</p>
+                          </div>
+                        ))}
+                        {guidelines.length > 5 && (
+                          <p className="text-xs text-muted-foreground text-center">+{guidelines.length - 5} נוספים</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+
+            {/* === BROWSE TAB === */}
+            {activeTab === 'browse' && (
+              <div className="space-y-4">
+                {/* Filters */}
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Filter className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">סינון דוגמאות</span>
+                      {(filterTopic !== 'all' || filterHoliday !== 'all' || filterMedia !== 'all' || filterType !== 'all') && (
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setFilterTopic('all'); setFilterHoliday('all'); setFilterMedia('all'); setFilterType('all'); }}>
+                          נקה הכל
+                        </Button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">תחום</Label>
+                        <Select value={filterTopic} onValueChange={setFilterTopic}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">הכל</SelectItem>
+                            <SelectItem value="untagged">ללא תיוג ({stats.untaggedTopic})</SelectItem>
+                            {Object.entries(TOPIC_LABELS).map(([k, v]) => {
+                              const cnt = stats.byTopic[k] || 0;
+                              return cnt > 0 ? <SelectItem key={k} value={k}>{v} ({cnt})</SelectItem> : null;
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">חג / עונה</Label>
+                        <Select value={filterHoliday} onValueChange={setFilterHoliday}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">הכל</SelectItem>
+                            <SelectItem value="year_round">כל השנה ({stats.untaggedHoliday})</SelectItem>
+                            {Object.entries(HOLIDAY_LABELS).filter(([k]) => k !== 'year_round').map(([k, v]) => {
+                              const cnt = stats.byHoliday[k] || 0;
+                              return cnt > 0 ? <SelectItem key={k} value={k}>{v} ({cnt})</SelectItem> : null;
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">סוג מדיה</Label>
+                        <Select value={filterMedia} onValueChange={setFilterMedia}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">הכל</SelectItem>
+                            {MEDIA_TYPES.map(m => (
+                              <SelectItem key={m.id} value={m.id}>{m.label} ({stats.byMedia[m.id] || 0})</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">סוג דוגמה</Label>
+                        <Select value={filterType} onValueChange={setFilterType}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">הכל</SelectItem>
+                            <SelectItem value="good">מוצלחות ✓</SelectItem>
+                            <SelectItem value="bad">קווים אדומים ✗</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Results count */}
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    מציג <span className="font-bold text-foreground">{filteredUploads.length}</span> מתוך {uploads.length} דוגמאות
+                  </p>
+                </div>
+
+                {/* Results grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredUploads.slice(0, 60).map(upload => (
+                    <Card key={upload.id} className={cn("overflow-hidden", upload.example_type === 'bad' ? "border-destructive/30" : "border-success/30")}>
+                      <CardContent className="p-3">
+                        <div className="flex items-start gap-3">
+                          {upload.type === 'image' && upload.preview ? (
+                            <img src={upload.preview} alt="" className="w-16 h-16 rounded object-cover shrink-0" />
+                          ) : (
+                            <div className="w-16 h-16 rounded bg-muted flex items-center justify-center shrink-0">
+                              <FileText className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1 mb-1">
+                              {upload.example_type === 'good' ? (
+                                <Badge variant="default" className="bg-success text-[10px] py-0">מוצלח</Badge>
+                              ) : (
+                                <Badge variant="destructive" className="text-[10px] py-0">קו אדום</Badge>
+                              )}
+                              {upload.media_type && (
+                                <Badge variant="outline" className="text-[10px] py-0">
+                                  {MEDIA_TYPES.find(m => m.id === upload.media_type)?.label}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs truncate mb-1">{upload.name}</p>
+                            <div className="flex flex-wrap gap-1">
+                              {upload.topic_category && (
+                                <Badge variant="secondary" className="text-[9px] py-0 px-1">
+                                  {TOPIC_LABELS[upload.topic_category as TopicCategory]}
+                                </Badge>
+                              )}
+                              {upload.holiday_season && upload.holiday_season !== 'year_round' && (
+                                <Badge variant="outline" className="text-[9px] py-0 px-1 border-amber-400 text-amber-600">
+                                  {HOLIDAY_LABELS[upload.holiday_season as HolidaySeason]}
+                                </Badge>
+                              )}
+                              {upload.stream_type && (
+                                <Badge variant="outline" className="text-[9px] py-0 px-1">
+                                  {STREAM_LABELS[upload.stream_type as StreamType]}
+                                </Badge>
+                              )}
+                            </div>
+                            {upload.text_content && (
+                              <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{upload.text_content}</p>
+                            )}
+                          </div>
+                          <button onClick={() => removeUpload(upload.id, upload.file_path)} className="text-muted-foreground hover:text-destructive shrink-0">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                {filteredUploads.length > 60 && (
+                  <p className="text-sm text-muted-foreground text-center">מוצגות 60 מתוך {filteredUploads.length} תוצאות</p>
+                )}
+                {filteredUploads.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                    <p>אין דוגמאות שתואמות את הסינון</p>
                   </div>
                 )}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
+              </div>
+            )}
 
-        {/* Section 4: Media-specific Training - Collapsible */}
-        <Collapsible defaultOpen={true} className="mb-4">
-          <Card className="border-2 border-primary/30">
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-3">
-                <CardTitle className="flex items-center justify-between text-lg">
-                  <span className="flex items-center gap-2">
-                    <Newspaper className="h-5 w-5 text-primary" />
-                    דוגמאות ואימון לפי מדיה
-                    <Badge variant="secondary" className="text-xs">{uploads.length} דוגמאות</Badge>
-                  </span>
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                </CardTitle>
-                <CardDescription>העלאת דוגמאות טובות וקווים אדומים לכל סוג מדיה</CardDescription>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent>
-                {/* Media Type Tabs */}
-                <Tabs value={activeMediaType} onValueChange={(v) => setActiveMediaType(v as MediaType)} className="w-full">
-                  <TabsList className="w-full h-auto flex-wrap gap-2 bg-transparent p-0 mb-6">
-                    {MEDIA_TYPES.map((media) => {
-                      const stats = getMediaStats(media.id);
-                      return (
-                        <TabsTrigger
-                          key={media.id}
-                          value={media.id}
+            {/* === UPLOAD TAB === */}
+            {activeTab === 'upload' && (
+              <div className="space-y-6 max-w-3xl mx-auto">
+                {/* Bulk Upload */}
+                <Collapsible defaultOpen={false}>
+                  <Card className="border-2 border-blue-500/30">
+                    <CollapsibleTrigger asChild>
+                      <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-3">
+                        <CardTitle className="flex items-center justify-between text-base">
+                          <span className="flex items-center gap-2"><Upload className="h-4 w-4 text-blue-500" /> העלאה מרוכזת</span>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        </CardTitle>
+                      </CardHeader>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <CardContent><BulkUpload onUploadComplete={loadExamples} /></CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
+
+                {/* Single upload */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">הוספת דוגמה בודדת</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Example type */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant={selectedExampleType === 'good' ? 'default' : 'outline'} size="sm"
+                        onClick={() => setSelectedExampleType('good')}
+                        className={cn("flex-1", selectedExampleType === 'good' && "bg-success hover:bg-success/90")}
+                      >
+                        <Trophy className="h-4 w-4 ml-1" /> דוגמה מוצלחת
+                      </Button>
+                      <Button
+                        variant={selectedExampleType === 'bad' ? 'default' : 'outline'} size="sm"
+                        onClick={() => setSelectedExampleType('bad')}
+                        className={cn("flex-1", selectedExampleType === 'bad' && "bg-destructive hover:bg-destructive/90")}
+                      >
+                        <AlertOctagon className="h-4 w-4 ml-1" /> קו אדום
+                      </Button>
+                    </div>
+
+                    {/* Media type */}
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-2 block">סוג מדיה</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {MEDIA_TYPES.map(m => {
+                          const Icon = m.icon;
+                          return (
+                            <Button
+                              key={m.id}
+                              variant={activeMediaType === m.id ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setActiveMediaType(m.id)}
+                              className="gap-1"
+                            >
+                              <Icon className="h-3.5 w-3.5" /> {m.label}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">תחום</Label>
+                        <Select value={selectedTopic} onValueChange={(v) => setSelectedTopic(v as TopicCategory)}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="בחר תחום" /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(TOPIC_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">חג/עונה</Label>
+                        <Select value={selectedHoliday} onValueChange={(v) => setSelectedHoliday(v as HolidaySeason)}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="בחר חג" /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(HOLIDAY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">זרם</Label>
+                        <Select value={selectedStream} onValueChange={(v) => setSelectedStream(v as StreamType)}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="בחר זרם" /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(STREAM_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">קהל</Label>
+                        <Select value={selectedGender} onValueChange={(v) => setSelectedGender(v as GenderAudience)}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="בחר קהל" /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(GENDER_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Text input */}
+                    <div className="space-y-2">
+                      <Textarea
+                        placeholder={`הקלד ${selectedExampleType === 'good' ? 'דוגמה לטקסט מוצלח' : 'דוגמה לטקסט בעייתי'}...`}
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        className="min-h-[80px] resize-none"
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={handleAddText} disabled={!textInput.trim()} className="flex-1">
+                          <Plus className="h-3 w-3 ml-1" /> הוסף טקסט
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={handlePaste}>
+                          <Clipboard className="h-3 w-3 ml-1" /> הדבק תמונה
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Drop zone */}
+                    <div
+                      className="min-h-[100px] bg-muted/30 rounded-lg flex flex-col items-center justify-center p-6 border-2 border-dashed border-border/50 hover:border-primary/50 transition-colors"
+                      onDrop={handleDrop}
+                      onDragOver={(e) => e.preventDefault()}
+                    >
+                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">גרור ושחרר קבצים כאן</p>
+                      <p className="text-xs text-muted-foreground">תמונות, מסמכים ועוד</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Guidelines */}
+                <Card className="border-amber-500/30">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4 text-amber-500" />
+                      כללי אצבע כלליים ({guidelines.length})
+                    </CardTitle>
+                    <CardDescription>הנחיות שתקפות לכל סוגי המדיה</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex gap-2">
+                      <Textarea
+                        placeholder="הזן כלל אצבע... לדוגמה: 'תמיד להשתמש בשפה מכבדת ועדינה'"
+                        value={guidelineInput}
+                        onChange={(e) => setGuidelineInput(e.target.value)}
+                        className="flex-1 min-h-[60px]"
+                      />
+                    </div>
+                    <Button onClick={handleAddGuideline} disabled={!guidelineInput.trim()} className="w-full bg-amber-500 hover:bg-amber-600 text-white">
+                      <Plus className="h-4 w-4 ml-1" /> הוסף כלל
+                    </Button>
+                    {guidelines.length > 0 && (
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto pt-3 border-t">
+                        {guidelines.map(g => (
+                          <div key={g.id} className="flex items-start gap-2 p-2 bg-amber-50/50 dark:bg-amber-950/20 rounded border border-amber-200/50">
+                            <Lightbulb className="h-3 w-3 text-amber-500 mt-1 shrink-0" />
+                            <p className="flex-1 text-xs">{g.text_content}</p>
+                            <button onClick={() => removeUpload(g.id)} className="text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* === INSIGHTS TAB === */}
+            {activeTab === 'insights' && (
+              <div className="space-y-4 max-w-4xl mx-auto">
+                <Card className="border-2 border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-purple-500" />
+                      תובנות AI ממוקדות
+                    </CardTitle>
+                    <CardDescription>בחר קטגוריה ולחץ לניתוח</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Category buttons */}
+                    <div className="flex flex-wrap gap-2 border-b pb-3">
+                      {[
+                        { id: 'general' as const, label: 'כללי' },
+                        { id: 'topic' as const, label: 'לפי תחום' },
+                        { id: 'holiday' as const, label: 'לפי חג' },
+                        { id: 'media' as const, label: 'לפי מדיה' },
+                        { id: 'stream' as const, label: 'לפי זרם' },
+                      ].map(cat => (
+                        <Button
+                          key={cat.id}
+                          variant={insightCategory === cat.id ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setInsightCategory(cat.id)}
+                          className={cn(insightCategory === cat.id && "bg-purple-600 hover:bg-purple-700")}
+                        >
+                          {cat.label}
+                        </Button>
+                      ))}
+                    </div>
+
+                    {/* Sub-options */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                      {(insightCategory === 'general' ? [{ id: 'general', label: 'ניתוח כללי' }] :
+                        insightCategory === 'topic' ? Object.entries(TOPIC_LABELS).filter(([k]) => (stats.byTopic[k] || 0) > 0).map(([k, v]) => ({ id: `topic_${k}`, label: `${v} (${stats.byTopic[k]})` })) :
+                        insightCategory === 'holiday' ? Object.entries(HOLIDAY_LABELS).filter(([k]) => k === 'year_round' || (stats.byHoliday[k] || 0) > 0).map(([k, v]) => ({ id: `holiday_${k}`, label: v })) :
+                        insightCategory === 'media' ? MEDIA_TYPES.filter(m => (stats.byMedia[m.id] || 0) > 0).map(m => ({ id: `media_${m.id}`, label: `${m.label} (${stats.byMedia[m.id]})` })) :
+                        Object.entries(STREAM_LABELS).map(([k, v]) => ({ id: `stream_${k}`, label: v }))
+                      ).map(opt => (
+                        <button
+                          key={opt.id}
+                          onClick={() => analyzeContent(opt.id)}
+                          disabled={isAnalyzing}
                           className={cn(
-                            "flex-1 min-w-[100px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
-                            "border-2 data-[state=active]:border-primary",
-                            "flex flex-col items-center gap-1 py-2 px-3"
+                            "p-3 rounded-lg border-2 transition-all text-sm text-center",
+                            "hover:border-purple-400 hover:bg-purple-100/50 disabled:opacity-50",
+                            selectedInsightType === opt.id ? "border-purple-500 bg-purple-100 dark:bg-purple-900/30 font-medium" : "border-transparent bg-white dark:bg-background"
                           )}
                         >
-                          <media.icon className="h-4 w-4" />
-                          <span className="font-medium text-xs">{media.label}</span>
-                          {stats.total > 0 && <span className="text-[10px] opacity-70">{stats.total}</span>}
-                        </TabsTrigger>
-                      );
-                    })}
-                  </TabsList>
+                          {isAnalyzing && selectedInsightType === opt.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin mx-auto mb-1 text-purple-500" />
+                          ) : null}
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
 
-                  {MEDIA_TYPES.map((media) => (
-                    <TabsContent key={media.id} value={media.id} className="mt-0 space-y-4">
-                      {/* Stats row */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="flex items-center gap-2 p-2 rounded-lg bg-success/10 border border-success/30">
-                          <ThumbsUp className="h-4 w-4 text-success" />
-                          <div>
-                            <div className="text-lg font-bold text-success">{getFilteredUploads(media.id, 'good').length}</div>
-                            <div className="text-[10px] text-muted-foreground">דוגמאות טובות</div>
+                    {/* Results */}
+                    {(aiInsights || isAnalyzing) && (
+                      <div className="p-4 bg-white dark:bg-background rounded-lg border border-purple-200 dark:border-purple-800">
+                        {isAnalyzing && !aiInsights && (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10 border border-destructive/30">
-                          <ThumbsDown className="h-4 w-4 text-destructive" />
-                          <div>
-                            <div className="text-lg font-bold text-destructive">{getFilteredUploads(media.id, 'bad').length}</div>
-                            <div className="text-[10px] text-muted-foreground">קווים אדומים</div>
-                          </div>
-                        </div>
+                        )}
+                        {aiInsights && (
+                          <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">{aiInsights}</div>
+                        )}
                       </div>
+                    )}
 
-                      {/* Example Type Toggle */}
-                      <div className="flex gap-2">
-                        <Button
-                          variant={selectedExampleType === 'good' ? 'default' : 'outline'}
-                          onClick={() => setSelectedExampleType('good')}
-                          size="sm"
-                          className={cn("flex-1", selectedExampleType === 'good' && "bg-success hover:bg-success/90")}
-                        >
-                          <Trophy className="h-4 w-4 ml-1" />
-                          דוגמאות מוצלחות
-                        </Button>
-                        <Button
-                          variant={selectedExampleType === 'bad' ? 'default' : 'outline'}
-                          onClick={() => setSelectedExampleType('bad')}
-                          size="sm"
-                          className={cn("flex-1", selectedExampleType === 'bad' && "bg-destructive hover:bg-destructive/90")}
-                        >
-                          <AlertOctagon className="h-4 w-4 ml-1" />
-                          קווים אדומים
-                        </Button>
-                      </div>
-
-                      {/* Category selectors */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">זרם</Label>
-                          <Select value={selectedStream} onValueChange={(v) => setSelectedStream(v as StreamType)}>
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="בחר זרם" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(STREAM_LABELS).map(([key, label]) => (
-                                <SelectItem key={key} value={key}>{label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">קהל יעד</Label>
-                          <Select value={selectedGender} onValueChange={(v) => setSelectedGender(v as GenderAudience)}>
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="בחר קהל" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(GENDER_LABELS).map(([key, label]) => (
-                                <SelectItem key={key} value={key}>{label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">נושא</Label>
-                          <Select value={selectedTopic} onValueChange={(v) => setSelectedTopic(v as TopicCategory)}>
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="בחר נושא" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(TOPIC_LABELS).map(([key, label]) => (
-                                <SelectItem key={key} value={key}>{label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">חג/עונה</Label>
-                          <Select value={selectedHoliday} onValueChange={(v) => setSelectedHoliday(v as HolidaySeason)}>
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="בחר חג" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(HOLIDAY_LABELS).map(([key, label]) => (
-                                <SelectItem key={key} value={key}>{label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {/* Upload inputs */}
-                      <div className="space-y-3 border rounded-lg p-3 bg-muted/20">
-                        <Textarea
-                          placeholder={`הקלד ${selectedExampleType === 'good' ? 'דוגמה לטקסט מוצלח' : 'דוגמה לטקסט בעייתי'}...`}
-                          value={textInput}
-                          onChange={(e) => setTextInput(e.target.value)}
-                          className="min-h-[60px] resize-none text-sm"
-                        />
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={handleAddText} disabled={!textInput.trim()} className="flex-1">
-                            <Plus className="h-3 w-3 ml-1" />
-                            הוסף טקסט
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={handlePaste}>
-                            <Clipboard className="h-3 w-3 ml-1" />
-                            הדבק תמונה
-                          </Button>
-                        </div>
-
-                        <div className="flex gap-2 pt-2 border-t">
-                          <Input
-                            placeholder="https://example.com/..."
-                            value={linkInput}
-                            onChange={(e) => setLinkInput(e.target.value)}
-                            className="flex-1 text-xs"
-                            dir="ltr"
-                          />
-                          <Button size="sm" variant="outline" onClick={handleAddLink} disabled={!linkInput.trim()}>
-                            <Plus className="h-3 w-3 ml-1" />
-                            קישור
-                          </Button>
-                        </div>
-
-                        {/* Drop zone */}
-                        <div
-                          className="min-h-[60px] bg-muted/30 rounded-lg flex flex-col items-center justify-center p-3 border border-dashed border-border/50"
-                          onDrop={handleDrop}
-                          onDragOver={handleDragOver}
-                        >
-                          <Upload className="h-5 w-5 text-muted-foreground mb-1" />
-                          <p className="text-xs text-muted-foreground">גרור ושחרר קבצים</p>
-                        </div>
-                      </div>
-
-                      {/* Media-specific guidelines */}
-                      <Collapsible className="border rounded-lg p-3 bg-amber-50/30 dark:bg-amber-950/10">
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="sm" className="w-full justify-between h-8 text-xs hover:bg-amber-100/50">
-                            <span className="flex items-center gap-1 text-amber-600">
-                              <Lightbulb className="h-3 w-3" />
-                              כללי אצבע ל{media.label} ({getGuidelinesForMedia(media.id).length})
-                            </span>
-                            <ChevronDown className="h-3 w-3" />
-                          </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pt-3 space-y-2">
-                          <div className="flex gap-2">
-                            <Textarea
-                              placeholder={`כלל אצבע ל${media.label}...`}
-                              value={guidelineInput}
-                              onChange={(e) => setGuidelineInput(e.target.value)}
-                              className="min-h-[50px] resize-none flex-1 text-sm"
-                            />
-                          </div>
-                          <Button 
-                            size="sm" variant="outline"
-                            onClick={() => handleAddGuideline(media.id)}
-                            disabled={!guidelineInput.trim()}
-                            className="w-full border-amber-500/50 text-amber-600 hover:bg-amber-50"
-                          >
-                            <Lightbulb className="h-3 w-3 ml-1" />
-                            הוסף כלל
-                          </Button>
-                          {getGuidelinesForMedia(media.id).map((guideline) => (
-                            <div key={guideline.id} className="flex items-start gap-2 p-2 bg-amber-50/50 dark:bg-amber-950/20 rounded border border-amber-200/50 text-sm">
-                              <Lightbulb className="h-3 w-3 text-amber-500 mt-0.5 shrink-0" />
-                              <p className="flex-1 text-xs">{guideline.text_content}</p>
-                              <button onClick={() => removeGuideline(guideline.id)} className="text-muted-foreground hover:text-destructive">
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            </div>
-                          ))}
-                        </CollapsibleContent>
-                      </Collapsible>
-
-                      {/* Examples List */}
-                      <div className="grid md:grid-cols-2 gap-3">
-                        {/* Good examples */}
-                        <Card className="border-success/30">
-                          <CardHeader className="pb-2 py-3">
-                            <CardTitle className="text-xs flex items-center gap-1 text-success">
-                              <Trophy className="h-3 w-3" />
-                              דוגמאות מוצלחות ({getFilteredUploads(media.id, 'good').length})
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-1 max-h-[300px] overflow-y-auto pt-0">
-                            {getFilteredUploads(media.id, 'good').map((upload) => (
-                              <div key={upload.id} className="flex items-center gap-2 p-1.5 bg-muted/50 rounded text-xs">
-                                {upload.type === 'image' && upload.preview ? (
-                                  <img src={upload.preview} alt="" className="w-8 h-8 rounded object-cover" />
-                                ) : (
-                                  <div className="w-8 h-8 rounded bg-muted flex items-center justify-center shrink-0">
-                                    <FileText className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="truncate">{upload.name}</p>
-                                  <div className="flex gap-1 flex-wrap">
-                                    {upload.topic_category && <Badge variant="secondary" className="text-[9px] py-0 px-1">{TOPIC_LABELS[upload.topic_category as TopicCategory]}</Badge>}
-                                    {upload.holiday_season && upload.holiday_season !== 'year_round' && <Badge variant="outline" className="text-[9px] py-0 px-1">{HOLIDAY_LABELS[upload.holiday_season as HolidaySeason]}</Badge>}
-                                  </div>
-                                </div>
-                                <button onClick={() => removeUpload(upload.id, upload.file_path)} className="text-muted-foreground hover:text-destructive">
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              </div>
-                            ))}
-                            {getFilteredUploads(media.id, 'good').length === 0 && <p className="text-xs text-muted-foreground text-center py-3">אין דוגמאות עדיין</p>}
-                          </CardContent>
-                        </Card>
-
-                        {/* Bad examples */}
-                        <Card className="border-destructive/30">
-                          <CardHeader className="pb-2 py-3">
-                            <CardTitle className="text-xs flex items-center gap-1 text-destructive">
-                              <AlertOctagon className="h-3 w-3" />
-                              קווים אדומים ({getFilteredUploads(media.id, 'bad').length})
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-1 max-h-[300px] overflow-y-auto pt-0">
-                            {getFilteredUploads(media.id, 'bad').map((upload) => (
-                              <div key={upload.id} className="flex items-center gap-2 p-1.5 bg-muted/50 rounded text-xs">
-                                {upload.type === 'image' && upload.preview ? (
-                                  <img src={upload.preview} alt="" className="w-8 h-8 rounded object-cover" />
-                                ) : (
-                                  <div className="w-8 h-8 rounded bg-muted flex items-center justify-center shrink-0">
-                                    <FileText className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="truncate">{upload.name}</p>
-                                  {upload.topic_category && <Badge variant="secondary" className="text-[9px] py-0 px-1">{TOPIC_LABELS[upload.topic_category as TopicCategory]}</Badge>}
-                                </div>
-                                <button onClick={() => removeUpload(upload.id, upload.file_path)} className="text-muted-foreground hover:text-destructive">
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              </div>
-                            ))}
-                            {getFilteredUploads(media.id, 'bad').length === 0 && <p className="text-xs text-muted-foreground text-center py-3">אין קווים אדומים עדיין</p>}
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Section 5: How it works - Collapsible */}
-        <Collapsible defaultOpen={false} className="mb-4">
-          <Card className="bg-muted/30">
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors pb-3">
-                <CardTitle className="flex items-center justify-between text-lg">
-                  <span className="flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-primary" />
-                    איך זה עובד?
-                  </span>
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                </CardTitle>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent>
-                <p className="text-muted-foreground text-sm mb-4">
-                  כל המודלים שלנו - יצירת תמונות, כתיבת קופי, צ'אט AI ועוד - לומדים מהדוגמאות שתעלו כאן.
-                  ככל שתעלו יותר דוגמאות מגוונות, כך המערכת תבין טוב יותר מה מתאים ומה לא.
-                </p>
-                <div className="flex gap-3 flex-wrap">
-                  <Badge className="bg-success text-success-foreground">דוגמאות טובות = ללמוד ממנו ✓</Badge>
-                  <Badge className="bg-destructive text-destructive-foreground">קווים אדומים = להימנע ממנו ✗</Badge>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Train Button */}
-        <div className="text-center mt-6 mb-8">
-          <Button
-            onClick={startTraining}
-            disabled={isTraining || uploads.length === 0}
-            size="lg"
-            variant="gradient"
-            className="px-12"
-          >
-            {isTraining ? 'המערכת לומדת...' : (
-              <>
-                <Brain className="h-5 w-5 ml-2" />
-                עדכן את כל המודלים
-              </>
+                    {!aiInsights && !isAnalyzing && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        בחר קטגוריה ולחץ לקבלת ניתוח AI ממוקד
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             )}
-          </Button>
-          <p className="text-sm text-muted-foreground mt-2">
-            סה"כ {uploads.length} דוגמאות במערכת
-          </p>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
