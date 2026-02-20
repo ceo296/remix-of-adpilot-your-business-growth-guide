@@ -191,105 +191,13 @@ IMPORTANT: Create a VISUALLY STRIKING image. Think billboard/magazine ad - stron
 
     console.log("Enhanced prompt length:", fullPrompt.length);
 
-    // Try Google Gemini API directly first, then Lovable gateway as fallback
+    // Use Lovable AI Gateway for image generation (direct Google API doesn't support image output)
     let response: Response | null = null;
     let usedModel = '';
 
-    // Attempt 1: Direct Google Gemini API
-    if (GOOGLE_GEMINI_API_KEY) {
-      console.log("Trying direct Google Gemini API...");
-      try {
-        // Build content parts - include logo image if available
-        const contentParts: any[] = [{ text: fullPrompt }];
-        
-        // If logo URL is a data URI or accessible URL, include it as reference
-        if (brandContext?.logoUrl && brandContext.logoUrl.startsWith('data:')) {
-          const match = brandContext.logoUrl.match(/^data:(.*?);base64,(.*)$/);
-          if (match) {
-            contentParts.push({
-              inlineData: { mimeType: match[1], data: match[2] }
-            });
-            contentParts.push({ text: "The image above is the brand logo. Integrate it naturally into the top corner of the advertisement design." });
-          }
-        }
-
-        response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: contentParts }],
-              generationConfig: {
-                responseModalities: ["TEXT", "IMAGE"],
-              },
-            }),
-          }
-        );
-
-        if (response.ok) {
-          usedModel = 'gemini-2.0-flash-exp-direct';
-          const data = await response.json();
-          console.log("Google Gemini direct response received");
-
-          // Extract image from Google's response format
-          const parts = data.candidates?.[0]?.content?.parts || [];
-          let imageUrl = '';
-          let textContent = '';
-
-          for (const part of parts) {
-            if (part.inlineData) {
-              imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-            }
-            if (part.text) {
-              textContent = part.text;
-            }
-          }
-
-          if (imageUrl) {
-            // Log the generation
-            try {
-              await supabase.from('ai_generation_logs').insert({
-                media_type: configMediaType,
-                model_config_id: modelConfig?.id || null,
-                prompt_used: fullPrompt.substring(0, 5000),
-                generated_output: 'google-direct-base64',
-                generation_type: 'image',
-                success: true,
-                brand_context: brandContext || null,
-                campaign_context: campaignContext || null,
-              });
-            } catch (logError) {
-              console.error('Error logging generation:', logError);
-            }
-
-            return new Response(JSON.stringify({
-              imageUrl,
-              status: 'approved',
-              message: textContent,
-              model: usedModel,
-              configUsed: modelConfig?.media_type || 'default',
-            }), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          } else {
-            console.error("No image in Google direct response");
-            response = null; // Fall through to gateway
-          }
-        } else {
-          const errorText = await response.text();
-          console.error("Google Gemini direct error:", response.status, errorText);
-          response = null; // Fall through to gateway
-        }
-      } catch (directError) {
-        console.error("Google Gemini direct fetch error:", directError);
-        response = null;
-      }
-    }
-
-    // Attempt 2: Lovable AI Gateway fallback
-    if (!response && LOVABLE_API_KEY) {
-      const models = ['google/gemini-2.5-flash-image', 'google/gemini-3-pro-image-preview'];
+    // Lovable AI Gateway - try best model first
+    if (LOVABLE_API_KEY) {
+      const models = ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'];
       
       for (const tryModel of models) {
         console.log("Trying Lovable gateway model:", tryModel);
