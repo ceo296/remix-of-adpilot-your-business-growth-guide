@@ -417,8 +417,6 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
 
     console.log(`Prompt length: ${trimmedPrompt.length} chars`);
 
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-
     let streamResponse: Response | null = null;
 
     // Attempt 1: Direct Google Gemini API (non-streaming, then convert to SSE)
