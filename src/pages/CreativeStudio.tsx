@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool } from 'lucide-react';
 import { AIChatWidget } from '@/components/chat/AIChatWidget';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/
 import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaTypeStep';
 import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
+import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
 
 type AssetChoice = 'full-campaign' | 'has-visual' | 'has-copy';
 type TreatmentChoice = 'as-is' | 'ai-magic';
@@ -232,6 +233,7 @@ const CreativeStudio = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
+  const [overlayEditImage, setOverlayEditImage] = useState<{ id: string; url: string } | null>(null);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
@@ -1377,10 +1379,26 @@ const CreativeStudio = () => {
                         )}
                         {image.status !== 'rejected' && image.status !== 'pending' && (
                           <div 
-                            className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                            onClick={() => setEnlargedImageUrl(image.url)}
+                            className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 cursor-pointer"
                           >
-                            <span className="text-white text-sm font-medium">לחץ להגדלה</span>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="gap-1.5"
+                              onClick={() => setEnlargedImageUrl(image.url)}
+                            >
+                              <ImageIcon className="h-4 w-4" />
+                              הגדל
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="gap-1.5"
+                              onClick={() => setOverlayEditImage({ id: image.id, url: image.url })}
+                            >
+                              <PenTool className="h-4 w-4" />
+                              הוסף טקסט
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -1558,6 +1576,26 @@ const CreativeStudio = () => {
               src={enlargedImageUrl} 
               alt="תמונה מוגדלת" 
               className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Text Overlay Editor Modal */}
+      <Dialog open={!!overlayEditImage} onOpenChange={() => setOverlayEditImage(null)}>
+        <DialogContent className="max-w-5xl h-[90vh] p-0">
+          {overlayEditImage && (
+            <TextOverlayEditor
+              imageUrl={overlayEditImage.url}
+              onSave={(dataUrl) => {
+                // Update the image in the generated images list
+                setGeneratedImages(prev => prev.map(img => 
+                  img.id === overlayEditImage.id ? { ...img, url: dataUrl } : img
+                ));
+                setOverlayEditImage(null);
+                toast.success('הטקסט נוסף לתמונה בהצלחה!');
+              }}
+              onClose={() => setOverlayEditImage(null)}
             />
           )}
         </DialogContent>
