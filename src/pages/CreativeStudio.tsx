@@ -707,21 +707,39 @@ const CreativeStudio = () => {
   };
 
   // Feedback handlers
-  const handleSubmitFeedback = () => {
+  const handleSubmitFeedback = async () => {
     if (!feedbackText.trim()) {
       toast.error('נא להזין פירוט');
       return;
     }
     
-    if (feedbackMode === 'another-round') {
-      toast.success('בקשתך לסבב נוסף התקבלה! נחזור אליך בהקדם.');
-    } else if (feedbackMode === 'small-fixes') {
-      toast.success('התיקונים התקבלו! נעדכן אותך כשהעיצובים המעודכנים מוכנים.');
+    // Append feedback to the prompts so the AI regenerates with corrections
+    const correctionPrefix = feedbackType === 'copy' 
+      ? 'תיקוני טקסט מהלקוח: ' 
+      : feedbackType === 'visual' 
+        ? 'תיקוני עיצוב מהלקוח: ' 
+        : 'תיקונים מהלקוח: ';
+    
+    const correctionNote = correctionPrefix + feedbackText.trim();
+    
+    // Update the visual prompt with the correction context
+    const originalVisualPrompt = visualPrompt;
+    setVisualPrompt(prev => prev + '\n\n' + correctionNote);
+    
+    if (feedbackType === 'copy' && textPrompt) {
+      setTextPrompt(prev => prev + '\n\n' + correctionNote);
     }
     
+    toast.info('מייצר סקיצות מתוקנות... 🎨');
+    
+    // Reset feedback UI
+    const savedFeedback = feedbackText;
     setFeedbackMode('none');
     setFeedbackText('');
     setFeedbackType(null);
+    
+    // Regenerate with corrections baked into the prompt
+    await handleGenerate();
   };
 
   const handleProceedToMediaSelection = () => {
