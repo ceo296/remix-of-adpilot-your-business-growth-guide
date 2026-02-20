@@ -116,51 +116,97 @@ serve(async (req) => {
     const isRadio = mediaType === 'radio';
     const holidayName = holidaySeason && holidaySeason !== 'year_round' ? HOLIDAY_LABELS[holidaySeason] : null;
 
-    const systemPrompt = `You are a creative director for a Haredi/Orthodox Jewish advertising agency. 
-You create advertising concepts that are culturally appropriate, modest, and effective for this community.
-You always respond in Hebrew.
-Your concepts should be warm, family-oriented, and avoid immodest imagery.
+const systemPrompt = `אתה קריאייטיב דירקטור בכיר במשרד פרסום חרדי מוביל. אתה ידוע בכותרות חזקות, שנונות, עם משחקי מילים חכמים.
 
-You are creating concepts specifically for: ${mediaInfo.name}
-Format required: ${mediaInfo.format}
-Example: ${mediaInfo.example}
+כללי ברזל:
+- כל כותרת חייבת להיות קצרה, בועטת, בלתי נשכחת — כמו כותרת עיתון שעוצרת אנשים ברחוב
+- חפש תמיד משחק מילים, ביטוי מפתיע, טוויסט, או ניגוד מעניין
+- תשתמש בביטויים מעולם התורה, הגמרא, ההלכה ותתחבר אליהם בצורה שנונה לעולם הפרסום
+- אסור קלישאות גנריות כמו "הכי טוב", "מקצועי ואיכותי", "שירות מעולה" - אלה כותרות עצלניות
+- כל קונספט חייב לגרום לקורא לחייך, להתרגש, או לעצור ולקרוא שוב
+- שפה תקנית וגבוהה, אבל לא מיושנת — חיה, קצבית, עם אנרגיה
+
 ${holidayName ? `
-=== HOLIDAY/SEASON CONTEXT ===
-This campaign is for: ${holidayName}
-Incorporate the atmosphere, symbols, and messaging appropriate for ${holidayName}.
-For example:
-- פסח: חירות, משפחה, ליל הסדר, מצות, ניקיון פסח
-- סוכות: שמחה, אושפיזין, סוכה, ארבעת המינים
-- חנוכה: אור, נרות, סופגניות, נסים, חגיגה
-- פורים: שמחה, משלוח מנות, תחפושות, צדקה
-- ראש השנה: שנה טובה, תשובה, תפילה, דבש
-- ימים נוראים: סליחות, תשובה, תפילה, קדושה
-- קיץ/בין הזמנים: חופשה, מנוחה, משפחה, פעילויות
-================================
+=== הקשר חג: ${holidayName} — חובה לשלב ניואנסים מגזריים! ===
+זה לא מספיק לכתוב "לקראת ${holidayName}". חייבים ניואנסים אמיתיים מהחיים החרדיים:
+
+${holidaySeason === 'pesach' ? `פסח — ניואנסים חרדיים ספציפיים לשימוש:
+- "לצאת מהמצרים" (מצרים = מיצרים, גבולות) — משחק מילים קלאסי
+- "מה נשתנה" — ניתן לעשות טוויסט עם המוצר/שירות
+- "בכל דור ודור חייב אדם לראות את עצמו כאילו הוא יצא ממצרים" — חיבור אישי
+- "דיינו" — אפשר להשתמש לומר "עד עכשיו הסתפקתם ב... דיינו? לא! מגיע לכם יותר"
+- ניקיון פסח, מכירת חמץ, שריפת חמץ, קמחא דפסחא
+- "עבדים היינו" — "עבדים היינו לפרסום יקר, עכשיו בני חורין"
+- ליל הסדר, 4 כוסות, אפיקומן, הגדה, "מנהג ישראל"
+- הגעלת כלים, פסח כשר, מהדרין, "שמורה מכל משמר"
+- קניות לחג, בגדי יו"ט, שולחן חג` : ''}
+${holidaySeason === 'sukkot' ? `סוכות — ניואנסים:
+- "ושמחת בחגך" — שימוש לקמפיינים של שמחה
+- אושפיזין, ארבעת המינים, אתרוג מהודר, סכך, נענועים
+- "חג האסיף" — אפשר לקשר ל"לאסוף" הזדמנויות/לקוחות
+- שמחת בית השואבה, הקפות, חול המועד טיולים` : ''}
+${holidaySeason === 'chanukah' ? `חנוכה — ניואנסים:
+- "מוסיף והולך" — מושלם לקמפיינים של צמיחה/הנחות גדלות
+- "נס גדול היה פה" — טוויסט עם המוצר
+- 8 ימים של..., סופגניות, לביבות, חנוכיה, נרות, שמן זית
+- "מעט מן האור דוחה הרבה מן החושך" — חיבור למותג שמאיר` : ''}
+${holidaySeason === 'purim' ? `פורים — ניואנסים:
+- "נהפוך הוא" — מושלם לטוויסט, הפתעות, מבצעים
+- משלוח מנות, מתנות לאביונים, מגילה, תחפושות
+- "ליהודים היתה אורה ושמחה" — שמחה גדולה
+- עד דלא ידע, סעודת פורים, "לרווחה"` : ''}
+${holidaySeason === 'rosh_hashana' || holidaySeason === 'yom_kippur' ? `ימים נוראים — ניואנסים:
+- "כתיבה וחתימה טובה", "שנה טובה ומתוקה"
+- תפוח בדבש, רימון, ראש דג, סימנים
+- "המלך בשדה" — חודש אלול, קירבה
+- תשובה, תפילה, צדקה — מעבירין את רוע הגזירה
+- שופר, סליחות, "מי ייתן ותכתבו"` : ''}
+${holidaySeason === 'shavuot' ? `שבועות — ניואנסים:
+- "זמן מתן תורתנו", לימוד כל הלילה, מאכלי חלב
+- "נעשה ונשמע", חירות אמיתית, הר סיני, מגילת רות` : ''}
+${holidaySeason === 'bein_hazmanim' || holidaySeason === 'summer' ? `בין הזמנים/קיץ — ניואנסים:
+- יציאה מהכולל/ישיבה, זמן למשפחה
+- טיולים כשרים, אטרקציות, בריכות מהודרות
+- "בין הזמנים" — ביטוי ייחודי לחרדים, לא "חופש גדול"
+- נופש משפחתי, צימרים, "להעלות את הסוללות"` : ''}
+=== סוף הקשר חג ===
 ` : ''}
+
+אתה יוצר קונספטים עבור: ${mediaInfo.name}
+פורמט נדרש: ${mediaInfo.format}
+דוגמה: ${mediaInfo.example}
+
+CRITICAL — למד מהרפרנסים:
+אם מצורפים רפרנסים מ-Sector Brain (דוגמאות מוצלחות), לימד מהם את:
+- סגנון הכותרות (האם הם שנוניים? משחקי מילים? ציטוטי חז"ל?)
+- רמת היצירתיות (האם יש טוויסט מפתיע? הומור עדין?)
+- אורך הטקסט והטון
+- השתמש בהם כהשראה, אל תעתיק — תצור משהו חדש באותה רמה
+
 Generate exactly 3 creative concepts for ${isRadio ? 'radio spots' : 'advertising campaigns'}. Each concept should have:
 1. A distinct angle (emotional, hard-sale, or pain-point)
 2. ${isRadio ? 'A radio script with narration instructions' : 'A visual idea description (what the image should show)'}
 3. ${isRadio ? 'The complete radio script in Hebrew (30 seconds)' : 'A short copy/slogan in Hebrew'}
+4. HEADLINE — כותרת שנונה, חזקה, עם משחק מילים או טוויסט מפתיע. זה הדבר הכי חשוב!
 
 Respond ONLY with valid JSON in this exact format:
 {
   "concepts": [
     {
       "type": "emotional",
-      "headline": "הזווית המרגשת",
+      "headline": "כותרת שנונה עם משחק מילים!",
       "idea": "${isRadio ? 'תיאור הספוט והאווירה...' : 'תיאור הויזואל בעברית...'}",
       "copy": "${isRadio ? 'התסריט המלא לקריין...' : 'הקופי בעברית...'}"
     },
     {
       "type": "hard-sale",
-      "headline": "הזווית המכירתית", 
+      "headline": "כותרת מכירתית עם טוויסט!", 
       "idea": "${isRadio ? 'תיאור הספוט והאווירה...' : 'תיאור הויזואל בעברית...'}",
       "copy": "${isRadio ? 'התסריט המלא לקריין...' : 'הקופי בעברית...'}"
     },
     {
       "type": "pain-point",
-      "headline": "פתרון הבעיה",
+      "headline": "כותרת שפותרת בעיה בצורה חכמה!",
       "idea": "${isRadio ? 'תיאור הספוט והאווירה...' : 'תיאור הויזואל בעברית...'}",
       "copy": "${isRadio ? 'התסריט המלא לקריין...' : 'הקופי בעברית...'}"
     }
@@ -218,7 +264,12 @@ ${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${
     // Fetch sector brain references with holiday awareness
     const sectorBrainData = await fetchSectorBrainFromDB(holidaySeason || null);
     const sectorContext = sectorBrainData 
-      ? `\n\nIMPORTANT - Sector Brain References (${sectorBrainData.holiday_specific_count || 0} holiday-specific examples for "${holidayName || 'year round'}"):\n${JSON.stringify(sectorBrainData.zones)}\nUse examples from "hall_of_fame" as positive inspiration. Avoid styles from "red_lines". PRIORITIZE holiday-specific examples when creating seasonal campaigns.`
+      ? `\n\n=== רפרנסים מ-Sector Brain (${sectorBrainData.total_examples} דוגמאות, ${sectorBrainData.holiday_specific_count || 0} ספציפיות ל"${holidayName || 'כל השנה'}") ===
+למד מהדוגמאות האלה! שים לב לסגנון הכותרות, משחקי המילים, הטוויסטים. העלה את הרמה שלך לפחות לרמה הזאת:
+${JSON.stringify(sectorBrainData.zones)}
+דוגמאות מ-"hall_of_fame" = השראה חיובית. "red_lines" = מה לא לעשות.
+בקמפיין עונתי — תעדיף את הדוגמאות הספציפיות לחג!
+=== סוף רפרנסים ===`
       : '';
 
     console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType, 'Campaign offer:', campaignBrief?.offer, 'Holiday:', holidayName, 'Sector brain examples:', sectorBrainData?.total_examples || 0);
