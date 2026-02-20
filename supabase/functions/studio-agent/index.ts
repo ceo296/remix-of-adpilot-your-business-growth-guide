@@ -291,6 +291,24 @@ serve(async (req) => {
     let generatedImageUrl = null;
     if (generateImage && systemCommand?.image_generation_prompt) {
       console.log('Generating image with Nano Banana...');
+      
+      // Build message content - include logo as image input if available
+      const messageContent: any[] = [
+        { type: 'text', text: systemCommand.image_generation_prompt }
+      ];
+      
+      if (brandContext?.logoUrl) {
+        console.log('Including brand logo in image generation:', brandContext.logoUrl);
+        messageContent.unshift({
+          type: 'text',
+          text: `IMPORTANT: The following image is the brand logo. You MUST incorporate this exact logo prominently in the generated design. Place it in a visible position (top-right corner or header area). Do not recreate or modify the logo - use it as-is.`
+        });
+        messageContent.push({
+          type: 'image_url',
+          image_url: { url: brandContext.logoUrl }
+        });
+      }
+      
       const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -300,7 +318,7 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'google/gemini-3-pro-image-preview',
           messages: [
-            { role: 'user', content: systemCommand.image_generation_prompt }
+            { role: 'user', content: messageContent }
           ],
           modalities: ['image', 'text'],
         }),
