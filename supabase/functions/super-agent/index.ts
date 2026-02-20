@@ -6,33 +6,57 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function fetchSectorBrainFromDB(holidaySeason?: string | null) {
+async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCategory?: string | null) {
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const selectFields = 'name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type';
     
-    // Fetch holiday-specific examples first if holiday provided
+    // 1. Topic-specific examples (highest priority)
+    let topicExamples: any[] = [];
+    if (topicCategory) {
+      const { data } = await supabase
+        .from('sector_brain_examples')
+        .select(selectFields)
+        .eq('topic_category', topicCategory)
+        .limit(30);
+      topicExamples = data || [];
+    }
+
+    // 2. Holiday-specific examples
     let holidayExamples: any[] = [];
     if (holidaySeason && holidaySeason !== 'year_round') {
       const { data } = await supabase
         .from('sector_brain_examples')
-        .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
+        .select(selectFields)
         .eq('holiday_season', holidaySeason)
-        .limit(50);
+        .limit(30);
       holidayExamples = data || [];
     }
 
-    // Fetch general examples
+    // 3. General examples (fill remaining quota)
+    const remainingQuota = Math.max(10, 50 - topicExamples.length - holidayExamples.length);
     const generalQuery = supabase
       .from('sector_brain_examples')
-      .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
-      .limit(50);
+      .select(selectFields)
+      .limit(remainingQuota);
+    if (topicCategory) {
+      generalQuery.or(`topic_category.is.null,topic_category.neq.${topicCategory}`);
+    }
     if (holidaySeason && holidaySeason !== 'year_round') {
       generalQuery.or(`holiday_season.is.null,holiday_season.eq.year_round`);
     }
     const { data: generalData, error } = await generalQuery;
     if (error) return null;
 
-    const allExamples = [...holidayExamples, ...(generalData || [])];
+    // Deduplicate by name
+    const seen = new Set<string>();
+    const allExamples: any[] = [];
+    for (const item of [...topicExamples, ...holidayExamples, ...(generalData || [])]) {
+      if (!seen.has(item.name)) {
+        seen.add(item.name);
+        allExamples.push(item);
+      }
+    }
     if (!allExamples.length) return null;
 
     const grouped: Record<string, typeof allExamples> = {};
@@ -43,6 +67,8 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null) {
     }
     return {
       total_examples: allExamples.length,
+      topic_specific_count: topicExamples.length,
+      topic: topicCategory || null,
       holiday_specific_count: holidayExamples.length,
       holiday: holidaySeason || null,
       zones: grouped,
@@ -131,9 +157,10 @@ serve(async (req) => {
   }
 
   try {
-    const { message, clientProfile, campaignContext, sectorBrainData: clientSectorData, conversationHistory } = await req.json();
+    const { message, clientProfile, campaignContext, sectorBrainData: clientSectorData, conversationHistory, topicCategory: reqTopic } = await req.json();
     const detectedHoliday = campaignContext?.timing || campaignContext?.holiday_season || null;
-    const sectorBrainData = clientSectorData || await fetchSectorBrainFromDB(detectedHoliday);
+    const detectedTopic = reqTopic || campaignContext?.topic_category || null;
+    const sectorBrainData = clientSectorData || await fetchSectorBrainFromDB(detectedHoliday, detectedTopic);
 
     if (!message) {
       return new Response(JSON.stringify({ error: 'Missing message' }), {
