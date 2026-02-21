@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus } from 'lucide-react';
 import { AgentPipelineDebug, AgentStep } from '@/components/studio/AgentPipelineDebug';
 import { AIChatWidget } from '@/components/chat/AIChatWidget';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -23,6 +23,7 @@ import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaT
 import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
+import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor';
 
 type AssetChoice = 'full-campaign' | 'has-visual' | 'has-copy';
 type TreatmentChoice = 'as-is' | 'ai-magic';
@@ -34,6 +35,12 @@ interface GeneratedImage {
   url: string;
   status: 'approved' | 'needs-review' | 'rejected' | 'pending';
   analysis?: string;
+  visualOnlyUrl?: string;
+  textMeta?: {
+    headline: string;
+    businessName: string;
+    phone: string;
+  };
 }
 
 interface ClientProfile {
@@ -262,7 +269,7 @@ const CreativeStudio = () => {
   const [showQuote, setShowQuote] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
-  const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
+  const [enlargedImage, setEnlargedImage] = useState<GeneratedImage | null>(null);
   const [overlayEditImage, setOverlayEditImage] = useState<{ id: string; url: string } | null>(null);
   const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
   const [showPipeline, setShowPipeline] = useState(false);
@@ -615,6 +622,8 @@ const CreativeStudio = () => {
             id: `${Date.now()}-${i}`,
             url: data.imageUrl,
             status: 'pending',
+            visualOnlyUrl: data.visualOnlyUrl || undefined,
+            textMeta: data.textMeta || undefined,
           };
           
           results.push(newImage);
@@ -1597,10 +1606,10 @@ const CreativeStudio = () => {
                               size="sm"
                               variant="secondary"
                               className="gap-1.5"
-                              onClick={() => setEnlargedImageUrl(image.url)}
+                              onClick={() => setEnlargedImage(image)}
                             >
-                              <ImageIcon className="h-4 w-4" />
-                              הגדל
+                              <Pencil className="h-4 w-4" />
+                              ערוך טקסט
                             </Button>
                             <Button
                               size="sm"
@@ -1608,8 +1617,8 @@ const CreativeStudio = () => {
                               className="gap-1.5"
                               onClick={() => setOverlayEditImage({ id: image.id, url: image.url })}
                             >
-                              <PenTool className="h-4 w-4" />
-                              הוסף טקסט
+                              <Plus className="h-4 w-4" />
+                              טקסט חופשי
                             </Button>
                           </div>
                         )}
@@ -1774,22 +1783,40 @@ const CreativeStudio = () => {
         } : undefined}
       />
       
-      {/* Enlarged Image Modal */}
-      <Dialog open={!!enlargedImageUrl} onOpenChange={() => setEnlargedImageUrl(null)}>
-        <DialogContent className="max-w-4xl p-2">
+      {/* Enlarged Image Modal with Inline Text Editing */}
+      <Dialog open={!!enlargedImage} onOpenChange={() => setEnlargedImage(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden">
           <button 
-            onClick={() => setEnlargedImageUrl(null)}
-            className="absolute top-2 right-2 z-10 p-1 rounded-full bg-background/80 hover:bg-background transition-colors"
+            onClick={() => setEnlargedImage(null)}
+            className="absolute top-2 left-2 z-10 p-1 rounded-full bg-background/80 hover:bg-background transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
-          {enlargedImageUrl && (
-            <img 
-              src={enlargedImageUrl} 
-              alt="תמונה מוגדלת" 
-              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+          {enlargedImage && enlargedImage.visualOnlyUrl && enlargedImage.textMeta ? (
+            <InlineTextEditor
+              imageUrl={enlargedImage.url}
+              visualOnlyUrl={enlargedImage.visualOnlyUrl}
+              textMeta={enlargedImage.textMeta}
+              onImageUpdate={(newUrl, newMeta) => {
+                setGeneratedImages(prev => prev.map(img =>
+                  img.id === enlargedImage.id ? { ...img, url: newUrl, textMeta: newMeta } : img
+                ));
+                setEnlargedImage(prev => prev ? { ...prev, url: newUrl, textMeta: newMeta } : null);
+              }}
+              onOpenFullEditor={() => {
+                setOverlayEditImage({ id: enlargedImage.id, url: enlargedImage.url });
+                setEnlargedImage(null);
+              }}
             />
-          )}
+          ) : enlargedImage ? (
+            <div className="p-4">
+              <img 
+                src={enlargedImage.url} 
+                alt="תמונה מוגדלת" 
+                className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+              />
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
 
