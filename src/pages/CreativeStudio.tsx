@@ -27,6 +27,8 @@ import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
 import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor';
 import { PrintExportDialog, PrintSettings } from '@/components/studio/PrintExportDialog';
+import { FormatAdaptation } from '@/components/studio/FormatAdaptation';
+import type { AdaptedCreative } from '@/lib/image-resize';
 
 type AssetChoice = 'full-campaign' | 'has-visual' | 'has-copy';
 type TreatmentChoice = 'as-is' | 'ai-magic';
@@ -278,6 +280,8 @@ const CreativeStudio = () => {
   const [overlayEditImage, setOverlayEditImage] = useState<{ id: string; url: string } | null>(null);
   const [printDialogImage, setPrintDialogImage] = useState<GeneratedImage | null>(null);
   const [printDialogMode, setPrintDialogMode] = useState<'single' | 'all'>('single');
+  const [showFormatAdaptation, setShowFormatAdaptation] = useState(false);
+  const [adaptedCreatives, setAdaptedCreatives] = useState<AdaptedCreative[]>([]);
   const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
   const [showPipeline, setShowPipeline] = useState(false);
 
@@ -783,6 +787,8 @@ const CreativeStudio = () => {
     setConcepts([]);
     setSelectedConcept(null);
     setFeedbackType(null);
+    setShowFormatAdaptation(false);
+    setAdaptedCreatives([]);
   };
 
   // Quote handling functions
@@ -922,8 +928,19 @@ const CreativeStudio = () => {
         return;
       }
 
-      setShowQuote(false);
-      setShowSuccess(true);
+      // Show format adaptation step if there are approved creatives
+      const approvedUrls = generatedImages
+        .filter(img => img.status === 'approved' || img.status === 'needs-review')
+        .map(img => img.url);
+      const specIds = quoteData.mediaItems.map(item => item.id);
+
+      if (approvedUrls.length > 0 && specIds.length > 0) {
+        setShowQuote(false);
+        setShowFormatAdaptation(true);
+      } else {
+        setShowQuote(false);
+        setShowSuccess(true);
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error('שגיאה בשליחת ההזמנה');
@@ -932,9 +949,14 @@ const CreativeStudio = () => {
     }
   };
 
+  const handleFormatAdaptationComplete = (adapted: AdaptedCreative[]) => {
+    setAdaptedCreatives(adapted);
+    setShowFormatAdaptation(false);
+    setShowSuccess(true);
+  };
+
   const handleConsultAgent = () => {
     toast.info('נציג יצור איתך קשר בהקדם!');
-    // In production, this could open a chat widget or send a notification
   };
 
   // Helper: build brand context for image generation
@@ -1633,6 +1655,18 @@ const CreativeStudio = () => {
         ) : showSuccess ? (
           /* Success View */
           <SuccessScreen onReset={() => { setShowSuccess(false); resetWizard(); }} />
+        ) : showFormatAdaptation ? (
+          /* Format Adaptation View */
+          <div className="py-6">
+            <FormatAdaptation
+              creativeUrls={generatedImages
+                .filter(img => img.status === 'approved' || img.status === 'needs-review')
+                .map(img => img.url)}
+              mediaSpecIds={selectedMediaPackage?.items.map(item => item.id) || []}
+              onComplete={handleFormatAdaptationComplete}
+              onBack={() => { setShowFormatAdaptation(false); setShowQuote(true); }}
+            />
+          </div>
         ) : showQuote ? (
           /* Quote View */
           <div className="py-6">
