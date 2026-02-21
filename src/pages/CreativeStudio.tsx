@@ -165,6 +165,34 @@ const SuccessScreen = ({ onReset }: { onReset: () => void }) => {
   );
 };
 
+// Topic category detection from campaign text
+const TOPIC_KEYWORDS: Record<string, string[]> = {
+  'real_estate': ['דירה', 'נדל"ן', 'דיור', 'בנייה', 'פרויקט', 'דירות', 'שכירות', 'משכנתא'],
+  'food': ['אוכל', 'מזון', 'מסעדה', 'קייטרינג', 'מאפה', 'בשר', 'עוף', 'בישול', 'מתכון'],
+  'beauty': ['יופי', 'קוסמטיקה', 'טיפוח', 'שיער', 'פאה', 'איפור'],
+  'health': ['בריאות', 'רפואה', 'רופא', 'טיפול', 'תרופה', 'רפואי'],
+  'education': ['חינוך', 'לימוד', 'ישיבה', 'סמינר', 'בית ספר', 'קורס', 'חוג'],
+  'womens_fashion': ['אופנה נשים', 'שמלה', 'בגד נשים', 'ביגוד נשים'],
+  'mens_fashion': ['חליפה', 'חולצה', 'כובע', 'ביגוד גברים'],
+  'kids_fashion': ['ילדים', 'תינוק', 'בגדי ילדים'],
+  'jewelry': ['תכשיט', 'טבעת', 'שרשרת', 'זהב', 'יהלום'],
+  'electronics': ['אלקטרוניקה', 'מחשב', 'טלפון', 'סלולר'],
+  'events': ['אירוע', 'חתונה', 'שמחה', 'אולם', 'בר מצווה'],
+  'furniture': ['רהיט', 'מטבח', 'ספה', 'ארון', 'ריהוט'],
+  'hotels': ['מלון', 'צימר', 'נופש', 'חופשה', 'בין הזמנים'],
+  'finance': ['ביטוח', 'פיננסי', 'הלוואה', 'השקעה', 'בנק'],
+  'judaica': ['ספרי קודש', 'תשמישי קדושה', 'יודאיקה', 'מזוזה', 'תפילין'],
+  'toys': ['צעצוע', 'משחק', 'בובה'],
+};
+
+function detectTopicCategory(text: string): string | null {
+  const lower = text.toLowerCase();
+  for (const [topic, keywords] of Object.entries(TOPIC_KEYWORDS)) {
+    if (keywords.some(kw => lower.includes(kw))) return topic;
+  }
+  return null;
+}
+
 const CreativeStudio = () => {
   const [searchParams] = useSearchParams();
   
@@ -556,6 +584,8 @@ const CreativeStudio = () => {
       for (let i = 0; i < 4; i++) {
         toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
         
+        const detectedTopic = detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title);
+        
         const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
             visualPrompt,
@@ -567,6 +597,7 @@ const CreativeStudio = () => {
             dimensions: selectedTemplate?.dimensions || null,
             brandContext,
             campaignContext,
+            topicCategory: detectedTopic,
           }
         });
 
@@ -850,6 +881,8 @@ const CreativeStudio = () => {
         x_factors: ['איכות', 'מחיר', 'שירות']
       };
 
+      const detectedTopic = detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title + ' ' + (clientProfile?.primary_x_factor || ''));
+
       const { data, error } = await supabase.functions.invoke('generate-concepts', {
         body: { 
           profile, 
@@ -860,6 +893,7 @@ const CreativeStudio = () => {
             goal: campaignBrief.goal,
           },
           holidaySeason: selectedHoliday || null,
+          topicCategory: detectedTopic,
         }
       });
 
@@ -954,6 +988,8 @@ const CreativeStudio = () => {
           ? `${selectedConcept.copy} - ${campaignBrief.offer}`
           : selectedConcept.copy;
 
+        const detectedTopic = detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title);
+
         const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
             visualPrompt: enhancedVisualPrompt,
@@ -962,6 +998,7 @@ const CreativeStudio = () => {
             engine: 'nano-banana',
             brandContext,
             campaignContext,
+            topicCategory: detectedTopic,
           }
         });
 

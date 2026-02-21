@@ -157,7 +157,7 @@ export const useAdkopAgents = () => {
       const sectorBrainData = await fetchSectorBrainData(detectedTopic);
 
       const { data, error } = await supabase.functions.invoke('creative-agent', {
-        body: { message, campaignContext, brandContext, sectorBrainData },
+        body: { message, campaignContext, brandContext, sectorBrainData, topicCategory: detectedTopic },
       });
 
       if (error) throw error;
