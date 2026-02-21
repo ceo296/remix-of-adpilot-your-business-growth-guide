@@ -1,6 +1,7 @@
 /**
  * Programmatic Hebrew text overlay using Canvas.
  * Replaces AI-based text rendering to guarantee perfect Hebrew every time.
+ * Designed for professional print-quality ad layouts.
  */
 
 export interface TextOverlayConfig {
@@ -9,6 +10,7 @@ export interface TextOverlayConfig {
   phone?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  backgroundColor?: string;
 }
 
 /**
@@ -22,18 +24,6 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.onerror = reject;
     img.src = src;
   });
-}
-
-/**
- * Truncates headline to fit within maxWidth, adding "..." if needed
- */
-function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-  if (ctx.measureText(text).width <= maxWidth) return text;
-  let truncated = text;
-  while (truncated.length > 0 && ctx.measureText(truncated + '...').width > maxWidth) {
-    truncated = truncated.slice(0, -1);
-  }
-  return truncated + '...';
 }
 
 /**
@@ -57,21 +47,58 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   
   // Limit to 3 lines max
   if (lines.length > 3) {
-    const lastLine = truncateText(ctx, lines[2], maxWidth);
-    return [lines[0], lines[1], lastLine];
+    let truncated = lines[2];
+    while (truncated.length > 0 && ctx.measureText(truncated + '...').width > maxWidth) {
+      truncated = truncated.slice(0, -1);
+    }
+    return [lines[0], lines[1], truncated + '...'];
   }
   return lines;
 }
 
 /**
+ * Parses a color string and returns rgba with given alpha.
+ * Handles hex, rgb, hsl formats.
+ */
+function colorWithAlpha(color: string, alpha: number): string {
+  // If already rgba, replace alpha
+  if (color.startsWith('rgba')) {
+    return color.replace(/[\d.]+\)$/, `${alpha})`);
+  }
+  // Hex color
+  if (color.startsWith('#')) {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+  // Fallback
+  return color;
+}
+
+/**
+ * Determines if a hex color is "light" (should use dark text on it).
+ */
+function isLightColor(hex: string): boolean {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6;
+}
+
+/**
  * Applies Hebrew text overlay on top of an image using Canvas.
+ * Uses brand colors for a professional ad layout.
  * Returns a data URL of the composited image.
  */
 export async function applyTextOverlay(
   imageUrl: string,
   config: TextOverlayConfig
 ): Promise<string> {
-  const { headline, businessName, phone, primaryColor, secondaryColor } = config;
+  const { headline, businessName, phone, primaryColor, secondaryColor, backgroundColor } = config;
 
   // If no text to apply, return original
   if (!headline && !businessName && !phone) return imageUrl;
@@ -91,83 +118,118 @@ export async function applyTextOverlay(
 
   const w = canvas.width;
   const h = canvas.height;
-  const padding = w * 0.06;
-  const maxTextWidth = w * 0.85;
+  const padding = w * 0.05;
+  const maxTextWidth = w * 0.88;
 
-  // Semi-transparent dark band at bottom for text readability
-  const bandHeight = h * 0.35;
-  const gradient = ctx.createLinearGradient(0, h - bandHeight, 0, h);
-  gradient.addColorStop(0, 'rgba(0,0,0,0)');
-  gradient.addColorStop(0.3, 'rgba(0,0,0,0.6)');
-  gradient.addColorStop(1, 'rgba(0,0,0,0.85)');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, h - bandHeight, w, bandHeight);
+  // Use brand colors
+  const brandPrimary = primaryColor || '#2BA5B5'; // Default to teal if no brand color
+  const brandSecondary = secondaryColor || '#333333';
+  const bandBg = backgroundColor || brandPrimary;
 
-  // Accent color bar
-  const accentColor = primaryColor || '#f9b17a';
-  ctx.fillStyle = accentColor;
-  ctx.fillRect(w - padding, h - bandHeight * 0.8, 4, bandHeight * 0.6);
+  // === Bottom band with brand primary color ===
+  const bandHeight = h * 0.22;
+  const bandY = h - bandHeight;
 
-  let currentY = h - bandHeight * 0.7;
+  // Solid brand-colored band at the bottom
+  ctx.fillStyle = colorWithAlpha(bandBg, 0.92);
+  ctx.fillRect(0, bandY, w, bandHeight);
 
-  // Business name (large, bold)
+  // Thin accent line at top of band
+  ctx.fillStyle = brandPrimary;
+  ctx.fillRect(0, bandY, w, 4);
+
+  // === Business Name - inside the colored band, large and bold ===
+  let bandContentY = bandY + bandHeight * 0.38;
+
   if (businessName) {
-    const fontSize = Math.round(w * 0.055);
+    const fontSize = Math.round(w * 0.052);
     ctx.font = `bold ${fontSize}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = accentColor;
     
-    // Shadow for readability
-    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
+    // White text on dark band, or dark text on light band
+    const textOnBand = isLightColor(bandBg) ? '#1a1a1a' : '#FFFFFF';
+    ctx.fillStyle = textOnBand;
     
-    ctx.fillText(businessName, w - padding - 12, currentY);
-    currentY += fontSize * 1.4;
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    
+    ctx.fillText(businessName, w - padding, bandContentY);
+    bandContentY += fontSize * 1.5;
     
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
   }
 
-  // Headline (medium, white, multi-line)
-  if (headline) {
-    const fontSize = Math.round(w * 0.038);
+  // === Phone - inside band, below business name ===
+  if (phone) {
+    const fontSize = Math.round(w * 0.034);
     ctx.font = `600 ${fontSize}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = '#FFFFFF';
+    const textOnBand = isLightColor(bandBg) ? '#333333' : '#e8e8e8';
+    ctx.fillStyle = textOnBand;
     
-    ctx.shadowColor = 'rgba(0,0,0,0.7)';
-    ctx.shadowBlur = 4;
+    ctx.fillText(phone, w - padding, bandContentY);
+  }
+
+  // === Headline - ABOVE the band, on top of the image with brand color background pill ===
+  if (headline) {
+    const fontSize = Math.round(w * 0.042);
+    ctx.font = `bold ${fontSize}px "Heebo", "Arial", sans-serif`;
+    
+    const lines = wrapText(ctx, headline.length > 80 ? headline.substring(0, 77) + '...' : headline, maxTextWidth * 0.9);
+    const lineHeight = fontSize * 1.45;
+    const totalTextHeight = lines.length * lineHeight;
+    const blockPadding = fontSize * 0.4;
+    
+    // Position headline block just above the band
+    const blockBottom = bandY - fontSize * 0.4;
+    const blockTop = blockBottom - totalTextHeight - blockPadding * 2;
+    
+    // Semi-transparent background behind headline for readability
+    const bgRoundRect = (x: number, y: number, rw: number, rh: number, radius: number) => {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + rw - radius, y);
+      ctx.quadraticCurveTo(x + rw, y, x + rw, y + radius);
+      ctx.lineTo(x + rw, y + rh - radius);
+      ctx.quadraticCurveTo(x + rw, y + rh, x + rw - radius, y + rh);
+      ctx.lineTo(x + radius, y + rh);
+      ctx.quadraticCurveTo(x, y + rh, x, y + rh - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    };
+    
+    // Measure widest line for background
+    let maxLineWidth = 0;
+    for (const line of lines) {
+      const lw = ctx.measureText(line).width;
+      if (lw > maxLineWidth) maxLineWidth = lw;
+    }
+    
+    // Draw background pill behind headline
+    const bgX = w - padding - maxLineWidth - blockPadding * 2;
+    bgRoundRect(bgX, blockTop, maxLineWidth + blockPadding * 3, totalTextHeight + blockPadding * 2, 8);
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fill();
+    
+    // Draw headline text in brand primary color
+    ctx.fillStyle = brandPrimary;
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 3;
     ctx.shadowOffsetX = 1;
     ctx.shadowOffsetY = 1;
     
-    // Truncate to max ~60 chars for headline display
-    const shortHeadline = headline.length > 80 ? headline.substring(0, 77) + '...' : headline;
-    const lines = wrapText(ctx, shortHeadline, maxTextWidth);
-    
+    let textY = blockTop + blockPadding + fontSize;
     for (const line of lines) {
-      ctx.fillText(line, w - padding - 12, currentY);
-      currentY += fontSize * 1.35;
+      ctx.fillText(line, w - padding - blockPadding, textY);
+      textY += lineHeight;
     }
     
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-  }
-
-  // Phone (small, at bottom)
-  if (phone) {
-    const fontSize = Math.round(w * 0.032);
-    ctx.font = `500 ${fontSize}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = secondaryColor || '#e0e0e0';
-    
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-    ctx.shadowBlur = 3;
-    
-    // Phone at bottom right
-    ctx.fillText(phone, w - padding - 12, h - padding);
-    
-    ctx.shadowBlur = 0;
   }
 
   return canvas.toDataURL('image/png');
