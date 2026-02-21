@@ -221,10 +221,7 @@ const ClientProfilePage = () => {
       return;
     }
 
-    if (profile.logo_url.toLowerCase().endsWith('.pdf')) {
-      toast.error('לא ניתן לחלץ צבעים מקובץ PDF. נא להעלות לוגו כתמונה.');
-      return;
-    }
+    // PDFs are now supported by the edge function
 
     setIsExtractingColors(true);
     toast.loading('מנתח צבעים מהלוגו...', { id: 'profile-color-extract' });
@@ -482,7 +479,7 @@ const ClientProfilePage = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleExtractColorsFromLogo}
-                  disabled={isExtractingColors || !profile.logo_url || profile.logo_url.toLowerCase().endsWith('.pdf')}
+                  disabled={isExtractingColors || !profile.logo_url}
                 >
                   <Sparkles className="w-4 h-4 ml-2" />
                   {isExtractingColors ? 'מחלץ...' : 'חלץ מהלוגו'}

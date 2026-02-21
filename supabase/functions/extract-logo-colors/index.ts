@@ -38,9 +38,19 @@ serve(async (req) => {
     }
 
     // Normalize base64 inputs (support both full data URLs and raw base64 strings)
-    const normalizedBase64 = imageBase64
-      ? (imageBase64.startsWith("data:") ? imageBase64 : `data:image/png;base64,${imageBase64}`)
-      : null;
+    let normalizedBase64 = null;
+    let isPdf = false;
+    
+    if (imageBase64) {
+      if (imageBase64.startsWith("data:application/pdf")) {
+        normalizedBase64 = imageBase64;
+        isPdf = true;
+      } else if (imageBase64.startsWith("data:")) {
+        normalizedBase64 = imageBase64;
+      } else {
+        normalizedBase64 = `data:image/png;base64,${imageBase64}`;
+      }
+    }
 
     // Use base64 if provided, otherwise use URL
     const imageContent = normalizedBase64 || imageUrl;
@@ -49,6 +59,7 @@ serve(async (req) => {
     console.log("extract-logo-colors input:", {
       hasImageUrl: !!imageUrl,
       hasImageBase64: !!imageBase64,
+      isPdf,
       base64Prefix: typeof imageBase64 === "string" ? imageBase64.slice(0, 32) : null,
     });
 
