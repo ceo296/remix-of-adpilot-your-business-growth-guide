@@ -1335,6 +1335,7 @@ const CreativeStudio = () => {
               onTargetCityChange={setMediaTargetCity}
               selectedPackage={selectedMediaPackage}
               onPackageSelect={setSelectedMediaPackage}
+              selectedMediaTypes={mediaTypes}
             />
 
             {/* Continue to Quote Button */}
