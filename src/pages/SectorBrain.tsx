@@ -37,7 +37,7 @@ type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio';
 type ExampleType = 'good' | 'bad';
 type StreamType = 'hasidic' | 'litvish' | 'general' | 'sephardic';
 type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'youth' | 'classic';
-type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_internet' | 'electronics' | 'hotels' | 'mens_fashion' | 'kids_fashion' | 'womens_fashion' | 'makeup' | 'education' | 'health' | 'finance' | 'events' | 'judaica' | 'toys' | 'furniture' | 'jewelry' | 'other';
+type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_internet' | 'electronics' | 'hotels' | 'mens_fashion' | 'kids_fashion' | 'womens_fashion' | 'wigs' | 'makeup' | 'education' | 'health' | 'finance' | 'events' | 'judaica' | 'toys' | 'furniture' | 'jewelry' | 'other';
 type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round';
 
 const MEDIA_TYPES: { id: MediaType; label: string; icon: React.ElementType }[] = [
@@ -76,6 +76,7 @@ const TOPIC_LABELS: Record<TopicCategory, string> = {
   mens_fashion: 'אופנה גברית',
   kids_fashion: 'אופנת ילדים',
   womens_fashion: 'אופנת נשים',
+  wigs: 'פאות',
   makeup: 'איפור וקוסמטיקה',
   education: 'לימודים וחינוך',
   health: 'בריאות',
