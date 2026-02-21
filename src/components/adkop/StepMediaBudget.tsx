@@ -81,6 +81,7 @@ const StepMediaBudget = ({ items, isLoading, error, onRetry }: Props) => {
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="text-right font-bold">ערוץ</TableHead>
+              <TableHead className="text-right font-bold">מוצר / גודל</TableHead>
               <TableHead className="text-right font-bold">היגיון חשיפה</TableHead>
               <TableHead className="text-right font-bold">מחיר משוער</TableHead>
             </TableRow>
@@ -89,6 +90,11 @@ const StepMediaBudget = ({ items, isLoading, error, onRetry }: Props) => {
             {items.map((item, i) => (
               <TableRow key={i} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-semibold text-foreground">{item.channel}</TableCell>
+                <TableCell className="text-sm text-foreground">
+                  {item.productName && <span className="block font-medium">{item.productName}</span>}
+                  {item.specName && <span className="block text-muted-foreground">{item.specName}</span>}
+                  {item.dimensions && <span className="block text-xs text-muted-foreground">{item.dimensions}</span>}
+                </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{item.reachReasoning}</TableCell>
                 <TableCell className="font-bold text-primary">{item.estimatedPrice}</TableCell>
               </TableRow>
