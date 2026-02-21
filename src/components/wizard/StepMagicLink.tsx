@@ -345,7 +345,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
               {/* Upload area or preview */}
               {logoFile || data.brand.logo ? (
                 <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300">
-                  {(logoFile?.type?.startsWith('image/') || (data.brand.logo && !data.brand.logo.includes('.pdf'))) ? (
+                  {(logoFile?.type?.startsWith('image/') || (data.brand.logo && !data.brand.logo.startsWith('data:application/pdf'))) ? (
                     <img
                       src={logoFile?.dataUrl || data.brand.logo || ''}
                       alt="לוגו"
