@@ -178,10 +178,9 @@ CRITICAL RULES:
 - ABSOLUTELY NO women or girls in any form
 - Full modesty standards - men in traditional attire if shown
 - Clean, premium, professional design
-- MINIMAL TEXT ONLY: Maximum 3-5 Hebrew words as headline. NO paragraphs, NO long sentences
-- Hebrew text must be RIGHT-TO-LEFT, clear and readable. If you cannot render Hebrew correctly, leave text areas EMPTY for later overlay
-- The design should be 80% visual, 20% text areas
-- DO NOT fill the image with text blocks - use bold typography for just the main headline
+- ABSOLUTELY NO TEXT IN THE IMAGE. Do NOT render any Hebrew letters, words, or numbers. Leave all text areas completely blank/empty. Text will be added later as overlay by a professional designer.
+- The design should be 100% visual with designated empty spaces where text can be placed later
+- NO phone numbers, NO headlines, NO captions, NO watermarks - ZERO text of any kind
 
 VISUAL CONCEPT: ${effectiveVisualPrompt}
 STYLE: ${styleDesc}
@@ -192,12 +191,12 @@ ${brandContext ? `BRAND: "${brandContext.businessName || ''}" - ${brandContext.t
 
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
 
-${textPrompt ? `HEADLINE TEXT (render in large, bold Hebrew typography - ONLY these words): "${textPrompt}"` : 'Leave space for headline text to be added later as overlay.'}
+Leave designated empty areas for headline text and contact info to be added later as professional overlay.
 
 ${sectorInsights}
 ${modelRules}
 
-IMPORTANT: Create a VISUALLY STRIKING image. Think billboard/magazine ad - strong hero image, bold colors, minimal text. NOT a document or flyer full of text.`;
+IMPORTANT: Create a VISUALLY STRIKING image with NO TEXT whatsoever. Think billboard/magazine ad - strong hero image, bold colors, beautiful composition. Text will be overlaid separately.`;
 
     console.log("Enhanced prompt length:", fullPrompt.length);
 
@@ -209,6 +208,19 @@ IMPORTANT: Create a VISUALLY STRIKING image. Think billboard/magazine ad - stron
     if (LOVABLE_API_KEY) {
       const models = ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'];
       
+      // Build message content - include logo as image input if available
+      const messageContent: any[] = [{ type: "text", text: fullPrompt }];
+      
+      if (brandContext?.logoUrl) {
+        console.log("Including brand logo in image generation:", brandContext.logoUrl);
+        messageContent.push({
+          type: "image_url",
+          image_url: { url: brandContext.logoUrl }
+        });
+        // Prepend logo instruction to the prompt
+        messageContent[0].text = `IMPORTANT: The attached image is the brand's LOGO. You MUST incorporate this exact logo prominently in the top-right or top-left corner of the advertisement design. Do not modify the logo - use it as-is.\n\n` + messageContent[0].text;
+      }
+      
       for (const tryModel of models) {
         console.log("Trying Lovable gateway model:", tryModel);
         response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -219,7 +231,7 @@ IMPORTANT: Create a VISUALLY STRIKING image. Think billboard/magazine ad - stron
           },
           body: JSON.stringify({
             model: tryModel,
-            messages: [{ role: "user", content: fullPrompt }],
+            messages: [{ role: "user", content: messageContent }],
             modalities: ["image", "text"]
           }),
         });
