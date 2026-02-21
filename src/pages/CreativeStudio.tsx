@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn } from 'lucide-react';
 import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
 import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
 import { AgentPipelineDebug, AgentStep } from '@/components/studio/AgentPipelineDebug';
@@ -1658,12 +1658,7 @@ const CreativeStudio = () => {
                 הסקיצות שלך
               </h2>
               <div className="flex gap-2">
-                {generatedImages.filter(i => i.status !== 'rejected').length > 0 && (
-                  <Button variant="outline" onClick={handleExportAllPrint} className="gap-1.5">
-                    <FileDown className="h-4 w-4" />
-                    PDF לדפוס
-                  </Button>
-                )}
+                {/* PDF export button hidden - available after approval in media flow */}
                 <Button variant="outline" onClick={() => {
                   setShowResults(false);
                   setCurrentStep(0);
@@ -1724,33 +1719,15 @@ const CreativeStudio = () => {
                         {image.status !== 'rejected' && image.status !== 'pending' && (
                           <div 
                             className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 cursor-pointer"
+                            onClick={() => setEnlargedImage(image)}
                           >
                             <Button
                               size="sm"
                               variant="secondary"
                               className="gap-1.5"
-                              onClick={() => setEnlargedImage(image)}
                             >
-                              <Pencil className="h-4 w-4" />
-                              ערוך טקסט
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="gap-1.5"
-                              onClick={() => setOverlayEditImage({ id: image.id, url: image.url })}
-                            >
-                              <Plus className="h-4 w-4" />
-                              טקסט חופשי
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="gap-1.5"
-                              onClick={() => handleExportPrint(image)}
-                            >
-                              <FileDown className="h-4 w-4" />
-                              דפוס
+                              <ZoomIn className="h-4 w-4" />
+                              הגדל
                             </Button>
                           </div>
                         )}

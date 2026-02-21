@@ -119,15 +119,6 @@ export const InlineTextEditor = ({
             <Type className="h-4 w-4 text-primary" />
             עריכת טקסטים
           </h4>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs gap-1 text-muted-foreground"
-            onClick={onOpenFullEditor}
-          >
-            <Plus className="h-3 w-3" />
-            הוסף שורת טקסט חופשית
-          </Button>
         </div>
 
         {fieldConfig.map(({ key, label, icon }) => (
