@@ -229,6 +229,7 @@ const CreativeStudio = () => {
   const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('none');
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackType, setFeedbackType] = useState<FeedbackType>(null);
+  const [pendingCorrections, setPendingCorrections] = useState<Array<{type: string; text: string}>>([]);
   
   // Autopilot state
   const [concepts, setConcepts] = useState<CreativeConcept[]>([]);
@@ -653,6 +654,7 @@ const CreativeStudio = () => {
             topicCategory: detectedTopic,
             holidaySeason: selectedHoliday || null,
             aspectRatio,
+            corrections: pendingCorrections.length > 0 ? pendingCorrections : undefined,
           }
         });
 
@@ -832,32 +834,21 @@ const CreativeStudio = () => {
       return;
     }
     
-    // Append feedback to the prompts so the AI regenerates with corrections
-    const correctionPrefix = feedbackType === 'copy' 
-      ? 'תיקוני טקסט מהלקוח: ' 
-      : feedbackType === 'visual' 
-        ? 'תיקוני עיצוב מהלקוח: ' 
-        : 'תיקונים מהלקוח: ';
-    
-    const correctionNote = correctionPrefix + feedbackText.trim();
-    
-    // Update the visual prompt with the correction context
-    const originalVisualPrompt = visualPrompt;
-    setVisualPrompt(prev => prev + '\n\n' + correctionNote);
-    
-    if (feedbackType === 'copy' && textPrompt) {
-      setTextPrompt(prev => prev + '\n\n' + correctionNote);
-    }
+    // Store correction as separate context — do NOT pollute the visual/text prompts
+    const newCorrection = {
+      type: feedbackType || 'general',
+      text: feedbackText.trim(),
+    };
+    setPendingCorrections(prev => [...prev, newCorrection]);
     
     toast.info('מייצר סקיצות מתוקנות... 🎨');
     
     // Reset feedback UI
-    const savedFeedback = feedbackText;
     setFeedbackMode('none');
     setFeedbackText('');
     setFeedbackType(null);
     
-    // Regenerate with corrections baked into the prompt
+    // Regenerate — corrections will be passed as separate field to the edge function
     await handleGenerate();
   };
 
