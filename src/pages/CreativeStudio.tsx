@@ -1670,10 +1670,19 @@ const CreativeStudio = () => {
         ) : showQuote ? (
           /* Quote View */
           <div className="py-6">
-            <div className="mb-6">
-              <Button variant="ghost" onClick={() => { setShowQuote(false); setShowMediaSelection(true); }} className="mb-4">
+            <div className="mb-6 flex items-center justify-between">
+              <Button variant="ghost" onClick={() => { setShowQuote(false); setShowMediaSelection(true); }}>
                 <ChevronRight className="h-4 w-4 ml-1" />
                 חזרה לבחירת מדיה
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={handleExportAllPrint}
+              >
+                <FileDown className="h-4 w-4" />
+                PDF לדפוס
               </Button>
             </div>
             <StudioQuoteStep
