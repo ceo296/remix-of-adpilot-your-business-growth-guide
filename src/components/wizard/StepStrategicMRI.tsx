@@ -485,7 +485,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                     placeholder="שם המתחרה..."
                     onKeyDown={(e) => e.key === 'Enter' && addCompetitor()}
                     disabled={mri.competitors.length >= 3}
-                    className={`h-14 text-lg bg-white ${!hasValidCompetitors ? 'border-destructive border-2' : 'border-slate-300'}`}
+                    className={`h-14 text-lg bg-background text-foreground ${!hasValidCompetitors ? 'border-destructive border-2' : 'border-slate-300'}`}
                   />
                   <Button
                     onClick={addCompetitor}
