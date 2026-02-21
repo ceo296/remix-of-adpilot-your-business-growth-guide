@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { MediaType } from '@/components/studio/StudioMediaTypeStep';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -59,7 +60,18 @@ interface BudgetAudienceStepProps {
   onPackageSelect: (pkg: MediaPackage) => void;
   onManualMediaSelect?: (selection: any) => void;
   manualMediaSelection?: any;
+  selectedMediaTypes?: MediaType[];
 }
+
+// Map studio MediaType to DB category names
+const MEDIA_TYPE_TO_CATEGORIES: Record<MediaType, string[]> = {
+  ad: ['daily_press', 'national_print', 'weekend_news', 'local_print', 'magazines', 'women_magazines'],
+  radio: ['radio'],
+  banner: ['digital'],
+  billboard: ['outdoor', 'street'],
+  social: ['digital'],
+  all: [], // empty = no filter
+};
 
 // "general" first as the primary option (כלל הציבור החרדי)
 const STREAMS = [
@@ -102,6 +114,7 @@ export const BudgetAudienceStep = ({
   onPackageSelect,
   onManualMediaSelect,
   manualMediaSelection,
+  selectedMediaTypes = [],
 }: BudgetAudienceStepProps) => {
   const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [isLoadingPackages, setIsLoadingPackages] = useState(false);
@@ -112,12 +125,37 @@ export const BudgetAudienceStep = ({
     if (budget > 0 && targetStream && targetGender) {
       generatePackages();
     }
-  }, [budget, targetStream, targetGender, targetCity]);
+  }, [budget, targetStream, targetGender, targetCity, selectedMediaTypes]);
 
   const generatePackages = async () => {
     setIsLoadingPackages(true);
     
-    // Fetch media outlets that match the criteria
+    // Determine which category names to filter by based on selected media types
+    const allowedCategories: string[] = [];
+    const hasAll = selectedMediaTypes.length === 0 || selectedMediaTypes.includes('all');
+    if (!hasAll) {
+      for (const mt of selectedMediaTypes) {
+        const cats = MEDIA_TYPE_TO_CATEGORIES[mt];
+        if (cats) allowedCategories.push(...cats);
+      }
+    }
+
+    // Fetch categories to get IDs for filtering
+    const { data: categories } = await supabase
+      .from('media_categories')
+      .select('id, name, name_he');
+
+    const categoryIds = (categories || [])
+      .filter(c => hasAll || allowedCategories.includes(c.name))
+      .map(c => c.id);
+
+    if (categoryIds.length === 0) {
+      setPackages([]);
+      setIsLoadingPackages(false);
+      return;
+    }
+
+    // Fetch outlets filtered by relevant categories
     const { data: outlets } = await supabase
       .from('media_outlets')
       .select(`
@@ -125,105 +163,170 @@ export const BudgetAudienceStep = ({
         name,
         name_he,
         reach_info,
-        vibe_he,
         stream,
+        category_id,
         media_products (
           id,
           name,
           name_he,
           client_price,
           gender_target,
-          target_audience
+          product_specs (
+            id,
+            name,
+            name_he,
+            client_price,
+            dimensions
+          )
         )
       `)
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .in('category_id', categoryIds);
 
     if (!outlets || outlets.length === 0) {
-      // Create mock packages if no real data
-      const mockPackages: MediaPackage[] = [
-        {
-          id: 'economy',
-          name: 'חבילה חסכונית',
-          description: 'מיקסום חשיפה בתקציב מוגבל',
-          totalPrice: Math.min(budget * 0.7, budget),
-          items: [
-            { id: '1', name: 'כיכר השבת - באנר', price: budget * 0.3, reach: '50K צפיות' },
-            { id: '2', name: 'בחדרי חרדים - פוסט', price: budget * 0.4, reach: '30K צפיות' },
-          ],
-        },
-        {
-          id: 'standard',
-          name: 'חבילה מאוזנת',
-          description: 'איזון בין חשיפה לעלות',
-          totalPrice: budget,
-          recommended: true,
-          items: [
-            { id: '3', name: 'יתד נאמן - מודעה', price: budget * 0.5, reach: '80K קוראים' },
-            { id: '4', name: 'כיכר השבת - באנר ראשי', price: budget * 0.3, reach: '100K צפיות' },
-            { id: '5', name: 'רדיו קול חי - ספוט', price: budget * 0.2, reach: '40K מאזינים' },
-          ],
-        },
-        {
-          id: 'premium',
-          name: 'חבילה פרימיום',
-          description: 'חשיפה מקסימלית ומגוונת',
-          totalPrice: budget * 1.2,
-          items: [
-            { id: '6', name: 'יתד נאמן - עמוד שלם', price: budget * 0.4, reach: '80K קוראים' },
-            { id: '7', name: 'המודיע - חצי עמוד', price: budget * 0.3, reach: '60K קוראים' },
-            { id: '8', name: 'כיכר השבת - באנר ראשי', price: budget * 0.25, reach: '100K צפיות' },
-            { id: '9', name: 'רדיו קול חי - קמפיין', price: budget * 0.25, reach: '40K מאזינים' },
-          ],
-        },
-      ];
-      setPackages(mockPackages);
-    } else {
-      // Build packages from real data
-      // For now, use mock data - in production, filter by stream/gender/city
-      const mockPackages: MediaPackage[] = [
-        {
-          id: 'economy',
-          name: 'חבילה חסכונית',
-          description: 'מיקסום חשיפה בתקציב מוגבל',
-          totalPrice: Math.min(budget * 0.7, budget),
-          items: outlets.slice(0, 2).map((o, i) => ({
-            id: o.id,
-            name: o.name_he || o.name,
-            price: budget * (0.3 + i * 0.1),
-            reach: o.reach_info || undefined,
-          })),
-        },
-        {
-          id: 'standard',
-          name: 'חבילה מאוזנת',
-          description: 'איזון בין חשיפה לעלות',
-          totalPrice: budget,
-          recommended: true,
-          items: outlets.slice(0, 3).map((o, i) => ({
-            id: o.id,
-            name: o.name_he || o.name,
-            price: budget * (0.25 + i * 0.1),
-            reach: o.reach_info || undefined,
-          })),
-        },
-        {
-          id: 'premium',
-          name: 'חבילה פרימיום',
-          description: 'חשיפה מקסימלית ומגוונת',
-          totalPrice: budget * 1.2,
-          items: outlets.slice(0, 4).map((o, i) => ({
-            id: o.id,
-            name: o.name_he || o.name,
-            price: budget * (0.2 + i * 0.1),
-            reach: o.reach_info || undefined,
-          })),
-        },
-      ];
-      setPackages(mockPackages);
+      setPackages([]);
+      setIsLoadingPackages(false);
+      return;
     }
-    
+
+    // Filter by stream if not "general"
+    let filtered = outlets;
+    if (targetStream && targetStream !== 'general') {
+      const streamMap: Record<string, string[]> = {
+        litvish: ['ליטאי', 'litvish'],
+        hasidic: ['חסידי', 'hasidic', 'chassidic'],
+        sephardi: ['ספרדי', 'sephardi'],
+      };
+      const streamTerms = streamMap[targetStream] || [];
+      const streamFiltered = outlets.filter(o => 
+        !o.stream || streamTerms.some(t => o.stream?.includes(t))
+      );
+      if (streamFiltered.length > 0) filtered = streamFiltered;
+    }
+
+    // Build flat list of purchasable items (product+spec combos) with real prices
+    interface FlatItem {
+      outletName: string;
+      productName: string;
+      specName: string;
+      dimensions: string;
+      price: number;
+      reach?: string;
+      id: string;
+    }
+
+    const flatItems: FlatItem[] = [];
+    for (const outlet of filtered) {
+      const products = outlet.media_products || [];
+      for (const product of products) {
+        // Filter by gender
+        if (targetGender && targetGender !== 'family' && product.gender_target) {
+          const genderMap: Record<string, string[]> = {
+            men: ['גברים', 'men', 'male'],
+            women: ['נשים', 'women', 'female'],
+          };
+          const terms = genderMap[targetGender] || [];
+          if (!terms.some(t => product.gender_target?.includes(t))) continue;
+        }
+
+        const specs = (product as any).product_specs || [];
+        if (specs.length > 0) {
+          for (const spec of specs) {
+            const price = spec.client_price || product.client_price;
+            if (!price || price <= 0) continue;
+            flatItems.push({
+              id: spec.id,
+              outletName: outlet.name_he || outlet.name,
+              productName: product.name_he || product.name,
+              specName: spec.name_he || spec.name,
+              dimensions: spec.dimensions || '',
+              price,
+              reach: outlet.reach_info || undefined,
+            });
+          }
+        } else if (product.client_price && product.client_price > 0) {
+          flatItems.push({
+            id: product.id,
+            outletName: outlet.name_he || outlet.name,
+            productName: product.name_he || product.name,
+            specName: '',
+            dimensions: '',
+            price: product.client_price,
+            reach: outlet.reach_info || undefined,
+          });
+        }
+      }
+    }
+
+    // Sort by price ascending
+    flatItems.sort((a, b) => a.price - b.price);
+
+    if (flatItems.length === 0) {
+      setPackages([]);
+      setIsLoadingPackages(false);
+      return;
+    }
+
+    // Build 3 packages: economy (under budget), standard (around budget), premium (above budget)
+    const buildPackage = (items: FlatItem[], maxBudget: number): { id: string; name: string; price: number; reach?: string }[] => {
+      const selected: typeof items = [];
+      let total = 0;
+      for (const item of items) {
+        if (total + item.price <= maxBudget) {
+          selected.push(item);
+          total += item.price;
+        }
+      }
+      return selected.map(item => ({
+        id: item.id,
+        name: `${item.outletName} - ${item.productName}${item.specName ? ` (${item.specName}${item.dimensions ? ' ' + item.dimensions : ''})` : ''}`,
+        price: item.price,
+        reach: item.reach,
+      }));
+    };
+
+    const economyItems = buildPackage(flatItems, budget * 0.7);
+    const standardItems = buildPackage(flatItems, budget);
+    const premiumItems = buildPackage(flatItems, budget * 1.3);
+
+    const builtPackages: MediaPackage[] = [];
+
+    if (economyItems.length > 0) {
+      builtPackages.push({
+        id: 'economy',
+        name: 'חבילה חסכונית',
+        description: 'מיקסום חשיפה בתקציב מוגבל',
+        totalPrice: economyItems.reduce((s, i) => s + i.price, 0),
+        items: economyItems,
+      });
+    }
+
+    if (standardItems.length > 0) {
+      builtPackages.push({
+        id: 'standard',
+        name: 'חבילה מאוזנת',
+        description: 'איזון בין חשיפה לעלות',
+        totalPrice: standardItems.reduce((s, i) => s + i.price, 0),
+        recommended: true,
+        items: standardItems,
+      });
+    }
+
+    if (premiumItems.length > 0) {
+      builtPackages.push({
+        id: 'premium',
+        name: 'חבילה פרימיום',
+        description: 'חשיפה מקסימלית ומגוונת',
+        totalPrice: premiumItems.reduce((s, i) => s + i.price, 0),
+        items: premiumItems,
+      });
+    }
+
+    setPackages(builtPackages);
     setIsLoadingPackages(false);
   };
+
+
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('he-IL', { 
