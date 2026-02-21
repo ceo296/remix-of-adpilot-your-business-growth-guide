@@ -655,11 +655,33 @@ const CreativeStudio = () => {
         }
 
         if (data?.imageUrl) {
+          // Apply Hebrew text programmatically using Canvas
+          let finalUrl = data.imageUrl;
+          const textMeta = data.textMeta;
+          
+          if (textMeta && (textMeta.headline || textMeta.businessName || textMeta.phone)) {
+            try {
+              const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
+              finalUrl = await applyTextOverlay(data.imageUrl, {
+                headline: textMeta.headline,
+                businessName: textMeta.businessName,
+                phone: textMeta.phone,
+                primaryColor: brandContext?.colors?.primary,
+                secondaryColor: brandContext?.colors?.secondary,
+                backgroundColor: brandContext?.colors?.primary,
+                layoutStyle: textLayoutStyle,
+              });
+              console.log(`[Canvas] Hebrew text applied for sketch ${i}`);
+            } catch (canvasError) {
+              console.error('[Canvas] Failed to apply text overlay:', canvasError);
+            }
+          }
+
           const newImage: GeneratedImage = {
             id: `${Date.now()}-${i}`,
-            url: data.imageUrl,
+            url: finalUrl,
             status: 'pending',
-            visualOnlyUrl: data.visualOnlyUrl || undefined,
+            visualOnlyUrl: data.visualOnlyUrl || data.imageUrl,
             textMeta: data.textMeta || undefined,
           };
           
@@ -1962,7 +1984,7 @@ const CreativeStudio = () => {
       
       {/* Enlarged Image Modal with Inline Text Editing */}
       <Dialog open={!!enlargedImage} onOpenChange={() => setEnlargedImage(null)}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+        <DialogContent className="max-w-5xl max-h-[92vh] p-0 overflow-hidden">
           <button 
             onClick={() => setEnlargedImage(null)}
             className="absolute top-2 left-2 z-10 p-1 rounded-full bg-background/80 hover:bg-background transition-colors"
