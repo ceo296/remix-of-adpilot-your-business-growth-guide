@@ -457,12 +457,19 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     const headline = textPrompt || campaignContext?.offer || '';
     const businessName = brandContext?.businessName || '';
     const phone = brandContext?.contactPhone || '';
+    // Build body text from campaign context
+    const bodyText = campaignContext?.offer && textPrompt && textPrompt !== campaignContext.offer
+      ? campaignContext.offer 
+      : '';
+    const ctaText = phone ? 'חייגו עוד היום!' : '';
 
     return new Response(JSON.stringify({ 
       imageUrl: visualResult.imageUrl,
       visualOnlyUrl: visualResult.imageUrl,
       textMeta: {
         headline,
+        bodyText,
+        ctaText,
         businessName,
         phone,
       },

@@ -43,6 +43,8 @@ interface GeneratedImage {
   visualOnlyUrl?: string;
   textMeta?: {
     headline: string;
+    bodyText?: string;
+    ctaText?: string;
     businessName: string;
     phone: string;
   };
@@ -299,7 +301,7 @@ const CreativeStudio = () => {
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('year_round');
   
   // Text layout style
-  const [textLayoutStyle, setTextLayoutStyle] = useState<'bottom-banner' | 'center-card' | 'minimal'>('bottom-banner');
+  const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip'>('classic-ad');
 
   // Auto-set aspect ratio based on media type
   useEffect(() => {
@@ -669,8 +671,12 @@ const CreativeStudio = () => {
               const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
               finalUrl = await applyTextOverlay(data.imageUrl, {
                 headline: textMeta.headline,
+                bodyText: textMeta.bodyText,
+                ctaText: textMeta.ctaText,
                 businessName: textMeta.businessName,
                 phone: textMeta.phone,
+                whatsapp: clientProfile?.contact_whatsapp || undefined,
+                address: clientProfile?.contact_address || undefined,
                 primaryColor: brandContext?.colors?.primary,
                 secondaryColor: brandContext?.colors?.secondary,
                 backgroundColor: brandContext?.colors?.primary,
@@ -780,7 +786,7 @@ const CreativeStudio = () => {
     setVisualPrompt('');
     setTextPrompt('');
     setAspectRatio('square');
-    setTextLayoutStyle('bottom-banner');
+    setTextLayoutStyle('classic-ad');
     setGeneratedImages([]);
     setShowResults(false);
     setShowQuote(false);
@@ -990,6 +996,10 @@ const CreativeStudio = () => {
       },
       colorMode: colorSelection.mode,
       logoUrl: clientProfile.logo_url,
+      contactPhone: clientProfile.contact_phone,
+      contactWhatsapp: clientProfile.contact_whatsapp,
+      contactEmail: clientProfile.contact_email,
+      contactAddress: clientProfile.contact_address,
     } : null;
   };
 
@@ -1107,12 +1117,16 @@ const CreativeStudio = () => {
         try {
           const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
           // Vary layout style per concept for visual diversity
-          const layoutStyles = ['bottom-banner', 'side-strip', 'top-bar'] as const;
+          const layoutStyles = ['classic-ad', 'top-headline', 'side-strip'] as const;
           const conceptLayout = textLayoutStyle || layoutStyles[index % 3];
           finalUrl = await applyTextOverlay(data.imageUrl, {
             headline: concept.headline || textMeta.headline,
+            bodyText: concept.copy || textMeta.bodyText,
+            ctaText: textMeta.ctaText,
             businessName: textMeta.businessName,
             phone: textMeta.phone,
+            whatsapp: clientProfile?.contact_whatsapp || undefined,
+            address: clientProfile?.contact_address || undefined,
             primaryColor: brandContext?.colors?.primary,
             secondaryColor: brandContext?.colors?.secondary,
             backgroundColor: brandContext?.colors?.primary,
@@ -1838,7 +1852,9 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
             <div className="flex items-center gap-2 flex-wrap" dir="rtl">
               <span className="text-sm text-muted-foreground">סגנון טקסט:</span>
               {([
-                { id: 'bottom-banner' as const, label: 'באנר תחתון', icon: '▬' },
+                { id: 'classic-ad' as const, label: 'מודעה קלאסית', icon: '📰' },
+                { id: 'top-headline' as const, label: 'כותרת עליונה', icon: '▬' },
+                { id: 'side-strip' as const, label: 'פס צד', icon: '▐' },
                 { id: 'center-card' as const, label: 'כרטיס מרכזי', icon: '▣' },
                 { id: 'minimal' as const, label: 'מינימליסטי', icon: '▁' },
               ]).map(ls => (
@@ -1856,8 +1872,12 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                         try {
                           const newUrl = await applyTextOverlay(img.visualOnlyUrl, {
                             headline: img.textMeta.headline,
+                            bodyText: img.textMeta.bodyText,
+                            ctaText: img.textMeta.ctaText,
                             businessName: img.textMeta.businessName,
                             phone: img.textMeta.phone,
+                            whatsapp: clientProfile?.contact_whatsapp || undefined,
+                            address: clientProfile?.contact_address || undefined,
                             primaryColor: clientProfile?.primary_color || undefined,
                             secondaryColor: clientProfile?.secondary_color || undefined,
                             backgroundColor: clientProfile?.primary_color || undefined,
