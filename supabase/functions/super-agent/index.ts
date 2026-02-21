@@ -182,6 +182,19 @@ serve(async (req) => {
       });
     }
 
+    // Build messages array
+    const contextParts = [];
+    if (clientProfile) contextParts.push(`פרופיל לקוח: ${JSON.stringify(clientProfile)}`);
+    if (campaignContext) contextParts.push(`הקשר קמפיין: ${JSON.stringify(campaignContext)}`);
+    if (sectorBrainData) contextParts.push(`רפרנסים מגזריים: ${sectorBrainData.summary || JSON.stringify(sectorBrainData.zones || {})}`);
+    
+    const systemContent = SYSTEM_PROMPT + (contextParts.length ? '\n\n=== הקשר ===\n' + contextParts.join('\n') : '');
+    const messages: { role: string; content: string }[] = [
+      { role: 'system', content: systemContent },
+      ...(conversationHistory || []),
+      { role: 'user', content: message },
+    ];
+
     // Try Google Gemini API first, fallback to Lovable Gateway
     let content = '';
     let aiSuccess = false;

@@ -1155,6 +1155,7 @@ const CreativeStudio = () => {
     const initialSteps: AgentStep[] = [
       { id: 'profile', agent: 'System', label: 'טעינת פרופיל מותג', icon: 'database', status: 'pending' },
       { id: 'topic', agent: 'System', label: 'זיהוי נושא וקטגוריה', icon: 'brain', status: 'pending' },
+      { id: 'strategy', agent: 'Super Agent', label: 'ניתוח אסטרטגי — קהל, כאבים, יתרונות', icon: 'send', status: 'pending' },
       { id: 'concepts', agent: 'Concept Agent', label: 'יצירת 3 קונספטים קריאטיביים', icon: 'sparkles', status: 'pending' },
       { id: 'sketch-1', agent: 'Image Agent', label: 'עיצוב סקיצה 1 — רגשי', icon: 'palette', status: 'pending' },
       { id: 'sketch-2', agent: 'Image Agent', label: 'עיצוב סקיצה 2 — מכירתי', icon: 'palette', status: 'pending' },
@@ -1195,12 +1196,78 @@ const CreativeStudio = () => {
         output: `קטגוריה שזוהתה: ${detectedTopic || 'כללי'}\nחג/עונה: ${selectedHoliday || 'כל השנה'}`,
       });
 
-      // Step 3: Generate Concepts
+      // Step 3: Strategic Analysis via Super Agent
+      updatePipelineStep('strategy', { 
+        status: 'running', 
+        startedAt: Date.now(),
+        details: 'הסופר-אייג\'נט מנתח קהל יעד, כאבים ויתרונות...',
+        input: `עסק: ${profile.business_name}\nהצעה: "${campaignBrief.offer}"\nקהל: ${profile.target_audience || profile.end_consumer || 'לא הוגדר'}\nיתרון: ${profile.primary_x_factor || 'לא הוגדר'}\nחג: ${selectedHoliday || 'כל השנה'}`,
+      });
+
+      let strategyOutput = '';
+      try {
+        const { data: strategyData, error: strategyError } = await supabase.functions.invoke('super-agent', {
+          body: {
+            message: `אני צריך ניתוח אסטרטגי קצר עבור קמפיין פרסום.
+עסק: ${profile.business_name}
+הצעה פרסומית: ${campaignBrief.offer}
+${campaignBrief.title ? `שם הקמפיין: ${campaignBrief.title}` : ''}
+קהל יעד: ${profile.target_audience || profile.end_consumer || 'משפחות חרדיות'}
+יתרון מרכזי: ${profile.primary_x_factor || profile.winning_feature || 'לא הוגדר'}
+${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${selectedHoliday}` : ''}
+
+תן לי בבקשה בקצרה:
+1. מי קהל היעד המדויק
+2. מה הכאב/בעיה שהמוצר פותר
+3. מה ה-USP (נקודת המכירה הייחודית)
+4. מה המסר המרכזי שצריך לעבור
+5. איזה טון ורגש צריך הקמפיין לעורר`,
+            clientProfile: profile,
+            campaignContext: {
+              title: campaignBrief.title,
+              offer: campaignBrief.offer,
+              goal: campaignBrief.goal,
+              holiday_season: selectedHoliday || null,
+              topic_category: detectedTopic,
+            },
+            topicCategory: detectedTopic,
+          }
+        });
+
+        if (strategyError) {
+          console.error('Super Agent error:', strategyError);
+          updatePipelineStep('strategy', { 
+            status: 'done', 
+            completedAt: Date.now(),
+            output: 'ממשיך ללא ניתוח אסטרטגי (שגיאה בסוכן)',
+          });
+        } else {
+          strategyOutput = strategyData?.response || '';
+          // Extract key insights for pipeline display (truncated)
+          const displayOutput = strategyOutput.length > 500 
+            ? strategyOutput.substring(0, 500) + '...' 
+            : strategyOutput;
+          updatePipelineStep('strategy', { 
+            status: 'done', 
+            completedAt: Date.now(),
+            output: displayOutput,
+          });
+        }
+      } catch (e) {
+        console.error('Strategy step failed:', e);
+        updatePipelineStep('strategy', { 
+          status: 'done', 
+          completedAt: Date.now(),
+          output: 'ממשיך ללא ניתוח אסטרטגי (timeout)',
+        });
+      }
+
+      // Step 4: Generate Concepts
       updatePipelineStep('concepts', { 
         status: 'running', 
         startedAt: Date.now(),
         details: 'שולח בריף ל-AI לייצור 3 קונספטים...',
-        input: `הצעה: "${campaignBrief.offer}"\nמטרה: ${campaignBrief.goal || 'לא הוגדרה'}\nמדיה: ${mediaTypes.join(', ')}\nחג: ${selectedHoliday || 'כל השנה'}\nנושא: ${detectedTopic || 'כללי'}`,
+        input: `הצעה: "${campaignBrief.offer}"\nמטרה: ${campaignBrief.goal || 'לא הוגדרה'}\nמדיה: ${mediaTypes.join(', ')}\nחג: ${selectedHoliday || 'כל השנה'}\nנושא: ${detectedTopic || 'כללי'}${strategyOutput ? `\n\nניתוח אסטרטגי:\n${strategyOutput.substring(0, 300)}...` : ''}`,
       });
 
       const { data, error } = await supabase.functions.invoke('generate-concepts', {
@@ -1214,6 +1281,7 @@ const CreativeStudio = () => {
           },
           holidaySeason: selectedHoliday || null,
           topicCategory: detectedTopic,
+          strategicAnalysis: strategyOutput || undefined,
         }
       });
 
