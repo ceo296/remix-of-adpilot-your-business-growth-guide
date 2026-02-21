@@ -69,21 +69,21 @@ const BusinessIdCard = () => {
     <Card className="overflow-hidden">
       {/* Compact Header with Brand Colors */}
       <div 
-        className="h-16 relative flex items-center px-6"
+        className="h-20 relative flex items-center px-6"
         style={{ 
           background: `linear-gradient(135deg, ${profile.primary_color} 0%, ${profile.secondary_color || profile.primary_color} 100%)`
         }}
       >
         {/* Logo */}
-        <div className="w-12 h-12 rounded-xl bg-card shadow-lg flex items-center justify-center ml-4">
+        <div className="w-16 h-16 rounded-xl bg-white shadow-lg flex items-center justify-center ml-4 p-1.5 shrink-0">
           {profile.logo_url ? (
             isPdfLogo ? (
-              <FileText className="w-6 h-6 text-primary" />
+              <FileText className="w-8 h-8 text-primary" />
             ) : (
               <img src={profile.logo_url} alt={profile.business_name} className="w-full h-full object-contain rounded-lg" />
             )
           ) : (
-            <Building2 className="w-6 h-6 text-muted-foreground" />
+            <Building2 className="w-8 h-8 text-muted-foreground" />
           )}
         </div>
 
