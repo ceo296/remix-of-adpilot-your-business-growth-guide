@@ -241,8 +241,8 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason } = await req.json();
-    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, brandContext: !!brandContext, campaignContext: !!campaignContext });
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio } = await req.json();
+    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, brandContext: !!brandContext, campaignContext: !!campaignContext });
 
     // Initialize Supabase to fetch model config + sector brain
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -364,6 +364,16 @@ HOLIDAY NEUTRALITY: This is NOT a holiday-specific ad. Do NOT include ANY holida
     // ═══════════════════════════════════════════
     // LAYER 1: Pure visual - ZERO text
     // ═══════════════════════════════════════════
+    // Aspect ratio instruction
+    let aspectInstruction = '';
+    if (aspectRatio === 'portrait') {
+      aspectInstruction = 'IMAGE ORIENTATION: Generate a TALL PORTRAIT image (approximately 3:4 ratio). This is for a newspaper/magazine print advertisement.';
+    } else if (aspectRatio === 'landscape') {
+      aspectInstruction = 'IMAGE ORIENTATION: Generate a WIDE LANDSCAPE image (approximately 16:9 ratio). This is for a horizontal banner/billboard.';
+    } else {
+      aspectInstruction = 'IMAGE ORIENTATION: Generate a SQUARE image (1:1 ratio).';
+    }
+
     const visualOnlyPrompt = `Generate a professional advertisement IMAGE with ABSOLUTELY ZERO TEXT.
 
 CRITICAL - NO TEXT RULES:
@@ -373,6 +383,8 @@ CRITICAL - NO TEXT RULES:
 - The image must be 100% VISUAL — only photography, illustration, colors, shapes, and composition
 - Leave clean empty spaces (solid color bands or gradient areas) where text can be added later by a designer
 - If you see a logo image attached, include it but do NOT add any text around it
+
+${aspectInstruction}
 
 VISUAL CONCEPT: ${effectiveVisualPrompt}
 STYLE: ${styleDesc}

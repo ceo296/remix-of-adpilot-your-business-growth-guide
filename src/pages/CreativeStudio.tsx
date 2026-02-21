@@ -292,6 +292,26 @@ const CreativeStudio = () => {
   
   // Holiday/Season selection for creative
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('year_round');
+  
+  // Text layout style
+  const [textLayoutStyle, setTextLayoutStyle] = useState<'bottom-banner' | 'center-card' | 'minimal'>('bottom-banner');
+
+  // Auto-set aspect ratio based on media type
+  useEffect(() => {
+    if (mediaTypes.length === 1) {
+      switch (mediaTypes[0]) {
+        case 'ad': setAspectRatio('portrait'); break;
+        case 'banner': setAspectRatio('landscape'); break;
+        case 'billboard': setAspectRatio('landscape'); break;
+        case 'social': setAspectRatio('square'); break;
+        default: break;
+      }
+    } else if (mediaTypes.includes('ad') && !mediaTypes.includes('banner')) {
+      setAspectRatio('portrait');
+    } else if (mediaTypes.includes('banner') && !mediaTypes.includes('ad')) {
+      setAspectRatio('landscape');
+    }
+  }, [mediaTypes]);
 
   // Scroll to top when changing views
   useEffect(() => {
@@ -625,6 +645,7 @@ const CreativeStudio = () => {
             campaignContext,
             topicCategory: detectedTopic,
             holidaySeason: selectedHoliday || null,
+            aspectRatio,
           }
         });
 
@@ -732,6 +753,7 @@ const CreativeStudio = () => {
     setVisualPrompt('');
     setTextPrompt('');
     setAspectRatio('square');
+    setTextLayoutStyle('bottom-banner');
     setGeneratedImages([]);
     setShowResults(false);
     setShowQuote(false);
@@ -1017,6 +1039,7 @@ const CreativeStudio = () => {
         campaignContext,
         topicCategory: detectedTopic,
         holidaySeason: selectedHoliday || null,
+        aspectRatio,
       }
     });
 
@@ -1040,6 +1063,7 @@ const CreativeStudio = () => {
             primaryColor: brandContext?.colors?.primary,
             secondaryColor: brandContext?.colors?.secondary,
             backgroundColor: brandContext?.colors?.primary,
+            layoutStyle: textLayoutStyle,
           });
           console.log(`[Canvas] Hebrew text applied programmatically for concept ${index}`);
         } catch (canvasError) {
@@ -1666,6 +1690,50 @@ const CreativeStudio = () => {
                   התחל מחדש
                 </Button>
               </div>
+            </div>
+
+            {/* Text Layout Style Picker */}
+            <div className="flex items-center gap-2 flex-wrap" dir="rtl">
+              <span className="text-sm text-muted-foreground">סגנון טקסט:</span>
+              {([
+                { id: 'bottom-banner' as const, label: 'באנר תחתון', icon: '▬' },
+                { id: 'center-card' as const, label: 'כרטיס מרכזי', icon: '▣' },
+                { id: 'minimal' as const, label: 'מינימליסטי', icon: '▁' },
+              ]).map(ls => (
+                <Button
+                  key={ls.id}
+                  size="sm"
+                  variant={textLayoutStyle === ls.id ? 'default' : 'outline'}
+                  className="gap-1 text-xs"
+                  onClick={async () => {
+                    setTextLayoutStyle(ls.id);
+                    // Re-apply overlay to all images with new style
+                    const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
+                    const updated = await Promise.all(generatedImages.map(async (img) => {
+                      if (img.visualOnlyUrl && img.textMeta) {
+                        try {
+                          const newUrl = await applyTextOverlay(img.visualOnlyUrl, {
+                            headline: img.textMeta.headline,
+                            businessName: img.textMeta.businessName,
+                            phone: img.textMeta.phone,
+                            primaryColor: clientProfile?.primary_color || undefined,
+                            secondaryColor: clientProfile?.secondary_color || undefined,
+                            backgroundColor: clientProfile?.primary_color || undefined,
+                            layoutStyle: ls.id,
+                          });
+                          return { ...img, url: newUrl };
+                        } catch { return img; }
+                      }
+                      return img;
+                    }));
+                    setGeneratedImages(updated);
+                    toast.success(`סגנון שונה ל${ls.label}`);
+                  }}
+                >
+                  <span>{ls.icon}</span>
+                  {ls.label}
+                </Button>
+              ))}
             </div>
 
             {/* Agent Pipeline Debug Panel */}
