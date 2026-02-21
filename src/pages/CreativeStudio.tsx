@@ -347,9 +347,9 @@ const CreativeStudio = () => {
           offer: briefData.campaignOffer || '',
           goal: briefData.goal || null,
         }));
-        // If brief is pre-filled, skip to step 1 (media type selection)
+        // If brief is pre-filled, auto-enter autopilot mode (goal already selected)
         if (briefData.campaignOffer && briefData.goal) {
-          setCurrentStep(1);
+          setMode('autopilot');
         }
         // Clear the session storage after loading
         sessionStorage.removeItem('campaignBrief');
