@@ -942,15 +942,36 @@ const CreativeStudio = () => {
     }
 
     if (data?.imageUrl) {
+      // Apply Hebrew text programmatically using Canvas (perfect rendering every time)
+      let finalUrl = data.imageUrl;
+      const textMeta = data.textMeta;
+      
+      if (textMeta && (textMeta.headline || textMeta.businessName || textMeta.phone)) {
+        try {
+          const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
+          finalUrl = await applyTextOverlay(data.imageUrl, {
+            headline: concept.headline || textMeta.headline,
+            businessName: textMeta.businessName,
+            phone: textMeta.phone,
+            primaryColor: brandContext?.colors?.primary,
+            secondaryColor: brandContext?.colors?.secondary,
+          });
+          console.log(`[Canvas] Hebrew text applied programmatically for concept ${index}`);
+        } catch (canvasError) {
+          console.error('[Canvas] Failed to apply text overlay, using visual-only:', canvasError);
+          // Fall back to visual-only image
+        }
+      }
+
       await supabase.from('generated_images').insert({
         visual_prompt: enhancedVisualPrompt,
         text_prompt: enhancedTextPrompt,
         style: 'modern',
         engine: 'nano-banana',
-        image_url: data.imageUrl,
+        image_url: finalUrl,
         kosher_status: 'pending',
       });
-      return data.imageUrl;
+      return finalUrl;
     }
     return null;
   };

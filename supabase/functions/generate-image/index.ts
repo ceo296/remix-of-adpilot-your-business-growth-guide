@@ -351,19 +351,12 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
 
     console.log("[Pipeline] Starting Layer 1 - Visual generation");
     const visualResult = await generateVisualLayer(visualOnlyPrompt, brandContext, LOVABLE_API_KEY);
-    console.log("[Pipeline] Layer 1 complete. Starting Layer 2 - Hebrew text overlay");
+    console.log("[Pipeline] Layer 1 complete. Skipping Layer 2 — Hebrew text will be applied programmatically on the frontend for perfect rendering.");
 
     // ═══════════════════════════════════════════
-    // LAYER 2: Hebrew text overlay on the visual
+    // LAYER 2 SKIPPED — Hebrew text is rendered programmatically by the frontend Canvas engine
+    // This eliminates all AI Hebrew text rendering issues (gibberish, reversed letters, etc.)
     // ═══════════════════════════════════════════
-    const finalResult = await generateTextLayer(
-      visualResult.imageUrl,
-      textPrompt || '',
-      brandContext,
-      campaignContext,
-      LOVABLE_API_KEY
-    );
-    console.log("[Pipeline] Layer 2 complete. Models used:", visualResult.model, "→", finalResult.model);
 
     // Log the generation
     try {
@@ -373,8 +366,8 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
           media_type: configMediaType,
           model_config_id: modelConfig?.id || null,
           prompt_used: visualOnlyPrompt.substring(0, 5000),
-          generated_output: finalResult.imageUrl.substring(0, 500),
-          generation_type: 'image_two_layer',
+          generated_output: visualResult.imageUrl.substring(0, 500),
+          generation_type: 'image_visual_only',
           success: true,
           brand_context: brandContext || null,
           campaign_context: campaignContext || null,
@@ -383,21 +376,26 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       console.error('Error logging generation:', logError);
     }
 
+    // Extract text meta for frontend programmatic overlay
+    const headline = textPrompt || campaignContext?.offer || '';
+    const businessName = brandContext?.businessName || '';
+    const phone = brandContext?.contactPhone || '';
+
     return new Response(JSON.stringify({ 
-      imageUrl: finalResult.imageUrl,
+      imageUrl: visualResult.imageUrl,
       visualOnlyUrl: visualResult.imageUrl,
       textMeta: {
-        headline: textPrompt || campaignContext?.offer || '',
-        businessName: brandContext?.businessName || '',
-        phone: brandContext?.contactPhone || '',
+        headline,
+        businessName,
+        phone,
       },
       status: 'approved',
-      message: `שכבה ויזואלית: ${visualResult.model} | שכבת טקסט: ${finalResult.model}`,
-      model: `${visualResult.model} + ${finalResult.model}`,
+      message: `שכבה ויזואלית: ${visualResult.model} | טקסט: עיבוד פרוגרמטי`,
+      model: visualResult.model,
       configUsed: modelConfig?.media_type || 'default',
       layers: {
         visual: { model: visualResult.model },
-        text: { model: finalResult.model },
+        text: { model: 'programmatic-canvas' },
       }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
