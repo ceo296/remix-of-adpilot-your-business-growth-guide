@@ -66,6 +66,153 @@ interface AIModelConfig {
   donts: string[] | null;
 }
 
+// ───── LAYER 1: Visual-only generation ─────
+async function generateVisualLayer(
+  fullPrompt: string,
+  brandContext: any,
+  LOVABLE_API_KEY: string
+): Promise<{ imageUrl: string; model: string }> {
+  const models = ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'];
+
+  const messageContent: any[] = [{ type: "text", text: fullPrompt }];
+
+  // Include logo as visual input
+  if (brandContext?.logoUrl) {
+    console.log("Including brand logo in visual layer:", brandContext.logoUrl);
+    messageContent.push({
+      type: "image_url",
+      image_url: { url: brandContext.logoUrl }
+    });
+    messageContent[0].text = `IMPORTANT: The attached image is the brand's LOGO. Incorporate this exact logo prominently in the top-right or top-left corner. Do not modify the logo.\n\n` + messageContent[0].text;
+  }
+
+  for (const tryModel of models) {
+    console.log("[Layer 1 - Visual] Trying model:", tryModel);
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: tryModel,
+        messages: [{ role: "user", content: messageContent }],
+        modalities: ["image", "text"]
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (imageUrl) {
+        console.log("[Layer 1 - Visual] Success with model:", tryModel);
+        return { imageUrl, model: tryModel };
+      }
+      console.error("[Layer 1 - Visual] No image in response");
+    } else {
+      const status = response.status;
+      const errorText = await response.text();
+      console.error(`[Layer 1 - Visual] ${tryModel} error:`, status, errorText);
+
+      if (status === 429) throw { status: 429, message: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." };
+      if (status === 402) throw { status: 402, message: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." };
+
+      if (status === 500 && tryModel !== models[models.length - 1]) {
+        await new Promise(r => setTimeout(r, 2000));
+        continue;
+      }
+    }
+  }
+  throw { status: 500, message: "שגיאה ביצירת השכבה הויזואלית. נסה שוב." };
+}
+
+// ───── LAYER 2: Hebrew text overlay on existing image ─────
+async function generateTextLayer(
+  baseImageUrl: string,
+  textPrompt: string,
+  brandContext: any,
+  campaignContext: any,
+  LOVABLE_API_KEY: string
+): Promise<{ imageUrl: string; model: string }> {
+  // Build the Hebrew text to overlay
+  const businessName = brandContext?.businessName || '';
+  const headline = textPrompt || campaignContext?.offer || '';
+  const phone = brandContext?.contactPhone || '';
+  
+  if (!headline && !businessName) {
+    console.log("[Layer 2 - Text] No text to overlay, returning visual as-is");
+    return { imageUrl: baseImageUrl, model: 'none' };
+  }
+
+  const textOverlayPrompt = `You are a Hebrew typography expert. Edit this advertisement image by adding ONLY the following Hebrew text as a professional overlay. 
+
+CRITICAL TEXT RULES:
+- Hebrew text reads RIGHT-TO-LEFT. Every single letter must be in correct Hebrew reading order.
+- Use bold, clean, professional Hebrew fonts
+- Text must be sharp, crisp, and perfectly readable
+- Place text in the empty/light areas of the image without covering the main visual
+- Use high contrast colors so text is readable (white text with dark shadow, or dark text on light areas)
+- Text should look like it was professionally typeset by a graphic designer
+
+TEXT TO ADD:
+${businessName ? `- Brand name: "${businessName}" — place prominently, larger font` : ''}
+${headline ? `- Headline: "${headline}" — main message, bold and eye-catching` : ''}
+${phone ? `- Phone: "${phone}" — smaller, at the bottom` : ''}
+
+VERY IMPORTANT: 
+- Write the Hebrew letters in the CORRECT order. Hebrew is right-to-left.
+- Do NOT mirror, reverse, or scramble any letters.
+- Each word should be perfectly readable in Hebrew.
+- If you are uncertain about letter order, just place the text exactly as provided character by character from right to left.`;
+
+  // Use flash model for text overlay (faster, good at text)
+  const textModels = ['google/gemini-2.5-flash-image', 'google/gemini-3-pro-image-preview'];
+  
+  for (const tryModel of textModels) {
+    console.log("[Layer 2 - Text] Trying model:", tryModel);
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: tryModel,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "text", text: textOverlayPrompt },
+            { type: "image_url", image_url: { url: baseImageUrl } }
+          ]
+        }],
+        modalities: ["image", "text"]
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (imageUrl) {
+        console.log("[Layer 2 - Text] Success with model:", tryModel);
+        return { imageUrl, model: tryModel };
+      }
+      console.error("[Layer 2 - Text] No image in response, falling back to visual-only");
+    } else {
+      const status = response.status;
+      console.error(`[Layer 2 - Text] ${tryModel} error:`, status);
+      // Don't fail the whole pipeline if text layer fails - return visual only
+      if (status === 429 || status === 402) {
+        console.warn("[Layer 2 - Text] Rate/credit limit, skipping text layer");
+        break;
+      }
+    }
+  }
+
+  // If text layer fails, return visual as-is (user can use manual text overlay)
+  console.warn("[Layer 2 - Text] All attempts failed, returning visual-only image");
+  return { imageUrl: baseImageUrl, model: 'fallback-visual-only' };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -83,10 +230,9 @@ serve(async (req) => {
   }
 
   try {
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
-      throw new Error('No API key configured (GOOGLE_GEMINI_API_KEY or LOVABLE_API_KEY)');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory } = await req.json();
@@ -134,15 +280,9 @@ serve(async (req) => {
     const styleExamples = sectorExamples.filter((e: any) => e.zone === 'styles');
     console.log(`Sector Brain: ${fameExamples.length} fame, ${redlineExamples.length} redlines, ${styleExamples.length} styles`);
 
-    console.log("Using model config:", modelConfig?.media_type || 'default');
-
     // Get style description
     const styleDesc = STYLE_DESCRIPTIONS[style] || STYLE_DESCRIPTIONS['ultra-realistic'];
-    
-    // Get template-specific prompts if available
     const templatePrompt = templateId ? TEMPLATE_PROMPTS[templateId] || '' : '';
-
-    // Build the prompt - VISUAL FIRST, minimal text approach
     const effectiveVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
     
     // Brand color instructions
@@ -151,19 +291,19 @@ serve(async (req) => {
       colorInstructions = `MANDATORY BRAND COLORS: Primary=${brandContext.colors.primary}${brandContext.colors.secondary ? `, Secondary=${brandContext.colors.secondary}` : ''}${brandContext.colors.background ? `, Background=${brandContext.colors.background}` : ''}. These colors MUST dominate the design.`;
     }
 
-    // Sector brain insights for prompt
+    // Sector brain insights
     let sectorInsights = '';
     if (fameExamples.length > 0) {
-      sectorInsights += `\nSuccessful ad patterns to follow: ${fameExamples.slice(0, 5).map((e: any) => e.name + (e.text_content ? ` (${e.text_content.substring(0, 60)})` : '')).join('; ')}`;
+      sectorInsights += `\nSuccessful ad patterns: ${fameExamples.slice(0, 5).map((e: any) => e.name + (e.text_content ? ` (${e.text_content.substring(0, 60)})` : '')).join('; ')}`;
     }
     if (redlineExamples.length > 0) {
-      sectorInsights += `\nFORBIDDEN patterns to AVOID: ${redlineExamples.slice(0, 5).map((e: any) => e.name + (e.text_content ? ` - ${e.text_content.substring(0, 40)}` : '')).join('; ')}`;
+      sectorInsights += `\nFORBIDDEN patterns: ${redlineExamples.slice(0, 5).map((e: any) => e.name + (e.text_content ? ` - ${e.text_content.substring(0, 40)}` : '')).join('; ')}`;
     }
     if (styleExamples.length > 0) {
-      sectorInsights += `\nPreferred visual styles: ${styleExamples.slice(0, 3).map((e: any) => e.name).join(', ')}`;
+      sectorInsights += `\nPreferred styles: ${styleExamples.slice(0, 3).map((e: any) => e.name).join(', ')}`;
     }
 
-    // Model-specific rules (concise)
+    // Model-specific rules
     let modelRules = '';
     if (modelConfig) {
       if (modelConfig.dos?.length) modelRules += `\nDo: ${modelConfig.dos.slice(0, 3).join('; ')}`;
@@ -171,155 +311,97 @@ serve(async (req) => {
       if (modelConfig.logo_instructions) modelRules += `\nLogo: ${modelConfig.logo_instructions}`;
     }
 
-    const fullPrompt = `Generate a professional advertisement image. This is a VISUAL design - prioritize strong imagery over text.
+    // ═══════════════════════════════════════════
+    // LAYER 1: Pure visual - ZERO text
+    // ═══════════════════════════════════════════
+    const visualOnlyPrompt = `Generate a professional advertisement IMAGE with ABSOLUTELY ZERO TEXT.
 
-CRITICAL RULES:
-- This ad targets the Haredi (Ultra-Orthodox) Jewish community in Israel
-- ABSOLUTELY NO women or girls in any form
-- Full modesty standards - men in traditional attire if shown
-- Clean, premium, professional design
-- ABSOLUTELY NO TEXT IN THE IMAGE. Do NOT render any Hebrew letters, words, or numbers. Leave all text areas completely blank/empty. Text will be added later as overlay by a professional designer.
-- The design should be 100% visual with designated empty spaces where text can be placed later
-- NO phone numbers, NO headlines, NO captions, NO watermarks - ZERO text of any kind
+CRITICAL - NO TEXT RULES:
+- Do NOT render ANY letters, words, numbers, characters, or symbols in ANY language
+- Do NOT write Hebrew, English, Arabic, or any other script
+- Do NOT include phone numbers, headlines, logos with text, watermarks, or captions
+- The image must be 100% VISUAL — only photography, illustration, colors, shapes, and composition
+- Leave clean empty spaces (solid color bands or gradient areas) where text can be added later by a designer
+- If you see a logo image attached, include it but do NOT add any text around it
 
 VISUAL CONCEPT: ${effectiveVisualPrompt}
 STYLE: ${styleDesc}
 ${templatePrompt ? `FORMAT: ${templatePrompt}` : ''}
 ${colorInstructions}
 
-${brandContext ? `BRAND: "${brandContext.businessName || ''}" - ${brandContext.targetAudience || 'Haredi audience'}. ${brandContext.primaryXFactor ? `Key differentiator: ${brandContext.primaryXFactor}` : ''}` : ''}
-
+${brandContext ? `BRAND CONTEXT: "${brandContext.businessName || ''}" - ${brandContext.targetAudience || 'Haredi audience'}. ${brandContext.primaryXFactor ? `Differentiator: ${brandContext.primaryXFactor}` : ''}` : ''}
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
 
-Leave designated empty areas for headline text and contact info to be added later as professional overlay.
+COMMUNITY RULES:
+- This targets the Haredi (Ultra-Orthodox) Jewish community
+- ABSOLUTELY NO women or girls
+- Full modesty standards
+- Clean, premium, professional
 
 ${sectorInsights}
 ${modelRules}
 
-IMPORTANT: Create a VISUALLY STRIKING image with NO TEXT whatsoever. Think billboard/magazine ad - strong hero image, bold colors, beautiful composition. Text will be overlaid separately.`;
+Remember: ZERO text. Pure visual design only. Beautiful composition with empty areas for text overlay.`;
 
-    console.log("Enhanced prompt length:", fullPrompt.length);
+    console.log("[Pipeline] Starting Layer 1 - Visual generation");
+    const visualResult = await generateVisualLayer(visualOnlyPrompt, brandContext, LOVABLE_API_KEY);
+    console.log("[Pipeline] Layer 1 complete. Starting Layer 2 - Hebrew text overlay");
 
-    // Use Lovable AI Gateway for image generation (direct Google API doesn't support image output)
-    let response: Response | null = null;
-    let usedModel = '';
+    // ═══════════════════════════════════════════
+    // LAYER 2: Hebrew text overlay on the visual
+    // ═══════════════════════════════════════════
+    const finalResult = await generateTextLayer(
+      visualResult.imageUrl,
+      textPrompt || '',
+      brandContext,
+      campaignContext,
+      LOVABLE_API_KEY
+    );
+    console.log("[Pipeline] Layer 2 complete. Models used:", visualResult.model, "→", finalResult.model);
 
-    // Lovable AI Gateway - try best model first
-    if (LOVABLE_API_KEY) {
-      const models = ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'];
-      
-      // Build message content - include logo as image input if available
-      const messageContent: any[] = [{ type: "text", text: fullPrompt }];
-      
-      if (brandContext?.logoUrl) {
-        console.log("Including brand logo in image generation:", brandContext.logoUrl);
-        messageContent.push({
-          type: "image_url",
-          image_url: { url: brandContext.logoUrl }
-        });
-        // Prepend logo instruction to the prompt
-        messageContent[0].text = `IMPORTANT: The attached image is the brand's LOGO. You MUST incorporate this exact logo prominently in the top-right or top-left corner of the advertisement design. Do not modify the logo - use it as-is.\n\n` + messageContent[0].text;
-      }
-      
-      for (const tryModel of models) {
-        console.log("Trying Lovable gateway model:", tryModel);
-        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: tryModel,
-            messages: [{ role: "user", content: messageContent }],
-            modalities: ["image", "text"]
-          }),
-        });
-
-        if (response.ok) {
-          usedModel = tryModel;
-          break;
-        }
-        
-        const errorText = await response.text();
-        console.error(`Gateway model ${tryModel} error:`, response.status, errorText);
-        
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ error: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." }), {
-            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." }), {
-            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        
-        if (response.status === 500 && tryModel !== models[models.length - 1]) {
-          await new Promise(r => setTimeout(r, 2000));
-          continue;
-        }
-        response = null;
-      }
-    }
-
-    if (!response || !response.ok) {
-      return new Response(JSON.stringify({ 
-        error: "שגיאה ביצירת התמונה. המודל אינו זמין כרגע, נסה שוב בעוד כמה דקות." 
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const data = await response.json();
-    console.log("AI response received");
-
-    // Extract image from response
-    const images = data.choices?.[0]?.message?.images || [];
-    const imageUrl = images[0]?.image_url?.url;
-
-    if (!imageUrl) {
-      console.error("No image in response:", JSON.stringify(data));
-      return new Response(JSON.stringify({ 
-        error: "לא התקבלה תמונה מהמערכת. נסה שוב." 
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Log the generation for learning
+    // Log the generation
     try {
       await supabase
         .from('ai_generation_logs')
         .insert({
           media_type: configMediaType,
           model_config_id: modelConfig?.id || null,
-          prompt_used: fullPrompt.substring(0, 5000), // Limit size
-          generated_output: imageUrl,
-          generation_type: 'image',
+          prompt_used: visualOnlyPrompt.substring(0, 5000),
+          generated_output: finalResult.imageUrl.substring(0, 500),
+          generation_type: 'image_two_layer',
           success: true,
           brand_context: brandContext || null,
           campaign_context: campaignContext || null,
         });
     } catch (logError) {
       console.error('Error logging generation:', logError);
-      // Don't fail the request if logging fails
     }
 
     return new Response(JSON.stringify({ 
-      imageUrl,
+      imageUrl: finalResult.imageUrl,
       status: 'approved',
-      message: data.choices?.[0]?.message?.content || '',
-      model: usedModel,
+      message: `שכבה ויזואלית: ${visualResult.model} | שכבת טקסט: ${finalResult.model}`,
+      model: `${visualResult.model} + ${finalResult.model}`,
       configUsed: modelConfig?.media_type || 'default',
+      layers: {
+        visual: { model: visualResult.model },
+        text: { model: finalResult.model },
+      }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in generate-image function:", error);
+    
+    // Handle structured errors from layer functions
+    if (error?.status && error?.message) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: error.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
     return new Response(JSON.stringify({ 
       error: error instanceof Error ? error.message : "שגיאה לא צפויה" 
     }), {
