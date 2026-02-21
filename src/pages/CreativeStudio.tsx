@@ -46,6 +46,8 @@ interface GeneratedImage {
 interface ClientProfile {
   business_name: string;
   target_audience: string | null;
+  end_consumer: string | null;
+  decision_maker: string | null;
   primary_x_factor: string | null;
   winning_feature: string | null;
   advantage_type: string | null;
@@ -335,7 +337,7 @@ const CreativeStudio = () => {
 
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url')
+        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url')
         .eq('user_id', user.id)
         .single();
 
@@ -986,6 +988,8 @@ const CreativeStudio = () => {
       const profile = clientProfile || {
         business_name: 'העסק שלי',
         target_audience: 'משפחות חרדיות',
+        end_consumer: null as string | null,
+        decision_maker: null as string | null,
         primary_x_factor: 'איכות ושירות',
         winning_feature: 'מקצועיות',
         advantage_type: 'שירות',
@@ -994,7 +998,7 @@ const CreativeStudio = () => {
       updatePipelineStep('profile', { 
         status: 'done', 
         completedAt: Date.now(),
-        output: `עסק: ${profile.business_name}\nקהל: ${profile.target_audience || 'לא הוגדר'}\nלוגו: ${(clientProfile as any)?.logo_url ? '✅ נמצא' : '❌ חסר'}`,
+        output: `עסק: ${profile.business_name}\nקהל: ${profile.target_audience || profile.end_consumer || 'לא הוגדר'}\nלוגו: ${(clientProfile as any)?.logo_url ? '✅ נמצא' : '❌ חסר'}`,
       });
 
       // Step 2: Topic Detection
