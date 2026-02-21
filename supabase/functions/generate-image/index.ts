@@ -76,14 +76,20 @@ async function generateVisualLayer(
 
   const messageContent: any[] = [{ type: "text", text: fullPrompt }];
 
-  // Include logo as visual input
-  if (brandContext?.logoUrl) {
-    console.log("Including brand logo in visual layer:", brandContext.logoUrl);
+  // Include logo as visual input (skip PDFs - image models can't process them)
+  const logoUrl = brandContext?.logoUrl;
+  const isPdfLogo = typeof logoUrl === 'string' && (logoUrl.startsWith('data:application/pdf') || logoUrl.toLowerCase().endsWith('.pdf'));
+  
+  if (logoUrl && !isPdfLogo) {
+    console.log("Including brand logo in visual layer (image format)");
     messageContent.push({
       type: "image_url",
-      image_url: { url: brandContext.logoUrl }
+      image_url: { url: logoUrl }
     });
     messageContent[0].text = `IMPORTANT: The attached image is the brand's LOGO. Incorporate this exact logo prominently in the top-right or top-left corner. Do not modify the logo.\n\n` + messageContent[0].text;
+  } else if (isPdfLogo) {
+    console.log("Skipping PDF logo - image generation models cannot process PDF files");
+    messageContent[0].text = `IMPORTANT: The brand has a logo but it's in PDF format and cannot be attached. Leave a clear, prominent space in the top-right corner for the logo to be added later.\n\n` + messageContent[0].text;
   }
 
   for (const tryModel of models) {
