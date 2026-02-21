@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp, Sparkles, RefreshCw, Filter, BarChart3, Calendar, Tag, Eye, FolderOpen } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp, Sparkles, RefreshCw, Filter, BarChart3, Calendar, Tag, Eye, FolderOpen, ZoomIn } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -134,6 +135,7 @@ const SectorBrain = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedInsightType, setSelectedInsightType] = useState<string | null>(null);
   const [insightCategory, setInsightCategory] = useState<'general' | 'media' | 'stream' | 'holiday' | 'topic'>('general');
+  const [enlargedImage, setEnlargedImage] = useState<{ url: string; name: string } | null>(null);
 
   // Check admin role
   useEffect(() => {
@@ -792,11 +794,29 @@ const SectorBrain = () => {
                 {/* Results grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filteredUploads.slice(0, 60).map(upload => (
-                    <Card key={upload.id} className={cn("overflow-hidden", upload.example_type === 'bad' ? "border-destructive/30" : "border-success/30")}>
+                    <Card 
+                      key={upload.id} 
+                      className={cn(
+                        "overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02]",
+                        upload.example_type === 'bad' ? "border-destructive/30" : "border-success/30"
+                      )}
+                      onClick={() => {
+                        if (upload.type === 'image' && upload.preview) {
+                          setEnlargedImage({ url: upload.preview, name: upload.name });
+                        } else if (upload.text_content) {
+                          setEnlargedImage({ url: '', name: upload.text_content });
+                        }
+                      }}
+                    >
                       <CardContent className="p-3">
                         <div className="flex items-start gap-3">
                           {upload.type === 'image' && upload.preview ? (
-                            <img src={upload.preview} alt="" className="w-16 h-16 rounded object-cover shrink-0" />
+                            <div className="relative group shrink-0">
+                              <img src={upload.preview} alt="" className="w-16 h-16 rounded object-cover" />
+                              <div className="absolute inset-0 bg-black/40 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <ZoomIn className="h-5 w-5 text-white" />
+                              </div>
+                            </div>
                           ) : (
                             <div className="w-16 h-16 rounded bg-muted flex items-center justify-center shrink-0">
                               <FileText className="h-6 w-6 text-muted-foreground" />
@@ -837,7 +857,7 @@ const SectorBrain = () => {
                               <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{upload.text_content}</p>
                             )}
                           </div>
-                          <button onClick={() => removeUpload(upload.id, upload.file_path)} className="text-muted-foreground hover:text-destructive shrink-0">
+                          <button onClick={(e) => { e.stopPropagation(); removeUpload(upload.id, upload.file_path); }} className="text-muted-foreground hover:text-destructive shrink-0">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -1117,6 +1137,23 @@ const SectorBrain = () => {
           </>
         )}
       </div>
+
+      {/* Enlarged Image Dialog */}
+      <Dialog open={!!enlargedImage} onOpenChange={() => setEnlargedImage(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-2">
+          {enlargedImage?.url ? (
+            <img 
+              src={enlargedImage.url} 
+              alt={enlargedImage.name} 
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+            />
+          ) : enlargedImage?.name ? (
+            <div className="p-6 text-right" dir="rtl">
+              <p className="text-base whitespace-pre-wrap">{enlargedImage.name}</p>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
