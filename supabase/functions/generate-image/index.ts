@@ -241,8 +241,8 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach } = await req.json();
-    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, brandContext: !!brandContext, campaignContext: !!campaignContext });
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, corrections } = await req.json();
+    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, brandContext: !!brandContext, campaignContext: !!campaignContext, corrections: corrections?.length || 0 });
 
     // Initialize Supabase to fetch model config + sector brain
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -424,6 +424,12 @@ COMMUNITY RULES:
 ${sectorInsights}
 ${modelRules}
 
+${corrections?.length ? `
+CLIENT REVISION NOTES (IMPORTANT — apply these changes to improve the design):
+${corrections.map((c: any) => `- [${c.type === 'copy' ? 'TEXT' : c.type === 'visual' ? 'VISUAL' : 'GENERAL'}]: ${c.text}`).join('\n')}
+Incorporate ALL these corrections into the new design.
+` : ''}
+
 Remember: ZERO text. Pure visual design only. Beautiful composition with empty areas for text overlay.`;
 
     console.log("[Pipeline] Starting Layer 1 - Visual generation");
@@ -454,10 +460,11 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     }
 
     // Extract text meta for frontend programmatic overlay
+    // Use textPrompt as headline (it comes from concept headline, not raw brief)
     const headline = textPrompt || campaignContext?.offer || '';
     const businessName = brandContext?.businessName || '';
     const phone = brandContext?.contactPhone || '';
-    // Build body text from campaign context
+    // Body text: use campaign offer only if textPrompt is a different headline
     const bodyText = campaignContext?.offer && textPrompt && textPrompt !== campaignContext.offer
       ? campaignContext.offer 
       : '';
