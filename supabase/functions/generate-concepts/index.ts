@@ -322,38 +322,39 @@ ${JSON.stringify(sectorBrainData.zones)}
       }
       // Instead of throwing, use fallback concepts
       console.warn(`AI Gateway returned ${response.status}, using fallback concepts`);
-      const campaignOffer = campaignBrief?.offer || '';
+      const offer = campaignBrief?.offer || '';
+      const biz = profile.business_name || 'העסק';
       const fallbackConcepts = {
         concepts: [
           {
             type: 'emotional',
-            headline: 'הזווית המרגשת',
+            headline: holidayName ? `${holidayName} הזה, ${biz} מלווה אתכם` : `${biz} — כי מגיע לכם`,
             idea: isRadio 
-              ? `ספוט רדיו חם ומשפחתי עבור ${profile.business_name || 'העסק'}` 
-              : `תמונה חמימה של משפחה נהנית מ${profile.business_name || 'השירות'}`,
+              ? `ספוט רדיו חם${holidayName ? ` לקראת ${holidayName}` : ''} עבור ${biz}` 
+              : `תמונה חמימה${holidayName ? ` באווירת ${holidayName}` : ''} של ${biz}`,
             copy: isRadio 
-              ? `(קול קריין חם) "${profile.business_name || 'אנחנו'} - כי המשפחה שלכם מגיעה את הכי טוב. ${campaignOffer ? campaignOffer + '.' : ''} התקשרו עכשיו!"` 
-              : campaignOffer || 'כי המשפחה שלכם מגיעה את הכי טוב'
+              ? `(קול קריין חם) "${biz}${holidayName ? ` ל${holidayName}` : ''} - ${offer || 'הבחירה הנכונה'}. התקשרו עכשיו!"` 
+              : offer || `${biz}${holidayName ? ` — ${holidayName} הזה` : ''} — הבחירה הנכונה`
           },
           {
             type: 'hard-sale',
-            headline: 'הזווית המכירתית',
+            headline: offer ? `${offer}!` : `${biz} — הזדמנות${holidayName ? ` ל${holidayName}` : ''}!`,
             idea: isRadio 
-              ? `ספוט אנרגטי עם מבצע מיוחד` 
-              : `תקריב על המוצר/שירות של ${profile.business_name || 'העסק'} עם רקע יוקרתי`,
+              ? `ספוט אנרגטי${holidayName ? ` ל${holidayName}` : ''} עם הצעה מיוחדת` 
+              : `מודעה מכירתית${holidayName ? ` ל${holidayName}` : ''} עבור ${biz}`,
             copy: isRadio 
-              ? `(קול קריין נמרץ) "מבצע מיוחד ב${profile.business_name || 'העסק'}! ${campaignOffer ? campaignOffer + '!' : 'רק השבוע - מחירים שלא תאמינו!'} התקשרו עכשיו!"` 
-              : campaignOffer || 'הזדמנות מיוחדת - למהר לפני שנגמר!'
+              ? `(קול קריין נמרץ) "${biz}! ${offer || 'הזדמנות מיוחדת'}${holidayName ? ` ל${holidayName}` : ''}! התקשרו עכשיו!"` 
+              : offer || `${biz}${holidayName ? ` ל${holidayName}` : ''} — למהר לפני שנגמר!`
           },
           {
             type: 'pain-point',
-            headline: 'פתרון הבעיה',
+            headline: `${profile.primary_x_factor || biz} — סוף לחיפושים`,
             idea: isRadio 
               ? `ספוט שמתחיל מהבעיה ומציע פתרון` 
-              : 'אדם רגוע ומחייך אחרי שמצא את הפתרון המושלם',
+              : `ויזואל של הפתרון ש-${biz} מציע`,
             copy: isRadio 
-              ? `(קול קריין מבין) "נמאס לחפש? ${profile.business_name || 'אנחנו כאן'} - ${campaignOffer || profile.primary_x_factor || 'הפתרון המושלם'}. סוף סוף מישהו שמבין!"` 
-              : campaignOffer || `${profile.primary_x_factor || 'השירות המושלם'} - סוף סוף מישהו שמבין`
+              ? `(קול קריין מבין) "נמאס לחפש? ${biz} - ${offer || profile.primary_x_factor || 'הפתרון המושלם'}. סוף סוף מישהו שמבין!"` 
+              : offer || `${profile.primary_x_factor || biz} — סוף סוף מישהו שמבין`
           }
         ]
       };
@@ -370,55 +371,95 @@ ${JSON.stringify(sectorBrainData.zones)}
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
-    console.log('AI Response:', content);
+    console.log('AI Response length:', content?.length, 'First 500 chars:', content?.substring(0, 500));
 
-    // Parse JSON from the response
+    // Parse JSON from the response - with multiple fallback strategies
     let concepts;
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      // Strategy 1: Extract JSON block from markdown code fence
+      const codeFenceMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      const jsonString = codeFenceMatch ? codeFenceMatch[1] : content;
+      
+      // Strategy 2: Find the outermost JSON object
+      const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        concepts = JSON.parse(jsonMatch[0]);
+        // Clean common AI JSON issues before parsing
+        let cleaned = jsonMatch[0]
+          .replace(/,\s*}/g, '}')        // trailing commas before }
+          .replace(/,\s*]/g, ']')        // trailing commas before ]
+          .replace(/[\x00-\x1F\x7F]/g, (c) => c === '\n' || c === '\r' || c === '\t' ? c : '') // remove control chars
+          .replace(/\\'/g, "'");          // escaped single quotes
+        
+        concepts = JSON.parse(cleaned);
       } else {
         throw new Error('No JSON found in response');
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
-      // Return fallback concepts based on media type
-      concepts = {
-        concepts: [
-          {
-            type: 'emotional',
-            headline: 'הזווית המרגשת',
-            idea: isRadio 
-              ? `ספוט רדיו חם ומשפחתי עבור ${profile.business_name || 'העסק'}` 
-              : `תמונה חמימה של משפחה נהנית מ${profile.business_name || 'השירות'}`,
-            copy: isRadio 
-              ? `(קול קריין חם) "${profile.business_name || 'אנחנו'} - כי המשפחה שלכם מגיעה את הכי טוב. התקשרו עכשיו!"` 
-              : 'כי המשפחה שלכם מגיעה את הכי טוב'
-          },
-          {
-            type: 'hard-sale',
-            headline: 'הזווית המכירתית',
-            idea: isRadio 
-              ? `ספוט אנרגטי עם מבצע מיוחד` 
-              : `תקריב על המוצר/שירות של ${profile.business_name || 'העסק'} עם רקע יוקרתי`,
-            copy: isRadio 
-              ? `(קול קריין נמרץ) "מבצע מיוחד ב${profile.business_name || 'העסק'}! רק השבוע - מחירים שלא תאמינו! התקשרו עכשיו!"` 
-              : 'הזדמנות מיוחדת - למהר לפני שנגמר!'
-          },
-          {
-            type: 'pain-point',
-            headline: 'פתרון הבעיה',
-            idea: isRadio 
-              ? `ספוט שמתחיל מהבעיה ומציע פתרון` 
-              : 'אדם רגוע ומחייך אחרי שמצא את הפתרון המושלם',
-            copy: isRadio 
-              ? `(קול קריין מבין) "נמאס לחפש? ${profile.business_name || 'אנחנו כאן'} - ${profile.primary_x_factor || 'הפתרון המושלם'}. סוף סוף מישהו שמבין!"` 
-              : `${profile.primary_x_factor || 'השירות המושלם'} - סוף סוף מישהו שמבין`
+      console.log('Raw content for debugging:', content?.substring(0, 2000));
+      
+      // Strategy 3: Try to extract individual concept objects
+      try {
+        const conceptMatches = [...content.matchAll(/\{\s*"type"\s*:\s*"[^"]+"\s*,\s*"headline"\s*:\s*"[^"]*"/g)];
+        if (conceptMatches.length >= 2) {
+          // Found partial concepts, try to extract them individually
+          const extractedConcepts = [];
+          for (const match of conceptMatches) {
+            const startIdx = match.index!;
+            let braceCount = 0;
+            let endIdx = startIdx;
+            for (let i = startIdx; i < content.length; i++) {
+              if (content[i] === '{') braceCount++;
+              if (content[i] === '}') braceCount--;
+              if (braceCount === 0) { endIdx = i + 1; break; }
+            }
+            try {
+              const obj = JSON.parse(content.substring(startIdx, endIdx).replace(/,\s*}/g, '}'));
+              extractedConcepts.push(obj);
+            } catch { /* skip malformed individual concept */ }
           }
-        ]
-      };
+          if (extractedConcepts.length > 0) {
+            concepts = { concepts: extractedConcepts };
+            console.log('Recovered', extractedConcepts.length, 'concepts from partial JSON');
+          }
+        }
+      } catch { /* ignore recovery failure */ }
+
+      // Strategy 4: Use dynamic fallback based on campaign brief + holiday
+      if (!concepts) {
+        const offer = campaignBrief?.offer || '';
+        const goal = campaignBrief?.goal || '';
+        const biz = profile.business_name || 'העסק';
+        
+        concepts = {
+          concepts: [
+            {
+              type: 'emotional',
+              headline: holidayName ? `${holidayName} הזה, ${biz} מלווה אתכם` : `${biz} — כי מגיע לכם`,
+              idea: isRadio 
+                ? `ספוט רדיו חם${holidayName ? ` לקראת ${holidayName}` : ''} עבור ${biz}` 
+                : `תמונה חמימה${holidayName ? ` באווירת ${holidayName}` : ''} של ${biz}`,
+              copy: offer || `${biz}${holidayName ? ` — ${holidayName} הזה` : ''} — הבחירה הנכונה`
+            },
+            {
+              type: 'hard-sale',
+              headline: offer ? `${offer}!` : `${biz} — הזדמנות${holidayName ? ` ל${holidayName}` : ''}!`,
+              idea: isRadio 
+                ? `ספוט אנרגטי${holidayName ? ` ל${holidayName}` : ''} עם הצעה מיוחדת` 
+                : `מודעה מכירתית${holidayName ? ` ל${holidayName}` : ''} עבור ${biz}`,
+              copy: offer || `${biz}${holidayName ? ` ל${holidayName}` : ''} — למהר לפני שנגמר!`
+            },
+            {
+              type: 'pain-point',
+              headline: `${profile.primary_x_factor || biz} — סוף לחיפושים`,
+              idea: isRadio 
+                ? `ספוט שמתחיל מהבעיה ומציע פתרון` 
+                : `ויזואל של הפתרון ש-${biz} מציע`,
+              copy: offer || `${profile.primary_x_factor || biz} — סוף סוף מישהו שמבין`
+            }
+          ]
+        };
+      }
     }
 
     // Add IDs and media type to concepts
