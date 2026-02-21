@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool } from 'lucide-react';
+import { AgentPipelineDebug, AgentStep } from '@/components/studio/AgentPipelineDebug';
 import { AIChatWidget } from '@/components/chat/AIChatWidget';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -263,6 +264,8 @@ const CreativeStudio = () => {
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
   const [overlayEditImage, setOverlayEditImage] = useState<{ id: string; url: string } | null>(null);
+  const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
+  const [showPipeline, setShowPipeline] = useState(false);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
@@ -941,14 +944,36 @@ const CreativeStudio = () => {
     return null;
   };
 
+  // Helper to update a pipeline step
+  const updatePipelineStep = (stepId: string, updates: Partial<AgentStep>) => {
+    setPipelineSteps(prev => prev.map(s => s.id === stepId ? { ...s, ...updates } : s));
+  };
+
   // Autopilot: generate concepts AND images in one flow (skip text-only step)
   const handleGenerateConcepts = async () => {
     setIsGeneratingConcepts(true);
     setConcepts([]);
     setSelectedConcept(null);
     setGeneratedImages([]);
+    setShowPipeline(true);
+    
+    // Initialize pipeline steps
+    const initialSteps: AgentStep[] = [
+      { id: 'profile', agent: 'System', label: 'טעינת פרופיל מותג', icon: 'database', status: 'pending' },
+      { id: 'topic', agent: 'System', label: 'זיהוי נושא וקטגוריה', icon: 'brain', status: 'pending' },
+      { id: 'concepts', agent: 'Concept Agent', label: 'יצירת 3 קונספטים קריאטיביים', icon: 'sparkles', status: 'pending' },
+      { id: 'sketch-1', agent: 'Image Agent', label: 'עיצוב סקיצה 1 — רגשי', icon: 'palette', status: 'pending' },
+      { id: 'sketch-2', agent: 'Image Agent', label: 'עיצוב סקיצה 2 — מכירתי', icon: 'palette', status: 'pending' },
+      { id: 'sketch-3', agent: 'Image Agent', label: 'עיצוב סקיצה 3 — כאב ופתרון', icon: 'palette', status: 'pending' },
+      { id: 'kosher-1', agent: 'Kosher Filter', label: 'בדיקת כשרות סקיצה 1', icon: 'shield', status: 'pending' },
+      { id: 'kosher-2', agent: 'Kosher Filter', label: 'בדיקת כשרות סקיצה 2', icon: 'shield', status: 'pending' },
+      { id: 'kosher-3', agent: 'Kosher Filter', label: 'בדיקת כשרות סקיצה 3', icon: 'shield', status: 'pending' },
+    ];
+    setPipelineSteps(initialSteps);
     
     try {
+      // Step 1: Profile
+      updatePipelineStep('profile', { status: 'running', startedAt: Date.now() });
       const profile = clientProfile || {
         business_name: 'העסק שלי',
         target_audience: 'משפחות חרדיות',
@@ -957,8 +982,30 @@ const CreativeStudio = () => {
         advantage_type: 'שירות',
         x_factors: ['איכות', 'מחיר', 'שירות']
       };
+      updatePipelineStep('profile', { 
+        status: 'done', 
+        completedAt: Date.now(),
+        output: `עסק: ${profile.business_name}\nקהל: ${profile.target_audience || 'לא הוגדר'}\nלוגו: ${(clientProfile as any)?.logo_url ? '✅ נמצא' : '❌ חסר'}`,
+      });
 
-      const detectedTopic = detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title + ' ' + (clientProfile?.primary_x_factor || ''));
+      // Step 2: Topic Detection
+      updatePipelineStep('topic', { status: 'running', startedAt: Date.now() });
+      const searchText = campaignBrief.offer + ' ' + campaignBrief.title + ' ' + (clientProfile?.primary_x_factor || '');
+      const detectedTopic = detectTopicCategory(searchText);
+      updatePipelineStep('topic', { 
+        status: 'done', 
+        completedAt: Date.now(),
+        input: `טקסט לניתוח: "${searchText.substring(0, 80)}"`,
+        output: `קטגוריה שזוהתה: ${detectedTopic || 'כללי'}\nחג/עונה: ${selectedHoliday || 'כל השנה'}`,
+      });
+
+      // Step 3: Generate Concepts
+      updatePipelineStep('concepts', { 
+        status: 'running', 
+        startedAt: Date.now(),
+        details: 'שולח בריף ל-AI לייצור 3 קונספטים...',
+        input: `הצעה: "${campaignBrief.offer}"\nמטרה: ${campaignBrief.goal || 'לא הוגדרה'}\nמדיה: ${mediaTypes.join(', ')}\nחג: ${selectedHoliday || 'כל השנה'}\nנושא: ${detectedTopic || 'כללי'}`,
+      });
 
       const { data, error } = await supabase.functions.invoke('generate-concepts', {
         body: { 
@@ -976,12 +1023,14 @@ const CreativeStudio = () => {
 
       if (error) {
         console.error('Error generating concepts:', error);
+        updatePipelineStep('concepts', { status: 'error', completedAt: Date.now(), error: error.message || 'שגיאה ביצירת קונספטים' });
         toast.error('שגיאה ביצירת הקונספטים');
         setIsGeneratingConcepts(false);
         return;
       }
 
       if (!data?.concepts || data.concepts.length === 0) {
+        updatePipelineStep('concepts', { status: 'error', completedAt: Date.now(), error: 'לא התקבלו קונספטים מה-AI' });
         toast.error('לא הצלחנו ליצור קונספטים. נסה שוב.');
         setIsGeneratingConcepts(false);
         return;
@@ -991,7 +1040,23 @@ const CreativeStudio = () => {
       setConcepts(generatedConcepts);
       setIsGeneratingConcepts(false);
 
-      // Immediately generate images for each concept (skip concept selection)
+      // Log concepts output
+      const conceptsSummary = generatedConcepts.map((c, i) => 
+        `${i+1}. [${c.type}] "${c.headline}"\n   קופי: ${c.copy?.substring(0, 60)}...\n   רעיון: ${c.idea?.substring(0, 60)}...`
+      ).join('\n');
+      updatePipelineStep('concepts', { 
+        status: 'done', 
+        completedAt: Date.now(),
+        output: conceptsSummary,
+      });
+
+      // Update sketch labels with actual concept types
+      generatedConcepts.forEach((c, i) => {
+        const typeLabel = c.type === 'emotional' ? 'רגשי' : c.type === 'hard-sale' ? 'מכירתי' : 'כאב ופתרון';
+        updatePipelineStep(`sketch-${i+1}`, { label: `עיצוב סקיצה ${i+1} — ${typeLabel}` });
+      });
+
+      // Generate images
       toast.info('הקונספטים מוכנים! מתחיל לעצב סקיצות... 🎨');
       setIsGenerating(true);
       setShowResults(true);
@@ -1009,14 +1074,32 @@ const CreativeStudio = () => {
 
       const results: GeneratedImage[] = [];
 
-      // Generate one image per concept (3 concepts = 3 sketches)
       for (let i = 0; i < generatedConcepts.length; i++) {
         const concept = generatedConcepts[i];
-        toast.info(`מעצב סקיצה ${i + 1} מתוך ${generatedConcepts.length} (${concept.type === 'emotional' ? 'רגשי' : concept.type === 'hard-sale' ? 'מכירתי' : 'כאב ופתרון'})...`);
+        const sketchId = `sketch-${i+1}`;
+        const kosherId = `kosher-${i+1}`;
+
+        // Start sketch generation
+        const enhancedVisualPrompt = campaignBrief.offer 
+          ? `${concept.idea}. המסר המרכזי: ${campaignBrief.offer}`
+          : concept.idea;
+        
+        updatePipelineStep(sketchId, { 
+          status: 'running', 
+          startedAt: Date.now(),
+          details: 'שולח פרומפט ויזואלי למודל תמונות...',
+          input: `פרומפט ויזואלי: "${enhancedVisualPrompt.substring(0, 100)}"\nסגנון: modern\nלוגו: ${brandContext?.logoUrl ? '✅ מצורף' : '❌ לא מצורף'}\nצבעים: ${brandContext?.colors?.primary || 'לא הוגדרו'}`,
+        });
 
         const imageUrl = await generateImageForConcept(concept, i, brandContext, campaignContext);
 
         if (imageUrl) {
+          updatePipelineStep(sketchId, { 
+            status: 'done', 
+            completedAt: Date.now(),
+            output: `✅ תמונה נוצרה בהצלחה\nURL: ${imageUrl.substring(0, 50)}...`,
+          });
+
           const newImage: GeneratedImage = {
             id: `${Date.now()}-${i}`,
             url: imageUrl,
@@ -1025,18 +1108,32 @@ const CreativeStudio = () => {
           results.push(newImage);
           setGeneratedImages([...results]);
 
-          // Run kosher check
-          toast.info(`בודק כשרות לסקיצה ${i + 1}... 🔍`);
+          // Kosher check
+          updatePipelineStep(kosherId, { status: 'running', startedAt: Date.now(), details: 'מנתח תמונה לתאימות הלכתית...' });
           const kosherResult = await runKosherCheck(imageUrl);
           newImage.status = kosherResult.status as GeneratedImage['status'];
           newImage.analysis = kosherResult.recommendation;
           setGeneratedImages([...results]);
+          
+          updatePipelineStep(kosherId, { 
+            status: 'done', 
+            completedAt: Date.now(),
+            output: `סטטוס: ${kosherResult.status === 'approved' ? '✅ מאושר' : kosherResult.status === 'rejected' ? '❌ נדחה' : '⚠️ דורש בדיקה'}\n${kosherResult.recommendation || ''}`,
+          });
 
-          // Update DB with kosher result
           await supabase.from('generated_images')
             .update({ kosher_status: kosherResult.status, kosher_analysis: kosherResult.recommendation })
             .eq('image_url', imageUrl);
+        } else {
+          updatePipelineStep(sketchId, { status: 'error', completedAt: Date.now(), error: 'לא התקבלה תמונה מהמודל' });
+          updatePipelineStep(kosherId, { status: 'skipped', completedAt: Date.now(), details: 'דילוג — אין תמונה' });
         }
+      }
+
+      // Skip remaining steps if fewer than 3 concepts
+      for (let i = generatedConcepts.length; i < 3; i++) {
+        updatePipelineStep(`sketch-${i+1}`, { status: 'skipped', details: 'לא נוצר קונספט' });
+        updatePipelineStep(`kosher-${i+1}`, { status: 'skipped', details: 'לא נוצר קונספט' });
       }
 
       if (results.length > 0) {
@@ -1443,6 +1540,9 @@ const CreativeStudio = () => {
                 </Button>
               </div>
             </div>
+
+            {/* Agent Pipeline Debug Panel */}
+            <AgentPipelineDebug steps={pipelineSteps} isVisible={showPipeline} />
 
             {generatedImages.length === 0 && isGenerating ? (
               <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
