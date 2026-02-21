@@ -275,7 +275,7 @@ ${JSON.stringify(sectorBrainData.zones)}
     console.log('Generating concepts for:', profile.business_name, 'Media type:', mediaType, 'Campaign offer:', campaignBrief?.offer, 'Holiday:', holidayName, 'Sector brain examples:', sectorBrainData?.total_examples || 0);
 
     // Try primary model, then fallback model
-    const modelsToTry = ['google/gemini-2.5-flash', 'openai/gpt-5-mini'];
+    const modelsToTry = ['google/gemini-2.5-pro', 'openai/gpt-5-mini'];
     let response: Response | null = null;
     
     for (const tryModel of modelsToTry) {
