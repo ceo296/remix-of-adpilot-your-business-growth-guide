@@ -1037,6 +1037,7 @@ const CreativeStudio = () => {
             phone: textMeta.phone,
             primaryColor: brandContext?.colors?.primary,
             secondaryColor: brandContext?.colors?.secondary,
+            backgroundColor: brandContext?.colors?.primary,
           });
           console.log(`[Canvas] Hebrew text applied programmatically for concept ${index}`);
         } catch (canvasError) {
