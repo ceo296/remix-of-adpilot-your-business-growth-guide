@@ -864,14 +864,89 @@ const CreativeStudio = () => {
     // In production, this could open a chat widget or send a notification
   };
 
-  // Autopilot functions
+  // Helper: build brand context for image generation
+  const buildBrandContext = () => {
+    const colorSelection = campaignBrief.colorSelection;
+    let effectiveColors = {
+      primary: clientProfile?.primary_color || null,
+      secondary: clientProfile?.secondary_color || null,
+      background: clientProfile?.background_color || null,
+    };
+    
+    if (colorSelection.mode === 'swapped') {
+      effectiveColors = {
+        primary: colorSelection.primaryColor || clientProfile?.secondary_color || null,
+        secondary: colorSelection.secondaryColor || clientProfile?.primary_color || null,
+        background: colorSelection.backgroundColor || clientProfile?.background_color || null,
+      };
+    }
+
+    return clientProfile ? {
+      businessName: clientProfile.business_name,
+      targetAudience: clientProfile.target_audience,
+      primaryXFactor: clientProfile.primary_x_factor,
+      winningFeature: clientProfile.winning_feature,
+      xFactors: clientProfile.x_factors,
+      colors: effectiveColors,
+      fonts: {
+        header: clientProfile.header_font,
+        body: clientProfile.body_font,
+      },
+      colorMode: colorSelection.mode,
+    } : null;
+  };
+
+  // Helper: generate image for a single concept
+  const generateImageForConcept = async (concept: CreativeConcept, index: number, brandContext: any, campaignContext: any) => {
+    const enhancedVisualPrompt = campaignBrief.offer 
+      ? `${concept.idea}. המסר המרכזי: ${campaignBrief.offer}`
+      : concept.idea;
+    
+    const enhancedTextPrompt = campaignBrief.offer && !concept.copy.includes(campaignBrief.offer)
+      ? `${concept.copy} - ${campaignBrief.offer}`
+      : concept.copy;
+
+    const detectedTopic = detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title);
+
+    const { data, error } = await supabase.functions.invoke('generate-image', {
+      body: {
+        visualPrompt: enhancedVisualPrompt,
+        textPrompt: enhancedTextPrompt,
+        style: 'modern',
+        engine: 'nano-banana',
+        brandContext,
+        campaignContext,
+        topicCategory: detectedTopic,
+      }
+    });
+
+    if (error) {
+      console.error(`Error generating image for concept ${index}:`, error);
+      return null;
+    }
+
+    if (data?.imageUrl) {
+      await supabase.from('generated_images').insert({
+        visual_prompt: enhancedVisualPrompt,
+        text_prompt: enhancedTextPrompt,
+        style: 'modern',
+        engine: 'nano-banana',
+        image_url: data.imageUrl,
+        kosher_status: 'pending',
+      });
+      return data.imageUrl;
+    }
+    return null;
+  };
+
+  // Autopilot: generate concepts AND images in one flow (skip text-only step)
   const handleGenerateConcepts = async () => {
     setIsGeneratingConcepts(true);
     setConcepts([]);
     setSelectedConcept(null);
+    setGeneratedImages([]);
     
     try {
-      // Use client profile or fallback defaults
       const profile = clientProfile || {
         business_name: 'העסק שלי',
         target_audience: 'משפחות חרדיות',
@@ -904,70 +979,101 @@ const CreativeStudio = () => {
         return;
       }
 
-      if (data?.concepts && data.concepts.length > 0) {
-        setConcepts(data.concepts);
-        toast.success('3 כיווני קריאייטיב מוכנים!');
-      } else {
+      if (!data?.concepts || data.concepts.length === 0) {
         toast.error('לא הצלחנו ליצור קונספטים. נסה שוב.');
+        setIsGeneratingConcepts(false);
+        return;
+      }
+
+      const generatedConcepts: CreativeConcept[] = data.concepts;
+      setConcepts(generatedConcepts);
+      setIsGeneratingConcepts(false);
+
+      // Immediately generate images for each concept (skip concept selection)
+      toast.info('הקונספטים מוכנים! מתחיל לעצב סקיצות... 🎨');
+      setIsGenerating(true);
+      setShowResults(true);
+      setStyle('modern');
+      setAssetChoice('has-copy');
+
+      const brandContext = buildBrandContext();
+      const campaignContext = {
+        title: campaignBrief.title,
+        offer: campaignBrief.offer,
+        goal: campaignBrief.goal,
+        structure: campaignBrief.structure,
+        holidaySeason: selectedHoliday || null,
+      };
+
+      const results: GeneratedImage[] = [];
+
+      // Generate one image per concept (3 concepts = 3 sketches)
+      for (let i = 0; i < generatedConcepts.length; i++) {
+        const concept = generatedConcepts[i];
+        toast.info(`מעצב סקיצה ${i + 1} מתוך ${generatedConcepts.length} (${concept.type === 'emotional' ? 'רגשי' : concept.type === 'hard-sale' ? 'מכירתי' : 'כאב ופתרון'})...`);
+
+        const imageUrl = await generateImageForConcept(concept, i, brandContext, campaignContext);
+
+        if (imageUrl) {
+          const newImage: GeneratedImage = {
+            id: `${Date.now()}-${i}`,
+            url: imageUrl,
+            status: 'pending',
+          };
+          results.push(newImage);
+          setGeneratedImages([...results]);
+
+          // Run kosher check
+          toast.info(`בודק כשרות לסקיצה ${i + 1}... 🔍`);
+          const kosherResult = await runKosherCheck(imageUrl);
+          newImage.status = kosherResult.status as GeneratedImage['status'];
+          newImage.analysis = kosherResult.recommendation;
+          setGeneratedImages([...results]);
+
+          // Update DB with kosher result
+          await supabase.from('generated_images')
+            .update({ kosher_status: kosherResult.status, kosher_analysis: kosherResult.recommendation })
+            .eq('image_url', imageUrl);
+        }
+      }
+
+      if (results.length > 0) {
+        const approved = results.filter(r => r.status === 'approved').length;
+        const needsReview = results.filter(r => r.status === 'needs-review').length;
+        const rejected = results.filter(r => r.status === 'rejected').length;
+        
+        if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
+        if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
+        if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
+      } else {
+        toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
     } catch (error) {
       console.error('Error:', error);
-      toast.error('שגיאה ביצירת הקונספטים');
+      toast.error('שגיאה ביצירת הסקיצות');
     } finally {
       setIsGeneratingConcepts(false);
+      setIsGenerating(false);
     }
   };
 
+  // Keep handleExecuteConcept for backward compatibility (e.g. "new ideas" flow)
   const handleExecuteConcept = async () => {
     if (!selectedConcept) return;
     
-    // Set the prompts from the selected concept
     setVisualPrompt(selectedConcept.idea);
     setTextPrompt(selectedConcept.copy);
-    setStyle('modern'); // Default style for autopilot
-    setAssetChoice('has-copy'); // Autopilot generates visual from scratch
-    
-    // Generate the images
+    setStyle('modern');
+    setAssetChoice('has-copy');
     setIsGenerating(true);
     setGeneratedImages([]);
     setShowResults(true);
     
-    const config = { engine: 'nano-banana', mode: 'generate' };
     toast.info('מייצר את העיצובים על בסיס הקונספט שבחרת... 🎨');
 
     try {
       const results: GeneratedImage[] = [];
-      
-      // Build brand context for autopilot
-      const colorSelection = campaignBrief.colorSelection;
-      let effectiveColors = {
-        primary: clientProfile?.primary_color || null,
-        secondary: clientProfile?.secondary_color || null,
-        background: clientProfile?.background_color || null,
-      };
-      
-      if (colorSelection.mode === 'swapped') {
-        effectiveColors = {
-          primary: colorSelection.primaryColor || clientProfile?.secondary_color || null,
-          secondary: colorSelection.secondaryColor || clientProfile?.primary_color || null,
-          background: colorSelection.backgroundColor || clientProfile?.background_color || null,
-        };
-      }
-
-      const brandContext = clientProfile ? {
-        businessName: clientProfile.business_name,
-        targetAudience: clientProfile.target_audience,
-        primaryXFactor: clientProfile.primary_x_factor,
-        winningFeature: clientProfile.winning_feature,
-        xFactors: clientProfile.x_factors,
-        colors: effectiveColors,
-        fonts: {
-          header: clientProfile.header_font,
-          body: clientProfile.body_font,
-        },
-        colorMode: colorSelection.mode,
-      } : null;
-
+      const brandContext = buildBrandContext();
       const campaignContext = {
         title: campaignBrief.title,
         offer: campaignBrief.offer,
@@ -978,61 +1084,27 @@ const CreativeStudio = () => {
       
       for (let i = 0; i < 4; i++) {
         toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
-        
-        // Combine concept with campaign offer for stronger emphasis
-        const enhancedVisualPrompt = campaignBrief.offer 
-          ? `${selectedConcept.idea}. המסר המרכזי: ${campaignBrief.offer}`
-          : selectedConcept.idea;
-        
-        const enhancedTextPrompt = campaignBrief.offer && !selectedConcept.copy.includes(campaignBrief.offer)
-          ? `${selectedConcept.copy} - ${campaignBrief.offer}`
-          : selectedConcept.copy;
 
-        const detectedTopic = detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title);
+        const imageUrl = await generateImageForConcept(selectedConcept, i, brandContext, campaignContext);
 
-        const { data, error } = await supabase.functions.invoke('generate-image', {
-          body: {
-            visualPrompt: enhancedVisualPrompt,
-            textPrompt: enhancedTextPrompt,
-            style: 'modern',
-            engine: 'nano-banana',
-            brandContext,
-            campaignContext,
-            topicCategory: detectedTopic,
-          }
-        });
-
-        if (error) {
-          console.error('Error generating image:', error);
-          continue;
-        }
-
-        if (data?.imageUrl) {
+        if (imageUrl) {
           const newImage: GeneratedImage = {
             id: `${Date.now()}-${i}`,
-            url: data.imageUrl,
+            url: imageUrl,
             status: 'pending',
           };
-          
           results.push(newImage);
           setGeneratedImages([...results]);
 
           toast.info(`מריץ בדיקת כשרות לסקיצה ${i + 1}... 🔍`);
-          const kosherResult = await runKosherCheck(data.imageUrl);
-          
+          const kosherResult = await runKosherCheck(imageUrl);
           newImage.status = kosherResult.status as GeneratedImage['status'];
           newImage.analysis = kosherResult.recommendation;
           setGeneratedImages([...results]);
 
-          await supabase.from('generated_images').insert({
-            visual_prompt: enhancedVisualPrompt,
-            text_prompt: enhancedTextPrompt,
-            style: 'modern',
-            engine: config.engine,
-            image_url: data.imageUrl,
-            kosher_status: kosherResult.status,
-            kosher_analysis: kosherResult.recommendation,
-          });
+          await supabase.from('generated_images')
+            .update({ kosher_status: kosherResult.status, kosher_analysis: kosherResult.recommendation })
+            .eq('image_url', imageUrl);
         }
       }
 
