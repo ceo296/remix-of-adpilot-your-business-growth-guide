@@ -55,6 +55,7 @@ interface ClientProfile {
   background_color: string | null;
   header_font: string | null;
   body_font: string | null;
+  logo_url: string | null;
 }
 
 interface MediaPackage {
@@ -324,7 +325,7 @@ const CreativeStudio = () => {
 
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font')
+        .select('business_name, target_audience, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url')
         .eq('user_id', user.id)
         .single();
 
@@ -893,6 +894,7 @@ const CreativeStudio = () => {
         body: clientProfile.body_font,
       },
       colorMode: colorSelection.mode,
+      logoUrl: clientProfile.logo_url,
     } : null;
   };
 
