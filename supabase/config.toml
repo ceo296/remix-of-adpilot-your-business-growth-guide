@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.analyze-ad-layout]
 verify_jwt = false
+
+[functions.describe-brain-examples]
+verify_jwt = false

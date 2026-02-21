@@ -446,6 +446,27 @@ const SectorBrain = () => {
     } finally { setIsAnalyzing(false); }
   };
 
+  // Auto-describe images
+  const [isDescribing, setIsDescribing] = useState(false);
+  const [describeProgress, setDescribeProgress] = useState<{ processed: number; remaining: number } | null>(null);
+
+  const handleAutoDescribe = async () => {
+    setIsDescribing(true);
+    setDescribeProgress(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('describe-brain-examples', {
+        body: { batchSize: 15 },
+      });
+      if (error) throw error;
+      setDescribeProgress({ processed: data.processed, remaining: data.remaining });
+      toast.success(`תואר ${data.processed} דוגמאות בהצלחה${data.remaining > 0 ? ` • נשארו ${data.remaining}` : ' • הכל מתואר!'}`);
+      if (data.processed > 0) loadExamples();
+    } catch (error) {
+      console.error('Describe error:', error);
+      toast.error('שגיאה בתיאור אוטומטי');
+    } finally { setIsDescribing(false); }
+  };
+
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
@@ -485,10 +506,25 @@ const SectorBrain = () => {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={loadExamples} disabled={isLoading}>
-            <RefreshCw className={cn("h-4 w-4 ml-1", isLoading && "animate-spin")} />
-            רענן
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAutoDescribe} 
+              disabled={isDescribing}
+              title="תיאור אוטומטי של תמונות ללא תיאור באמצעות AI"
+            >
+              {isDescribing ? <Loader2 className="h-4 w-4 ml-1 animate-spin" /> : <Sparkles className="h-4 w-4 ml-1" />}
+              {isDescribing ? 'מתאר...' : 'תאר תמונות'}
+              {describeProgress && describeProgress.remaining > 0 && (
+                <span className="text-xs bg-primary/20 rounded-full px-1.5 mr-1">{describeProgress.remaining}</span>
+              )}
+            </Button>
+            <Button variant="outline" size="sm" onClick={loadExamples} disabled={isLoading}>
+              <RefreshCw className={cn("h-4 w-4 ml-1", isLoading && "animate-spin")} />
+              רענן
+            </Button>
+          </div>
         </div>
       </header>
 

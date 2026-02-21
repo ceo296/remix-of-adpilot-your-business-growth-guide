@@ -9,7 +9,7 @@ const corsHeaders = {
 async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCategory?: string | null) {
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const selectFields = 'name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type';
+    const selectFields = 'name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type, file_path, file_type';
     
     let topicExamples: any[] = [];
     if (topicCategory) {
@@ -35,7 +35,12 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
     if (!allExamples.length) return null;
     const grouped: Record<string, typeof allExamples> = {};
     for (const item of allExamples) { const zone = item.zone || 'general'; if (!grouped[zone]) grouped[zone] = []; grouped[zone].push(item); }
-    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const imageExamples = allExamples
+      .filter(e => e.file_path && e.file_type && /image|png|jpg|jpeg|webp/i.test(e.file_type))
+      .slice(0, 8)
+      .map(e => `${supabaseUrl}/storage/v1/object/public/sector-brain/${e.file_path}`);
+    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, imageUrls: imageExamples, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
   } catch { return null; }
 }
 
