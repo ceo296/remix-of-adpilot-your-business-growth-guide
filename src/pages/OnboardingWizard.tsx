@@ -157,10 +157,6 @@ const OnboardingWizard = () => {
 
   const extractColorsFromLogo = async (imageDataUrl: string): Promise<{ primary: string; secondary: string; background: string } | null> => {
     try {
-      // Only extract colors from images, not PDFs
-      if (imageDataUrl.startsWith('data:application/pdf')) {
-        return null;
-      }
 
       const { data, error } = await supabase.functions.invoke('extract-logo-colors', {
         body: { imageBase64: imageDataUrl }
