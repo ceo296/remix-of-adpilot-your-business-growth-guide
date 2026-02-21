@@ -624,6 +624,7 @@ const CreativeStudio = () => {
             brandContext,
             campaignContext,
             topicCategory: detectedTopic,
+            holidaySeason: selectedHoliday || null,
           }
         });
 
@@ -1015,6 +1016,7 @@ const CreativeStudio = () => {
         brandContext,
         campaignContext,
         topicCategory: detectedTopic,
+        holidaySeason: selectedHoliday || null,
       }
     });
 
