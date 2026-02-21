@@ -298,6 +298,13 @@ export const useAdkopAgents = () => {
         throw new Error('AI לא החזיר תמהיל מדיה תקין');
       }
 
+      // Log price corrections if any
+      const corrections = data?.priceCorrections || [];
+      if (corrections.length > 0) {
+        console.log('Price corrections applied:', corrections);
+        toast.info(`${corrections.length} מחירים תוקנו אוטומטית לפי המאגר`);
+      }
+
       toast.success(`תמהיל מדיה עם ${items.length} ערוצים נוצר!`);
       return items;
     } catch (err) {
