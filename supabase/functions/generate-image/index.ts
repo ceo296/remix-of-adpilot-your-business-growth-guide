@@ -379,6 +379,12 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
 
     return new Response(JSON.stringify({ 
       imageUrl: finalResult.imageUrl,
+      visualOnlyUrl: visualResult.imageUrl,
+      textMeta: {
+        headline: textPrompt || campaignContext?.offer || '',
+        businessName: brandContext?.businessName || '',
+        phone: brandContext?.contactPhone || '',
+      },
       status: 'approved',
       message: `שכבה ויזואלית: ${visualResult.model} | שכבת טקסט: ${finalResult.model}`,
       model: `${visualResult.model} + ${finalResult.model}`,
