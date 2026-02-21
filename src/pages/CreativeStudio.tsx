@@ -26,6 +26,7 @@ import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
 import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor';
+import { PrintExportDialog, PrintSettings } from '@/components/studio/PrintExportDialog';
 
 type AssetChoice = 'full-campaign' | 'has-visual' | 'has-copy';
 type TreatmentChoice = 'as-is' | 'ai-magic';
@@ -275,6 +276,8 @@ const CreativeStudio = () => {
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
   const [enlargedImage, setEnlargedImage] = useState<GeneratedImage | null>(null);
   const [overlayEditImage, setOverlayEditImage] = useState<{ id: string; url: string } | null>(null);
+  const [printDialogImage, setPrintDialogImage] = useState<GeneratedImage | null>(null);
+  const [printDialogMode, setPrintDialogMode] = useState<'single' | 'all'>('single');
   const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
   const [showPipeline, setShowPipeline] = useState(false);
 
@@ -940,45 +943,53 @@ const CreativeStudio = () => {
     }
   };
 
-  // Export single image to print PDF
-  const handleExportPrint = async (image: GeneratedImage) => {
+  // Open print dialog for single image
+  const handleExportPrint = (image: GeneratedImage) => {
+    setPrintDialogImage(image);
+    setPrintDialogMode('single');
+  };
+
+  // Open print dialog for all images
+  const handleExportAllPrint = () => {
+    const approved = generatedImages.filter(i => i.status !== 'rejected');
+    if (approved.length === 0) return;
+    setPrintDialogMode('all');
+    setPrintDialogImage(approved[0]);
+  };
+
+  // Actually run the export with chosen settings
+  const handlePrintExport = async (settings: PrintSettings) => {
+    const exportImage = printDialogImage;
+    setPrintDialogImage(null);
     try {
       toast.info('מכין קובץ לדפוס...');
-      await exportToPrintPdf({
-        imageUrl: image.url,
-        filename: `${clientProfile?.business_name || 'ad'}-print`,
-        format: 'a4',
-        orientation: 'portrait',
-        bleed: 3,
-        cropMarks: true,
-        quality: 'high',
-      });
+      if (printDialogMode === 'single' && exportImage) {
+        await exportToPrintPdf({
+          imageUrl: exportImage.url,
+          filename: `${clientProfile?.business_name || 'ad'}-print`,
+          format: settings.format,
+          orientation: settings.orientation,
+          bleed: settings.bleed,
+          cropMarks: settings.cropMarks,
+          quality: settings.quality,
+        });
+      } else {
+        const approved = generatedImages.filter(i => i.status !== 'rejected');
+        await exportMultiPagePdf(
+          approved.map(i => ({ url: i.url })),
+          {
+            filename: `${clientProfile?.business_name || 'campaign'}-all-prints`,
+            format: settings.format,
+            orientation: settings.orientation,
+            bleed: settings.bleed,
+            cropMarks: settings.cropMarks,
+            quality: settings.quality,
+          }
+        );
+      }
       toast.success('קובץ PDF לדפוס הורד בהצלחה! 🖨️');
     } catch (err) {
       console.error('Print export failed:', err);
-      toast.error('שגיאה בייצוא לדפוס');
-    }
-  };
-
-  // Export all approved images to multi-page PDF
-  const handleExportAllPrint = async () => {
-    const approved = generatedImages.filter(i => i.status !== 'rejected');
-    if (approved.length === 0) return;
-    try {
-      toast.info('מכין קובץ לדפוס...');
-      await exportMultiPagePdf(
-        approved.map(i => ({ url: i.url })),
-        {
-          filename: `${clientProfile?.business_name || 'campaign'}-all-prints`,
-          format: 'a4',
-          bleed: 3,
-          cropMarks: true,
-          quality: 'high',
-        }
-      );
-      toast.success('כל הסקיצות הורדו כ-PDF לדפוס! 🖨️');
-    } catch (err) {
-      console.error('Multi-page export failed:', err);
       toast.error('שגיאה בייצוא לדפוס');
     }
   };
@@ -1957,6 +1968,14 @@ const CreativeStudio = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Print Export Dialog */}
+      <PrintExportDialog
+        open={!!printDialogImage}
+        onClose={() => setPrintDialogImage(null)}
+        onExport={handlePrintExport}
+        imageCount={printDialogMode === 'all' ? generatedImages.filter(i => i.status !== 'rejected').length : 1}
+      />
     </div>
   );
 };
