@@ -1,18 +1,30 @@
 /**
  * Programmatic Hebrew text overlay using Canvas.
  * Professional ad-quality layouts inspired by real Haredi sector advertisements.
+ * 
+ * Layout structure (based on reference ads):
+ * - TOP: Bold headline (above or over the visual)
+ * - MIDDLE: Body text / sub-headline explaining the offer
+ * - VISUAL: The AI-generated image
+ * - BOTTOM: Contact info bar (phone, address, logo, website)
  */
 
-export type TextLayoutStyle = 'bottom-banner' | 'center-card' | 'minimal' | 'side-strip' | 'top-bar';
+export type TextLayoutStyle = 'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip';
 
 export interface TextOverlayConfig {
   headline?: string;
+  bodyText?: string;
+  ctaText?: string;
   businessName?: string;
   phone?: string;
+  whatsapp?: string;
+  email?: string;
+  address?: string;
   primaryColor?: string;
   secondaryColor?: string;
   backgroundColor?: string;
   layoutStyle?: TextLayoutStyle;
+  logoUrl?: string;
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -39,12 +51,12 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     }
   }
   if (currentLine) lines.push(currentLine);
-  if (lines.length > 3) {
-    let truncated = lines[2];
+  if (lines.length > 4) {
+    let truncated = lines[3];
     while (truncated.length > 0 && ctx.measureText(truncated + '...').width > maxWidth) {
       truncated = truncated.slice(0, -1);
     }
-    return [lines[0], lines[1], truncated + '...'];
+    return [lines[0], lines[1], lines[2], truncated + '...'];
   }
   return lines;
 }
@@ -104,99 +116,317 @@ function darkenColor(hex: string, factor = 0.3): string {
   return `rgb(${r},${g},${b})`;
 }
 
-// ═══════ Layout: Bottom Banner ═══════
-// Professional brand-colored band at bottom with gradient fade into image
-function layoutBottomBanner(
+function lightenColor(hex: string, factor = 0.85): string {
+  const c = hex.replace('#', '');
+  const r = Math.min(255, Math.round(parseInt(c.substring(0, 2), 16) + (255 - parseInt(c.substring(0, 2), 16)) * factor));
+  const g = Math.min(255, Math.round(parseInt(c.substring(2, 4), 16) + (255 - parseInt(c.substring(2, 4), 16)) * factor));
+  const b = Math.min(255, Math.round(parseInt(c.substring(4, 6), 16) + (255 - parseInt(c.substring(4, 6), 16)) * factor));
+  return `rgb(${r},${g},${b})`;
+}
+
+// Build contact info string from available fields
+function buildContactLine(config: TextOverlayConfig): string {
+  const parts: string[] = [];
+  if (config.phone) parts.push(config.phone);
+  if (config.whatsapp && config.whatsapp !== config.phone) parts.push(`ווצאפ: ${config.whatsapp}`);
+  if (config.email) parts.push(config.email);
+  return parts.join('  |  ');
+}
+
+// ═══════ Layout: Classic Ad (like the dental clinic reference) ═══════
+// Structure: Headline at top → body text → visual → contact bar at bottom
+function layoutClassicAd(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
   const padding = w * 0.05;
   const maxTextWidth = w * 0.88;
-  const bandHeight = h * 0.25;
-  const bandY = h - bandHeight;
 
-  // Gradient fade from image into brand color band
-  const fadeHeight = h * 0.08;
-  const fadeGrad = ctx.createLinearGradient(0, bandY - fadeHeight, 0, bandY);
-  fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
-  fadeGrad.addColorStop(1, colorWithAlpha(brandPrimary, 0.95));
-  ctx.fillStyle = fadeGrad;
-  ctx.fillRect(0, bandY - fadeHeight, w, fadeHeight);
+  // === TOP SECTION: Headline band ===
+  if (config.headline) {
+    const headlineFs = Math.round(w * 0.065);
+    ctx.font = `900 ${headlineFs}px "Heebo", "Arial", sans-serif`;
+    const shortHeadline = config.headline.length > 60 ? config.headline.substring(0, 57) + '...' : config.headline;
+    const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth);
+    const lineHeight = headlineFs * 1.3;
+    const headlineBandHeight = headlineLines.length * lineHeight + headlineFs * 1.2;
 
-  // Solid brand-colored band
-  ctx.fillStyle = colorWithAlpha(brandPrimary, 0.95);
-  ctx.fillRect(0, bandY, w, bandHeight);
+    // Brand-colored headline band at top
+    ctx.fillStyle = colorWithAlpha(brandPrimary, 0.95);
+    ctx.fillRect(0, 0, w, headlineBandHeight);
 
-  // Accent line at top of band using secondary color
-  ctx.fillStyle = brandSecondary;
-  ctx.fillRect(0, bandY, w, 4);
+    // Accent line at bottom of headline band
+    ctx.fillStyle = brandSecondary;
+    ctx.fillRect(0, headlineBandHeight - 4, w, 4);
 
-  const textOnBand = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
-  const subTextOnBand = isLightColor(brandPrimary) ? '#333333' : '#e0e0e0';
-  let bandContentY = bandY + bandHeight * 0.35;
+    // Fade from band into image
+    const fadeGrad = ctx.createLinearGradient(0, headlineBandHeight, 0, headlineBandHeight + h * 0.04);
+    fadeGrad.addColorStop(0, colorWithAlpha(brandPrimary, 0.3));
+    fadeGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = fadeGrad;
+    ctx.fillRect(0, headlineBandHeight, w, h * 0.04);
 
-  // Business name - larger, bolder
-  if (config.businessName) {
-    const fs = Math.round(w * 0.058);
-    ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
+    // Headline text
+    const textOnBand = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
     ctx.fillStyle = textOnBand;
     ctx.textAlign = 'right';
     setShadow(ctx, 3, 0.2);
-    ctx.fillText(config.businessName, w - padding, bandContentY);
-    bandContentY += fs * 1.4;
+    let textY = headlineFs * 0.8;
+    for (const line of headlineLines) {
+      textY += lineHeight;
+      ctx.fillText(line, w - padding, textY);
+    }
     resetShadow(ctx);
   }
 
-  // Phone
-  if (config.phone) {
-    const fs = Math.round(w * 0.036);
-    ctx.font = `700 ${fs}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = subTextOnBand;
+  // === MIDDLE SECTION: Body text (if present) ===
+  if (config.bodyText) {
+    const bodyFs = Math.round(w * 0.032);
+    ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
+    const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth);
+    const bodyLineHeight = bodyFs * 1.5;
+    const bodyTotalH = bodyLines.length * bodyLineHeight + bodyFs;
+
+    // Calculate position - below headline or at ~30% height
+    const headlineFs = Math.round(w * 0.065);
+    const headlineLines = config.headline ? wrapText(ctx, config.headline.substring(0, 60), maxTextWidth) : [];
+    const headlineBandH = config.headline ? headlineLines.length * (headlineFs * 1.3) + headlineFs * 1.2 : 0;
+    const bodyStartY = headlineBandH + h * 0.02;
+
+    // Semi-transparent background for body text
+    const bodyBgGrad = ctx.createLinearGradient(0, bodyStartY, 0, bodyStartY + bodyTotalH);
+    bodyBgGrad.addColorStop(0, colorWithAlpha('#000000', 0.5));
+    bodyBgGrad.addColorStop(1, colorWithAlpha('#000000', 0.3));
+    ctx.fillStyle = bodyBgGrad;
+    ctx.fillRect(0, bodyStartY, w, bodyTotalH);
+
+    // Body text
+    ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'right';
-    ctx.fillText(config.phone, w - padding, bandContentY);
+    ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
+    let bodyY = bodyStartY + bodyFs * 0.8;
+    for (const line of bodyLines) {
+      bodyY += bodyLineHeight;
+      ctx.fillText(line, w - padding, bodyY);
+    }
   }
 
-  // Headline above the band in a branded pill
-  if (config.headline) {
-    const fs = Math.round(w * 0.042);
-    ctx.font = `bold ${fs}px "Heebo", "Arial", sans-serif`;
-    const shortHeadline = config.headline.length > 80 ? config.headline.substring(0, 77) + '...' : config.headline;
-    const lines = wrapText(ctx, shortHeadline, maxTextWidth * 0.85);
-    const lineHeight = fs * 1.45;
-    const totalH = lines.length * lineHeight;
-    const blockPad = fs * 0.5;
-    const blockBottom = bandY - fadeHeight - fs * 0.3;
-    const blockTop = blockBottom - totalH - blockPad * 2;
+  // === CTA pill (if present) ===
+  if (config.ctaText) {
+    const ctaFs = Math.round(w * 0.028);
+    ctx.font = `bold ${ctaFs}px "Heebo", "Arial", sans-serif`;
+    const ctaWidth = ctx.measureText(config.ctaText).width + ctaFs * 2;
+    const ctaHeight = ctaFs * 2.2;
+    // Position CTA above the contact bar
+    const ctaY = h * 0.72;
+    const ctaX = w / 2 - ctaWidth / 2;
 
-    let maxLW = 0;
-    for (const line of lines) { const lw = ctx.measureText(line).width; if (lw > maxLW) maxLW = lw; }
-
-    // Pill background using secondary/dark brand color
-    roundRect(ctx, w - padding - maxLW - blockPad * 2.5, blockTop, maxLW + blockPad * 3, totalH + blockPad * 2, 12);
-    ctx.fillStyle = colorWithAlpha(brandSecondary, 0.85);
+    roundRect(ctx, ctaX, ctaY, ctaWidth, ctaHeight, ctaHeight / 2);
+    ctx.fillStyle = brandSecondary;
     ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    roundRect(ctx, ctaX, ctaY, ctaWidth, ctaHeight, ctaHeight / 2);
+    ctx.stroke();
 
-    // Text in contrasting color
-    const textOnPill = isLightColor(brandSecondary) ? darkenColor(brandPrimary) : '#FFFFFF';
-    ctx.fillStyle = textOnPill;
+    ctx.fillStyle = isLightColor(brandSecondary) ? '#1a1a1a' : '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText(config.ctaText, w / 2, ctaY + ctaHeight * 0.65);
     ctx.textAlign = 'right';
-    setShadow(ctx, 2, 0.2);
-    let textY = blockTop + blockPad + fs;
-    for (const line of lines) {
-      ctx.fillText(line, w - padding - blockPad, textY);
+  }
+
+  // === BOTTOM SECTION: Contact info bar ===
+  const contactLine = buildContactLine(config);
+  const hasContact = contactLine || config.businessName || config.address;
+  
+  if (hasContact) {
+    const barHeight = h * 0.15;
+    const barY = h - barHeight;
+
+    // Gradient fade into bar
+    const fadeHeight = h * 0.05;
+    const fadeGrad = ctx.createLinearGradient(0, barY - fadeHeight, 0, barY);
+    fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    fadeGrad.addColorStop(1, colorWithAlpha(brandPrimary, 0.95));
+    ctx.fillStyle = fadeGrad;
+    ctx.fillRect(0, barY - fadeHeight, w, fadeHeight);
+
+    // Solid contact bar
+    ctx.fillStyle = colorWithAlpha(brandPrimary, 0.95);
+    ctx.fillRect(0, barY, w, barHeight);
+
+    // Accent line at top
+    ctx.fillStyle = brandSecondary;
+    ctx.fillRect(0, barY, w, 3);
+
+    const textOnBar = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
+    const subOnBar = isLightColor(brandPrimary) ? '#333' : '#d0d0d0';
+    let contentY = barY + barHeight * 0.35;
+
+    // Business name - prominent
+    if (config.businessName) {
+      const nameFs = Math.round(w * 0.042);
+      ctx.font = `900 ${nameFs}px "Heebo", "Arial", sans-serif`;
+      ctx.fillStyle = textOnBar;
+      ctx.textAlign = 'right';
+      ctx.fillText(config.businessName, w - padding, contentY);
+      contentY += nameFs * 1.3;
+    }
+
+    // Phone (large, prominent)
+    if (config.phone) {
+      const phoneFs = Math.round(w * 0.038);
+      ctx.font = `800 ${phoneFs}px "Heebo", "Arial", sans-serif`;
+      ctx.fillStyle = brandSecondary;
+      ctx.textAlign = 'right';
+      setShadow(ctx, 2, 0.2);
+      ctx.fillText(config.phone, w - padding, contentY);
+      resetShadow(ctx);
+      contentY += phoneFs * 1.2;
+    }
+
+    // Address / extra contact
+    if (config.address) {
+      const addrFs = Math.round(w * 0.022);
+      ctx.font = `500 ${addrFs}px "Heebo", "Arial", sans-serif`;
+      ctx.fillStyle = subOnBar;
+      ctx.textAlign = 'right';
+      ctx.fillText(config.address, w - padding, contentY);
+    }
+  }
+}
+
+// ═══════ Layout: Top Headline (headline floats above image) ═══════
+function layoutTopHeadline(
+  ctx: CanvasRenderingContext2D, w: number, h: number,
+  config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
+) {
+  const padding = w * 0.05;
+  const maxTextWidth = w * 0.88;
+
+  // === TOP: Headline over gradient ===
+  if (config.headline) {
+    const headlineFs = Math.round(w * 0.058);
+    ctx.font = `900 ${headlineFs}px "Heebo", "Arial", sans-serif`;
+    const shortHeadline = config.headline.length > 70 ? config.headline.substring(0, 67) + '...' : config.headline;
+    const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth);
+    const lineHeight = headlineFs * 1.3;
+    const topGradH = headlineLines.length * lineHeight + headlineFs * 2;
+
+    // Top gradient for text readability
+    const topGrad = ctx.createLinearGradient(0, 0, 0, topGradH);
+    topGrad.addColorStop(0, colorWithAlpha('#000000', 0.7));
+    topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, w, topGradH);
+
+    // Headline text
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'right';
+    setShadow(ctx, 6, 0.6);
+    let textY = headlineFs * 1.2;
+    for (const line of headlineLines) {
+      ctx.fillText(line, w - padding, textY);
       textY += lineHeight;
     }
     resetShadow(ctx);
   }
+
+  // === MIDDLE: Body text with semi-transparent bg ===
+  if (config.bodyText) {
+    const bodyFs = Math.round(w * 0.03);
+    ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
+    const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth);
+    const bodyLineH = bodyFs * 1.5;
+
+    // Position at ~35% from top
+    const bodyStartY = h * 0.33;
+    const bodyTotalH = bodyLines.length * bodyLineH + bodyFs;
+
+    roundRect(ctx, padding * 0.5, bodyStartY, w - padding, bodyTotalH, 8);
+    ctx.fillStyle = colorWithAlpha('#000000', 0.45);
+    ctx.fill();
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'right';
+    let bodyY = bodyStartY + bodyFs;
+    for (const line of bodyLines) {
+      bodyY += bodyLineH;
+      ctx.fillText(line, w - padding, bodyY);
+    }
+  }
+
+  // === CTA ===
+  if (config.ctaText) {
+    const ctaFs = Math.round(w * 0.026);
+    ctx.font = `bold ${ctaFs}px "Heebo", "Arial", sans-serif`;
+    const ctaWidth = ctx.measureText(config.ctaText).width + ctaFs * 2;
+    const ctaH = ctaFs * 2.2;
+    const ctaY = h * 0.68;
+
+    roundRect(ctx, w - padding - ctaWidth, ctaY, ctaWidth, ctaH, ctaH / 2);
+    ctx.fillStyle = brandSecondary;
+    ctx.fill();
+
+    ctx.fillStyle = isLightColor(brandSecondary) ? '#1a1a1a' : '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText(config.ctaText, w - padding - ctaWidth / 2, ctaY + ctaH * 0.65);
+    ctx.textAlign = 'right';
+  }
+
+  // === BOTTOM: Contact bar ===
+  const hasContact = config.businessName || config.phone || config.address;
+  if (hasContact) {
+    const barH = h * 0.14;
+    const barY = h - barH;
+
+    // Gradient into bar
+    const fadeGrad = ctx.createLinearGradient(0, barY - h * 0.04, 0, barY);
+    fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    fadeGrad.addColorStop(1, colorWithAlpha(brandPrimary, 0.92));
+    ctx.fillStyle = fadeGrad;
+    ctx.fillRect(0, barY - h * 0.04, w, h * 0.04);
+
+    ctx.fillStyle = colorWithAlpha(brandPrimary, 0.92);
+    ctx.fillRect(0, barY, w, barH);
+
+    ctx.fillStyle = brandSecondary;
+    ctx.fillRect(0, barY, w, 3);
+
+    const textOnBar = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
+    let contentY = barY + barH * 0.4;
+
+    if (config.businessName) {
+      const fs = Math.round(w * 0.038);
+      ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
+      ctx.fillStyle = textOnBar;
+      ctx.fillText(config.businessName, w - padding, contentY);
+      contentY += fs * 1.3;
+    }
+
+    if (config.phone) {
+      const fs = Math.round(w * 0.032);
+      ctx.font = `800 ${fs}px "Heebo", "Arial", sans-serif`;
+      ctx.fillStyle = brandSecondary;
+      ctx.fillText(config.phone, w - padding, contentY);
+      contentY += fs * 1.2;
+    }
+
+    if (config.address) {
+      const fs = Math.round(w * 0.02);
+      ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
+      ctx.fillStyle = isLightColor(brandPrimary) ? '#444' : '#ccc';
+      ctx.fillText(config.address, w - padding, contentY);
+    }
+  }
 }
 
 // ═══════ Layout: Side Strip ═══════
-// Vertical brand-colored strip on the right side (RTL native)
 function layoutSideStrip(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
-  const stripWidth = w * 0.32;
+  const stripWidth = w * 0.35;
   const stripX = w - stripWidth;
   const padding = w * 0.04;
 
@@ -208,11 +438,9 @@ function layoutSideStrip(
   ctx.fillStyle = fadeGrad;
   ctx.fillRect(stripX - fadeWidth, 0, fadeWidth, h);
 
-  // Solid brand strip
   ctx.fillStyle = colorWithAlpha(brandPrimary, 0.95);
   ctx.fillRect(stripX, 0, stripWidth, h);
 
-  // Accent line on left edge
   ctx.fillStyle = brandSecondary;
   ctx.fillRect(stripX, 0, 4, h);
 
@@ -221,123 +449,98 @@ function layoutSideStrip(
   const textX = stripX + stripWidth - padding;
   const maxTextW = stripWidth - padding * 2;
 
-  let currentY = h * 0.2;
+  let currentY = h * 0.12;
 
   // Business name
   if (config.businessName) {
-    const fs = Math.round(w * 0.05);
+    const fs = Math.round(w * 0.045);
     ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
     ctx.fillStyle = textColor;
     ctx.textAlign = 'right';
     ctx.fillText(config.businessName, textX, currentY);
-    currentY += fs * 1.8;
+    currentY += fs * 1.5;
 
     // Decorative line
     ctx.fillStyle = brandSecondary;
-    ctx.fillRect(textX - maxTextW, currentY - fs * 0.6, maxTextW, 3);
-    currentY += fs * 0.5;
+    ctx.fillRect(textX - maxTextW, currentY - fs * 0.4, maxTextW, 3);
+    currentY += fs * 0.6;
   }
 
   // Headline
   if (config.headline) {
-    const fs = Math.round(w * 0.032);
-    ctx.font = `bold ${fs}px "Heebo", "Arial", sans-serif`;
-    const shortHeadline = config.headline.length > 80 ? config.headline.substring(0, 77) + '...' : config.headline;
+    const fs = Math.round(w * 0.038);
+    ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
+    const shortHeadline = config.headline.length > 50 ? config.headline.substring(0, 47) + '...' : config.headline;
     const lines = wrapText(ctx, shortHeadline, maxTextW);
     ctx.fillStyle = textColor;
     ctx.textAlign = 'right';
     for (const line of lines) {
       ctx.fillText(line, textX, currentY);
+      currentY += fs * 1.4;
+    }
+    currentY += fs * 0.3;
+  }
+
+  // Body text
+  if (config.bodyText) {
+    const fs = Math.round(w * 0.024);
+    ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
+    const lines = wrapText(ctx, config.bodyText, maxTextW);
+    ctx.fillStyle = subColor;
+    for (const line of lines) {
+      ctx.fillText(line, textX, currentY);
       currentY += fs * 1.5;
     }
+    currentY += fs * 0.5;
   }
 
-  // Phone at bottom of strip
-  if (config.phone) {
-    const fs = Math.round(w * 0.03);
-    ctx.font = `700 ${fs}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = subColor;
-    ctx.textAlign = 'right';
-    ctx.fillText(config.phone, textX, h - padding * 2);
-  }
-}
-
-// ═══════ Layout: Top Bar ═══════
-// Brand-colored bar at top with headline, business info at bottom
-function layoutTopBar(
-  ctx: CanvasRenderingContext2D, w: number, h: number,
-  config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
-) {
-  const padding = w * 0.05;
-  const barHeight = h * 0.18;
-
-  // Top bar with brand color
-  ctx.fillStyle = colorWithAlpha(brandPrimary, 0.95);
-  ctx.fillRect(0, 0, w, barHeight);
-
-  // Bottom accent line
-  ctx.fillStyle = brandSecondary;
-  ctx.fillRect(0, barHeight - 4, w, 4);
-
-  // Gradient fade at bottom
-  const fadeGrad = ctx.createLinearGradient(0, barHeight, 0, barHeight + h * 0.05);
-  fadeGrad.addColorStop(0, colorWithAlpha(brandPrimary, 0.3));
-  fadeGrad.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = fadeGrad;
-  ctx.fillRect(0, barHeight, w, h * 0.05);
-
-  const textOnBar = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
-
-  // Business name in top bar
-  if (config.businessName) {
-    const fs = Math.round(w * 0.055);
-    ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = textOnBar;
-    ctx.textAlign = 'right';
-    ctx.fillText(config.businessName, w - padding, barHeight * 0.55);
-  }
-
-  // Headline in top bar below business name
-  if (config.headline) {
-    const fs = Math.round(w * 0.032);
+  // CTA
+  if (config.ctaText) {
+    const fs = Math.round(w * 0.024);
     ctx.font = `bold ${fs}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = colorWithAlpha(textOnBar, 0.85);
-    ctx.textAlign = 'right';
-    const shortHeadline = config.headline.length > 60 ? config.headline.substring(0, 57) + '...' : config.headline;
-    ctx.fillText(shortHeadline, w - padding, barHeight * 0.82);
-  }
+    const ctaW = ctx.measureText(config.ctaText).width + fs * 1.5;
+    const ctaH = fs * 2;
+    const ctaX = textX - ctaW;
 
-  // Phone at bottom right with subtle background
-  if (config.phone) {
-    const fs = Math.round(w * 0.034);
-    ctx.font = `700 ${fs}px "Heebo", "Arial", sans-serif`;
-    const phoneWidth = ctx.measureText(config.phone).width;
-    const phoneY = h - padding;
-
-    // Small brand-colored pill for phone
-    roundRect(ctx, w - padding - phoneWidth - 20, phoneY - fs - 8, phoneWidth + 30, fs + 16, 8);
-    ctx.fillStyle = colorWithAlpha(brandPrimary, 0.9);
+    roundRect(ctx, ctaX, currentY, ctaW, ctaH, ctaH / 2);
+    ctx.fillStyle = brandSecondary;
     ctx.fill();
 
-    ctx.fillStyle = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
+    ctx.fillStyle = isLightColor(brandSecondary) ? '#1a1a1a' : '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText(config.ctaText, ctaX + ctaW / 2, currentY + ctaH * 0.65);
     ctx.textAlign = 'right';
-    ctx.fillText(config.phone, w - padding - 5, phoneY - 4);
+    currentY += ctaH + fs;
+  }
+
+  // Contact info at bottom of strip
+  const bottomY = h - padding * 2;
+  if (config.phone) {
+    const fs = Math.round(w * 0.028);
+    ctx.font = `800 ${fs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = brandSecondary;
+    ctx.fillText(config.phone, textX, bottomY);
+  }
+  if (config.address) {
+    const fs = Math.round(w * 0.018);
+    ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = subColor;
+    ctx.fillText(config.address, textX, bottomY - w * 0.04);
   }
 }
 
 // ═══════ Layout: Center Card ═══════
-// Centered card with brand colors
 function layoutCenterCard(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
   const maxTextWidth = w * 0.7;
-
-  let totalHeight = 0;
-  const businessFs = Math.round(w * 0.055);
-  const headlineFs = Math.round(w * 0.038);
+  const businessFs = Math.round(w * 0.048);
+  const headlineFs = Math.round(w * 0.04);
+  const bodyFs = Math.round(w * 0.026);
   const phoneFs = Math.round(w * 0.03);
 
+  let totalHeight = 0;
   if (config.businessName) totalHeight += businessFs * 1.6;
   
   ctx.font = `bold ${headlineFs}px "Heebo", "Arial", sans-serif`;
@@ -345,9 +548,17 @@ function layoutCenterCard(
   if (config.headline) {
     const shortHeadline = config.headline.length > 80 ? config.headline.substring(0, 77) + '...' : config.headline;
     headlineLines = wrapText(ctx, shortHeadline, maxTextWidth);
-    totalHeight += headlineLines.length * headlineFs * 1.45 + headlineFs * 0.5;
+    totalHeight += headlineLines.length * headlineFs * 1.4 + headlineFs * 0.5;
   }
 
+  ctx.font = `500 ${bodyFs}px "Heebo", "Arial", sans-serif`;
+  let bodyLines: string[] = [];
+  if (config.bodyText) {
+    bodyLines = wrapText(ctx, config.bodyText, maxTextWidth);
+    totalHeight += bodyLines.length * bodyFs * 1.5 + bodyFs;
+  }
+
+  if (config.ctaText) totalHeight += phoneFs * 2.5;
   if (config.phone) totalHeight += phoneFs * 2;
 
   const cardPadding = w * 0.05;
@@ -356,19 +567,17 @@ function layoutCenterCard(
   const cardX = (w - cardWidth) / 2;
   const cardY = (h - cardHeight) / 2;
 
-  // Card with brand primary color
   roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 16);
   ctx.fillStyle = colorWithAlpha(brandPrimary, 0.92);
   ctx.fill();
 
-  // Accent border with secondary
   ctx.strokeStyle = brandSecondary;
   ctx.lineWidth = 3;
   roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 16);
   ctx.stroke();
 
   const textOnCard = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
-  const subTextOnCard = isLightColor(brandPrimary) ? '#444444' : '#d0d0d0';
+  const subOnCard = isLightColor(brandPrimary) ? '#444' : '#d0d0d0';
   let currentY = cardY + cardPadding;
 
   if (config.businessName) {
@@ -376,19 +585,16 @@ function layoutCenterCard(
     ctx.font = `900 ${businessFs}px "Heebo", "Arial", sans-serif`;
     ctx.fillStyle = textOnCard;
     ctx.textAlign = 'center';
-    ctx.direction = 'rtl';
     ctx.fillText(config.businessName, w / 2, currentY);
-    currentY += businessFs * 0.6;
-  }
+    currentY += businessFs * 0.5;
 
-  if (config.businessName && config.headline) {
     ctx.strokeStyle = colorWithAlpha(brandSecondary, 0.6);
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(cardX + cardPadding * 2, currentY);
     ctx.lineTo(cardX + cardWidth - cardPadding * 2, currentY);
     ctx.stroke();
-    currentY += headlineFs * 0.5;
+    currentY += headlineFs * 0.4;
   }
 
   if (config.headline && headlineLines.length > 0) {
@@ -398,14 +604,40 @@ function layoutCenterCard(
     for (const line of headlineLines) {
       currentY += headlineFs;
       ctx.fillText(line, w / 2, currentY);
-      currentY += headlineFs * 0.45;
+      currentY += headlineFs * 0.4;
     }
+  }
+
+  if (config.bodyText && bodyLines.length > 0) {
+    currentY += bodyFs * 0.3;
+    ctx.font = `500 ${bodyFs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = subOnCard;
+    ctx.textAlign = 'center';
+    for (const line of bodyLines) {
+      currentY += bodyFs * 1.5;
+      ctx.fillText(line, w / 2, currentY);
+    }
+  }
+
+  if (config.ctaText) {
+    currentY += phoneFs;
+    const ctaFs = Math.round(w * 0.024);
+    ctx.font = `bold ${ctaFs}px "Heebo", "Arial", sans-serif`;
+    const ctaW = ctx.measureText(config.ctaText).width + ctaFs * 2;
+    const ctaH = ctaFs * 2;
+    roundRect(ctx, w / 2 - ctaW / 2, currentY, ctaW, ctaH, ctaH / 2);
+    ctx.fillStyle = brandSecondary;
+    ctx.fill();
+    ctx.fillStyle = isLightColor(brandSecondary) ? '#1a1a1a' : '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText(config.ctaText, w / 2, currentY + ctaH * 0.65);
+    currentY += ctaH;
   }
 
   if (config.phone) {
     currentY += phoneFs * 0.5;
     ctx.font = `700 ${phoneFs}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = subTextOnCard;
+    ctx.fillStyle = brandSecondary;
     ctx.textAlign = 'center';
     ctx.fillText(config.phone, w / 2, currentY + phoneFs);
   }
@@ -414,7 +646,6 @@ function layoutCenterCard(
 }
 
 // ═══════ Layout: Minimal ═══════
-// Text with brand-colored accents, subtle gradient
 function layoutMinimal(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
@@ -423,29 +654,40 @@ function layoutMinimal(
   const maxTextWidth = w * 0.85;
 
   // Subtle gradient at bottom
-  const gradH = h * 0.35;
+  const gradH = h * 0.4;
   const grad = ctx.createLinearGradient(0, h - gradH, 0, h);
   grad.addColorStop(0, 'rgba(0,0,0,0)');
-  grad.addColorStop(0.5, 'rgba(0,0,0,0.3)');
-  grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+  grad.addColorStop(0.4, 'rgba(0,0,0,0.3)');
+  grad.addColorStop(1, 'rgba(0,0,0,0.7)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, h - gradH, w, gradH);
 
   let currentY = h - padding;
 
+  // Contact info at very bottom
   if (config.phone) {
     const fs = Math.round(w * 0.028);
-    ctx.font = `600 ${fs}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = '#cccccc';
+    ctx.font = `700 ${fs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = brandSecondary;
     ctx.textAlign = 'right';
-    setShadow(ctx, 4, 0.7);
+    setShadow(ctx, 4, 0.6);
     ctx.fillText(config.phone, w - padding, currentY);
-    currentY -= fs * 2;
+    currentY -= fs * 1.8;
     resetShadow(ctx);
   }
 
+  if (config.address) {
+    const fs = Math.round(w * 0.02);
+    ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = '#aaa';
+    ctx.textAlign = 'right';
+    ctx.fillText(config.address, w - padding, currentY);
+    currentY -= fs * 1.8;
+  }
+
+  // Business name
   if (config.businessName) {
-    const fs = Math.round(w * 0.048);
+    const fs = Math.round(w * 0.045);
     ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
     ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'right';
@@ -455,13 +697,30 @@ function layoutMinimal(
     resetShadow(ctx);
   }
 
+  // Body text
+  if (config.bodyText) {
+    const fs = Math.round(w * 0.025);
+    ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
+    const lines = wrapText(ctx, config.bodyText, maxTextWidth);
+    ctx.fillStyle = '#ddd';
+    ctx.textAlign = 'right';
+    setShadow(ctx, 4, 0.6);
+    for (let i = lines.length - 1; i >= 0; i--) {
+      ctx.fillText(lines[i], w - padding, currentY);
+      currentY -= fs * 1.5;
+    }
+    currentY -= fs * 0.3;
+    resetShadow(ctx);
+  }
+
+  // Headline
   if (config.headline) {
-    const fs = Math.round(w * 0.036);
+    const fs = Math.round(w * 0.04);
     ctx.font = `bold ${fs}px "Heebo", "Arial", sans-serif`;
     const shortHeadline = config.headline.length > 80 ? config.headline.substring(0, 77) + '...' : config.headline;
     const lines = wrapText(ctx, shortHeadline, maxTextWidth);
     
-    ctx.fillStyle = brandPrimary;
+    ctx.fillStyle = brandSecondary;
     ctx.textAlign = 'right';
     setShadow(ctx, 5, 0.7);
     
@@ -481,9 +740,9 @@ export async function applyTextOverlay(
   imageUrl: string,
   config: TextOverlayConfig
 ): Promise<string> {
-  const { headline, businessName, phone, primaryColor, secondaryColor, backgroundColor, layoutStyle } = config;
+  const { headline, bodyText, ctaText, businessName, phone, primaryColor, secondaryColor, backgroundColor, layoutStyle } = config;
 
-  if (!headline && !businessName && !phone) return imageUrl;
+  if (!headline && !businessName && !phone && !bodyText) return imageUrl;
 
   const img = await loadImage(imageUrl);
   const canvas = document.createElement('canvas');
@@ -501,7 +760,7 @@ export async function applyTextOverlay(
   const brandPrimary = primaryColor || '#2BA5B5';
   const brandSecondary = secondaryColor || darkenColor(brandPrimary, 0.3);
 
-  const style = layoutStyle || 'bottom-banner';
+  const style = layoutStyle || 'classic-ad';
 
   switch (style) {
     case 'center-card':
@@ -513,12 +772,12 @@ export async function applyTextOverlay(
     case 'side-strip':
       layoutSideStrip(ctx, w, h, config, brandPrimary, brandSecondary);
       break;
-    case 'top-bar':
-      layoutTopBar(ctx, w, h, config, brandPrimary, brandSecondary);
+    case 'top-headline':
+      layoutTopHeadline(ctx, w, h, config, brandPrimary, brandSecondary);
       break;
-    case 'bottom-banner':
+    case 'classic-ad':
     default:
-      layoutBottomBanner(ctx, w, h, config, brandPrimary, brandSecondary);
+      layoutClassicAd(ctx, w, h, config, brandPrimary, brandSecondary);
       break;
   }
 
