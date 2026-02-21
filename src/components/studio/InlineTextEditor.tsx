@@ -92,14 +92,14 @@ export const InlineTextEditor = ({
   ];
 
   return (
-    <div className="flex flex-col h-full" dir="rtl">
-      {/* Image preview */}
+    <div className="flex flex-col md:flex-row h-full max-h-[85vh]" dir="rtl">
+      {/* Image preview - takes most of the space */}
       <div className="flex-1 flex items-center justify-center p-4 bg-muted/10 min-h-0">
         <div className="relative max-w-full max-h-full">
           <img
             src={imageUrl}
             alt="תצוגה מקדימה"
-            className="max-w-full max-h-[60vh] object-contain rounded-lg"
+            className="max-w-full max-h-[80vh] object-contain rounded-lg"
           />
           {isRegenerating && (
             <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-lg">
@@ -113,7 +113,7 @@ export const InlineTextEditor = ({
       </div>
 
       {/* Text fields editing area */}
-      <div className="border-t border-border bg-card p-4 space-y-3">
+      <div className="md:w-72 border-t md:border-t-0 md:border-r border-border bg-card p-4 space-y-3 overflow-y-auto">
         <div className="flex items-center justify-between mb-2">
           <h4 className="font-bold text-sm flex items-center gap-1.5">
             <Type className="h-4 w-4 text-primary" />
