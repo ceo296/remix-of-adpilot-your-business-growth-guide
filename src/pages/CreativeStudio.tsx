@@ -273,7 +273,7 @@ const CreativeStudio = () => {
   const [selectedMediaPackage, setSelectedMediaPackage] = useState<MediaPackage | null>(null);
   
   // Holiday/Season selection for creative
-  const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('');
+  const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('year_round');
 
   // Scroll to top when changing views
   useEffect(() => {
