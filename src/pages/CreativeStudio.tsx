@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown } from 'lucide-react';
+import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
+import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
 import { AgentPipelineDebug, AgentStep } from '@/components/studio/AgentPipelineDebug';
 import { AIChatWidget } from '@/components/chat/AIChatWidget';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -585,6 +587,14 @@ const CreativeStudio = () => {
         colorMode: colorSelection.mode, // 'brand', 'swapped', or 'continue-past'
       } : null;
 
+      // Resolve PDF logo to PNG if needed
+      const resolvedLogo = await getResolvedLogoUrl();
+      if (resolvedLogo && brandContext) {
+        (brandContext as any).logoUrl = resolvedLogo;
+      } else if (clientProfile?.logo_url && brandContext) {
+        (brandContext as any).logoUrl = clientProfile.logo_url;
+      }
+
       // Build campaign context
       const campaignContext = {
         title: campaignBrief.title,
@@ -912,6 +922,67 @@ const CreativeStudio = () => {
     } : null;
   };
 
+  // Convert PDF logo to PNG before sending to AI
+  const getResolvedLogoUrl = async (): Promise<string | null> => {
+    const logoUrl = clientProfile?.logo_url;
+    if (!logoUrl) return null;
+    if (!isPdfUrl(logoUrl)) return logoUrl;
+    try {
+      console.log('Converting PDF logo to PNG...');
+      toast.info('ממיר לוגו PDF לתמונה...');
+      const pngUrl = await pdfToImage(logoUrl, { scale: 4 });
+      console.log('PDF logo converted successfully');
+      return pngUrl;
+    } catch (err) {
+      console.error('Failed to convert PDF logo:', err);
+      toast.warning('לא ניתן להמיר את הלוגו מ-PDF — ממשיכים בלעדיו');
+      return null;
+    }
+  };
+
+  // Export single image to print PDF
+  const handleExportPrint = async (image: GeneratedImage) => {
+    try {
+      toast.info('מכין קובץ לדפוס...');
+      await exportToPrintPdf({
+        imageUrl: image.url,
+        filename: `${clientProfile?.business_name || 'ad'}-print`,
+        format: 'a4',
+        orientation: 'portrait',
+        bleed: 3,
+        cropMarks: true,
+        quality: 'high',
+      });
+      toast.success('קובץ PDF לדפוס הורד בהצלחה! 🖨️');
+    } catch (err) {
+      console.error('Print export failed:', err);
+      toast.error('שגיאה בייצוא לדפוס');
+    }
+  };
+
+  // Export all approved images to multi-page PDF
+  const handleExportAllPrint = async () => {
+    const approved = generatedImages.filter(i => i.status !== 'rejected');
+    if (approved.length === 0) return;
+    try {
+      toast.info('מכין קובץ לדפוס...');
+      await exportMultiPagePdf(
+        approved.map(i => ({ url: i.url })),
+        {
+          filename: `${clientProfile?.business_name || 'campaign'}-all-prints`,
+          format: 'a4',
+          bleed: 3,
+          cropMarks: true,
+          quality: 'high',
+        }
+      );
+      toast.success('כל הסקיצות הורדו כ-PDF לדפוס! 🖨️');
+    } catch (err) {
+      console.error('Multi-page export failed:', err);
+      toast.error('שגיאה בייצוא לדפוס');
+    }
+  };
+
   // Helper: generate image for a single concept
   const generateImageForConcept = async (concept: CreativeConcept, index: number, brandContext: any, campaignContext: any) => {
     const enhancedVisualPrompt = campaignBrief.offer 
@@ -1098,6 +1169,13 @@ const CreativeStudio = () => {
       setAssetChoice('has-copy');
 
       const brandContext = buildBrandContext();
+      
+      // Resolve PDF logo to PNG if needed
+      const resolvedLogo = await getResolvedLogoUrl();
+      if (resolvedLogo && brandContext) {
+        brandContext.logoUrl = resolvedLogo;
+      }
+      
       const campaignContext = {
         title: campaignBrief.title,
         offer: campaignBrief.offer,
@@ -1566,6 +1644,12 @@ const CreativeStudio = () => {
                 הסקיצות שלך
               </h2>
               <div className="flex gap-2">
+                {generatedImages.filter(i => i.status !== 'rejected').length > 0 && (
+                  <Button variant="outline" onClick={handleExportAllPrint} className="gap-1.5">
+                    <FileDown className="h-4 w-4" />
+                    PDF לדפוס
+                  </Button>
+                )}
                 <Button variant="outline" onClick={() => {
                   setShowResults(false);
                   setCurrentStep(0);
@@ -1644,6 +1728,15 @@ const CreativeStudio = () => {
                             >
                               <Plus className="h-4 w-4" />
                               טקסט חופשי
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="gap-1.5"
+                              onClick={() => handleExportPrint(image)}
+                            >
+                              <FileDown className="h-4 w-4" />
+                              דפוס
                             </Button>
                           </div>
                         )}
