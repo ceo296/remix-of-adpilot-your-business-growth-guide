@@ -89,8 +89,8 @@ serve(async (req) => {
       throw new Error('No API key configured (GOOGLE_GEMINI_API_KEY or LOVABLE_API_KEY)');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType } = await req.json();
-    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, brandContext: !!brandContext, campaignContext: !!campaignContext });
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory } = await req.json();
+    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, brandContext: !!brandContext, campaignContext: !!campaignContext });
 
     // Initialize Supabase to fetch model config + sector brain
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -100,6 +100,19 @@ serve(async (req) => {
     // Determine the media type for config lookup
     const configMediaType = mediaType || MEDIA_TYPE_MAP[templateId || ''] || 'print_ads';
     
+    // Build sector brain query with topic filtering
+    let sectorQuery = supabase
+      .from('sector_brain_examples')
+      .select('zone, name, text_content, stream_type, gender_audience, topic_category')
+      .limit(30);
+    if (topicCategory) {
+      sectorQuery = supabase
+        .from('sector_brain_examples')
+        .select('zone, name, text_content, stream_type, gender_audience, topic_category')
+        .or(`topic_category.eq.${topicCategory},topic_category.is.null`)
+        .limit(30);
+    }
+
     // Fetch model config AND sector brain examples in parallel
     const [configResult, sectorResult] = await Promise.all([
       supabase
@@ -108,10 +121,7 @@ serve(async (req) => {
         .eq('media_type', configMediaType)
         .eq('is_active', true)
         .maybeSingle(),
-      supabase
-        .from('sector_brain_examples')
-        .select('zone, name, text_content, stream_type, gender_audience, topic_category')
-        .limit(30)
+      sectorQuery
     ]);
 
     const modelConfig = configResult.data as AIModelConfig | null;
