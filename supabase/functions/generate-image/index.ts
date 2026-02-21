@@ -241,7 +241,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio } = await req.json();
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach } = await req.json();
     console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, brandContext: !!brandContext, campaignContext: !!campaignContext });
 
     // Initialize Supabase to fetch model config + sector brain
@@ -396,11 +396,23 @@ ${brandContext ? `BRAND CONTEXT: "${brandContext.businessName || ''}" - ${brandC
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
 
 DESIGN APPROACH (CRITICAL):
-- PREFER clean graphic design: bold typography areas, brand colors, abstract graphic elements, patterns, gradients
-- Do NOT default to scenes with people/characters. Only include people if the visual concept explicitly requires it
+${visualApproach === 'product-focus' ? `
+- THIS IS A PRODUCT-FOCUSED visual. Show ONLY the product/service itself.
+- For dental clinic → teeth, dental tools, smile close-up (no face). For real estate → building exterior, luxury interior. For food → food photography.
+- ZERO people/characters. Focus entirely on the product/service with professional studio photography style.
+- Clean background, professional lighting, hero product shot.
+` : visualApproach === 'lifestyle' ? `
+- This concept MAY include ONE person (Orthodox Jewish man or boy in modest attire) if relevant to the message.
+- Alternatively, use illustration, 3D render, or a scene with elements relevant to the product.
+- People are OPTIONAL, not mandatory. If the product doesn't need a person, don't force one.
+` : `
+- THIS IS A GRAPHIC DESIGN visual. Pure graphic design — NO photographs, NO people, NO characters.
+- Use bold typography areas (leave space for text), brand colors, abstract graphic elements, geometric patterns, gradients, icons.
+- Think modern poster design, editorial layout, brand identity design. Clean, bold, professional.
+- Inspiration: magazine covers, luxury brand ads, tech company marketing materials.
+`}
 - Do NOT force holiday elements unless the campaign is specifically about that holiday
 - Focus on the PRODUCT/SERVICE itself, not generic "Haredi scenes"
-- For dental clinic → dental imagery. For real estate → architectural/luxury visuals. For food → food photography. Keep it relevant.
 - Professional, modern, clean design that happens to be for a Haredi audience — not "Haredi-themed" by default
 
 COMMUNITY RULES:
