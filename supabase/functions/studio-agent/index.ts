@@ -207,6 +207,41 @@ serve(async (req) => {
       contextBlock += `\n=== רפרנסים מגזריים (Sector Brain) ===\n${JSON.stringify(sectorBrainData)}\n`;
     }
 
+    // Holiday anti-mixing rules
+    const HOLIDAY_ELEMENTS: Record<string, { include: string; forbid: string }> = {
+      'pesach': {
+        include: 'Passover seder table, matzah, wine cups, Haggadah, spring flowers, clean kitchen',
+        forbid: 'menorah, chanukiah, hanukkah candles, dreidel/sevivon, sufganiyot/donuts, sukkah, lulav, etrog, four species, shofar, honey jar, apple, megillah scroll, hamantaschen, mishloach manot, costumes, purim mask'
+      },
+      'chanukah': {
+        include: 'Hanukkah menorah (chanukiah), candles, dreidel/sevivon, sufganiyot, olive oil, coins/gelt',
+        forbid: 'seder plate, matzah, wine cups for seder, Haggadah, sukkah, lulav, etrog, shofar, megillah, hamantaschen, mishloach manot'
+      },
+      'sukkot': {
+        include: 'Sukkah/booth, lulav, etrog, four species, decorations, schach/roof covering',
+        forbid: 'menorah, chanukiah, dreidel, seder plate, matzah, shofar, megillah, hamantaschen'
+      },
+      'purim': {
+        include: 'Megillah scroll, mishloach manot gift baskets, hamantaschen, costumes, carnival atmosphere',
+        forbid: 'menorah, chanukiah, seder plate, matzah, sukkah, lulav, etrog, shofar'
+      },
+      'rosh_hashana': {
+        include: 'Shofar, apple and honey, pomegranate, round challah, prayer book',
+        forbid: 'menorah, chanukiah, dreidel, seder plate, matzah, sukkah, lulav, megillah, hamantaschen'
+      },
+      'yom_kippur': {
+        include: 'Prayer, white clothing, synagogue, machzor prayer book, candles',
+        forbid: 'menorah, chanukiah, dreidel, seder plate, matzah, sukkah, lulav, megillah, hamantaschen, food, eating'
+      },
+    };
+
+    if (detectedHoliday && detectedHoliday !== 'year_round' && HOLIDAY_ELEMENTS[detectedHoliday]) {
+      const hRules = HOLIDAY_ELEMENTS[detectedHoliday];
+      contextBlock += `\n=== כללי חג קריטיים — ${detectedHoliday.toUpperCase()} ===\nאלמנטים חובה: ${hRules.include}\nאלמנטים אסורים בהחלט (שייכים לחגים אחרים!): ${hRules.forbid}\nערבוב סמלי חגים הוא טעות חמורה שהופכת את המודעה ללא שמישה. חנוכיה בפרסומת לפסח = כישלון.\n`;
+    } else if (!detectedHoliday || detectedHoliday === 'year_round') {
+      contextBlock += `\n=== ניטרליות חגית ===\nזו אינה מודעה חגית. אין לכלול סמלי חגים (חנוכייה, קערת סדר, לולב, שופר, מגילה). שמור על עיצוב כללי ומקצועי.\n`;
+    }
+
     const messages: Array<{role: string; content: string}> = [
       { role: 'system', content: SYSTEM_PROMPT + contextBlock }
     ];
