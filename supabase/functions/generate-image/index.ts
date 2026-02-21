@@ -395,10 +395,18 @@ ${holidayRules}
 ${brandContext ? `BRAND CONTEXT: "${brandContext.businessName || ''}" - ${brandContext.targetAudience || 'Haredi audience'}. ${brandContext.primaryXFactor ? `Differentiator: ${brandContext.primaryXFactor}` : ''}` : ''}
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
 
+DESIGN APPROACH (CRITICAL):
+- PREFER clean graphic design: bold typography areas, brand colors, abstract graphic elements, patterns, gradients
+- Do NOT default to scenes with people/characters. Only include people if the visual concept explicitly requires it
+- Do NOT force holiday elements unless the campaign is specifically about that holiday
+- Focus on the PRODUCT/SERVICE itself, not generic "Haredi scenes"
+- For dental clinic → dental imagery. For real estate → architectural/luxury visuals. For food → food photography. Keep it relevant.
+- Professional, modern, clean design that happens to be for a Haredi audience — not "Haredi-themed" by default
+
 COMMUNITY RULES:
 - This targets the Haredi (Ultra-Orthodox) Jewish community
 - ABSOLUTELY NO women or girls
-- Full modesty standards
+- If people ARE needed: men/boys in modest Orthodox attire only
 - Clean, premium, professional
 
 ${sectorInsights}
