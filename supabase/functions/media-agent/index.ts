@@ -193,6 +193,118 @@ serve(async (req) => {
       try { systemCommand = JSON.parse(jsonMatch[1]); } catch { /* ignore */ }
     }
 
+    // === Price Validation: cross-reference AI prices with real DB prices ===
+    let priceCorrections: Array<{ item: string; ai_price: number; real_price: number }> = [];
+    if (systemCommand?.media_plan) {
+      for (const item of systemCommand.media_plan) {
+        let realPrice: number | null = null;
+
+        // Try to match by spec_id first
+        if (item.spec_id) {
+          const match = specs.find(s => s.id === item.spec_id);
+          if (match?.client_price) realPrice = match.client_price;
+        }
+
+        // Fallback: match by spec name within product
+        if (realPrice === null && item.product_id) {
+          const productSpecs = specs.filter(s => s.product_id === item.product_id);
+          if (item.spec_name) {
+            const nameMatch = productSpecs.find(s => 
+              (s.name_he || s.name || '').includes(item.spec_name) || item.spec_name.includes(s.name_he || s.name || '')
+            );
+            if (nameMatch?.client_price) {
+              realPrice = nameMatch.client_price;
+              item.spec_id = nameMatch.id;
+            }
+          }
+          // If still no match, use first spec with a price
+          if (realPrice === null && productSpecs.length > 0) {
+            const withPrice = productSpecs.find(s => s.client_price && s.client_price > 0);
+            if (withPrice) {
+              realPrice = withPrice.client_price;
+              item.spec_id = withPrice.id;
+              item.spec_name = withPrice.name_he || withPrice.name;
+              item.dimensions = withPrice.dimensions || item.dimensions;
+            }
+          }
+        }
+
+        // Fallback: match by product_id
+        if (realPrice === null && item.product_id) {
+          const match = products.find(p => p.id === item.product_id);
+          if (match?.client_price) realPrice = match.client_price;
+        }
+
+        // Fallback: fuzzy match by outlet + product name
+        if (realPrice === null && item.outlet_name) {
+          const outlet = outlets.find(o => 
+            (o.name_he || o.name || '').includes(item.outlet_name) || item.outlet_name.includes(o.name_he || o.name || '')
+          );
+          if (outlet) {
+            item.outlet_id = outlet.id;
+            const outletProducts = products.filter(p => p.outlet_id === outlet.id);
+            let matchedProduct = item.product_name 
+              ? outletProducts.find(p => 
+                  (p.name_he || p.name || '').includes(item.product_name) || item.product_name.includes(p.name_he || p.name || '')
+                )
+              : outletProducts[0];
+            
+            if (matchedProduct) {
+              item.product_id = matchedProduct.id;
+              item.product_name = matchedProduct.name_he || matchedProduct.name;
+              const productSpecs = specs.filter(s => s.product_id === matchedProduct!.id);
+              
+              // Try matching spec name
+              if (item.spec_name && productSpecs.length > 0) {
+                const specMatch = productSpecs.find(s =>
+                  (s.name_he || s.name || '').includes(item.spec_name) || item.spec_name.includes(s.name_he || s.name || '')
+                );
+                if (specMatch?.client_price) {
+                  realPrice = specMatch.client_price;
+                  item.spec_id = specMatch.id;
+                  item.spec_name = specMatch.name_he || specMatch.name;
+                  item.dimensions = specMatch.dimensions || item.dimensions;
+                }
+              }
+              
+              // Use first priced spec
+              if (realPrice === null && productSpecs.length > 0) {
+                const withPrice = productSpecs.find(s => s.client_price && s.client_price > 0);
+                if (withPrice) {
+                  realPrice = withPrice.client_price;
+                  item.spec_id = withPrice.id;
+                  item.spec_name = withPrice.name_he || withPrice.name;
+                  item.dimensions = withPrice.dimensions || item.dimensions;
+                }
+              }
+
+              // Use product price
+              if (realPrice === null && matchedProduct.client_price) {
+                realPrice = matchedProduct.client_price;
+              }
+            }
+          }
+        }
+
+        // Apply correction if real price found and differs
+        if (realPrice !== null && realPrice > 0 && item.price !== realPrice) {
+          priceCorrections.push({
+            item: `${item.outlet_name} > ${item.product_name || ''} > ${item.spec_name || ''}`,
+            ai_price: item.price,
+            real_price: realPrice,
+          });
+          item.price = realPrice;
+        }
+      }
+
+      // Recalculate total
+      systemCommand.total_budget = systemCommand.media_plan.reduce(
+        (sum: number, item: any) => sum + (item.price || 0), 0
+      );
+    }
+
+    console.log('Price corrections:', priceCorrections.length, priceCorrections);
+
     return new Response(JSON.stringify({
       success: true,
       response: content,
@@ -200,6 +312,7 @@ serve(async (req) => {
       agent: 'media-agent',
       mediaOutletsAvailable: outlets.length,
       productsAvailable: products.length,
+      priceCorrections,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
