@@ -39,7 +39,7 @@ const SYSTEM_PROMPT = `זהות ותפקיד:
 חשוב: הסתמך אך ורק על מאגר המדיה של המערכת. אל תמציא ערוצי מדיה.
 
 פלט טכני (JSON) - SYSTEM_COMMAND:
-- media_plan: [{outlet_name, outlet_id, product_name, product_id, spec_id, price, rationale}]
+- media_plan: [{outlet_name, outlet_id, product_name, product_id, spec_name, spec_id, dimensions, price, rationale}]
 - total_budget: סה"כ עלות
 - budget_breakdown: {legitimacy_pct, direct_sale_pct, home_penetration_pct}
 - studio_briefs: [{media_name, ad_type, dimensions, bleed, instructions}]

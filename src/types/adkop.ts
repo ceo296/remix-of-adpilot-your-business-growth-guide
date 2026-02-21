@@ -38,6 +38,9 @@ export interface CreativeResult {
 
 export interface MediaBudgetItem {
   channel: string;
+  productName: string;
+  specName: string;
+  dimensions: string;
   reachReasoning: string;
   estimatedPrice: string;
 }

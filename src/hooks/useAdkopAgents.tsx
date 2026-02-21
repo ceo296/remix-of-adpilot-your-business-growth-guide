@@ -231,12 +231,18 @@ export const useAdkopAgents = () => {
 תזמון: ${campaign.timing}
 ערוצי מדיה מבוקשים: ${campaign.mediaChannels.join(', ') || 'כל הערוצים'}
 
+חשוב מאוד: לכל פריט במאגר יש outlet (ערוץ), product (מוצר, למשל "מגזין ראשי", "מוסף נשים"), ו-spec (מפרט עם מידות ומחיר). 
+אתה חייב לבחור product ו-spec ספציפיים מהמאגר לכל פריט — לא סתם "יתד נאמן" אלא "יתד נאמן > מגזין ראשי > רבע עמוד 12x18".
+
 החזר JSON עם תמהיל מדיה:
 \`\`\`json
 {
   "media_plan": [
     {
       "outlet_name": "שם הערוץ",
+      "product_name": "שם המוצר (מגזין ראשי / מוסף נשים / באנר וכו׳)",
+      "spec_name": "שם המפרט (חצי עמוד / רבע עמוד / באנר גדול)",
+      "dimensions": "מידות (למשל 12x18 ס״מ)",
       "price": 1000,
       "rationale": "הסבר"
     }
@@ -259,13 +265,18 @@ export const useAdkopAgents = () => {
       const items: MediaBudgetItem[] = [];
       const systemCommand = data?.systemCommand;
 
+      const parseMediaItem = (item: any): MediaBudgetItem => ({
+        channel: item.outlet_name || item.media_name || '',
+        productName: item.product_name || '',
+        specName: item.spec_name || '',
+        dimensions: item.dimensions || '',
+        reachReasoning: item.rationale || '',
+        estimatedPrice: `₪${item.price?.toLocaleString() || '0'}`,
+      });
+
       if (systemCommand?.media_plan) {
         systemCommand.media_plan.forEach((item: any) => {
-          items.push({
-            channel: item.outlet_name || item.media_name || '',
-            reachReasoning: item.rationale || '',
-            estimatedPrice: `₪${item.price?.toLocaleString() || '0'}`,
-          });
+          items.push(parseMediaItem(item));
         });
       }
 
@@ -277,11 +288,7 @@ export const useAdkopAgents = () => {
             const parsed = JSON.parse(jsonMatch[1]);
             const plan = parsed.media_plan || [];
             plan.forEach((item: any) => {
-              items.push({
-                channel: item.outlet_name || '',
-                reachReasoning: item.rationale || '',
-                estimatedPrice: `₪${item.price?.toLocaleString() || '0'}`,
-              });
+              items.push(parseMediaItem(item));
             });
           } catch { /* ignore */ }
         }
