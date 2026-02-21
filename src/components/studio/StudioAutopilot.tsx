@@ -323,7 +323,7 @@ export const StudioAutopilot = ({
           className="text-lg px-8"
         >
           <Wand2 className="h-5 w-5 ml-2" />
-          תכינו לי סקיצות על בסיס האסטרטגיה
+          תעצבו לי סקיצות על בסיס האסטרטגיה
         </Button>
         
         {selectedMediaTypes.length === 0 && (
@@ -341,9 +341,9 @@ export const StudioAutopilot = ({
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary mb-6" />
-        <h2 className="text-xl font-bold mb-2">הקופירייטר שלנו מחדד עפרונות...</h2>
+        <h2 className="text-xl font-bold mb-2">מעצבים סקיצות מותאמות...</h2>
         <p className="text-muted-foreground animate-pulse">
-          מנתח את האסטרטגיה ובונה כיווני קריאייטיב
+          בונים קונספטים ומייצרים עיצובים בו-זמנית
         </p>
       </div>
     );
