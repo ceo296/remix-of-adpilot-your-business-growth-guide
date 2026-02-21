@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.media-agent]
 verify_jwt = false
+
+[functions.analyze-ad-layout]
+verify_jwt = false

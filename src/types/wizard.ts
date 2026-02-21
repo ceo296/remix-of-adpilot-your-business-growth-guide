@@ -34,11 +34,21 @@ export interface BrandIdentity {
   bodyFont: string;
 }
 
+export interface AdLayoutAnalysis {
+  logoPosition: string; // e.g. "top-right", "top-left", "center-top"
+  gridStructure: string; // e.g. "2-column split", "hero + text block"
+  colorPalette: string[]; // hex colors extracted
+  typography: string; // description of fonts/styles
+  layoutNotes: string; // general observations
+}
+
 export interface UploadedMaterial {
   id: string;
   name: string;
   type: string;
   preview: string;
+  adAnalysis?: AdLayoutAnalysis;
+  isAnalyzing?: boolean;
 }
 
 export interface CampaignStrategy {
