@@ -241,8 +241,8 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory } = await req.json();
-    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, brandContext: !!brandContext, campaignContext: !!campaignContext });
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason } = await req.json();
+    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, brandContext: !!brandContext, campaignContext: !!campaignContext });
 
     // Initialize Supabase to fetch model config + sector brain
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -318,6 +318,50 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════
+    // Holiday anti-mixing rules
+    // ═══════════════════════════════════════════
+    const HOLIDAY_ELEMENTS: Record<string, { include: string; forbid: string }> = {
+      'pesach': {
+        include: 'Passover seder table, matzah, wine cups, Haggadah, spring flowers, clean kitchen',
+        forbid: 'menorah, chanukiah, hanukkah candles, dreidel/sevivon, sufganiyot/donuts, sukkah, lulav, etrog, four species, shofar, honey jar, apple, megillah scroll, hamantaschen, mishloach manot, costumes, purim mask'
+      },
+      'chanukah': {
+        include: 'Hanukkah menorah (chanukiah), candles, dreidel/sevivon, sufganiyot, olive oil, coins/gelt',
+        forbid: 'seder plate, matzah, wine cups for seder, Haggadah, sukkah, lulav, etrog, shofar, megillah, hamantaschen, mishloach manot'
+      },
+      'sukkot': {
+        include: 'Sukkah/booth, lulav, etrog, four species, decorations, schach/roof covering',
+        forbid: 'menorah, chanukiah, dreidel, seder plate, matzah, shofar, megillah, hamantaschen'
+      },
+      'purim': {
+        include: 'Megillah scroll, mishloach manot gift baskets, hamantaschen, costumes, carnival atmosphere',
+        forbid: 'menorah, chanukiah, seder plate, matzah, sukkah, lulav, etrog, shofar'
+      },
+      'rosh_hashana': {
+        include: 'Shofar, apple and honey, pomegranate, round challah, prayer book',
+        forbid: 'menorah, chanukiah, dreidel, seder plate, matzah, sukkah, lulav, megillah, hamantaschen'
+      },
+      'yom_kippur': {
+        include: 'Prayer, white clothing, synagogue, machzor prayer book, candles',
+        forbid: 'menorah, chanukiah, dreidel, seder plate, matzah, sukkah, lulav, megillah, hamantaschen, food, eating'
+      },
+    };
+
+    let holidayRules = '';
+    if (holidaySeason && holidaySeason !== 'year_round' && HOLIDAY_ELEMENTS[holidaySeason]) {
+      const hRules = HOLIDAY_ELEMENTS[holidaySeason];
+      holidayRules = `
+CRITICAL HOLIDAY RULES — THIS IS A ${holidaySeason.toUpperCase()} AD:
+- ONLY use these holiday elements: ${hRules.include}
+- ABSOLUTELY FORBIDDEN — DO NOT include ANY of these (they belong to OTHER holidays): ${hRules.forbid}
+- Mixing holidays is a SEVERE ERROR that will make the ad unusable. A Hanukkah menorah in a Passover ad is completely wrong.
+- If unsure about an element, DO NOT include it.`;
+    } else if (!holidaySeason || holidaySeason === 'year_round') {
+      holidayRules = `
+HOLIDAY NEUTRALITY: This is NOT a holiday-specific ad. Do NOT include ANY holiday-specific symbols (no menorah, no seder plate, no lulav, no shofar, no megillah). Keep it generic and professional.`;
+    }
+
+    // ═══════════════════════════════════════════
     // LAYER 1: Pure visual - ZERO text
     // ═══════════════════════════════════════════
     const visualOnlyPrompt = `Generate a professional advertisement IMAGE with ABSOLUTELY ZERO TEXT.
@@ -334,6 +378,7 @@ VISUAL CONCEPT: ${effectiveVisualPrompt}
 STYLE: ${styleDesc}
 ${templatePrompt ? `FORMAT: ${templatePrompt}` : ''}
 ${colorInstructions}
+${holidayRules}
 
 ${brandContext ? `BRAND CONTEXT: "${brandContext.businessName || ''}" - ${brandContext.targetAudience || 'Haredi audience'}. ${brandContext.primaryXFactor ? `Differentiator: ${brandContext.primaryXFactor}` : ''}` : ''}
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
