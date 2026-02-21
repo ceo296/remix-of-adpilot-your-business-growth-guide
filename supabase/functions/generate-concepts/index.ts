@@ -112,7 +112,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, mediaType, campaignBrief, holidaySeason, topicCategory } = await req.json();
+    const { profile, mediaType, campaignBrief, holidaySeason, topicCategory, strategicAnalysis } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -266,7 +266,13 @@ Use appropriate symbols, greetings, and messaging for the season.
 =======================
 ` : ''}
 Remember: Each concept needs a different angle - one emotional, one hard-sale focused, and one addressing a pain point the audience has.
-${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${campaignOffer}"` : ''}`;
+${campaignOffer ? `But ALL concepts must prominently feature the main offer: "${campaignOffer}"` : ''}
+${strategicAnalysis ? `
+=== ניתוח אסטרטגי מהסופר-אייג'נט ===
+השתמש בתובנות הבאות כדי לחדד את הקונספטים:
+${strategicAnalysis}
+=== סוף ניתוח אסטרטגי ===
+` : ''}`;
 
     // Fetch sector brain references with holiday awareness
     const sectorBrainData = await fetchSectorBrainFromDB(holidaySeason || null, topicCategory || null);
