@@ -115,6 +115,7 @@ ${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, nul
                 role: m.role === 'assistant' ? 'model' : 'user',
                 parts: [{ text: m.content }],
               })),
+              generationConfig: { maxOutputTokens: 8192 },
             }),
           }
         );
@@ -156,6 +157,7 @@ ${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, nul
         model: "google/gemini-2.5-flash",
         messages: allMessages,
         stream: true,
+        max_tokens: 8192,
       }),
     });
 

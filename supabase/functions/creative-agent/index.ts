@@ -205,7 +205,7 @@ serve(async (req) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: userMessages,
-              generationConfig: { temperature: 0.9, maxOutputTokens: 4096 },
+              generationConfig: { temperature: 0.9, maxOutputTokens: 8192 },
             }),
           }
         );
@@ -238,6 +238,7 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'openai/gpt-5-mini',
           messages,
+          max_tokens: 8192,
         }),
       });
 
