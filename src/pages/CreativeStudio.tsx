@@ -1064,9 +1064,13 @@ const CreativeStudio = () => {
 
   // Helper: generate image for a single concept
   const generateImageForConcept = async (concept: CreativeConcept, index: number, brandContext: any, campaignContext: any) => {
+    // Determine visual approach from concept or fallback by index
+    const approachByIndex = ['graphic-design', 'product-focus', 'lifestyle'];
+    const visualApproach = (concept as any).visual_approach || approachByIndex[index % 3];
+    
     const enhancedVisualPrompt = campaignBrief.offer 
-      ? `${concept.idea}. המסר המרכזי: ${campaignBrief.offer}`
-      : concept.idea;
+      ? `[Visual approach: ${visualApproach}] ${concept.idea}. המסר המרכזי: ${campaignBrief.offer}`
+      : `[Visual approach: ${visualApproach}] ${concept.idea}`;
     
     const enhancedTextPrompt = campaignBrief.offer && !concept.copy.includes(campaignBrief.offer)
       ? `${concept.copy} - ${campaignBrief.offer}`
@@ -1085,6 +1089,7 @@ const CreativeStudio = () => {
         topicCategory: detectedTopic,
         holidaySeason: selectedHoliday || null,
         aspectRatio,
+        visualApproach,
       }
     });
 
@@ -1101,6 +1106,9 @@ const CreativeStudio = () => {
       if (textMeta && (textMeta.headline || textMeta.businessName || textMeta.phone)) {
         try {
           const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
+          // Vary layout style per concept for visual diversity
+          const layoutStyles = ['bottom-banner', 'side-strip', 'top-bar'] as const;
+          const conceptLayout = textLayoutStyle || layoutStyles[index % 3];
           finalUrl = await applyTextOverlay(data.imageUrl, {
             headline: concept.headline || textMeta.headline,
             businessName: textMeta.businessName,
@@ -1108,9 +1116,9 @@ const CreativeStudio = () => {
             primaryColor: brandContext?.colors?.primary,
             secondaryColor: brandContext?.colors?.secondary,
             backgroundColor: brandContext?.colors?.primary,
-            layoutStyle: textLayoutStyle,
+            layoutStyle: conceptLayout,
           });
-          console.log(`[Canvas] Hebrew text applied programmatically for concept ${index}`);
+          console.log(`[Canvas] Hebrew text applied with layout "${conceptLayout}" for concept ${index}`);
         } catch (canvasError) {
           console.error('[Canvas] Failed to apply text overlay, using visual-only:', canvasError);
           // Fall back to visual-only image
