@@ -294,6 +294,7 @@ ${JSON.stringify(sectorBrainData.zones)}
         },
         body: JSON.stringify({
           model: tryModel,
+          max_tokens: 8192,
           messages: [
             { role: 'system', content: systemPrompt + sectorContext },
             { role: 'user', content: sectorBrainData?.imageUrls?.length

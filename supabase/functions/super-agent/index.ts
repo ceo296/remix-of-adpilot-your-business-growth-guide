@@ -202,6 +202,7 @@ serve(async (req) => {
                 role: m.role === 'assistant' ? 'model' : 'user',
                 parts: [{ text: m.content }],
               })),
+              generationConfig: { maxOutputTokens: 8192 },
             }),
           }
         );
@@ -226,7 +227,7 @@ serve(async (req) => {
           'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ model: 'google/gemini-2.5-pro', messages }),
+        body: JSON.stringify({ model: 'google/gemini-2.5-pro', messages, max_tokens: 8192 }),
       });
 
       if (!aiResponse.ok) {
