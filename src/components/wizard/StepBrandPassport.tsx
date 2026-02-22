@@ -446,8 +446,13 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
       {/* Brand Passport Card */}
       <div className="max-w-2xl mx-auto">
         <Card className="border-2 border-primary/20 overflow-hidden">
-          {/* Header with gradient */}
-          <div className="bg-gradient-to-l from-primary to-primary/80 p-6 text-primary-foreground">
+          {/* Header with client's brand colors */}
+          <div 
+            className="p-6 text-white"
+            style={{ 
+              background: `linear-gradient(135deg, ${data.brand.colors.primary} 0%, ${data.brand.colors.secondary || data.brand.colors.primary} 100%)`
+            }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <Badge variant="secondary" className="bg-white/20 text-white border-0 mb-2">
@@ -456,14 +461,18 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                 <h3 className="text-2xl font-bold">{data.brand.name || 'שם העסק'}</h3>
               </div>
               {data.brand.logo && (
-                <div className="w-16 h-16 rounded-xl bg-white p-2 flex items-center justify-center">
-                  {data.brand.logo.toLowerCase().endsWith('.pdf') ? (
-                    <FileText className="w-8 h-8 text-primary" />
+                <div className="w-20 h-20 rounded-xl bg-white p-2 flex items-center justify-center shadow-lg">
+                  {data.brand.logo.startsWith('data:application/pdf') || data.brand.logo.toLowerCase().endsWith('.pdf') ? (
+                    <FileText className="w-10 h-10 text-primary" />
                   ) : (
                     <img 
                       src={data.brand.logo} 
                       alt="Logo" 
                       className="max-w-full max-h-full object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                        (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="flex flex-col items-center text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg></div>';
+                      }}
                     />
                   )}
                 </div>
@@ -493,7 +502,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                       </>
                     ) : (
                       <>
-                        {data.brand.logo && !data.brand.logo.toLowerCase().endsWith('.pdf') && (
+                        {data.brand.logo && !data.brand.logo.startsWith('data:application/pdf') && !data.brand.logo.toLowerCase().endsWith('.pdf') && (
                           <Button
                             variant="ghost"
                             size="sm"

@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { WizardData, FONT_OPTIONS } from '@/types/wizard';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,20 +25,49 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
   const [editingColor, setEditingColor] = useState<'primary' | 'secondary' | 'background' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        updateData({
-          brand: {
-            ...data.brand,
-            logo: event.target?.result as string,
-          },
-        });
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const dataUrl = event.target?.result as string;
+      updateData({
+        brand: {
+          ...data.brand,
+          logo: dataUrl,
+        },
+      });
+
+      // Auto-extract colors from non-PDF logos
+      if (!file.type.includes('pdf')) {
+        toast.loading('מחלץ צבעים מהלוגו...', { id: 'auto-color-extract' });
+        try {
+          const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
+            body: { imageBase64: dataUrl }
+          });
+          if (!error && result?.colors) {
+            updateData({
+              brand: {
+                ...data.brand,
+                logo: dataUrl,
+                colors: {
+                  primary: result.colors.primary,
+                  secondary: result.colors.secondary,
+                  background: result.colors.background,
+                },
+              },
+            });
+            toast.success('צבעים חולצו בהצלחה מהלוגו!', { id: 'auto-color-extract' });
+          } else {
+            toast.dismiss('auto-color-extract');
+          }
+        } catch {
+          toast.dismiss('auto-color-extract');
+        }
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleColorChange = (colorType: 'primary' | 'secondary' | 'background', value: string) => {
