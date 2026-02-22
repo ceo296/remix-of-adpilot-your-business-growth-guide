@@ -39,7 +39,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, maxLines = 4): string[] {
   const words = text.split(' ');
   const lines: string[] = [];
   let currentLine = '';
@@ -53,14 +53,36 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     }
   }
   if (currentLine) lines.push(currentLine);
-  if (lines.length > 4) {
-    let truncated = lines[3];
+  if (lines.length > maxLines) {
+    let truncated = lines[maxLines - 1];
     while (truncated.length > 0 && ctx.measureText(truncated + '...').width > maxWidth) {
       truncated = truncated.slice(0, -1);
     }
-    return [lines[0], lines[1], lines[2], truncated + '...'];
+    return lines.slice(0, maxLines - 1).concat([truncated + '...']);
   }
   return lines;
+}
+
+/** Strip field labels and clean body text for professional display */
+function cleanBodyText(text: string): string {
+  if (!text) return '';
+  // Remove common Hebrew field labels that leak from AI responses
+  let cleaned = text
+    .replace(/תת[- ]?כותרת:\s*/g, '')
+    .replace(/טקסט:\s*/g, '')
+    .replace(/כותרת:\s*/g, '')
+    .replace(/גוף:\s*/g, '')
+    .replace(/תוכן:\s*/g, '')
+    .replace(/קופי:\s*/g, '')
+    .replace(/body:\s*/gi, '')
+    .replace(/subtitle:\s*/gi, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+  // Truncate to max ~100 chars for clean ad look
+  if (cleaned.length > 100) {
+    cleaned = cleaned.substring(0, 97).trim() + '...';
+  }
+  return cleaned;
 }
 
 function colorWithAlpha(color: string, alpha: number): string {
@@ -196,13 +218,15 @@ async function layoutClassicAd(
   const centerX = w / 2;
 
   // === TOP: Subtle gradient for headline readability ===
+  let headlineEndY = 0;
   if (config.headline) {
     const headlineFs = Math.round(w * 0.06);
     ctx.font = `900 ${headlineFs}px "Heebo", "Arial", sans-serif`;
-    const shortHeadline = config.headline.length > 60 ? config.headline.substring(0, 57) + '...' : config.headline;
-    const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth);
+    const shortHeadline = config.headline.length > 40 ? config.headline.substring(0, 37) + '...' : config.headline;
+    const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth, 2);
     const lineHeight = headlineFs * 1.3;
     const gradientH = headlineLines.length * lineHeight + headlineFs * 2.5;
+    headlineEndY = gradientH;
 
     // Soft transparent gradient — NOT an opaque band
     const topGrad = ctx.createLinearGradient(0, 0, 0, gradientH);
@@ -223,36 +247,48 @@ async function layoutClassicAd(
     resetShadow(ctx);
   }
 
-  // === MIDDLE: Body text — floating with shadows, NO opaque background ===
+  // === MIDDLE: Body text — short, clean, below headline zone ===
   if (config.bodyText) {
-    const bodyFs = Math.round(w * 0.03);
-    ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
-    const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth * 0.9);
-    const bodyLineHeight = bodyFs * 1.5;
+    const cleaned = cleanBodyText(config.bodyText);
+    if (cleaned) {
+      const bodyFs = Math.round(w * 0.026);
+      ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
+      const bodyLines = wrapText(ctx, cleaned, maxTextWidth * 0.8, 2);
+      const bodyLineHeight = bodyFs * 1.5;
 
-    const headlineFs2 = Math.round(w * 0.06);
-    const headlineLines2 = config.headline ? wrapText(ctx, config.headline.substring(0, 60), maxTextWidth) : [];
-    const bodyStartY = config.headline
-      ? headlineLines2.length * (headlineFs2 * 1.3) + headlineFs2 * 2.5 + h * 0.02
-      : h * 0.08;
+      // Position body text in the lower-middle zone (not overlapping headline or visual center)
+      const bodyStartY = Math.max(headlineEndY + h * 0.02, h * 0.55);
 
-    ctx.textAlign = 'center';
-    setShadow(ctx, 6, 0.8);
-    let bodyY = bodyStartY + bodyFs * 0.6;
-    for (const line of bodyLines) {
-      bodyY += bodyLineHeight;
-      drawTextWithOutline(ctx, line, centerX, bodyY, '#FFFFFF', 3);
+      // Subtle readability gradient behind body text
+      const bodyGradH = bodyLines.length * bodyLineHeight + bodyFs * 2;
+      const bodyGrad = ctx.createLinearGradient(0, bodyStartY - bodyFs, 0, bodyStartY + bodyGradH);
+      bodyGrad.addColorStop(0, 'rgba(0,0,0,0)');
+      bodyGrad.addColorStop(0.3, colorWithAlpha('#000000', 0.3));
+      bodyGrad.addColorStop(0.7, colorWithAlpha('#000000', 0.3));
+      bodyGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = bodyGrad;
+      ctx.fillRect(0, bodyStartY - bodyFs, w, bodyGradH);
+
+      ctx.textAlign = 'center';
+      setShadow(ctx, 6, 0.8);
+      let bodyY = bodyStartY + bodyFs * 0.6;
+      for (const line of bodyLines) {
+        bodyY += bodyLineHeight;
+        drawTextWithOutline(ctx, line, centerX, bodyY, '#FFFFFF', 3);
+      }
+      resetShadow(ctx);
     }
-    resetShadow(ctx);
   }
 
-  // === CTA pill — centered ===
+  // === CTA pill — positioned above contact strip ===
   if (config.ctaText) {
     const ctaFs = Math.round(w * 0.028);
     ctx.font = `bold ${ctaFs}px "Heebo", "Arial", sans-serif`;
     const ctaWidth = ctx.measureText(config.ctaText).width + ctaFs * 3;
     const ctaHeight = ctaFs * 2.4;
-    const ctaY = h * 0.7;
+    const barH = Math.min(h * 0.1, 80);
+    const ctaY = h - barH - ctaHeight - h * 0.03; // Above contact strip
+
     const ctaX = centerX - ctaWidth / 2;
 
     setShadow(ctx, 6, 0.4);
@@ -290,8 +326,8 @@ async function layoutTopHeadline(
   if (config.headline) {
     const headlineFs = Math.round(w * 0.055);
     ctx.font = `900 ${headlineFs}px "Heebo", "Arial", sans-serif`;
-    const shortHeadline = config.headline.length > 70 ? config.headline.substring(0, 67) + '...' : config.headline;
-    const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth);
+    const shortHeadline = config.headline.length > 40 ? config.headline.substring(0, 37) + '...' : config.headline;
+    const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth, 2);
     const lineHeight = headlineFs * 1.3;
     const gradH = headlineLines.length * lineHeight + headlineFs * 2;
 
@@ -311,31 +347,35 @@ async function layoutTopHeadline(
     resetShadow(ctx);
   }
 
-  // === Body text — centered with subtle bg ===
+  // === Body text — clean, short, positioned in lower zone ===
   if (config.bodyText) {
-    const bodyFs = Math.round(w * 0.028);
-    ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
-    const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth * 0.85);
-    const bodyLineH = bodyFs * 1.5;
-    const bodyStartY = h * 0.35;
+    const cleaned = cleanBodyText(config.bodyText);
+    if (cleaned) {
+      const bodyFs = Math.round(w * 0.024);
+      ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
+      const bodyLines = wrapText(ctx, cleaned, maxTextWidth * 0.8, 2);
+      const bodyLineH = bodyFs * 1.5;
+      const bodyStartY = h * 0.55;
 
-    ctx.textAlign = 'center';
-    setShadow(ctx, 6, 0.8);
-    let bodyY = bodyStartY + bodyFs * 0.5;
-    for (const line of bodyLines) {
-      bodyY += bodyLineH;
-      drawTextWithOutline(ctx, line, centerX, bodyY, '#FFFFFF', 3);
+      ctx.textAlign = 'center';
+      setShadow(ctx, 6, 0.8);
+      let bodyY = bodyStartY + bodyFs * 0.5;
+      for (const line of bodyLines) {
+        bodyY += bodyLineH;
+        drawTextWithOutline(ctx, line, centerX, bodyY, '#FFFFFF', 3);
+      }
+      resetShadow(ctx);
     }
-    resetShadow(ctx);
   }
 
-  // CTA
+  // CTA — above contact strip
   if (config.ctaText) {
     const ctaFs = Math.round(w * 0.026);
     ctx.font = `bold ${ctaFs}px "Heebo", "Arial", sans-serif`;
     const ctaWidth = ctx.measureText(config.ctaText).width + ctaFs * 3;
     const ctaH = ctaFs * 2.4;
-    const ctaY = h * 0.68;
+    const barH = Math.min(h * 0.1, 80);
+    const ctaY = h - barH - ctaH - h * 0.03;
 
     setShadow(ctx, 5, 0.4);
     roundRect(ctx, centerX - ctaWidth / 2, ctaY, ctaWidth, ctaH, ctaH / 2);
@@ -414,18 +454,21 @@ async function layoutSideStrip(
     currentY += fs * 0.3;
   }
 
-  // Body text
+  // Body text — cleaned
   if (config.bodyText) {
-    const fs = Math.round(w * 0.022);
-    ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
-    const lines = wrapText(ctx, config.bodyText, maxTextW);
-    ctx.fillStyle = subColor;
-    ctx.textAlign = 'center';
-    for (const line of lines) {
-      ctx.fillText(line, textCenterX, currentY + fs);
-      currentY += fs * 1.5;
+    const cleaned = cleanBodyText(config.bodyText);
+    if (cleaned) {
+      const fs = Math.round(w * 0.022);
+      ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
+      const lines = wrapText(ctx, cleaned, maxTextW, 3);
+      ctx.fillStyle = subColor;
+      ctx.textAlign = 'center';
+      for (const line of lines) {
+        ctx.fillText(line, textCenterX, currentY + fs);
+        currentY += fs * 1.5;
+      }
+      currentY += fs * 0.5;
     }
-    currentY += fs * 0.5;
   }
 
   // CTA
@@ -488,8 +531,11 @@ async function layoutCenterCard(
   ctx.font = `500 ${bodyFs}px "Heebo", "Arial", sans-serif`;
   let bodyLines: string[] = [];
   if (config.bodyText) {
-    bodyLines = wrapText(ctx, config.bodyText, maxTextWidth);
-    totalHeight += bodyLines.length * bodyFs * 1.5 + bodyFs;
+    const cleaned = cleanBodyText(config.bodyText);
+    if (cleaned) {
+      bodyLines = wrapText(ctx, cleaned, maxTextWidth, 2);
+      totalHeight += bodyLines.length * bodyFs * 1.5 + bodyFs;
+    }
   }
 
   if (config.ctaText) totalHeight += phoneFs * 2.5;
@@ -636,20 +682,23 @@ async function layoutMinimal(
     resetShadow(ctx);
   }
 
-  // Body text
+  // Body text — cleaned
   if (config.bodyText) {
-    const fs = Math.round(w * 0.024);
-    ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
-    const lines = wrapText(ctx, config.bodyText, maxTextWidth);
-    ctx.textAlign = 'center';
-    setShadow(ctx, 4, 0.6);
-    for (let i = lines.length - 1; i >= 0; i--) {
-      ctx.fillStyle = '#eee';
-      ctx.fillText(lines[i], centerX, currentY);
-      currentY -= fs * 1.5;
+    const cleaned = cleanBodyText(config.bodyText);
+    if (cleaned) {
+      const fs = Math.round(w * 0.024);
+      ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
+      const lines = wrapText(ctx, cleaned, maxTextWidth, 2);
+      ctx.textAlign = 'center';
+      setShadow(ctx, 4, 0.6);
+      for (let i = lines.length - 1; i >= 0; i--) {
+        ctx.fillStyle = '#eee';
+        ctx.fillText(lines[i], centerX, currentY);
+        currentY -= fs * 1.5;
+      }
+      currentY -= fs * 0.3;
+      resetShadow(ctx);
     }
-    currentY -= fs * 0.3;
-    resetShadow(ctx);
   }
 
   // Headline
