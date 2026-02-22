@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move } from 'lucide-react';
 import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
 import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
 import { AgentPipelineDebug, AgentStep } from '@/components/studio/AgentPipelineDebug';
@@ -28,6 +28,7 @@ import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
 import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor';
 import { PrintExportDialog, PrintSettings } from '@/components/studio/PrintExportDialog';
 import { FormatAdaptation } from '@/components/studio/FormatAdaptation';
+import { ImageEditor } from '@/components/studio/ImageEditor';
 import type { AdaptedCreative } from '@/lib/image-resize';
 
 type AssetChoice = 'full-campaign' | 'has-visual' | 'has-copy';
@@ -283,6 +284,7 @@ const CreativeStudio = () => {
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
   const [enlargedImage, setEnlargedImage] = useState<GeneratedImage | null>(null);
   const [overlayEditImage, setOverlayEditImage] = useState<{ id: string; url: string } | null>(null);
+  const [fabricEditImage, setFabricEditImage] = useState<{ id: string; url: string } | null>(null);
   const [printDialogImage, setPrintDialogImage] = useState<GeneratedImage | null>(null);
   const [printDialogMode, setPrintDialogMode] = useState<'single' | 'all'>('single');
   const [showFormatAdaptation, setShowFormatAdaptation] = useState(false);
@@ -1964,15 +1966,27 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                         {image.status !== 'rejected' && image.status !== 'pending' && (
                           <div 
                             className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 cursor-pointer"
-                            onClick={() => setEnlargedImage(image)}
                           >
                             <Button
                               size="sm"
                               variant="secondary"
                               className="gap-1.5"
+                              onClick={() => setEnlargedImage(image)}
                             >
                               <ZoomIn className="h-4 w-4" />
                               הגדל
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="gap-1.5"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFabricEditImage({ id: image.id, url: image.url });
+                              }}
+                            >
+                              <Move className="h-4 w-4" />
+                              ערוך
                             </Button>
                           </div>
                         )}
@@ -2201,6 +2215,21 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
         onExport={handlePrintExport}
         imageCount={printDialogMode === 'all' ? generatedImages.filter(i => i.status !== 'rejected').length : 1}
       />
+
+      {/* Fabric Image Editor - Full drag & drop editing */}
+      {fabricEditImage && (
+        <ImageEditor
+          imageUrl={fabricEditImage.url}
+          onSave={(dataUrl) => {
+            setGeneratedImages(prev => prev.map(img =>
+              img.id === fabricEditImage.id ? { ...img, url: dataUrl } : img
+            ));
+            setFabricEditImage(null);
+            toast.success('התמונה נשמרה בהצלחה!');
+          }}
+          onClose={() => setFabricEditImage(null)}
+        />
+      )}
     </div>
   );
 };
