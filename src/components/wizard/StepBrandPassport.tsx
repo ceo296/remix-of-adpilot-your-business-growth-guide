@@ -59,6 +59,15 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
     }
   }, []);
 
+  // Sync edited colors when data changes (e.g. from DB load)
+  useEffect(() => {
+    setEditedColors({
+      primary: data.brand.colors.primary,
+      secondary: data.brand.colors.secondary,
+      background: data.brand.colors.background,
+    });
+  }, [data.brand.colors.primary, data.brand.colors.secondary, data.brand.colors.background]);
+
   const runValidation = async () => {
     setIsValidating(true);
     try {

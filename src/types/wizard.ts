@@ -202,8 +202,8 @@ export const initialWizardData: WizardData = {
     name: '',
     logo: null,
     colors: {
-      primary: '#E31E24',
-      secondary: '#000000',
+      primary: '',
+      secondary: '',
       background: '#FFFFFF',
     },
     headerFont: 'Assistant',

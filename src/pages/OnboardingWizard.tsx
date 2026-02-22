@@ -59,6 +59,7 @@ const OnboardingWizard = () => {
   const stepTitles = isAgency ? stepTitlesAgency : stepTitlesRegular;
 
   // Redirect to auth if not logged in (skip for admins), or to dashboard if already completed onboarding
+  // Also load existing profile colors if available
   useEffect(() => {
     if (authLoading || adminLoading) return;
     
@@ -74,7 +75,7 @@ const OnboardingWizard = () => {
     const checkOnboardingStatus = async () => {
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('onboarding_completed, business_name, is_agency_profile')
+        .select('onboarding_completed, business_name, is_agency_profile, primary_color, secondary_color, background_color, logo_url, header_font, body_font')
         .eq('user_id', user.id)
         .maybeSingle();
       
@@ -82,6 +83,26 @@ const OnboardingWizard = () => {
       if (profile?.onboarding_completed && !profile?.is_agency_profile) {
         toast.info(`שלום ${profile.business_name || ''}! כבר סיימת את ההיכרות – מעבירים אותך ליצירת קמפיין 🚀`);
         navigate('/dashboard');
+        return;
+      }
+
+      // Load existing colors from DB if available (for users who already have a profile with colors)
+      if (profile && (profile.primary_color || profile.secondary_color)) {
+        setWizardData((prev) => ({
+          ...prev,
+          brand: {
+            ...prev.brand,
+            name: profile.business_name || prev.brand.name,
+            logo: profile.logo_url || prev.brand.logo,
+            colors: {
+              primary: profile.primary_color || prev.brand.colors.primary,
+              secondary: profile.secondary_color || prev.brand.colors.secondary,
+              background: profile.background_color || prev.brand.colors.background,
+            },
+            headerFont: profile.header_font || prev.brand.headerFont,
+            bodyFont: profile.body_font || prev.brand.bodyFont,
+          },
+        }));
       }
     };
     
