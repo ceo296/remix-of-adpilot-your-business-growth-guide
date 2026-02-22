@@ -64,8 +64,8 @@ const ClientProfilePage = () => {
   // Editable fields
   const [businessName, setBusinessName] = useState(profile?.business_name || '');
   const [logoUrl, setLogoUrl] = useState(profile?.logo_url || '');
-  const [primaryColor, setPrimaryColor] = useState(profile?.primary_color || '#E31E24');
-  const [secondaryColor, setSecondaryColor] = useState(profile?.secondary_color || '#000000');
+  const [primaryColor, setPrimaryColor] = useState(profile?.primary_color || '');
+  const [secondaryColor, setSecondaryColor] = useState(profile?.secondary_color || '');
   const [xFactors, setXFactors] = useState<string[]>(profile?.x_factors || []);
   const [competitors, setCompetitors] = useState<string[]>(profile?.competitors || []);
   const [newCompetitor, setNewCompetitor] = useState('');
@@ -86,8 +86,8 @@ const ClientProfilePage = () => {
     if (profile) {
       setBusinessName(profile.business_name);
       setLogoUrl(profile.logo_url || '');
-      setPrimaryColor(profile.primary_color || '#E31E24');
-      setSecondaryColor(profile.secondary_color || '#000000');
+      setPrimaryColor(profile.primary_color || '');
+      setSecondaryColor(profile.secondary_color || '');
       setXFactors(profile.x_factors || []);
       setCompetitors(profile.competitors || []);
       setAdvantageSlider(profile.advantage_slider || 50);
