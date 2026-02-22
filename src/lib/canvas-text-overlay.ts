@@ -63,11 +63,20 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number,
   return lines;
 }
 
-/** Strip field labels and clean body text for professional display */
-function cleanBodyText(text: string): string {
+/** Strip markdown, field labels, and clean text for professional display */
+function cleanText(text: string): string {
   if (!text) return '';
-  // Remove common Hebrew field labels that leak from AI responses
-  let cleaned = text
+  return text
+    // Remove markdown headers
+    .replace(/#{1,6}\s*/g, '')
+    // Remove bold/italic markers
+    .replace(/\*{1,4}/g, '')
+    .replace(/_{1,3}/g, '')
+    // Remove markdown links
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove backticks
+    .replace(/`/g, '')
+    // Remove common Hebrew field labels that leak from AI responses
     .replace(/תת[- ]?כותרת:\s*/g, '')
     .replace(/טקסט:\s*/g, '')
     .replace(/כותרת:\s*/g, '')
@@ -76,12 +85,22 @@ function cleanBodyText(text: string): string {
     .replace(/קופי:\s*/g, '')
     .replace(/body:\s*/gi, '')
     .replace(/subtitle:\s*/gi, '')
+    .replace(/headline:\s*/gi, '')
+    .replace(/cta:\s*/gi, '')
     .replace(/\n+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
     .trim();
-  // Truncate to max ~100 chars for clean ad look
-  if (cleaned.length > 100) {
-    cleaned = cleaned.substring(0, 97).trim() + '...';
-  }
+}
+
+function cleanHeadline(text: string): string {
+  const cleaned = cleanText(text);
+  if (cleaned.length > 40) return cleaned.substring(0, 37).trim() + '...';
+  return cleaned;
+}
+
+function cleanBodyText(text: string): string {
+  const cleaned = cleanText(text);
+  if (cleaned.length > 100) return cleaned.substring(0, 97).trim() + '...';
   return cleaned;
 }
 
@@ -222,7 +241,7 @@ async function layoutClassicAd(
   if (config.headline) {
     const headlineFs = Math.round(w * 0.06);
     ctx.font = `900 ${headlineFs}px "Heebo", "Arial", sans-serif`;
-    const shortHeadline = config.headline.length > 40 ? config.headline.substring(0, 37) + '...' : config.headline;
+    const shortHeadline = cleanHeadline(config.headline);
     const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth, 2);
     const lineHeight = headlineFs * 1.3;
     const gradientH = headlineLines.length * lineHeight + headlineFs * 2.5;
@@ -326,7 +345,7 @@ async function layoutTopHeadline(
   if (config.headline) {
     const headlineFs = Math.round(w * 0.055);
     ctx.font = `900 ${headlineFs}px "Heebo", "Arial", sans-serif`;
-    const shortHeadline = config.headline.length > 40 ? config.headline.substring(0, 37) + '...' : config.headline;
+    const shortHeadline = cleanHeadline(config.headline);
     const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth, 2);
     const lineHeight = headlineFs * 1.3;
     const gradH = headlineLines.length * lineHeight + headlineFs * 2;
@@ -443,7 +462,7 @@ async function layoutSideStrip(
   if (config.headline) {
     const fs = Math.round(w * 0.035);
     ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
-    const shortHeadline = config.headline.length > 50 ? config.headline.substring(0, 47) + '...' : config.headline;
+    const shortHeadline = cleanHeadline(config.headline);
     const lines = wrapText(ctx, shortHeadline, maxTextW);
     ctx.fillStyle = textColor;
     ctx.textAlign = 'center';
@@ -523,7 +542,7 @@ async function layoutCenterCard(
   ctx.font = `bold ${headlineFs}px "Heebo", "Arial", sans-serif`;
   let headlineLines: string[] = [];
   if (config.headline) {
-    const shortHeadline = config.headline.length > 80 ? config.headline.substring(0, 77) + '...' : config.headline;
+    const shortHeadline = cleanHeadline(config.headline);
     headlineLines = wrapText(ctx, shortHeadline, maxTextWidth);
     totalHeight += headlineLines.length * headlineFs * 1.4 + headlineFs * 0.5;
   }
@@ -705,7 +724,7 @@ async function layoutMinimal(
   if (config.headline) {
     const fs = Math.round(w * 0.04);
     ctx.font = `bold ${fs}px "Heebo", "Arial", sans-serif`;
-    const shortHeadline = config.headline.length > 80 ? config.headline.substring(0, 77) + '...' : config.headline;
+    const shortHeadline = cleanHeadline(config.headline);
     const lines = wrapText(ctx, shortHeadline, maxTextWidth);
 
     ctx.textAlign = 'center';
@@ -789,7 +808,15 @@ export async function applyTextOverlay(
   imageUrl: string,
   config: TextOverlayConfig
 ): Promise<string> {
-  const { headline, bodyText, ctaText, businessName, phone, primaryColor, secondaryColor, layoutStyle } = config;
+  // Clean all text inputs at entry point to remove markdown/labels
+  const cleanedConfig: TextOverlayConfig = {
+    ...config,
+    headline: config.headline ? cleanText(config.headline) : undefined,
+    bodyText: config.bodyText ? cleanText(config.bodyText) : undefined,
+    ctaText: config.ctaText ? cleanText(config.ctaText) : undefined,
+    businessName: config.businessName ? cleanText(config.businessName) : undefined,
+  };
+  const { headline, bodyText, ctaText, businessName, phone, primaryColor, secondaryColor, layoutStyle } = cleanedConfig;
 
   if (!headline && !businessName && !phone && !bodyText) return imageUrl;
 
@@ -813,20 +840,20 @@ export async function applyTextOverlay(
 
   switch (style) {
     case 'center-card':
-      await layoutCenterCard(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutCenterCard(ctx, w, h, cleanedConfig, brandPrimary, brandSecondary);
       break;
     case 'minimal':
-      await layoutMinimal(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutMinimal(ctx, w, h, cleanedConfig, brandPrimary, brandSecondary);
       break;
     case 'side-strip':
-      await layoutSideStrip(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutSideStrip(ctx, w, h, cleanedConfig, brandPrimary, brandSecondary);
       break;
     case 'top-headline':
-      await layoutTopHeadline(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutTopHeadline(ctx, w, h, cleanedConfig, brandPrimary, brandSecondary);
       break;
     case 'classic-ad':
     default:
-      await layoutClassicAd(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutClassicAd(ctx, w, h, cleanedConfig, brandPrimary, brandSecondary);
       break;
   }
 
