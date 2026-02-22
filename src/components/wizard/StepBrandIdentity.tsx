@@ -62,8 +62,9 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
           } else {
             toast.dismiss('auto-color-extract');
           }
-        } catch {
-          toast.dismiss('auto-color-extract');
+        } catch (err) {
+          console.error('Auto color extraction failed:', err);
+          toast.error('לא הצלחנו לחלץ צבעים מהלוגו', { id: 'auto-color-extract' });
         }
       }
     };
