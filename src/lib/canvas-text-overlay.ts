@@ -106,6 +106,35 @@ function resetShadow(ctx: CanvasRenderingContext2D) {
   ctx.shadowOffsetY = 0;
 }
 
+/** Draw logo at bottom-left of canvas (like professional Haredi ads) */
+async function drawLogo(
+  ctx: CanvasRenderingContext2D, w: number, h: number,
+  logoUrl: string | undefined, barHeight: number
+) {
+  if (!logoUrl) return;
+  try {
+    const logo = await loadImage(logoUrl);
+    const maxLogoH = Math.max(barHeight * 1.8, h * 0.12);
+    const maxLogoW = w * 0.18;
+    const scale = Math.min(maxLogoW / logo.width, maxLogoH / logo.height);
+    const logoW = logo.width * scale;
+    const logoH = logo.height * scale;
+    const logoX = w * 0.03;
+    const logoY = h - barHeight - logoH - h * 0.01;
+
+    // Subtle shadow behind logo for readability
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    ctx.drawImage(logo, logoX, logoY, logoW, logoH);
+    ctx.restore();
+  } catch (e) {
+    console.warn('Failed to draw logo:', e);
+  }
+}
+
 function setShadow(ctx: CanvasRenderingContext2D, blur: number, alpha = 0.7) {
   ctx.shadowColor = `rgba(0,0,0,${alpha})`;
   ctx.shadowBlur = blur;
@@ -136,7 +165,7 @@ function drawTextWithOutline(
 
 // ═══════ Layout: Classic Ad ═══════
 // Headline floats at top with gradient, body centered, thin contact strip at bottom
-function layoutClassicAd(
+async function layoutClassicAd(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
@@ -172,34 +201,25 @@ function layoutClassicAd(
     resetShadow(ctx);
   }
 
-  // === MIDDLE: Body text with subtle backdrop ===
+  // === MIDDLE: Body text — floating with shadows, NO opaque background ===
   if (config.bodyText) {
     const bodyFs = Math.round(w * 0.03);
     ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
     const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth * 0.9);
     const bodyLineHeight = bodyFs * 1.5;
-    const bodyTotalH = bodyLines.length * bodyLineHeight + bodyFs;
 
-    // Position below headline area
-    const headlineFs = Math.round(w * 0.06);
-    const headlineLines = config.headline ? wrapText(ctx, config.headline.substring(0, 60), maxTextWidth) : [];
+    const headlineFs2 = Math.round(w * 0.06);
+    const headlineLines2 = config.headline ? wrapText(ctx, config.headline.substring(0, 60), maxTextWidth) : [];
     const bodyStartY = config.headline
-      ? headlineLines.length * (headlineFs * 1.3) + headlineFs * 2.5 + h * 0.02
+      ? headlineLines2.length * (headlineFs2 * 1.3) + headlineFs2 * 2.5 + h * 0.02
       : h * 0.08;
 
-    // Subtle frosted-glass backdrop — NOT a solid black band
-    roundRect(ctx, padding * 2, bodyStartY - bodyFs * 0.4, w - padding * 4, bodyTotalH + bodyFs * 0.8, 12);
-    ctx.fillStyle = colorWithAlpha('#000000', 0.35);
-    ctx.fill();
-
-    // Body text — centered
     ctx.textAlign = 'center';
-    setShadow(ctx, 4, 0.5);
+    setShadow(ctx, 6, 0.8);
     let bodyY = bodyStartY + bodyFs * 0.6;
-    ctx.fillStyle = '#FFFFFF';
     for (const line of bodyLines) {
       bodyY += bodyLineHeight;
-      ctx.fillText(line, centerX, bodyY);
+      drawTextWithOutline(ctx, line, centerX, bodyY, '#FFFFFF', 3);
     }
     resetShadow(ctx);
   }
@@ -229,12 +249,14 @@ function layoutClassicAd(
     ctx.fillText(config.ctaText, centerX, ctaY + ctaHeight * 0.65);
   }
 
-  // === BOTTOM: Thin elegant contact strip ===
+  // === BOTTOM: Thin elegant contact strip + logo bottom-left ===
   drawContactStrip(ctx, w, h, config, brandPrimary, brandSecondary);
+  const barH = Math.min(h * 0.1, 80);
+  await drawLogo(ctx, w, h, config.logoUrl, barH);
 }
 
 // ═══════ Layout: Top Headline ═══════
-function layoutTopHeadline(
+async function layoutTopHeadline(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
@@ -274,19 +296,13 @@ function layoutTopHeadline(
     const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth * 0.85);
     const bodyLineH = bodyFs * 1.5;
     const bodyStartY = h * 0.35;
-    const bodyTotalH = bodyLines.length * bodyLineH + bodyFs;
-
-    roundRect(ctx, padding * 2, bodyStartY - bodyFs * 0.3, w - padding * 4, bodyTotalH + bodyFs * 0.6, 10);
-    ctx.fillStyle = colorWithAlpha('#000000', 0.3);
-    ctx.fill();
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#FFFFFF';
-    setShadow(ctx, 3, 0.5);
+    setShadow(ctx, 6, 0.8);
     let bodyY = bodyStartY + bodyFs * 0.5;
     for (const line of bodyLines) {
       bodyY += bodyLineH;
-      ctx.fillText(line, centerX, bodyY);
+      drawTextWithOutline(ctx, line, centerX, bodyY, '#FFFFFF', 3);
     }
     resetShadow(ctx);
   }
@@ -311,10 +327,12 @@ function layoutTopHeadline(
   }
 
   drawContactStrip(ctx, w, h, config, brandPrimary, brandSecondary);
+  const barH = Math.min(h * 0.1, 80);
+  await drawLogo(ctx, w, h, config.logoUrl, barH);
 }
 
 // ═══════ Layout: Side Strip ═══════
-function layoutSideStrip(
+async function layoutSideStrip(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
@@ -420,10 +438,11 @@ function layoutSideStrip(
     ctx.fillStyle = subColor;
     ctx.fillText(config.address, textCenterX, bottomY - w * 0.04);
   }
+  await drawLogo(ctx, w, h, config.logoUrl, 0);
 }
 
 // ═══════ Layout: Center Card ═══════
-function layoutCenterCard(
+async function layoutCenterCard(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
@@ -540,10 +559,11 @@ function layoutCenterCard(
     ctx.textAlign = 'center';
     ctx.fillText(config.phone, centerX, currentY + phoneFs);
   }
+  await drawLogo(ctx, w, h, config.logoUrl, 0);
 }
 
 // ═══════ Layout: Minimal ═══════
-function layoutMinimal(
+async function layoutMinimal(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
@@ -625,6 +645,7 @@ function layoutMinimal(
     }
     resetShadow(ctx);
   }
+  await drawLogo(ctx, w, h, config.logoUrl, 0);
 }
 
 // ═══════ Shared: Thin Contact Strip at Bottom ═══════
@@ -721,20 +742,20 @@ export async function applyTextOverlay(
 
   switch (style) {
     case 'center-card':
-      layoutCenterCard(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutCenterCard(ctx, w, h, config, brandPrimary, brandSecondary);
       break;
     case 'minimal':
-      layoutMinimal(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutMinimal(ctx, w, h, config, brandPrimary, brandSecondary);
       break;
     case 'side-strip':
-      layoutSideStrip(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutSideStrip(ctx, w, h, config, brandPrimary, brandSecondary);
       break;
     case 'top-headline':
-      layoutTopHeadline(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutTopHeadline(ctx, w, h, config, brandPrimary, brandSecondary);
       break;
     case 'classic-ad':
     default:
-      layoutClassicAd(ctx, w, h, config, brandPrimary, brandSecondary);
+      await layoutClassicAd(ctx, w, h, config, brandPrimary, brandSecondary);
       break;
   }
 
