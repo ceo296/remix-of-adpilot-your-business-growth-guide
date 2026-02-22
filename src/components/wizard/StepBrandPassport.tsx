@@ -102,17 +102,14 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
       return;
     }
 
-    if (logoUrl.toLowerCase().endsWith('.pdf')) {
-      toast.error('לא ניתן לחלץ צבעים מקובץ PDF. נא להעלות לוגו כתמונה.');
-      return;
-    }
-
     setIsExtractingColors(true);
     toast.loading('מנתח צבעים מהלוגו...', { id: 'passport-color-extract' });
 
     try {
+      // Send as imageUrl for storage URLs, or imageBase64 for data URLs
+      const isBase64 = logoUrl.startsWith('data:');
       const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
-        body: { imageUrl: logoUrl },
+        body: isBase64 ? { imageBase64: logoUrl } : { imageUrl: logoUrl },
       });
 
       if (error) throw error;
