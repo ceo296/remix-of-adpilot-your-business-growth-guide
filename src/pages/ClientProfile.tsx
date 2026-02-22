@@ -498,7 +498,7 @@ const ClientProfilePage = () => {
                   ) : (
                     <div 
                       className="w-10 h-10 rounded border border-border" 
-                      style={{ backgroundColor: profile.primary_color || '#E31E24' }} 
+                      style={{ backgroundColor: profile.primary_color || '#ccc' }} 
                     />
                   )}
                 </div>
@@ -514,7 +514,7 @@ const ClientProfilePage = () => {
                   ) : (
                     <div 
                       className="w-10 h-10 rounded border border-border" 
-                      style={{ backgroundColor: profile.secondary_color || '#000000' }} 
+                      style={{ backgroundColor: profile.secondary_color || '#ccc' }} 
                     />
                   )}
                 </div>

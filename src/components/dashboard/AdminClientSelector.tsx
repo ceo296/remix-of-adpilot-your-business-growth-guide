@@ -106,7 +106,7 @@ const AdminClientSelector = () => {
               <div className="flex items-center gap-2">
                 <div 
                   className="w-4 h-4 rounded flex items-center justify-center text-[8px] text-white font-bold"
-                  style={{ backgroundColor: client.primary_color || '#E31E24' }}
+                  style={{ backgroundColor: client.primary_color || '#6366f1' }}
                 >
                   {client.business_name.charAt(0)}
                 </div>

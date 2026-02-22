@@ -179,7 +179,7 @@ const StepSelectClient = ({ onNext, onPrev }: StepSelectClientProps) => {
                       ) : (
                         <div 
                           className="h-14 w-14 rounded-xl flex items-center justify-center text-white font-bold text-xl"
-                          style={{ backgroundColor: client.primary_color || '#E31E24' }}
+                          style={{ backgroundColor: client.primary_color || '#6366f1' }}
                         >
                           {client.business_name.charAt(0)}
                         </div>

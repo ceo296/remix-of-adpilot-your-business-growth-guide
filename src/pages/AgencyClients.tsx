@@ -28,7 +28,7 @@ const AgencyClients = () => {
   const [newClientName, setNewClientName] = useState('');
   const [newClientLogo, setNewClientLogo] = useState<string | null>(null);
   const [newClientWebsite, setNewClientWebsite] = useState('');
-  const [primaryColor, setPrimaryColor] = useState('#E31E24');
+  const [primaryColor, setPrimaryColor] = useState('#6366f1');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -112,7 +112,7 @@ const AgencyClients = () => {
     setNewClientName('');
     setNewClientLogo(null);
     setNewClientWebsite('');
-    setPrimaryColor('#E31E24');
+    setPrimaryColor('#6366f1');
   };
 
 
@@ -274,7 +274,7 @@ const AgencyClients = () => {
                     ) : (
                       <div 
                         className="h-12 w-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
-                        style={{ backgroundColor: client.primary_color || '#E31E24' }}
+                        style={{ backgroundColor: client.primary_color || '#6366f1' }}
                       >
                         {client.business_name.charAt(0)}
                       </div>
