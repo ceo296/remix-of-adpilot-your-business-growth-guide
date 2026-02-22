@@ -39,13 +39,12 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         },
       });
 
-      // Auto-extract colors from non-PDF logos
-      if (!file.type.includes('pdf')) {
-        toast.loading('מחלץ צבעים מהלוגו...', { id: 'auto-color-extract' });
-        try {
-          const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
-            body: { imageBase64: dataUrl }
-          });
+      // Auto-extract colors from logo (supports images and PDFs)
+      toast.loading('מחלץ צבעים מהלוגו...', { id: 'auto-color-extract' });
+      try {
+        const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
+          body: { imageBase64: dataUrl }
+        });
           if (!error && result?.colors) {
             updateData({
               brand: {
@@ -62,10 +61,9 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
           } else {
             toast.dismiss('auto-color-extract');
           }
-        } catch (err) {
-          console.error('Auto color extraction failed:', err);
-          toast.error('לא הצלחנו לחלץ צבעים מהלוגו', { id: 'auto-color-extract' });
-        }
+      } catch (err) {
+        console.error('Auto color extraction failed:', err);
+        toast.error('לא הצלחנו לחלץ צבעים מהלוגו', { id: 'auto-color-extract' });
       }
     };
     reader.readAsDataURL(file);
