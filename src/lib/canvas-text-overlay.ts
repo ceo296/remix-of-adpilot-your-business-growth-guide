@@ -1,12 +1,13 @@
 /**
  * Programmatic Hebrew text overlay using Canvas.
- * Professional ad-quality layouts inspired by real Haredi sector advertisements.
+ * Professional ad-quality layouts — text floats on image with shadows & gradients.
  * 
- * Layout structure (based on reference ads):
- * - TOP: Bold headline (above or over the visual)
- * - MIDDLE: Body text / sub-headline explaining the offer
- * - VISUAL: The AI-generated image
- * - BOTTOM: Contact info bar (phone, address, logo, website)
+ * Design principles (from professional Haredi sector references):
+ * 1. Image fills entire canvas — never covered by opaque bands
+ * 2. Text floats with strong shadows for readability
+ * 3. Bottom contact strip is thin and elegant (max 10% height)
+ * 4. Composition is centered and grid-aligned
+ * 5. Brand colors as accents, not full covers
  */
 
 export type TextLayoutStyle = 'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip';
@@ -63,6 +64,10 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 
 function colorWithAlpha(color: string, alpha: number): string {
   if (color.startsWith('rgba')) return color.replace(/[\d.]+\)$/, `${alpha})`);
+  if (color.startsWith('rgb(')) {
+    const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (match) return `rgba(${match[1]},${match[2]},${match[3]},${alpha})`;
+  }
   if (color.startsWith('#')) {
     const hex = color.replace('#', '');
     const r = parseInt(hex.substring(0, 2), 16);
@@ -101,11 +106,11 @@ function resetShadow(ctx: CanvasRenderingContext2D) {
   ctx.shadowOffsetY = 0;
 }
 
-function setShadow(ctx: CanvasRenderingContext2D, blur: number, alpha = 0.5) {
+function setShadow(ctx: CanvasRenderingContext2D, blur: number, alpha = 0.7) {
   ctx.shadowColor = `rgba(0,0,0,${alpha})`;
   ctx.shadowBlur = blur;
-  ctx.shadowOffsetX = 1;
-  ctx.shadowOffsetY = 1;
+  ctx.shadowOffsetX = 2;
+  ctx.shadowOffsetY = 2;
 }
 
 function darkenColor(hex: string, factor = 0.3): string {
@@ -116,309 +121,196 @@ function darkenColor(hex: string, factor = 0.3): string {
   return `rgb(${r},${g},${b})`;
 }
 
-function lightenColor(hex: string, factor = 0.85): string {
-  const c = hex.replace('#', '');
-  const r = Math.min(255, Math.round(parseInt(c.substring(0, 2), 16) + (255 - parseInt(c.substring(0, 2), 16)) * factor));
-  const g = Math.min(255, Math.round(parseInt(c.substring(2, 4), 16) + (255 - parseInt(c.substring(2, 4), 16)) * factor));
-  const b = Math.min(255, Math.round(parseInt(c.substring(4, 6), 16) + (255 - parseInt(c.substring(4, 6), 16)) * factor));
-  return `rgb(${r},${g},${b})`;
+/** Draw text with outline for readability on any background */
+function drawTextWithOutline(
+  ctx: CanvasRenderingContext2D, text: string, x: number, y: number,
+  fillColor: string, outlineWidth = 3
+) {
+  ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+  ctx.lineWidth = outlineWidth;
+  ctx.lineJoin = 'round';
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = fillColor;
+  ctx.fillText(text, x, y);
 }
 
-// Build contact info string from available fields
-function buildContactLine(config: TextOverlayConfig): string {
-  const parts: string[] = [];
-  if (config.phone) parts.push(config.phone);
-  if (config.whatsapp && config.whatsapp !== config.phone) parts.push(`ווצאפ: ${config.whatsapp}`);
-  if (config.email) parts.push(config.email);
-  return parts.join('  |  ');
-}
-
-// ═══════ Layout: Classic Ad (like the dental clinic reference) ═══════
-// Structure: Headline at top → body text → visual → contact bar at bottom
+// ═══════ Layout: Classic Ad ═══════
+// Headline floats at top with gradient, body centered, thin contact strip at bottom
 function layoutClassicAd(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
-  const padding = w * 0.05;
-  const maxTextWidth = w * 0.88;
+  const padding = w * 0.06;
+  const maxTextWidth = w * 0.86;
+  const centerX = w / 2;
 
-  // === TOP SECTION: Headline band ===
+  // === TOP: Subtle gradient for headline readability ===
   if (config.headline) {
-    const headlineFs = Math.round(w * 0.065);
+    const headlineFs = Math.round(w * 0.06);
     ctx.font = `900 ${headlineFs}px "Heebo", "Arial", sans-serif`;
     const shortHeadline = config.headline.length > 60 ? config.headline.substring(0, 57) + '...' : config.headline;
     const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth);
     const lineHeight = headlineFs * 1.3;
-    const headlineBandHeight = headlineLines.length * lineHeight + headlineFs * 1.2;
+    const gradientH = headlineLines.length * lineHeight + headlineFs * 2.5;
 
-    // Brand-colored headline band at top
-    ctx.fillStyle = colorWithAlpha(brandPrimary, 0.95);
-    ctx.fillRect(0, 0, w, headlineBandHeight);
+    // Soft transparent gradient — NOT an opaque band
+    const topGrad = ctx.createLinearGradient(0, 0, 0, gradientH);
+    topGrad.addColorStop(0, colorWithAlpha('#000000', 0.55));
+    topGrad.addColorStop(0.7, colorWithAlpha('#000000', 0.2));
+    topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, w, gradientH);
 
-    // Accent line at bottom of headline band
-    ctx.fillStyle = brandSecondary;
-    ctx.fillRect(0, headlineBandHeight - 4, w, 4);
-
-    // Fade from band into image
-    const fadeGrad = ctx.createLinearGradient(0, headlineBandHeight, 0, headlineBandHeight + h * 0.04);
-    fadeGrad.addColorStop(0, colorWithAlpha(brandPrimary, 0.3));
-    fadeGrad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = fadeGrad;
-    ctx.fillRect(0, headlineBandHeight, w, h * 0.04);
-
-    // Headline text
-    const textOnBand = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
-    ctx.fillStyle = textOnBand;
-    ctx.textAlign = 'right';
-    setShadow(ctx, 3, 0.2);
-    let textY = headlineFs * 0.8;
+    // Headline text — centered, with strong shadow
+    ctx.textAlign = 'center';
+    setShadow(ctx, 8, 0.8);
+    let textY = headlineFs * 1.4;
     for (const line of headlineLines) {
+      drawTextWithOutline(ctx, line, centerX, textY, '#FFFFFF', 4);
       textY += lineHeight;
-      ctx.fillText(line, w - padding, textY);
     }
     resetShadow(ctx);
   }
 
-  // === MIDDLE SECTION: Body text (if present) ===
+  // === MIDDLE: Body text with subtle backdrop ===
   if (config.bodyText) {
-    const bodyFs = Math.round(w * 0.032);
+    const bodyFs = Math.round(w * 0.03);
     ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
-    const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth);
+    const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth * 0.9);
     const bodyLineHeight = bodyFs * 1.5;
     const bodyTotalH = bodyLines.length * bodyLineHeight + bodyFs;
 
-    // Calculate position - below headline or at ~30% height
-    const headlineFs = Math.round(w * 0.065);
+    // Position below headline area
+    const headlineFs = Math.round(w * 0.06);
     const headlineLines = config.headline ? wrapText(ctx, config.headline.substring(0, 60), maxTextWidth) : [];
-    const headlineBandH = config.headline ? headlineLines.length * (headlineFs * 1.3) + headlineFs * 1.2 : 0;
-    const bodyStartY = headlineBandH + h * 0.02;
+    const bodyStartY = config.headline
+      ? headlineLines.length * (headlineFs * 1.3) + headlineFs * 2.5 + h * 0.02
+      : h * 0.08;
 
-    // Semi-transparent background for body text
-    const bodyBgGrad = ctx.createLinearGradient(0, bodyStartY, 0, bodyStartY + bodyTotalH);
-    bodyBgGrad.addColorStop(0, colorWithAlpha('#000000', 0.5));
-    bodyBgGrad.addColorStop(1, colorWithAlpha('#000000', 0.3));
-    ctx.fillStyle = bodyBgGrad;
-    ctx.fillRect(0, bodyStartY, w, bodyTotalH);
+    // Subtle frosted-glass backdrop — NOT a solid black band
+    roundRect(ctx, padding * 2, bodyStartY - bodyFs * 0.4, w - padding * 4, bodyTotalH + bodyFs * 0.8, 12);
+    ctx.fillStyle = colorWithAlpha('#000000', 0.35);
+    ctx.fill();
 
-    // Body text
+    // Body text — centered
+    ctx.textAlign = 'center';
+    setShadow(ctx, 4, 0.5);
+    let bodyY = bodyStartY + bodyFs * 0.6;
     ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'right';
-    ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
-    let bodyY = bodyStartY + bodyFs * 0.8;
     for (const line of bodyLines) {
       bodyY += bodyLineHeight;
-      ctx.fillText(line, w - padding, bodyY);
+      ctx.fillText(line, centerX, bodyY);
     }
+    resetShadow(ctx);
   }
 
-  // === CTA pill (if present) ===
+  // === CTA pill — centered ===
   if (config.ctaText) {
     const ctaFs = Math.round(w * 0.028);
     ctx.font = `bold ${ctaFs}px "Heebo", "Arial", sans-serif`;
-    const ctaWidth = ctx.measureText(config.ctaText).width + ctaFs * 2;
-    const ctaHeight = ctaFs * 2.2;
-    // Position CTA above the contact bar
-    const ctaY = h * 0.72;
-    const ctaX = w / 2 - ctaWidth / 2;
+    const ctaWidth = ctx.measureText(config.ctaText).width + ctaFs * 3;
+    const ctaHeight = ctaFs * 2.4;
+    const ctaY = h * 0.7;
+    const ctaX = centerX - ctaWidth / 2;
 
+    setShadow(ctx, 6, 0.4);
     roundRect(ctx, ctaX, ctaY, ctaWidth, ctaHeight, ctaHeight / 2);
     ctx.fillStyle = brandSecondary;
     ctx.fill();
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 2;
+    resetShadow(ctx);
+
+    ctx.strokeStyle = colorWithAlpha('#FFFFFF', 0.4);
+    ctx.lineWidth = 1.5;
     roundRect(ctx, ctaX, ctaY, ctaWidth, ctaHeight, ctaHeight / 2);
     ctx.stroke();
 
     ctx.fillStyle = isLightColor(brandSecondary) ? '#1a1a1a' : '#FFFFFF';
     ctx.textAlign = 'center';
-    ctx.fillText(config.ctaText, w / 2, ctaY + ctaHeight * 0.65);
-    ctx.textAlign = 'right';
+    ctx.fillText(config.ctaText, centerX, ctaY + ctaHeight * 0.65);
   }
 
-  // === BOTTOM SECTION: Contact info bar ===
-  const contactLine = buildContactLine(config);
-  const hasContact = contactLine || config.businessName || config.address;
-  
-  if (hasContact) {
-    const barHeight = h * 0.15;
-    const barY = h - barHeight;
-
-    // Gradient fade into bar
-    const fadeHeight = h * 0.05;
-    const fadeGrad = ctx.createLinearGradient(0, barY - fadeHeight, 0, barY);
-    fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
-    fadeGrad.addColorStop(1, colorWithAlpha(brandPrimary, 0.95));
-    ctx.fillStyle = fadeGrad;
-    ctx.fillRect(0, barY - fadeHeight, w, fadeHeight);
-
-    // Solid contact bar
-    ctx.fillStyle = colorWithAlpha(brandPrimary, 0.95);
-    ctx.fillRect(0, barY, w, barHeight);
-
-    // Accent line at top
-    ctx.fillStyle = brandSecondary;
-    ctx.fillRect(0, barY, w, 3);
-
-    const textOnBar = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
-    const subOnBar = isLightColor(brandPrimary) ? '#333' : '#d0d0d0';
-    let contentY = barY + barHeight * 0.35;
-
-    // Business name - prominent
-    if (config.businessName) {
-      const nameFs = Math.round(w * 0.042);
-      ctx.font = `900 ${nameFs}px "Heebo", "Arial", sans-serif`;
-      ctx.fillStyle = textOnBar;
-      ctx.textAlign = 'right';
-      ctx.fillText(config.businessName, w - padding, contentY);
-      contentY += nameFs * 1.3;
-    }
-
-    // Phone (large, prominent)
-    if (config.phone) {
-      const phoneFs = Math.round(w * 0.038);
-      ctx.font = `800 ${phoneFs}px "Heebo", "Arial", sans-serif`;
-      ctx.fillStyle = brandSecondary;
-      ctx.textAlign = 'right';
-      setShadow(ctx, 2, 0.2);
-      ctx.fillText(config.phone, w - padding, contentY);
-      resetShadow(ctx);
-      contentY += phoneFs * 1.2;
-    }
-
-    // Address / extra contact
-    if (config.address) {
-      const addrFs = Math.round(w * 0.022);
-      ctx.font = `500 ${addrFs}px "Heebo", "Arial", sans-serif`;
-      ctx.fillStyle = subOnBar;
-      ctx.textAlign = 'right';
-      ctx.fillText(config.address, w - padding, contentY);
-    }
-  }
+  // === BOTTOM: Thin elegant contact strip ===
+  drawContactStrip(ctx, w, h, config, brandPrimary, brandSecondary);
 }
 
-// ═══════ Layout: Top Headline (headline floats above image) ═══════
+// ═══════ Layout: Top Headline ═══════
 function layoutTopHeadline(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
-  const padding = w * 0.05;
-  const maxTextWidth = w * 0.88;
+  const padding = w * 0.06;
+  const maxTextWidth = w * 0.86;
+  const centerX = w / 2;
 
-  // === TOP: Headline over gradient ===
+  // === Headline at top with soft gradient ===
   if (config.headline) {
-    const headlineFs = Math.round(w * 0.058);
+    const headlineFs = Math.round(w * 0.055);
     ctx.font = `900 ${headlineFs}px "Heebo", "Arial", sans-serif`;
     const shortHeadline = config.headline.length > 70 ? config.headline.substring(0, 67) + '...' : config.headline;
     const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth);
     const lineHeight = headlineFs * 1.3;
-    const topGradH = headlineLines.length * lineHeight + headlineFs * 2;
+    const gradH = headlineLines.length * lineHeight + headlineFs * 2;
 
-    // Top gradient for text readability
-    const topGrad = ctx.createLinearGradient(0, 0, 0, topGradH);
-    topGrad.addColorStop(0, colorWithAlpha('#000000', 0.7));
+    const topGrad = ctx.createLinearGradient(0, 0, 0, gradH);
+    topGrad.addColorStop(0, colorWithAlpha('#000000', 0.6));
     topGrad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = topGrad;
-    ctx.fillRect(0, 0, w, topGradH);
+    ctx.fillRect(0, 0, w, gradH);
 
-    // Headline text
-    ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'right';
-    setShadow(ctx, 6, 0.6);
-    let textY = headlineFs * 1.2;
+    ctx.textAlign = 'center';
+    setShadow(ctx, 8, 0.8);
+    let textY = headlineFs * 1.3;
     for (const line of headlineLines) {
-      ctx.fillText(line, w - padding, textY);
+      drawTextWithOutline(ctx, line, centerX, textY, '#FFFFFF', 3);
       textY += lineHeight;
     }
     resetShadow(ctx);
   }
 
-  // === MIDDLE: Body text with semi-transparent bg ===
+  // === Body text — centered with subtle bg ===
   if (config.bodyText) {
-    const bodyFs = Math.round(w * 0.03);
+    const bodyFs = Math.round(w * 0.028);
     ctx.font = `600 ${bodyFs}px "Heebo", "Arial", sans-serif`;
-    const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth);
+    const bodyLines = wrapText(ctx, config.bodyText, maxTextWidth * 0.85);
     const bodyLineH = bodyFs * 1.5;
-
-    // Position at ~35% from top
-    const bodyStartY = h * 0.33;
+    const bodyStartY = h * 0.35;
     const bodyTotalH = bodyLines.length * bodyLineH + bodyFs;
 
-    roundRect(ctx, padding * 0.5, bodyStartY, w - padding, bodyTotalH, 8);
-    ctx.fillStyle = colorWithAlpha('#000000', 0.45);
+    roundRect(ctx, padding * 2, bodyStartY - bodyFs * 0.3, w - padding * 4, bodyTotalH + bodyFs * 0.6, 10);
+    ctx.fillStyle = colorWithAlpha('#000000', 0.3);
     ctx.fill();
 
+    ctx.textAlign = 'center';
     ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'right';
-    let bodyY = bodyStartY + bodyFs;
+    setShadow(ctx, 3, 0.5);
+    let bodyY = bodyStartY + bodyFs * 0.5;
     for (const line of bodyLines) {
       bodyY += bodyLineH;
-      ctx.fillText(line, w - padding, bodyY);
+      ctx.fillText(line, centerX, bodyY);
     }
+    resetShadow(ctx);
   }
 
-  // === CTA ===
+  // CTA
   if (config.ctaText) {
     const ctaFs = Math.round(w * 0.026);
     ctx.font = `bold ${ctaFs}px "Heebo", "Arial", sans-serif`;
-    const ctaWidth = ctx.measureText(config.ctaText).width + ctaFs * 2;
-    const ctaH = ctaFs * 2.2;
+    const ctaWidth = ctx.measureText(config.ctaText).width + ctaFs * 3;
+    const ctaH = ctaFs * 2.4;
     const ctaY = h * 0.68;
 
-    roundRect(ctx, w - padding - ctaWidth, ctaY, ctaWidth, ctaH, ctaH / 2);
+    setShadow(ctx, 5, 0.4);
+    roundRect(ctx, centerX - ctaWidth / 2, ctaY, ctaWidth, ctaH, ctaH / 2);
     ctx.fillStyle = brandSecondary;
     ctx.fill();
+    resetShadow(ctx);
 
     ctx.fillStyle = isLightColor(brandSecondary) ? '#1a1a1a' : '#FFFFFF';
     ctx.textAlign = 'center';
-    ctx.fillText(config.ctaText, w - padding - ctaWidth / 2, ctaY + ctaH * 0.65);
-    ctx.textAlign = 'right';
+    ctx.fillText(config.ctaText, centerX, ctaY + ctaH * 0.65);
   }
 
-  // === BOTTOM: Contact bar ===
-  const hasContact = config.businessName || config.phone || config.address;
-  if (hasContact) {
-    const barH = h * 0.14;
-    const barY = h - barH;
-
-    // Gradient into bar
-    const fadeGrad = ctx.createLinearGradient(0, barY - h * 0.04, 0, barY);
-    fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
-    fadeGrad.addColorStop(1, colorWithAlpha(brandPrimary, 0.92));
-    ctx.fillStyle = fadeGrad;
-    ctx.fillRect(0, barY - h * 0.04, w, h * 0.04);
-
-    ctx.fillStyle = colorWithAlpha(brandPrimary, 0.92);
-    ctx.fillRect(0, barY, w, barH);
-
-    ctx.fillStyle = brandSecondary;
-    ctx.fillRect(0, barY, w, 3);
-
-    const textOnBar = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
-    let contentY = barY + barH * 0.4;
-
-    if (config.businessName) {
-      const fs = Math.round(w * 0.038);
-      ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
-      ctx.fillStyle = textOnBar;
-      ctx.fillText(config.businessName, w - padding, contentY);
-      contentY += fs * 1.3;
-    }
-
-    if (config.phone) {
-      const fs = Math.round(w * 0.032);
-      ctx.font = `800 ${fs}px "Heebo", "Arial", sans-serif`;
-      ctx.fillStyle = brandSecondary;
-      ctx.fillText(config.phone, w - padding, contentY);
-      contentY += fs * 1.2;
-    }
-
-    if (config.address) {
-      const fs = Math.round(w * 0.02);
-      ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
-      ctx.fillStyle = isLightColor(brandPrimary) ? '#444' : '#ccc';
-      ctx.fillText(config.address, w - padding, contentY);
-    }
-  }
+  drawContactStrip(ctx, w, h, config, brandPrimary, brandSecondary);
 }
 
 // ═══════ Layout: Side Strip ═══════
@@ -426,56 +318,57 @@ function layoutSideStrip(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
-  const stripWidth = w * 0.35;
+  const stripWidth = w * 0.32;
   const stripX = w - stripWidth;
   const padding = w * 0.04;
 
-  // Gradient from image into strip
-  const fadeWidth = w * 0.06;
+  // Gradient fade from image into strip
+  const fadeWidth = w * 0.08;
   const fadeGrad = ctx.createLinearGradient(stripX - fadeWidth, 0, stripX, 0);
   fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
-  fadeGrad.addColorStop(1, colorWithAlpha(brandPrimary, 0.95));
+  fadeGrad.addColorStop(1, colorWithAlpha(brandPrimary, 0.88));
   ctx.fillStyle = fadeGrad;
   ctx.fillRect(stripX - fadeWidth, 0, fadeWidth, h);
 
-  ctx.fillStyle = colorWithAlpha(brandPrimary, 0.95);
+  ctx.fillStyle = colorWithAlpha(brandPrimary, 0.88);
   ctx.fillRect(stripX, 0, stripWidth, h);
 
+  // Accent line
   ctx.fillStyle = brandSecondary;
-  ctx.fillRect(stripX, 0, 4, h);
+  ctx.fillRect(stripX, 0, 3, h);
 
   const textColor = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
   const subColor = isLightColor(brandPrimary) ? '#444' : '#d0d0d0';
-  const textX = stripX + stripWidth - padding;
+  const textCenterX = stripX + stripWidth / 2;
   const maxTextW = stripWidth - padding * 2;
 
-  let currentY = h * 0.12;
+  let currentY = h * 0.1;
 
-  // Business name
+  // Business name — centered in strip
   if (config.businessName) {
-    const fs = Math.round(w * 0.045);
+    const fs = Math.round(w * 0.04);
     ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
     ctx.fillStyle = textColor;
-    ctx.textAlign = 'right';
-    ctx.fillText(config.businessName, textX, currentY);
-    currentY += fs * 1.5;
+    ctx.textAlign = 'center';
+    ctx.fillText(config.businessName, textCenterX, currentY + fs);
+    currentY += fs * 1.8;
 
     // Decorative line
     ctx.fillStyle = brandSecondary;
-    ctx.fillRect(textX - maxTextW, currentY - fs * 0.4, maxTextW, 3);
+    ctx.fillRect(textCenterX - maxTextW * 0.4, currentY - fs * 0.3, maxTextW * 0.8, 3);
     currentY += fs * 0.6;
   }
 
-  // Headline
+  // Headline — centered in strip
   if (config.headline) {
-    const fs = Math.round(w * 0.038);
+    const fs = Math.round(w * 0.035);
     ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
     const shortHeadline = config.headline.length > 50 ? config.headline.substring(0, 47) + '...' : config.headline;
     const lines = wrapText(ctx, shortHeadline, maxTextW);
     ctx.fillStyle = textColor;
-    ctx.textAlign = 'right';
+    ctx.textAlign = 'center';
     for (const line of lines) {
-      ctx.fillText(line, textX, currentY);
+      ctx.fillText(line, textCenterX, currentY + fs);
       currentY += fs * 1.4;
     }
     currentY += fs * 0.3;
@@ -483,12 +376,13 @@ function layoutSideStrip(
 
   // Body text
   if (config.bodyText) {
-    const fs = Math.round(w * 0.024);
+    const fs = Math.round(w * 0.022);
     ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
     const lines = wrapText(ctx, config.bodyText, maxTextW);
     ctx.fillStyle = subColor;
+    ctx.textAlign = 'center';
     for (const line of lines) {
-      ctx.fillText(line, textX, currentY);
+      ctx.fillText(line, textCenterX, currentY + fs);
       currentY += fs * 1.5;
     }
     currentY += fs * 0.5;
@@ -496,36 +390,35 @@ function layoutSideStrip(
 
   // CTA
   if (config.ctaText) {
-    const fs = Math.round(w * 0.024);
+    const fs = Math.round(w * 0.022);
     ctx.font = `bold ${fs}px "Heebo", "Arial", sans-serif`;
-    const ctaW = ctx.measureText(config.ctaText).width + fs * 1.5;
-    const ctaH = fs * 2;
-    const ctaX = textX - ctaW;
+    const ctaW = ctx.measureText(config.ctaText).width + fs * 2;
+    const ctaH = fs * 2.2;
 
-    roundRect(ctx, ctaX, currentY, ctaW, ctaH, ctaH / 2);
+    roundRect(ctx, textCenterX - ctaW / 2, currentY, ctaW, ctaH, ctaH / 2);
     ctx.fillStyle = brandSecondary;
     ctx.fill();
 
     ctx.fillStyle = isLightColor(brandSecondary) ? '#1a1a1a' : '#FFFFFF';
     ctx.textAlign = 'center';
-    ctx.fillText(config.ctaText, ctaX + ctaW / 2, currentY + ctaH * 0.65);
-    ctx.textAlign = 'right';
+    ctx.fillText(config.ctaText, textCenterX, currentY + ctaH * 0.65);
     currentY += ctaH + fs;
   }
 
   // Contact info at bottom of strip
-  const bottomY = h - padding * 2;
+  const bottomY = h - padding * 3;
+  ctx.textAlign = 'center';
   if (config.phone) {
-    const fs = Math.round(w * 0.028);
+    const fs = Math.round(w * 0.026);
     ctx.font = `800 ${fs}px "Heebo", "Arial", sans-serif`;
     ctx.fillStyle = brandSecondary;
-    ctx.fillText(config.phone, textX, bottomY);
+    ctx.fillText(config.phone, textCenterX, bottomY);
   }
   if (config.address) {
-    const fs = Math.round(w * 0.018);
+    const fs = Math.round(w * 0.016);
     ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
     ctx.fillStyle = subColor;
-    ctx.fillText(config.address, textX, bottomY - w * 0.04);
+    ctx.fillText(config.address, textCenterX, bottomY - w * 0.04);
   }
 }
 
@@ -534,15 +427,15 @@ function layoutCenterCard(
   ctx: CanvasRenderingContext2D, w: number, h: number,
   config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
 ) {
-  const maxTextWidth = w * 0.7;
-  const businessFs = Math.round(w * 0.048);
-  const headlineFs = Math.round(w * 0.04);
-  const bodyFs = Math.round(w * 0.026);
-  const phoneFs = Math.round(w * 0.03);
+  const maxTextWidth = w * 0.65;
+  const businessFs = Math.round(w * 0.045);
+  const headlineFs = Math.round(w * 0.038);
+  const bodyFs = Math.round(w * 0.024);
+  const phoneFs = Math.round(w * 0.028);
 
   let totalHeight = 0;
   if (config.businessName) totalHeight += businessFs * 1.6;
-  
+
   ctx.font = `bold ${headlineFs}px "Heebo", "Arial", sans-serif`;
   let headlineLines: string[] = [];
   if (config.headline) {
@@ -567,17 +460,22 @@ function layoutCenterCard(
   const cardX = (w - cardWidth) / 2;
   const cardY = (h - cardHeight) / 2;
 
+  // Frosted glass card — semi-transparent with blur feel
+  setShadow(ctx, 20, 0.4);
   roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 16);
-  ctx.fillStyle = colorWithAlpha(brandPrimary, 0.92);
+  ctx.fillStyle = colorWithAlpha(brandPrimary, 0.82);
   ctx.fill();
+  resetShadow(ctx);
 
-  ctx.strokeStyle = brandSecondary;
-  ctx.lineWidth = 3;
+  // Thin accent border
+  ctx.strokeStyle = colorWithAlpha(brandSecondary, 0.6);
+  ctx.lineWidth = 2;
   roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 16);
   ctx.stroke();
 
   const textOnCard = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
-  const subOnCard = isLightColor(brandPrimary) ? '#444' : '#d0d0d0';
+  const subOnCard = isLightColor(brandPrimary) ? '#333' : '#d0d0d0';
+  const centerX = w / 2;
   let currentY = cardY + cardPadding;
 
   if (config.businessName) {
@@ -585,10 +483,11 @@ function layoutCenterCard(
     ctx.font = `900 ${businessFs}px "Heebo", "Arial", sans-serif`;
     ctx.fillStyle = textOnCard;
     ctx.textAlign = 'center';
-    ctx.fillText(config.businessName, w / 2, currentY);
+    ctx.fillText(config.businessName, centerX, currentY);
     currentY += businessFs * 0.5;
 
-    ctx.strokeStyle = colorWithAlpha(brandSecondary, 0.6);
+    // Decorative divider
+    ctx.strokeStyle = colorWithAlpha(brandSecondary, 0.5);
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(cardX + cardPadding * 2, currentY);
@@ -603,7 +502,7 @@ function layoutCenterCard(
     ctx.textAlign = 'center';
     for (const line of headlineLines) {
       currentY += headlineFs;
-      ctx.fillText(line, w / 2, currentY);
+      ctx.fillText(line, centerX, currentY);
       currentY += headlineFs * 0.4;
     }
   }
@@ -615,22 +514,22 @@ function layoutCenterCard(
     ctx.textAlign = 'center';
     for (const line of bodyLines) {
       currentY += bodyFs * 1.5;
-      ctx.fillText(line, w / 2, currentY);
+      ctx.fillText(line, centerX, currentY);
     }
   }
 
   if (config.ctaText) {
     currentY += phoneFs;
-    const ctaFs = Math.round(w * 0.024);
+    const ctaFs = Math.round(w * 0.022);
     ctx.font = `bold ${ctaFs}px "Heebo", "Arial", sans-serif`;
     const ctaW = ctx.measureText(config.ctaText).width + ctaFs * 2;
     const ctaH = ctaFs * 2;
-    roundRect(ctx, w / 2 - ctaW / 2, currentY, ctaW, ctaH, ctaH / 2);
+    roundRect(ctx, centerX - ctaW / 2, currentY, ctaW, ctaH, ctaH / 2);
     ctx.fillStyle = brandSecondary;
     ctx.fill();
     ctx.fillStyle = isLightColor(brandSecondary) ? '#1a1a1a' : '#FFFFFF';
     ctx.textAlign = 'center';
-    ctx.fillText(config.ctaText, w / 2, currentY + ctaH * 0.65);
+    ctx.fillText(config.ctaText, centerX, currentY + ctaH * 0.65);
     currentY += ctaH;
   }
 
@@ -639,10 +538,8 @@ function layoutCenterCard(
     ctx.font = `700 ${phoneFs}px "Heebo", "Arial", sans-serif`;
     ctx.fillStyle = brandSecondary;
     ctx.textAlign = 'center';
-    ctx.fillText(config.phone, w / 2, currentY + phoneFs);
+    ctx.fillText(config.phone, centerX, currentY + phoneFs);
   }
-
-  ctx.textAlign = 'right';
 }
 
 // ═══════ Layout: Minimal ═══════
@@ -652,26 +549,27 @@ function layoutMinimal(
 ) {
   const padding = w * 0.06;
   const maxTextWidth = w * 0.85;
+  const centerX = w / 2;
 
-  // Subtle gradient at bottom
-  const gradH = h * 0.4;
+  // Subtle gradient at bottom only
+  const gradH = h * 0.45;
   const grad = ctx.createLinearGradient(0, h - gradH, 0, h);
   grad.addColorStop(0, 'rgba(0,0,0,0)');
-  grad.addColorStop(0.4, 'rgba(0,0,0,0.3)');
-  grad.addColorStop(1, 'rgba(0,0,0,0.7)');
+  grad.addColorStop(0.5, 'rgba(0,0,0,0.25)');
+  grad.addColorStop(1, 'rgba(0,0,0,0.65)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, h - gradH, w, gradH);
 
   let currentY = h - padding;
 
-  // Contact info at very bottom
+  // Phone at bottom
   if (config.phone) {
     const fs = Math.round(w * 0.028);
     ctx.font = `700 ${fs}px "Heebo", "Arial", sans-serif`;
     ctx.fillStyle = brandSecondary;
-    ctx.textAlign = 'right';
-    setShadow(ctx, 4, 0.6);
-    ctx.fillText(config.phone, w - padding, currentY);
+    ctx.textAlign = 'center';
+    setShadow(ctx, 5, 0.7);
+    ctx.fillText(config.phone, centerX, currentY);
     currentY -= fs * 1.8;
     resetShadow(ctx);
   }
@@ -679,34 +577,33 @@ function layoutMinimal(
   if (config.address) {
     const fs = Math.round(w * 0.02);
     ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = '#aaa';
-    ctx.textAlign = 'right';
-    ctx.fillText(config.address, w - padding, currentY);
+    ctx.fillStyle = '#bbb';
+    ctx.textAlign = 'center';
+    ctx.fillText(config.address, centerX, currentY);
     currentY -= fs * 1.8;
   }
 
   // Business name
   if (config.businessName) {
-    const fs = Math.round(w * 0.045);
+    const fs = Math.round(w * 0.04);
     ctx.font = `900 ${fs}px "Heebo", "Arial", sans-serif`;
-    ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'right';
+    ctx.textAlign = 'center';
     setShadow(ctx, 6, 0.8);
-    ctx.fillText(config.businessName, w - padding, currentY);
+    drawTextWithOutline(ctx, config.businessName, centerX, currentY, '#FFFFFF', 3);
     currentY -= fs * 1.5;
     resetShadow(ctx);
   }
 
   // Body text
   if (config.bodyText) {
-    const fs = Math.round(w * 0.025);
+    const fs = Math.round(w * 0.024);
     ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
     const lines = wrapText(ctx, config.bodyText, maxTextWidth);
-    ctx.fillStyle = '#ddd';
-    ctx.textAlign = 'right';
+    ctx.textAlign = 'center';
     setShadow(ctx, 4, 0.6);
     for (let i = lines.length - 1; i >= 0; i--) {
-      ctx.fillText(lines[i], w - padding, currentY);
+      ctx.fillStyle = '#eee';
+      ctx.fillText(lines[i], centerX, currentY);
       currentY -= fs * 1.5;
     }
     currentY -= fs * 0.3;
@@ -719,28 +616,88 @@ function layoutMinimal(
     ctx.font = `bold ${fs}px "Heebo", "Arial", sans-serif`;
     const shortHeadline = config.headline.length > 80 ? config.headline.substring(0, 77) + '...' : config.headline;
     const lines = wrapText(ctx, shortHeadline, maxTextWidth);
-    
-    ctx.fillStyle = brandSecondary;
-    ctx.textAlign = 'right';
-    setShadow(ctx, 5, 0.7);
-    
+
+    ctx.textAlign = 'center';
+    setShadow(ctx, 6, 0.8);
     for (let i = lines.length - 1; i >= 0; i--) {
-      ctx.fillText(lines[i], w - padding, currentY);
+      drawTextWithOutline(ctx, lines[i], centerX, currentY, brandSecondary, 3);
       currentY -= fs * 1.4;
     }
     resetShadow(ctx);
   }
 }
 
+// ═══════ Shared: Thin Contact Strip at Bottom ═══════
+function drawContactStrip(
+  ctx: CanvasRenderingContext2D, w: number, h: number,
+  config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
+) {
+  const hasContact = config.businessName || config.phone || config.address;
+  if (!hasContact) return;
+
+  const centerX = w / 2;
+  // Thin strip — max 10% of image height
+  const barHeight = Math.min(h * 0.1, 80);
+  const barY = h - barHeight;
+
+  // Soft gradient fade into strip
+  const fadeH = h * 0.04;
+  const fadeGrad = ctx.createLinearGradient(0, barY - fadeH, 0, barY);
+  fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  fadeGrad.addColorStop(1, colorWithAlpha(brandPrimary, 0.9));
+  ctx.fillStyle = fadeGrad;
+  ctx.fillRect(0, barY - fadeH, w, fadeH);
+
+  // Solid thin bar
+  ctx.fillStyle = colorWithAlpha(brandPrimary, 0.9);
+  ctx.fillRect(0, barY, w, barHeight);
+
+  // Thin accent line at top of bar
+  ctx.fillStyle = brandSecondary;
+  ctx.fillRect(0, barY, w, 2);
+
+  const textOnBar = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
+
+  // Grid layout: business name left(RTL: right), phone center, address right(RTL: left)
+  const barMidY = barY + barHeight * 0.6;
+
+  // Business name — right side (RTL primary)
+  if (config.businessName) {
+    const fs = Math.round(Math.min(w * 0.032, barHeight * 0.5));
+    ctx.font = `800 ${fs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = textOnBar;
+    ctx.textAlign = 'right';
+    ctx.fillText(config.businessName, w - w * 0.04, barMidY);
+  }
+
+  // Phone — center, prominent
+  if (config.phone) {
+    const fs = Math.round(Math.min(w * 0.03, barHeight * 0.45));
+    ctx.font = `800 ${fs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = brandSecondary;
+    ctx.textAlign = 'center';
+    ctx.fillText(config.phone, centerX, barMidY);
+  }
+
+  // Address — left side (RTL secondary)
+  if (config.address) {
+    const fs = Math.round(Math.min(w * 0.018, barHeight * 0.35));
+    ctx.font = `500 ${fs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = isLightColor(brandPrimary) ? '#444' : '#ccc';
+    ctx.textAlign = 'left';
+    ctx.fillText(config.address, w * 0.04, barMidY);
+  }
+}
+
 /**
  * Applies Hebrew text overlay on top of an image using Canvas.
- * Supports multiple professional layout styles with brand colors.
+ * Text floats on the image with shadows and gradients — never covers it with opaque bands.
  */
 export async function applyTextOverlay(
   imageUrl: string,
   config: TextOverlayConfig
 ): Promise<string> {
-  const { headline, bodyText, ctaText, businessName, phone, primaryColor, secondaryColor, backgroundColor, layoutStyle } = config;
+  const { headline, bodyText, ctaText, businessName, phone, primaryColor, secondaryColor, layoutStyle } = config;
 
   if (!headline && !businessName && !phone && !bodyText) return imageUrl;
 
