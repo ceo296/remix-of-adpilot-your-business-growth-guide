@@ -360,11 +360,11 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
                   <div className="flex justify-center gap-2 mb-2">
                     <div 
                       className="w-8 h-8 rounded-full border-2 border-white shadow-md"
-                      style={{ backgroundColor: brandColors?.primary_color || '#E31E24' }}
+                      style={{ backgroundColor: brandColors?.primary_color || '#ccc' }}
                     />
                     <div 
                       className="w-6 h-6 rounded-full border-2 border-white shadow-md mt-1"
-                      style={{ backgroundColor: brandColors?.secondary_color || '#000000' }}
+                      style={{ backgroundColor: brandColors?.secondary_color || '#ccc' }}
                     />
                   </div>
                   <p className="text-sm font-medium">צבעי המותג</p>
@@ -385,11 +385,11 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
                   <div className="flex justify-center gap-2 mb-2">
                     <div 
                       className="w-8 h-8 rounded-full border-2 border-white shadow-md"
-                      style={{ backgroundColor: brandColors?.secondary_color || '#000000' }}
+                      style={{ backgroundColor: brandColors?.secondary_color || '#ccc' }}
                     />
                     <div 
                       className="w-6 h-6 rounded-full border-2 border-white shadow-md mt-1"
-                      style={{ backgroundColor: brandColors?.primary_color || '#E31E24' }}
+                      style={{ backgroundColor: brandColors?.primary_color || '#ccc' }}
                     />
                     <ArrowLeftRight className="w-4 h-4 text-muted-foreground absolute" />
                   </div>
@@ -425,7 +425,7 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-10 h-10 rounded-lg border shadow-sm"
-                        style={{ backgroundColor: brandColors?.primary_color || '#E31E24' }}
+                        style={{ backgroundColor: brandColors?.primary_color || '#ccc' }}
                       />
                       <div className="text-sm">
                         <p className="font-medium">ראשי</p>
@@ -435,7 +435,7 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-10 h-10 rounded-lg border shadow-sm"
-                        style={{ backgroundColor: brandColors?.secondary_color || '#000000' }}
+                        style={{ backgroundColor: brandColors?.secondary_color || '#ccc' }}
                       />
                       <div className="text-sm">
                         <p className="font-medium">משני</p>
@@ -462,7 +462,7 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-10 h-10 rounded-lg border shadow-sm"
-                        style={{ backgroundColor: brandColors?.secondary_color || '#000000' }}
+                        style={{ backgroundColor: brandColors?.secondary_color || '#ccc' }}
                       />
                       <div className="text-sm">
                         <p className="font-medium">ראשי (הוחלף)</p>
@@ -472,7 +472,7 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-10 h-10 rounded-lg border shadow-sm"
-                        style={{ backgroundColor: brandColors?.primary_color || '#E31E24' }}
+                        style={{ backgroundColor: brandColors?.primary_color || '#ccc' }}
                       />
                       <div className="text-sm">
                         <p className="font-medium">משני (הוחלף)</p>
