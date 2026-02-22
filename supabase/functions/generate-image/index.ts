@@ -392,6 +392,18 @@ ${templatePrompt ? `FORMAT: ${templatePrompt}` : ''}
 ${colorInstructions}
 ${holidayRules}
 
+${brandContext?.pastMaterialsAnalysis?.length ? `
+CLIENT'S PAST AD STYLE (CRITICAL — match this visual language!):
+${brandContext.pastMaterialsAnalysis.map((a: any, i: number) => `Reference ${i+1}:
+- Logo position: ${a.logoPosition || 'unknown'}
+- Grid/layout: ${a.gridStructure || 'unknown'}
+- Color palette: ${(a.colorPalette || []).join(', ') || 'unknown'}
+- Typography style: ${a.typography || 'unknown'}
+- Layout notes: ${a.layoutNotes || 'none'}`).join('\n')}
+
+IMPORTANT: The generated image MUST follow the same visual structure, composition style, and layout patterns as the client's existing ads. Keep the same general "feel" — if their ads are clean and minimal, be clean and minimal. If they use bold colors and strong composition, do the same. Match the logo positioning and grid structure.
+` : ''}
+
 ${brandContext ? `BRAND CONTEXT: "${brandContext.businessName || ''}" - ${brandContext.targetAudience || 'Haredi audience'}. ${brandContext.primaryXFactor ? `Differentiator: ${brandContext.primaryXFactor}` : ''}` : ''}
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
 
