@@ -26,6 +26,7 @@ export interface TextOverlayConfig {
   backgroundColor?: string;
   layoutStyle?: TextLayoutStyle;
   logoUrl?: string;
+  logoPosition?: string; // e.g. "top-right", "top-left", "bottom-left", "bottom-right", "center-top"
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -106,10 +107,10 @@ function resetShadow(ctx: CanvasRenderingContext2D) {
   ctx.shadowOffsetY = 0;
 }
 
-/** Draw logo at bottom-left of canvas (like professional Haredi ads) */
+/** Draw logo positioned based on client's past ad analysis or default bottom-left */
 async function drawLogo(
   ctx: CanvasRenderingContext2D, w: number, h: number,
-  logoUrl: string | undefined, barHeight: number
+  logoUrl: string | undefined, barHeight: number, position?: string
 ) {
   if (!logoUrl) return;
   try {
@@ -119,10 +120,31 @@ async function drawLogo(
     const scale = Math.min(maxLogoW / logo.width, maxLogoH / logo.height);
     const logoW = logo.width * scale;
     const logoH = logo.height * scale;
-    const logoX = w * 0.03;
-    const logoY = h - barHeight - logoH - h * 0.01;
+    const margin = w * 0.03;
 
-    // Subtle shadow behind logo for readability
+    // Position logo based on client's past ad style
+    let logoX = margin;
+    let logoY = h - barHeight - logoH - h * 0.01;
+    const pos = (position || 'bottom-left').toLowerCase();
+
+    if (pos.includes('top') && pos.includes('right')) {
+      logoX = w - logoW - margin;
+      logoY = margin;
+    } else if (pos.includes('top') && pos.includes('left')) {
+      logoX = margin;
+      logoY = margin;
+    } else if (pos.includes('top')) {
+      logoX = (w - logoW) / 2;
+      logoY = margin;
+    } else if (pos.includes('bottom') && pos.includes('right')) {
+      logoX = w - logoW - margin;
+      logoY = h - barHeight - logoH - h * 0.01;
+    } else if (pos.includes('center')) {
+      logoX = (w - logoW) / 2;
+      logoY = (h - logoH) / 2;
+    }
+    // default: bottom-left (already set)
+
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.5)';
     ctx.shadowBlur = 10;
@@ -252,7 +274,7 @@ async function layoutClassicAd(
   // === BOTTOM: Thin elegant contact strip + logo bottom-left ===
   drawContactStrip(ctx, w, h, config, brandPrimary, brandSecondary);
   const barH = Math.min(h * 0.1, 80);
-  await drawLogo(ctx, w, h, config.logoUrl, barH);
+  await drawLogo(ctx, w, h, config.logoUrl, barH, config.logoPosition);
 }
 
 // ═══════ Layout: Top Headline ═══════
@@ -328,7 +350,7 @@ async function layoutTopHeadline(
 
   drawContactStrip(ctx, w, h, config, brandPrimary, brandSecondary);
   const barH = Math.min(h * 0.1, 80);
-  await drawLogo(ctx, w, h, config.logoUrl, barH);
+  await drawLogo(ctx, w, h, config.logoUrl, barH, config.logoPosition);
 }
 
 // ═══════ Layout: Side Strip ═══════
@@ -438,7 +460,7 @@ async function layoutSideStrip(
     ctx.fillStyle = subColor;
     ctx.fillText(config.address, textCenterX, bottomY - w * 0.04);
   }
-  await drawLogo(ctx, w, h, config.logoUrl, 0);
+  await drawLogo(ctx, w, h, config.logoUrl, 0, config.logoPosition);
 }
 
 // ═══════ Layout: Center Card ═══════
@@ -559,7 +581,7 @@ async function layoutCenterCard(
     ctx.textAlign = 'center';
     ctx.fillText(config.phone, centerX, currentY + phoneFs);
   }
-  await drawLogo(ctx, w, h, config.logoUrl, 0);
+  await drawLogo(ctx, w, h, config.logoUrl, 0, config.logoPosition);
 }
 
 // ═══════ Layout: Minimal ═══════
@@ -645,7 +667,7 @@ async function layoutMinimal(
     }
     resetShadow(ctx);
   }
-  await drawLogo(ctx, w, h, config.logoUrl, 0);
+  await drawLogo(ctx, w, h, config.logoUrl, 0, config.logoPosition);
 }
 
 // ═══════ Shared: Thin Contact Strip at Bottom ═══════

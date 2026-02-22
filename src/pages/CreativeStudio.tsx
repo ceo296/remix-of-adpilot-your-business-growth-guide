@@ -73,6 +73,7 @@ interface ClientProfile {
   header_font: string | null;
   body_font: string | null;
   logo_url: string | null;
+  past_materials: any[] | null;
 }
 
 interface MediaPackage {
@@ -370,12 +371,15 @@ const CreativeStudio = () => {
 
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url')
+        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials')
         .eq('user_id', user.id)
         .single();
 
       if (profile) {
-        setClientProfile(profile);
+        setClientProfile({
+          ...profile,
+          past_materials: Array.isArray(profile.past_materials) ? profile.past_materials : [],
+        });
       }
     };
 
@@ -604,6 +608,12 @@ const CreativeStudio = () => {
         background: colorSelection.backgroundColor || clientProfile?.background_color,
       };
 
+      // Extract ad layout analysis from past materials
+      const pastMaterialsAnalysis = (clientProfile?.past_materials as any[])
+        ?.filter((m: any) => m.adAnalysis)
+        ?.map((m: any) => m.adAnalysis)
+        ?.slice(0, 3) || [];
+
       const brandContext = clientProfile ? {
         businessName: clientProfile.business_name,
         targetAudience: clientProfile.target_audience,
@@ -615,7 +625,8 @@ const CreativeStudio = () => {
           header: clientProfile.header_font,
           body: clientProfile.body_font,
         },
-        colorMode: colorSelection.mode, // 'brand', 'swapped', or 'continue-past'
+        colorMode: colorSelection.mode,
+        pastMaterialsAnalysis,
       } : null;
 
       // Resolve PDF logo to PNG if needed
@@ -684,6 +695,7 @@ const CreativeStudio = () => {
                 backgroundColor: brandContext?.colors?.primary,
                 layoutStyle: textLayoutStyle,
                 logoUrl: clientProfile?.logo_url || undefined,
+                logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
               });
               console.log(`[Canvas] Hebrew text applied for sketch ${i}`);
             } catch (canvasError) {
@@ -975,6 +987,12 @@ const CreativeStudio = () => {
       };
     }
 
+    // Extract ad layout analysis from past materials
+    const pastMaterialsAnalysis = (clientProfile?.past_materials as any[])
+      ?.filter((m: any) => m.adAnalysis)
+      ?.map((m: any) => m.adAnalysis)
+      ?.slice(0, 3) || [];
+
     return clientProfile ? {
       businessName: clientProfile.business_name,
       targetAudience: clientProfile.target_audience,
@@ -992,6 +1010,7 @@ const CreativeStudio = () => {
       contactWhatsapp: clientProfile.contact_whatsapp,
       contactEmail: clientProfile.contact_email,
       contactAddress: clientProfile.contact_address,
+      pastMaterialsAnalysis,
     } : null;
   };
 
@@ -1124,6 +1143,7 @@ const CreativeStudio = () => {
             backgroundColor: brandContext?.colors?.primary,
             layoutStyle: conceptLayout,
             logoUrl: clientProfile?.logo_url || undefined,
+            logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
           });
           console.log(`[Canvas] Hebrew text applied with layout "${conceptLayout}" for concept ${index}`);
         } catch (canvasError) {
@@ -1876,6 +1896,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                             backgroundColor: clientProfile?.primary_color || undefined,
                             layoutStyle: ls.id,
                             logoUrl: clientProfile?.logo_url || undefined,
+                            logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
                           });
                           return { ...img, url: newUrl };
                         } catch { return img; }
