@@ -472,25 +472,38 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     }
 
     // Extract text meta for frontend programmatic overlay
-    // Use textPrompt as headline (it comes from concept headline, not raw brief)
     const headline = textPrompt || campaignContext?.offer || '';
     const businessName = brandContext?.businessName || '';
     const phone = brandContext?.contactPhone || '';
-    // Body text: use campaign offer only if textPrompt is a different headline
     const bodyText = campaignContext?.offer && textPrompt && textPrompt !== campaignContext.offer
       ? campaignContext.offer 
       : '';
     const ctaText = phone ? 'חייגו עוד היום!' : '';
+    
+    // Extract subtitle from campaign context
+    const subtitle = campaignContext?.subtitle || (businessName ? `חדש ב${businessName}!` : '');
+    
+    // Extract services list from campaign context or x-factors
+    const servicesList: string[] = campaignContext?.services 
+      || (brandContext?.xFactors?.length ? brandContext.xFactors.slice(0, 5) : []);
+    
+    // Promo info from campaign context
+    const promoText = campaignContext?.promoText || '';
+    const promoValue = campaignContext?.promoValue || '';
 
     return new Response(JSON.stringify({ 
       imageUrl: visualResult.imageUrl,
       visualOnlyUrl: visualResult.imageUrl,
       textMeta: {
         headline,
+        subtitle,
         bodyText,
         ctaText,
         businessName,
         phone,
+        servicesList,
+        promoText,
+        promoValue,
       },
       status: 'approved',
       message: `שכבה ויזואלית: ${visualResult.model} | טקסט: עיבוד פרוגרמטי`,
