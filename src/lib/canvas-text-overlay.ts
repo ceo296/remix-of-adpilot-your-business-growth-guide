@@ -10,10 +10,11 @@
  * 5. Brand colors as accents, not full covers
  */
 
-export type TextLayoutStyle = 'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip';
+export type TextLayoutStyle = 'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad';
 
 export interface TextOverlayConfig {
   headline?: string;
+  subtitle?: string;
   bodyText?: string;
   ctaText?: string;
   businessName?: string;
@@ -26,7 +27,10 @@ export interface TextOverlayConfig {
   backgroundColor?: string;
   layoutStyle?: TextLayoutStyle;
   logoUrl?: string;
-  logoPosition?: string; // e.g. "top-right", "top-left", "bottom-left", "bottom-right", "center-top"
+  logoPosition?: string;
+  servicesList?: string[];
+  promoText?: string;
+  promoValue?: string;
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -738,6 +742,147 @@ async function layoutMinimal(
   await drawLogo(ctx, w, h, config.logoUrl, 0, config.logoPosition);
 }
 
+// ═══════ Layout: Professional Ad (like reference) ═══════
+// Big headline with translucent band at top, subtitle + body + services in lower half,
+// promo badges, contact strip with logo at bottom
+async function layoutProfessionalAd(
+  ctx: CanvasRenderingContext2D, w: number, h: number,
+  config: TextOverlayConfig, brandPrimary: string, brandSecondary: string
+) {
+  const centerX = w / 2;
+  const maxTextWidth = w * 0.88;
+  const textColor = brandPrimary;
+  const lightBg = '#FFFFFF';
+
+  // === TOP ZONE: Headline with semi-transparent white band ===
+  if (config.headline) {
+    const headlineFs = Math.round(w * 0.058);
+    ctx.font = `900 ${headlineFs}px "Heebo", "Arial", sans-serif`;
+    const shortHeadline = cleanHeadline(config.headline);
+    const headlineLines = wrapText(ctx, shortHeadline, maxTextWidth, 2);
+    const lineHeight = headlineFs * 1.25;
+    const bandPadding = headlineFs * 0.8;
+    const bandH = headlineLines.length * lineHeight + bandPadding * 2;
+    const bandY = h * 0.12;
+
+    // Semi-transparent white band
+    ctx.fillStyle = colorWithAlpha(lightBg, 0.75);
+    ctx.fillRect(0, bandY, w, bandH);
+
+    // Headline text in brand color
+    ctx.textAlign = 'center';
+    ctx.fillStyle = textColor;
+    let textY = bandY + bandPadding + headlineFs * 0.9;
+    for (const line of headlineLines) {
+      ctx.fillText(line, centerX, textY);
+      textY += lineHeight;
+    }
+  }
+
+  // === MIDDLE-LOWER ZONE: Subtitle + Body + Services ===
+  let currentY = h * 0.52;
+
+  // Subtitle (e.g. "חדש במרפאת ד"ר שיפר!")
+  if (config.subtitle) {
+    const subFs = Math.round(w * 0.028);
+    ctx.font = `600 ${subFs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = '#333333';
+    ctx.textAlign = 'center';
+    ctx.fillText(cleanText(config.subtitle), centerX, currentY);
+    currentY += subFs * 1.8;
+  }
+
+  // Body text (main description, bold and larger)
+  if (config.bodyText) {
+    const cleaned = cleanBodyText(config.bodyText);
+    if (cleaned) {
+      const bodyFs = Math.round(w * 0.034);
+      ctx.font = `800 ${bodyFs}px "Heebo", "Arial", sans-serif`;
+      const bodyLines = wrapText(ctx, cleaned, maxTextWidth * 0.9, 3);
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'center';
+      for (const line of bodyLines) {
+        ctx.fillText(line, centerX, currentY);
+        currentY += bodyFs * 1.35;
+      }
+      currentY += bodyFs * 0.3;
+    }
+  }
+
+  // Services list (bullet-separated)
+  if (config.servicesList && config.servicesList.length > 0) {
+    const svcFs = Math.round(w * 0.02);
+    ctx.font = `500 ${svcFs}px "Heebo", "Arial", sans-serif`;
+    ctx.fillStyle = '#444444';
+    ctx.textAlign = 'center';
+    const svcText = config.servicesList.join(' • ');
+    const svcLines = wrapText(ctx, svcText, maxTextWidth * 0.85, 2);
+    for (const line of svcLines) {
+      ctx.fillText(line, centerX, currentY);
+      currentY += svcFs * 1.5;
+    }
+    currentY += svcFs * 0.5;
+  }
+
+  // === PROMO ZONE: Badges ===
+  if (config.promoText || config.promoValue) {
+    currentY += w * 0.015;
+
+    // Promo headline
+    if (config.ctaText) {
+      const ctaFs = Math.round(w * 0.026);
+      ctx.font = `700 ${ctaFs}px "Heebo", "Arial", sans-serif`;
+      ctx.fillStyle = '#222222';
+      ctx.textAlign = 'center';
+      ctx.fillText(cleanText(config.ctaText), centerX, currentY);
+      currentY += ctaFs * 1.8;
+    }
+
+    // Promo badges side by side
+    const badgeFs = Math.round(w * 0.024);
+    const badgeH = badgeFs * 2.8;
+    const badgeGap = w * 0.03;
+    let totalBadgeW = 0;
+    const badges: { text: string; width: number }[] = [];
+
+    if (config.promoText) {
+      ctx.font = `700 ${badgeFs}px "Heebo", "Arial", sans-serif`;
+      const bw = ctx.measureText(config.promoText).width + badgeFs * 2;
+      badges.push({ text: config.promoText, width: bw });
+      totalBadgeW += bw;
+    }
+    if (config.promoValue) {
+      const valFs = Math.round(w * 0.038);
+      ctx.font = `900 ${valFs}px "Heebo", "Arial", sans-serif`;
+      const bw = ctx.measureText(config.promoValue).width + badgeFs * 2;
+      badges.push({ text: config.promoValue, width: bw });
+      totalBadgeW += bw;
+    }
+    if (badges.length > 1) totalBadgeW += badgeGap;
+
+    let badgeX = centerX - totalBadgeW / 2;
+    for (let i = 0; i < badges.length; i++) {
+      const b = badges[i];
+      roundRect(ctx, badgeX, currentY, b.width, badgeH, badgeH / 4);
+      ctx.fillStyle = brandPrimary;
+      ctx.fill();
+
+      ctx.fillStyle = isLightColor(brandPrimary) ? '#1a1a1a' : '#FFFFFF';
+      ctx.textAlign = 'center';
+      const fs = i === 1 ? Math.round(w * 0.032) : badgeFs;
+      ctx.font = `${i === 1 ? '900' : '700'} ${fs}px "Heebo", "Arial", sans-serif`;
+      ctx.fillText(b.text, badgeX + b.width / 2, currentY + badgeH * 0.65);
+
+      badgeX += b.width + badgeGap;
+    }
+  }
+
+  // === BOTTOM: Contact strip with logo ===
+  drawContactStrip(ctx, w, h, config, brandPrimary, brandSecondary);
+  const barH = Math.min(h * 0.1, 80);
+  await drawLogo(ctx, w, h, config.logoUrl, barH, config.logoPosition);
+}
+
 // ═══════ Shared: Thin Contact Strip at Bottom ═══════
 function drawContactStrip(
   ctx: CanvasRenderingContext2D, w: number, h: number,
@@ -812,9 +957,13 @@ export async function applyTextOverlay(
   const cleanedConfig: TextOverlayConfig = {
     ...config,
     headline: config.headline ? cleanText(config.headline) : undefined,
+    subtitle: config.subtitle ? cleanText(config.subtitle) : undefined,
     bodyText: config.bodyText ? cleanText(config.bodyText) : undefined,
     ctaText: config.ctaText ? cleanText(config.ctaText) : undefined,
     businessName: config.businessName ? cleanText(config.businessName) : undefined,
+    servicesList: config.servicesList?.map(s => cleanText(s)).filter(Boolean),
+    promoText: config.promoText ? cleanText(config.promoText) : undefined,
+    promoValue: config.promoValue ? cleanText(config.promoValue) : undefined,
   };
   const { headline, bodyText, ctaText, businessName, phone, primaryColor, secondaryColor, layoutStyle } = cleanedConfig;
 
@@ -850,6 +999,9 @@ export async function applyTextOverlay(
       break;
     case 'top-headline':
       await layoutTopHeadline(ctx, w, h, cleanedConfig, brandPrimary, brandSecondary);
+      break;
+    case 'professional-ad':
+      await layoutProfessionalAd(ctx, w, h, cleanedConfig, brandPrimary, brandSecondary);
       break;
     case 'classic-ad':
     default:

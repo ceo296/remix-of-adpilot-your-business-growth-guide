@@ -44,10 +44,14 @@ interface GeneratedImage {
   visualOnlyUrl?: string;
   textMeta?: {
     headline: string;
+    subtitle?: string;
     bodyText?: string;
     ctaText?: string;
     businessName: string;
     phone: string;
+    servicesList?: string[];
+    promoText?: string;
+    promoValue?: string;
   };
 }
 
@@ -305,7 +309,7 @@ const CreativeStudio = () => {
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('year_round');
   
   // Text layout style
-  const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip'>('classic-ad');
+  const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad'>('classic-ad');
 
   // Auto-set aspect ratio based on media type
   useEffect(() => {
@@ -686,6 +690,7 @@ const CreativeStudio = () => {
               const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
               finalUrl = await applyTextOverlay(data.imageUrl, {
                 headline: textMeta.headline,
+                subtitle: textMeta.subtitle,
                 bodyText: textMeta.bodyText,
                 ctaText: textMeta.ctaText,
                 businessName: textMeta.businessName,
@@ -698,6 +703,9 @@ const CreativeStudio = () => {
                 layoutStyle: textLayoutStyle,
                 logoUrl: clientProfile?.logo_url || undefined,
                 logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
+                servicesList: textMeta.servicesList,
+                promoText: textMeta.promoText,
+                promoValue: textMeta.promoValue,
               });
               console.log(`[Canvas] Hebrew text applied for sketch ${i}`);
             } catch (canvasError) {
@@ -1134,6 +1142,7 @@ const CreativeStudio = () => {
           const conceptLayout = textLayoutStyle || layoutStyles[index % 3];
           finalUrl = await applyTextOverlay(data.imageUrl, {
             headline: concept.headline || textMeta.headline,
+            subtitle: textMeta.subtitle,
             bodyText: concept.copy || textMeta.bodyText,
             ctaText: textMeta.ctaText,
             businessName: textMeta.businessName,
@@ -1146,6 +1155,9 @@ const CreativeStudio = () => {
             layoutStyle: conceptLayout,
             logoUrl: clientProfile?.logo_url || undefined,
             logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
+            servicesList: textMeta.servicesList,
+            promoText: textMeta.promoText,
+            promoValue: textMeta.promoValue,
           });
           console.log(`[Canvas] Hebrew text applied with layout "${conceptLayout}" for concept ${index}`);
         } catch (canvasError) {
@@ -1868,6 +1880,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
               <span className="text-sm text-muted-foreground">סגנון טקסט:</span>
               {([
                 { id: 'classic-ad' as const, label: 'מודעה קלאסית', icon: '📰' },
+                { id: 'professional-ad' as const, label: 'מודעה מקצועית', icon: '🎯' },
                 { id: 'top-headline' as const, label: 'כותרת עליונה', icon: '▬' },
                 { id: 'side-strip' as const, label: 'פס צד', icon: '▐' },
                 { id: 'center-card' as const, label: 'כרטיס מרכזי', icon: '▣' },
@@ -1887,6 +1900,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                         try {
                           const newUrl = await applyTextOverlay(img.visualOnlyUrl, {
                             headline: img.textMeta.headline,
+                            subtitle: img.textMeta.subtitle,
                             bodyText: img.textMeta.bodyText,
                             ctaText: img.textMeta.ctaText,
                             businessName: img.textMeta.businessName,
@@ -1899,6 +1913,9 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                             layoutStyle: ls.id,
                             logoUrl: clientProfile?.logo_url || undefined,
                             logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
+                            servicesList: img.textMeta.servicesList,
+                            promoText: img.textMeta.promoText,
+                            promoValue: img.textMeta.promoValue,
                           });
                           return { ...img, url: newUrl };
                         } catch { return img; }
