@@ -687,8 +687,8 @@ const CreativeStudio = () => {
           
           if (textMeta && (textMeta.headline || textMeta.businessName || textMeta.phone)) {
             try {
-              const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
-              finalUrl = await applyTextOverlay(data.imageUrl, {
+              const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
+              finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
                 headline: textMeta.headline,
                 subtitle: textMeta.subtitle,
                 bodyText: textMeta.bodyText,
@@ -707,7 +707,7 @@ const CreativeStudio = () => {
                 promoText: textMeta.promoText,
                 promoValue: textMeta.promoValue,
               });
-              console.log(`[Canvas] Hebrew text applied for sketch ${i}`);
+              console.log(`[HTML] Hebrew text applied for sketch ${i}`);
             } catch (canvasError) {
               console.error('[Canvas] Failed to apply text overlay:', canvasError);
             }
@@ -1894,11 +1894,11 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                   onClick={async () => {
                     setTextLayoutStyle(ls.id);
                     // Re-apply overlay to all images with new style
-                    const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
+                    const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
                     const updated = await Promise.all(generatedImages.map(async (img) => {
                       if (img.visualOnlyUrl && img.textMeta) {
                         try {
-                          const newUrl = await applyTextOverlay(img.visualOnlyUrl, {
+                          const newUrl = await applyHtmlTextOverlay(img.visualOnlyUrl, {
                             headline: img.textMeta.headline,
                             subtitle: img.textMeta.subtitle,
                             bodyText: img.textMeta.bodyText,
