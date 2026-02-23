@@ -102,53 +102,50 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
   const promoText = config.promoText ? cleanText(config.promoText) : '';
   const promoValue = config.promoValue ? cleanText(config.promoValue) : '';
 
-  // Scale font sizes relative to image dimensions
   const scale = Math.min(width, height) / 1024;
-  const headlineSize = Math.round(48 * scale);
-  const subtitleSize = Math.round(24 * scale);
-  const bodySize = Math.round(18 * scale);
-  const ctaSize = Math.round(22 * scale);
-  const contactSize = Math.round(16 * scale);
-  const nameSize = Math.round(20 * scale);
-  const promoSize = Math.round(28 * scale);
-  const serviceSize = Math.round(16 * scale);
+  const headlineSize = Math.round(44 * scale);
+  const subtitleSize = Math.round(22 * scale);
+  const bodySize = Math.round(17 * scale);
+  const ctaSize = Math.round(20 * scale);
+  const nameSize = Math.round(18 * scale);
+  const promoSize = Math.round(26 * scale);
+  const serviceSize = Math.round(14 * scale);
 
-  // Logo HTML
-  const logoHtml = config.logoUrl ? `
-    <img src="${config.logoUrl}" crossorigin="anonymous" 
-         style="max-height: ${Math.round(60 * scale)}px; max-width: ${Math.round(140 * scale)}px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" />
-  ` : '';
-
-  // Services list
+  // Services pills
   const servicesHtml = services.length > 0 ? `
     <div style="display: flex; flex-wrap: wrap; gap: ${Math.round(6 * scale)}px; justify-content: center; margin-top: ${Math.round(8 * scale)}px;">
       ${services.map(s => `
-        <span style="background: ${hexToRgba(primary, 0.15)}; color: ${textOnPrimary === '#FFFFFF' ? '#fff' : primary}; 
-              padding: ${Math.round(4 * scale)}px ${Math.round(12 * scale)}px; border-radius: ${Math.round(20 * scale)}px; 
-              font-size: ${serviceSize}px; font-weight: 600; backdrop-filter: blur(4px);
-              border: 1px solid ${hexToRgba(primary, 0.3)};">${s}</span>
+        <span style="background: ${hexToRgba(primary, 0.2)}; color: #fff; 
+              padding: ${Math.round(3 * scale)}px ${Math.round(10 * scale)}px; border-radius: ${Math.round(16 * scale)}px; 
+              font-size: ${serviceSize}px; font-weight: 600;
+              border: 1px solid ${hexToRgba('#fff', 0.15)};">${s}</span>
       `).join('')}
     </div>
   ` : '';
 
-  // Promo badges
+  // Promo badge
   const promoHtml = (promoText || promoValue) ? `
-    <div style="display: flex; gap: ${Math.round(12 * scale)}px; justify-content: center; margin-top: ${Math.round(12 * scale)}px;">
+    <div style="display: flex; gap: ${Math.round(10 * scale)}px; justify-content: center; margin-top: ${Math.round(10 * scale)}px;">
       ${promoValue ? `
-        <div style="background: ${secondary}; color: ${textOnSecondary}; padding: ${Math.round(8 * scale)}px ${Math.round(20 * scale)}px; 
-             border-radius: ${Math.round(12 * scale)}px; font-size: ${promoSize}px; font-weight: 900; 
-             box-shadow: 0 4px 12px ${hexToRgba(secondary, 0.4)}; letter-spacing: -0.5px;">
+        <div style="background: ${secondary}; color: ${textOnSecondary}; padding: ${Math.round(6 * scale)}px ${Math.round(16 * scale)}px; 
+             border-radius: ${Math.round(10 * scale)}px; font-size: ${promoSize}px; font-weight: 900; 
+             box-shadow: 0 4px 12px ${hexToRgba(secondary, 0.4)};">
           ${promoValue}
         </div>
       ` : ''}
       ${promoText ? `
-        <div style="background: ${hexToRgba('#000', 0.6)}; color: #fff; padding: ${Math.round(8 * scale)}px ${Math.round(16 * scale)}px; 
-             border-radius: ${Math.round(12 * scale)}px; font-size: ${Math.round(18 * scale)}px; font-weight: 700;
-             backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15);">
+        <div style="background: ${hexToRgba('#000', 0.5)}; color: #fff; padding: ${Math.round(6 * scale)}px ${Math.round(14 * scale)}px; 
+             border-radius: ${Math.round(10 * scale)}px; font-size: ${Math.round(16 * scale)}px; font-weight: 700;">
           ${promoText}
         </div>
       ` : ''}
     </div>
+  ` : '';
+
+  // Logo HTML — placed near contact strip, not at top
+  const logoHtml = config.logoUrl ? `
+    <img src="${config.logoUrl}" crossorigin="anonymous" 
+         style="max-height: ${Math.round(50 * scale)}px; max-width: ${Math.round(120 * scale)}px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));" />
   ` : '';
 
   return `
@@ -156,76 +153,72 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
       <!-- Background Image -->
       <img src="${imageUrl}" crossorigin="anonymous" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" />
       
-      <!-- Top Header Band -->
-      <div style="position: absolute; top: 0; left: 0; right: 0; 
-                  background: linear-gradient(180deg, ${hexToRgba(primary, 0.92)} 0%, ${hexToRgba(primary, 0.85)} 70%, transparent 100%);
-                  padding: ${Math.round(16 * scale)}px ${Math.round(24 * scale)}px ${Math.round(28 * scale)}px;
-                  display: flex; align-items: center; justify-content: space-between; gap: ${Math.round(16 * scale)}px;">
-        <!-- Business Name + Headline -->
-        <div style="flex: 1; text-align: right;">
-          ${headline ? `<div style="font-size: ${headlineSize}px; font-weight: 900; color: ${textOnPrimary}; 
-               line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.3); letter-spacing: -0.5px;">${headline}</div>` : ''}
-          ${businessName && !headline ? `<div style="font-size: ${Math.round(36 * scale)}px; font-weight: 900; color: ${textOnPrimary}; 
-               text-shadow: 0 2px 8px rgba(0,0,0,0.3);">${businessName}</div>` : ''}
-          ${subtitle && !bodyText ? `<div style="font-size: ${subtitleSize}px; font-weight: 500; color: ${hexToRgba(textOnPrimary === '#FFFFFF' ? '#fff' : '#000', 0.85)};
-               margin-top: ${Math.round(4 * scale)}px; text-shadow: 0 1px 4px rgba(0,0,0,0.2);">${subtitle}</div>` : ''}
-        </div>
-        ${logoHtml ? `<div style="flex-shrink: 0;">${logoHtml}</div>` : ''}
-      </div>
+      <!-- Subtle top vignette for headline readability -->
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: ${Math.round(height * 0.25)}px;
+                  background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 60%, transparent 100%); pointer-events: none;"></div>
 
-      <!-- Center Content Area (subtitle, body, services) -->
-      ${(subtitle && bodyText) || bodyText || services.length > 0 ? `
-        <div style="position: absolute; left: 50%; transform: translateX(-50%); bottom: ${Math.round(height * 0.22)}px;
+      <!-- Headline — floating with text shadow, no background band -->
+      ${headline ? `
+        <div style="position: absolute; top: ${Math.round(20 * scale)}px; left: ${Math.round(20 * scale)}px; right: ${Math.round(20 * scale)}px; text-align: center;">
+          <div style="font-size: ${headlineSize}px; font-weight: 900; color: #fff; 
+               line-height: 1.25; text-shadow: 0 2px 16px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5); letter-spacing: -0.5px;">
+            ${headline}
+          </div>
+          ${subtitle ? `<div style="font-size: ${subtitleSize}px; font-weight: 600; color: rgba(255,255,255,0.9);
+               margin-top: ${Math.round(4 * scale)}px; text-shadow: 0 1px 8px rgba(0,0,0,0.6);">${subtitle}</div>` : ''}
+        </div>
+      ` : ''}
+
+      <!-- Bottom gradient for text integration -->
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; height: ${Math.round(height * 0.45)}px;
+                  background: linear-gradient(0deg, ${hexToRgba(primary, 0.92)} 0%, ${hexToRgba(primary, 0.7)} 30%, ${hexToRgba(primary, 0.3)} 60%, transparent 100%); pointer-events: none;"></div>
+
+      <!-- Body text + services — positioned in the gradient zone -->
+      ${bodyText || services.length > 0 ? `
+        <div style="position: absolute; bottom: ${Math.round(height * 0.18)}px; left: 50%; transform: translateX(-50%);
                     width: ${Math.round(width * 0.85)}px; text-align: center;">
-          ${subtitle ? `<div style="font-size: ${subtitleSize}px; font-weight: 700; color: #fff;
-               text-shadow: 0 2px 12px rgba(0,0,0,0.7), 0 0 30px rgba(0,0,0,0.4);
-               margin-bottom: ${Math.round(6 * scale)}px;">${subtitle}</div>` : ''}
           ${bodyText ? `<div style="font-size: ${bodySize}px; font-weight: 500; color: rgba(255,255,255,0.95);
-               text-shadow: 0 2px 8px rgba(0,0,0,0.6); line-height: 1.5;
+               text-shadow: 0 1px 6px rgba(0,0,0,0.4); line-height: 1.6;
                max-width: ${Math.round(width * 0.75)}px; margin: 0 auto;">${bodyText}</div>` : ''}
           ${servicesHtml}
         </div>
       ` : ''}
 
       ${promoHtml ? `
-        <div style="position: absolute; left: 50%; transform: translateX(-50%); bottom: ${Math.round(height * 0.16)}px;">
+        <div style="position: absolute; left: 50%; transform: translateX(-50%); bottom: ${Math.round(height * 0.14)}px;">
           ${promoHtml}
         </div>
       ` : ''}
 
       <!-- CTA Button -->
       ${ctaText ? `
-        <div style="position: absolute; left: 50%; transform: translateX(-50%); bottom: ${Math.round(height * 0.10)}px;">
+        <div style="position: absolute; left: 50%; transform: translateX(-50%); bottom: ${Math.round(height * 0.08)}px;">
           <div style="background: linear-gradient(135deg, ${secondary}, ${darkenHex(secondary, 0.15)}); 
-               color: ${textOnSecondary}; padding: ${Math.round(12 * scale)}px ${Math.round(36 * scale)}px; 
-               border-radius: ${Math.round(30 * scale)}px; font-size: ${ctaSize}px; font-weight: 800; 
-               box-shadow: 0 6px 20px ${hexToRgba(secondary, 0.5)}, 0 0 0 2px rgba(255,255,255,0.2);
-               letter-spacing: 0.5px; text-align: center;">
+               color: ${textOnSecondary}; padding: ${Math.round(10 * scale)}px ${Math.round(32 * scale)}px; 
+               border-radius: ${Math.round(26 * scale)}px; font-size: ${ctaSize}px; font-weight: 800; 
+               box-shadow: 0 4px 16px ${hexToRgba(secondary, 0.5)}, 0 0 0 2px rgba(255,255,255,0.15);
+               text-align: center;">
             ${ctaText}
           </div>
         </div>
       ` : ''}
 
-      <!-- Bottom Contact Strip -->
-      <div style="position: absolute; bottom: 0; left: 0; right: 0;">
-        <!-- Fade gradient -->
-        <div style="height: ${Math.round(20 * scale)}px; background: linear-gradient(0deg, ${hexToRgba(primary, 0.92)}, transparent);"></div>
-        <!-- Accent line -->
-        <div style="height: 2px; background: ${secondary};"></div>
-        <!-- Contact bar -->
-        <div style="background: ${hexToRgba(primary, 0.92)}; padding: ${Math.round(10 * scale)}px ${Math.round(20 * scale)}px;
-                    display: flex; align-items: center; justify-content: space-between; gap: ${Math.round(12 * scale)}px;">
-          <!-- Business name (right in RTL) -->
-          <div style="font-size: ${nameSize}px; font-weight: 800; color: ${textOnPrimary};">
-            ${businessName}
-          </div>
-          <!-- Phone (center, prominent) -->
-          ${phone ? `<div style="font-size: ${Math.round(22 * scale)}px; font-weight: 900; color: ${secondary}; 
-               letter-spacing: 1px; direction: ltr; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">${phone}</div>` : ''}
-          <!-- Address / WhatsApp (left in RTL) -->
-          <div style="font-size: ${Math.round(14 * scale)}px; color: ${hexToRgba(textOnPrimary === '#FFFFFF' ? '#fff' : '#000', 0.7)}; font-weight: 500;">
-            ${address || whatsapp || ''}
-          </div>
+      <!-- Contact strip with logo -->
+      <div style="position: absolute; bottom: 0; left: 0; right: 0;
+                  background: ${hexToRgba(primary, 0.95)};
+                  padding: ${Math.round(8 * scale)}px ${Math.round(16 * scale)}px;
+                  display: flex; align-items: center; justify-content: space-between; gap: ${Math.round(10 * scale)}px;">
+        <!-- Logo + Business name (right in RTL) -->
+        <div style="display: flex; align-items: center; gap: ${Math.round(8 * scale)}px;">
+          ${logoHtml}
+          <div style="font-size: ${nameSize}px; font-weight: 800; color: ${textOnPrimary};">${businessName}</div>
+        </div>
+        <!-- Phone -->
+        ${phone ? `<div style="font-size: ${Math.round(20 * scale)}px; font-weight: 900; color: ${secondary}; 
+             letter-spacing: 1px; direction: ltr;">${phone}</div>` : ''}
+        <!-- Address -->
+        <div style="font-size: ${Math.round(13 * scale)}px; color: ${hexToRgba(textOnPrimary === '#FFFFFF' ? '#fff' : '#000', 0.7)}; font-weight: 500;">
+          ${address || whatsapp || ''}
         </div>
       </div>
     </div>
