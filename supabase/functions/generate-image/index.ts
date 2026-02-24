@@ -381,8 +381,18 @@ CRITICAL - NO TEXT RULES:
 - Do NOT write Hebrew, English, Arabic, or any other script
 - Do NOT include phone numbers, headlines, logos with text, watermarks, or captions
 - The image must be 100% VISUAL — only photography, illustration, colors, shapes, and composition
-- Leave clean empty spaces (solid color bands or gradient areas) where text can be added later by a designer
 - If you see a logo image attached, include it but do NOT add any text around it
+
+COMPOSITION FOR TEXT INTEGRATION (CRITICAL):
+- The image MUST have a clear visual hierarchy with DESIGNATED ZONES for text overlay:
+  * TOP 20% of image: Keep relatively simple/dark — this is where the headline will be placed
+  * BOTTOM 30% of image: Create a natural gradient/dark area that transitions organically from the visual — text and contact info will go here
+  * CENTER: The hero visual (product, scene, etc.) should be in the center-upper area
+- Use natural darkening techniques: deeper shadows at edges, atmospheric haze, darker ground/sky areas
+- The bottom area should naturally darken or have a color that matches the brand's primary color — like a floor, table surface, dark gradient, or colored surface
+- Think of it like a MAGAZINE AD: the visual composition should leave "breathing room" for text WITHOUT needing opaque overlays
+- The image should look like a professional photographer composed it knowing text would be placed on it
+- DO NOT use solid color bands or boxes — the transition must be ORGANIC and GRADUAL
 
 ${aspectInstruction}
 
