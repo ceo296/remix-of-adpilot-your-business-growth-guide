@@ -7,6 +7,29 @@ const corsHeaders = {
 };
 
 // Enhanced style descriptions for better quality
+const ART_DIRECTOR_GUIDELINES = `
+[CORE MISSION] You are a world-class Advertising Art Director and Editorial Photographer specializing in high-end luxury brands for the Haredi (Ultra-Orthodox) Jewish sector. Your goal is to generate ONE single, cohesive, and organic photographic masterpiece.
+
+[VISUAL STYLE - MANDATORY]
+NO COLLAGES: Never create split screens, grids, or multiple separate images in one frame. The output must be a single, holistic scene.
+CINEMATIC QUALITY: Use 35mm or 50mm lens aesthetics with a shallow depth of field (blurred background) to create a premium feel.
+LIGHTING: Professional "Golden Hour" or soft studio lighting. Avoid harsh, flat, or clinical "Fluorescent" lights.
+TEXTURE: High detail on materials (wood grain, fabric texture, skin pores).
+
+[HAREDI AUTHENTICITY - CULTURAL GUARDRAILS]
+PEOPLE: If characters are present, they must be strictly authentic to the Haredi-Litvish or Hasidic aesthetic.
+- Men: Dark suits, white shirts, dark velvet or silk kippot, neatly groomed beards, authentic side-curls (Peyot) tucked or visible as per the brief.
+- Women/Girls: Strictly modest (Tzniut). High necklines, long sleeves (past elbows), skirts past knees, refined and elegant hair/wigs (Sheitels) or head-coverings.
+ENVIRONMENT: Upscale, clean, and prestigious Jewish homes or professional settings.
+
+[COMPOSITION FOR ADS]
+NEGATIVE SPACE: Always ensure 30% of the frame is "clean" (blurred background or empty wall) to allow for professional Hebrew typography to be overlaid later.
+EMOTIONAL CONNECTION: Focus on the "Story" (e.g., a father and son learning, a mother’s calm, the prestige of a product) rather than just "displaying an item."
+
+[NEGATIVE PROMPT - NEVER SHOW] Text inside the image, logos, split-screens, multiple panels, clinical/stock-photo look, low-quality CGI, immodest clothing, non-Haredi religious symbols, distorted limbs, messy backgrounds.
+`;
+
+// Enhanced style descriptions for better quality
 const STYLE_DESCRIPTIONS: Record<string, string> = {
   'ultra-realistic': 'Ultra-realistic professional photograph. Studio lighting, sharp focus, high dynamic range, 8K resolution quality. Commercial photography style with perfect exposure and color grading.',
   '3d-character': '3D rendered Pixar/Disney-style characters. Vibrant saturated colors, soft ambient occlusion, subsurface scattering on skin, stylized proportions, cheerful atmosphere.',
@@ -74,7 +97,7 @@ async function generateVisualLayer(
 ): Promise<{ imageUrl: string; model: string }> {
   const models = ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'];
 
-  const messageContent: any[] = [{ type: "text", text: fullPrompt }];
+  const messageContent: any[] = [{ type: "text", text: ART_DIRECTOR_GUIDELINES + "\n\n" + fullPrompt }];
 
   // Include logo as visual input (skip PDFs - image models can't process them)
   const logoUrl = brandContext?.logoUrl;
