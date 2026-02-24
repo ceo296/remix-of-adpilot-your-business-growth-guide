@@ -309,7 +309,7 @@ const CreativeStudio = () => {
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('year_round');
   
   // Text layout style
-  const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad'>('classic-ad');
+  const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend'>('magazine-blend');
 
   // Auto-set aspect ratio based on media type
   useEffect(() => {
@@ -811,7 +811,7 @@ const CreativeStudio = () => {
     setVisualPrompt('');
     setTextPrompt('');
     setAspectRatio('square');
-    setTextLayoutStyle('classic-ad');
+    setTextLayoutStyle('magazine-blend');
     setGeneratedImages([]);
     setShowResults(false);
     setShowQuote(false);
@@ -1136,11 +1136,11 @@ const CreativeStudio = () => {
       
       if (textMeta && (textMeta.headline || textMeta.businessName || textMeta.phone)) {
         try {
-          const { applyTextOverlay } = await import('@/lib/canvas-text-overlay');
+          const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
           // Vary layout style per concept for visual diversity
-          const layoutStyles = ['classic-ad', 'top-headline', 'side-strip'] as const;
+          const layoutStyles = ['magazine-blend', 'classic-ad', 'side-strip'] as const;
           const conceptLayout = textLayoutStyle || layoutStyles[index % 3];
-          finalUrl = await applyTextOverlay(data.imageUrl, {
+          finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
             headline: concept.headline || textMeta.headline,
             subtitle: textMeta.subtitle,
             bodyText: concept.copy || textMeta.bodyText,
@@ -1152,7 +1152,7 @@ const CreativeStudio = () => {
             primaryColor: brandContext?.colors?.primary,
             secondaryColor: brandContext?.colors?.secondary,
             backgroundColor: brandContext?.colors?.primary,
-            layoutStyle: conceptLayout,
+            layoutStyle: conceptLayout as any,
             logoUrl: clientProfile?.logo_url || undefined,
             logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
             servicesList: textMeta.servicesList,
