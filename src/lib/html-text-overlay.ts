@@ -150,19 +150,19 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
       <!-- Background Image -->
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;" />
       
-      <!-- Very subtle top vignette for headline -->
-      <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height*0.20)}px;
-                  background:linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.10) 50%, transparent 100%); pointer-events:none;"></div>
+      <!-- Top gradient overlay for headline readability -->
+      <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height*0.28)}px;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 50%, rgba(0,0,0,0.05) 85%, transparent 100%); pointer-events:none;"></div>
 
-      <!-- Headline — floating with text shadow only, NO background -->
+      <!-- Headline — always on top gradient background -->
       ${headline ? `
-        <div style="position:absolute; top:${Math.round(24*scale)}px; left:${Math.round(24*scale)}px; right:${Math.round(24*scale)}px; text-align:center; z-index:3;">
+        <div style="position:absolute; top:${Math.round(20*scale)}px; left:${Math.round(24*scale)}px; right:${Math.round(24*scale)}px; text-align:center; z-index:3;">
           <div style="font-size:${headlineSize}px; font-weight:900; color:#fff; line-height:1.2; letter-spacing:-0.5px;
-               text-shadow: 0 0 30px rgba(0,0,0,0.8), 0 2px 10px rgba(0,0,0,0.6), 0 0 60px rgba(0,0,0,0.4);">
+               text-shadow: 0 0 30px rgba(0,0,0,0.9), 0 2px 12px rgba(0,0,0,0.7), 0 0 60px rgba(0,0,0,0.5);">
             ${headline}
           </div>
-          ${subtitle ? `<div style="font-size:${subtitleSize}px; font-weight:600; color:rgba(255,255,255,0.92); margin-top:${Math.round(4*scale)}px;
-               text-shadow:0 1px 8px rgba(0,0,0,0.6);">${subtitle}</div>` : ''}
+          ${subtitle ? `<div style="font-size:${subtitleSize}px; font-weight:600; color:rgba(255,255,255,0.95); margin-top:${Math.round(6*scale)}px;
+               text-shadow:0 2px 10px rgba(0,0,0,0.7);">${subtitle}</div>` : ''}
         </div>
       ` : ''}
 
@@ -193,17 +193,16 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
           </div>
         ` : ''}
 
-        <!-- Contact strip at very bottom -->
+        <!-- Contact strip at very bottom — logo always bottom-left -->
         <div style="position:absolute; bottom:0; left:0; right:0; padding:${Math.round(8*scale)}px ${Math.round(16*scale)}px;
                     display:flex; align-items:center; justify-content:space-between; gap:${Math.round(8*scale)}px;
-                    border-top:1px solid ${hexToRgba('#fff',0.12)};">
+                    border-top:1px solid ${hexToRgba('#fff',0.12)}; direction:ltr;">
           <div style="display:flex; align-items:center; gap:${Math.round(6*scale)}px;">
             ${logoHtml}
-            <div style="font-size:${nameSize}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
           </div>
           ${phone ? `<div style="font-size:${phoneSize}px; font-weight:900; color:${secondary}; direction:ltr; letter-spacing:0.5px;">${phone}</div>` : ''}
-          <div style="font-size:${Math.round(12*scale)}px; color:${hexToRgba(textOnPrimary==='#FFFFFF'?'#fff':'#000',0.6)}; font-weight:500;">
-            ${address || whatsapp || ''}
+          <div style="display:flex; align-items:center; gap:${Math.round(6*scale)}px;">
+            <div style="font-size:${nameSize}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
           </div>
         </div>
       </div>
@@ -247,17 +246,18 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;" />
       
-      <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height*0.25)}px;
-                  background:linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 60%, transparent 100%); pointer-events:none;"></div>
+      <!-- Stronger top gradient for headline readability -->
+      <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height*0.28)}px;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 50%, rgba(0,0,0,0.05) 85%, transparent 100%); pointer-events:none;"></div>
 
       ${headline ? `
         <div style="position:absolute; top:${Math.round(20*scale)}px; left:${Math.round(20*scale)}px; right:${Math.round(20*scale)}px; text-align:center;">
           <div style="font-size:${Math.round(44*scale)}px; font-weight:900; color:#fff; line-height:1.25; 
-               text-shadow:0 2px 16px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5); letter-spacing:-0.5px;">
+               text-shadow:0 2px 16px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.6); letter-spacing:-0.5px;">
             ${headline}
           </div>
-          ${subtitle ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:600; color:rgba(255,255,255,0.9);
-               margin-top:${Math.round(4*scale)}px; text-shadow:0 1px 8px rgba(0,0,0,0.6);">${subtitle}</div>` : ''}
+          ${subtitle ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:600; color:rgba(255,255,255,0.95);
+               margin-top:${Math.round(4*scale)}px; text-shadow:0 2px 10px rgba(0,0,0,0.7);">${subtitle}</div>` : ''}
         </div>
       ` : ''}
 
@@ -285,16 +285,16 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
         </div>
       ` : ''}
 
+      <!-- Contact strip — logo always bottom-left -->
       <div style="position:absolute; bottom:0; left:0; right:0; background:${hexToRgba(primary,0.95)};
                   padding:${Math.round(8*scale)}px ${Math.round(16*scale)}px;
-                  display:flex; align-items:center; justify-content:space-between; gap:${Math.round(10*scale)}px;">
+                  display:flex; align-items:center; justify-content:space-between; gap:${Math.round(10*scale)}px; direction:ltr;">
         <div style="display:flex; align-items:center; gap:${Math.round(8*scale)}px;">
           ${logoHtml}
-          <div style="font-size:${Math.round(18*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
         </div>
         ${phone ? `<div style="font-size:${Math.round(20*scale)}px; font-weight:900; color:${secondary}; letter-spacing:1px; direction:ltr;">${phone}</div>` : ''}
-        <div style="font-size:${Math.round(13*scale)}px; color:${hexToRgba(textOnPrimary==='#FFFFFF'?'#fff':'#000',0.7)}; font-weight:500;">
-          ${address || whatsapp || ''}
+        <div style="display:flex; align-items:center; gap:${Math.round(8*scale)}px;">
+          <div style="font-size:${Math.round(18*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
         </div>
       </div>
     </div>
@@ -357,14 +357,14 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
         <div style="height:2px; background:${secondary};"></div>
         <div style="background:${hexToRgba(primary,0.92)}; padding:${Math.round(10*scale)}px ${Math.round(20*scale)}px;
                     display:flex; align-items:center; justify-content:space-between;">
-          <div style="font-size:${Math.round(20*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
+        <div style="font-size:${Math.round(20*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
           ${phone ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:900; color:${secondary}; direction:ltr;">${phone}</div>` : ''}
           <div style="font-size:${Math.round(14*scale)}px; color:${hexToRgba(textOnPrimary==='#FFFFFF'?'#fff':'#000',0.7)};">${address || whatsapp || ''}</div>
         </div>
       </div>
 
       ${config.logoUrl ? `
-        <div style="position:absolute; bottom:${Math.round(height*0.08)}px; right:${Math.round(20*scale)}px;">
+        <div style="position:absolute; bottom:${Math.round(height*0.08)}px; left:${Math.round(20*scale)}px;">
           <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));" />
         </div>
       ` : ''}
@@ -427,7 +427,7 @@ function buildMinimalHTML(config: TextOverlayConfig, width: number, height: numb
         ${phone ? `<div style="font-size:${Math.round(20*scale)}px; font-weight:900; color:${secondary}; direction:ltr; text-shadow:0 2px 8px rgba(0,0,0,0.5); margin-top:${Math.round(6*scale)}px;">${phone}</div>` : ''}
       </div>
       ${config.logoUrl ? `
-        <div style="position:absolute; top:${Math.round(16*scale)}px; right:${Math.round(16*scale)}px;">
+        <div style="position:absolute; bottom:${Math.round(16*scale)}px; left:${Math.round(16*scale)}px;">
           <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(50*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));" />
         </div>
       ` : ''}
