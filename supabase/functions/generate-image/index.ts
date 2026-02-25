@@ -109,10 +109,10 @@ async function generateVisualLayer(
       type: "image_url",
       image_url: { url: logoUrl }
     });
-    messageContent[0].text = `IMPORTANT: The attached image is the brand's LOGO. Incorporate this exact logo prominently in the top-right or top-left corner. Do not modify the logo.\n\n` + messageContent[0].text;
+    messageContent[0].text = `IMPORTANT: The attached image is the brand's LOGO. Place this exact logo in the BOTTOM-LEFT corner of the image. Do not modify the logo.\n\n` + messageContent[0].text;
   } else if (isPdfLogo) {
     console.log("Skipping PDF logo - image generation models cannot process PDF files");
-    messageContent[0].text = `IMPORTANT: The brand has a logo but it's in PDF format and cannot be attached. Leave a clear, prominent space in the top-right corner for the logo to be added later.\n\n` + messageContent[0].text;
+    messageContent[0].text = `IMPORTANT: The brand has a logo but it's in PDF format and cannot be attached. Leave a clear, prominent space in the BOTTOM-LEFT corner for the logo to be added later.\n\n` + messageContent[0].text;
   }
 
   for (const tryModel of models) {
@@ -397,25 +397,34 @@ HOLIDAY NEUTRALITY: This is NOT a holiday-specific ad. Do NOT include ANY holida
       aspectInstruction = 'IMAGE ORIENTATION: Generate a SQUARE image (1:1 ratio).';
     }
 
-    const visualOnlyPrompt = `Generate a professional advertisement IMAGE with ABSOLUTELY ZERO TEXT.
+    const visualOnlyPrompt = `Generate a VISUALLY STUNNING, AWARD-WINNING advertisement IMAGE with ABSOLUTELY ZERO TEXT.
 
 CRITICAL - NO TEXT RULES:
 - Do NOT render ANY letters, words, numbers, characters, or symbols in ANY language
 - Do NOT write Hebrew, English, Arabic, or any other script
 - Do NOT include phone numbers, headlines, logos with text, watermarks, or captions
 - The image must be 100% VISUAL — only photography, illustration, colors, shapes, and composition
-- If you see a logo image attached, include it but do NOT add any text around it
+- If you see a logo image attached, include it in the BOTTOM-LEFT corner only, do NOT add any text around it
 
-COMPOSITION FOR TEXT INTEGRATION (CRITICAL):
-- The image MUST have a clear visual hierarchy with DESIGNATED ZONES for text overlay:
-  * TOP 20% of image: Keep relatively simple/dark — this is where the headline will be placed
-  * BOTTOM 30% of image: Create a natural gradient/dark area that transitions organically from the visual — text and contact info will go here
-  * CENTER: The hero visual (product, scene, etc.) should be in the center-upper area
-- Use natural darkening techniques: deeper shadows at edges, atmospheric haze, darker ground/sky areas
-- The bottom area should naturally darken or have a color that matches the brand's primary color — like a floor, table surface, dark gradient, or colored surface
-- Think of it like a MAGAZINE AD: the visual composition should leave "breathing room" for text WITHOUT needing opaque overlays
-- The image should look like a professional photographer composed it knowing text would be placed on it
-- DO NOT use solid color bands or boxes — the transition must be ORGANIC and GRADUAL
+VISUAL IMPACT — MAKE IT EXTRAORDINARY (CRITICAL):
+- Think CANNES LIONS, D&AD, ONE SHOW award-winning visual concepts
+- Use BOLD, UNEXPECTED visual metaphors: surreal scale shifts, dramatic juxtaposition, impossible perspectives
+- Create VISUAL TENSION: contrast between luxury and everyday, big and small, old and new
+- Use CINEMATIC composition: dramatic angles (low angle hero shots, bird's eye, Dutch tilt), leading lines, rule of thirds with intent
+- LIGHTING must be DRAMATIC: rim lighting, silhouettes, volumetric light rays, golden hour, neon glows, chiaroscuro
+- Add DEPTH and DIMENSION: foreground elements framing the subject, atmospheric haze, layered planes of focus
+- COLOR should be INTENTIONAL: complementary color schemes, monochromatic with one pop accent, rich saturated palettes
+- Think EDITORIAL PHOTOGRAPHY meets FINE ART: every frame should feel like a gallery piece
+- AVOID: flat compositions, centered subjects with no context, generic stock-photo poses, boring angles, plain backgrounds
+
+COMPOSITION FOR TEXT INTEGRATION:
+- TOP 20% of image: Keep relatively simple or with darker tones — headline will be placed here
+- BOTTOM 30% of image: Natural gradient/dark area that transitions organically — text and contact info go here
+- BOTTOM-LEFT corner: Reserve space for the brand logo
+- CENTER: The hero visual should be in the center-upper area
+- Use natural darkening: deeper shadows at edges, atmospheric haze, organic color transitions
+- Think MAGAZINE AD composition: professional photographer who knows text will be overlaid
+- DO NOT use solid color bands or boxes — transitions must be ORGANIC and GRADUAL
 
 ${aspectInstruction}
 
