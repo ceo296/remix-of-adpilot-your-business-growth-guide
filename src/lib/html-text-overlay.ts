@@ -85,20 +85,19 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
   const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
 
-  const headline = (config.headline ? cleanText(config.headline) : '').slice(0, 64);
-  const subtitle = (config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72);
-  const bodyText = (config.bodyText ? cleanText(config.bodyText) : '').slice(0, 150);
-  const ctaText = (config.ctaText ? cleanText(config.ctaText) : '').slice(0, 28);
+  const headline = (config.headline ? cleanText(config.headline) : '').slice(0, 56);
+  const subtitle = (config.subtitle ? cleanText(config.subtitle) : '').slice(0, 62);
+  const bodyText = (config.bodyText ? cleanText(config.bodyText) : '').slice(0, 76);
   const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
   const phone = config.phone || '';
+  const email = config.email || '';
 
   const scale = Math.min(width, height) / 1024;
-  const headlineSize = Math.round(50 * scale);
+  const headlineSize = Math.round(52 * scale);
   const subtitleSize = Math.round(24 * scale);
-  const bodySize = Math.round(15 * scale);
-  const ctaSize = Math.round(19 * scale);
-  const phoneSize = Math.round(21 * scale);
-  const nameSize = Math.round(16 * scale);
+  const bodySize = Math.round(19 * scale);
+  const phoneSize = Math.round(20 * scale);
+  const nameSize = Math.round(15 * scale);
 
   const logoHtml = config.logoUrl ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
@@ -109,7 +108,7 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
 
-      <!-- Top cinematic vignette for integrated headlines -->
+      <!-- Top cinematic vignette for integrated headline -->
       <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height * 0.3)}px;
                   background:linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.12) 82%, transparent 100%);
                   pointer-events:none;"></div>
@@ -121,43 +120,43 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
                       text-shadow:0 2px 16px rgba(0,0,0,0.75), 0 0 34px rgba(0,0,0,0.5);">
             ${headline}
           </div>
-          ${subtitle ? `<div style="font-size:${subtitleSize}px; font-weight:600; color:rgba(255,255,255,0.94); margin-top:${Math.round(7 * scale)}px;
-                           text-shadow:0 2px 10px rgba(0,0,0,0.65);">${subtitle}</div>` : ''}
         </div>
       ` : ''}
 
-      <!-- Bottom atmospheric blend (no old-school solid panel) -->
+      <!-- Bottom atmospheric blend -->
       <div style="position:absolute; left:0; right:0; bottom:0; height:${Math.round(height * 0.38)}px;
                   background:linear-gradient(0deg, ${hexToRgba(primary, 0.86)} 0%, ${hexToRgba(primary, 0.62)} 42%, ${hexToRgba(primary, 0.28)} 72%, transparent 100%);
                   pointer-events:none;"></div>
 
-      ${bodyText ? `
-        <div style="position:absolute; left:50%; transform:translateX(-50%); bottom:${Math.round(height * 0.175)}px;
-                    width:${Math.round(width * 0.78)}px; text-align:center; z-index:3;">
-          <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.92); line-height:1.55;
-                      text-shadow:0 1px 8px rgba(0,0,0,0.45);">${bodyText}</div>
+      ${(subtitle || bodyText) ? `
+        <div style="position:absolute; left:50%; transform:translateX(-50%); bottom:${Math.round(height * 0.165)}px;
+                    width:${Math.round(width * 0.82)}px; text-align:center; z-index:4;">
+          ${subtitle ? `<div style="font-size:${subtitleSize}px; font-weight:700; color:rgba(255,255,255,0.95); line-height:1.35;
+                              text-shadow:0 2px 10px rgba(0,0,0,0.55);">${subtitle}</div>` : ''}
+          ${bodyText ? `<div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.92); line-height:1.5;
+                              margin-top:${Math.round(6 * scale)}px; text-shadow:0 1px 8px rgba(0,0,0,0.45);">${bodyText}</div>` : ''}
         </div>
       ` : ''}
 
-      ${ctaText ? `
-        <div style="position:absolute; left:50%; transform:translateX(-50%); bottom:${Math.round(height * 0.1)}px; z-index:4;">
-          <span style="display:inline-block; background:linear-gradient(135deg, ${secondary}, ${darkenHex(secondary, 0.15)});
-                       color:${isLightColor(secondary) ? '#1a1a1a' : '#fff'}; padding:${Math.round(9 * scale)}px ${Math.round(28 * scale)}px;
-                       border-radius:${Math.round(26 * scale)}px; font-size:${ctaSize}px; font-weight:800;
-                       box-shadow:0 6px 18px ${hexToRgba(secondary, 0.42)}, inset 0 1px 0 rgba(255,255,255,0.22);">
-            ${ctaText}
-          </span>
-        </div>
-      ` : ''}
-
-      <!-- Clean contact strip: logo locked to bottom-left -->
+      <!-- Contact grid strip: logo locked bottom-left + phone/email center -->
       <div style="position:absolute; left:${Math.round(14 * scale)}px; right:${Math.round(14 * scale)}px; bottom:${Math.round(8 * scale)}px;
                   padding:${Math.round(8 * scale)}px ${Math.round(12 * scale)}px; border-radius:${Math.round(14 * scale)}px;
-                  background:${hexToRgba('#0b1220', 0.36)}; backdrop-filter:blur(8px);
+                  background:${hexToRgba('#0b1220', 0.38)}; backdrop-filter:blur(8px);
                   border:1px solid ${hexToRgba('#fff', 0.16)};
-                  display:flex; align-items:center; justify-content:space-between; gap:${Math.round(10 * scale)}px; direction:ltr; z-index:5;">
+                  display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:${Math.round(10 * scale)}px; direction:ltr; z-index:5;">
         <div style="display:flex; align-items:center; min-width:${Math.round(110 * scale)}px;">${logoHtml}</div>
-        ${phone ? `<div style="font-size:${phoneSize}px; font-weight:900; color:${secondary}; letter-spacing:0.4px; direction:ltr;">${phone}</div>` : ''}
+
+        <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:${Math.round(8 * scale)}px; direction:rtl;">
+          <div style="text-align:center; background:${hexToRgba('#ffffff', 0.08)}; border-radius:${Math.round(10 * scale)}px; padding:${Math.round(6 * scale)}px;">
+            <div style="font-size:${Math.round(11 * scale)}px; color:rgba(255,255,255,0.72);">טלפון</div>
+            <div style="font-size:${phoneSize}px; font-weight:800; color:#fff; direction:ltr;">${phone || '—'}</div>
+          </div>
+          <div style="text-align:center; background:${hexToRgba('#ffffff', 0.08)}; border-radius:${Math.round(10 * scale)}px; padding:${Math.round(6 * scale)}px;">
+            <div style="font-size:${Math.round(11 * scale)}px; color:rgba(255,255,255,0.72);">מייל</div>
+            <div style="font-size:${Math.round(14 * scale)}px; font-weight:700; color:#fff; direction:ltr;">${email || '—'}</div>
+          </div>
+        </div>
+
         <div style="font-size:${nameSize}px; font-weight:800; color:${textOnPrimary}; text-align:right; direction:rtl;">${businessName}</div>
       </div>
     </div>
