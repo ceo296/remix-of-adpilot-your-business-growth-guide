@@ -53,6 +53,19 @@ function cleanText(text: string): string {
     .trim();
 }
 
+/** Split long text into 2 lines if it exceeds maxChars per line */
+function splitLongText(text: string, maxCharsPerLine: number = 40): string {
+  if (!text || text.length <= maxCharsPerLine) return text;
+  const mid = Math.floor(text.length / 2);
+  let splitAt = -1;
+  for (let i = 0; i <= 15; i++) {
+    if (mid + i < text.length && text[mid + i] === ' ') { splitAt = mid + i; break; }
+    if (mid - i >= 0 && text[mid - i] === ' ') { splitAt = mid - i; break; }
+  }
+  if (splitAt === -1) return text;
+  return text.substring(0, splitAt) + '<br/>' + text.substring(splitAt + 1);
+}
+
 /** Check if a URL is a renderable image (not PDF/SVG data) */
 function isRenderableImageUrl(url?: string): boolean {
   if (!url) return false;
@@ -92,9 +105,9 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
   const primary = config.primaryColor || '#2BA5B5';
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
 
-  const headline = (config.headline ? cleanText(config.headline) : '').slice(0, 56);
-  const subtitle = (config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72);
-  const bodyText = (config.bodyText ? cleanText(config.bodyText) : '').slice(0, 120);
+  const headline = splitLongText((config.headline ? cleanText(config.headline) : '').slice(0, 56), 28);
+  const subtitle = splitLongText((config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72), 36);
+  const bodyText = splitLongText((config.bodyText ? cleanText(config.bodyText) : '').slice(0, 160), 50);
   const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
   const phone = config.phone || '';
   const email = config.email || '';
@@ -112,7 +125,7 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(52 * scale)}px; max-width:${Math.round(130 * scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));" />` : '';
+         style="max-height:${Math.round(52 * scale)}px; max-width:${Math.round(130 * scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3)); mix-blend-mode:multiply;" />` : '';
 
   // Services bar
   const servicesHtml = config.servicesList?.length ? `
@@ -154,16 +167,16 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
       ` : ''}
 
       <!-- Bottom gradient for body text + contact -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height * 0.40)}px;
-                  background:linear-gradient(0deg, ${hexToRgba(primary, 0.88)} 0%, ${hexToRgba(primary, 0.60)} 35%, ${hexToRgba(primary, 0.15)} 70%, transparent 100%);
+      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height * 0.55)}px;
+                  background:linear-gradient(0deg, ${hexToRgba(primary, 0.88)} 0%, ${hexToRgba(primary, 0.65)} 30%, ${hexToRgba(primary, 0.25)} 60%, transparent 100%);
                   pointer-events:none; z-index:1;"></div>
 
-      <!-- Body text above contact -->
+      <!-- Body text — positioned in middle-lower area to fill the gap -->
       ${bodyText ? `
         <div style="position:absolute; bottom:${contactHeight + Math.round(16 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px;
-                    text-align:center; z-index:2;">
+                    text-align:center; z-index:2; max-width:${Math.round(width * 0.8)}px; margin:0 auto; left:50%; transform:translateX(-50%);">
           <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
-                      text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.55;">
+                      text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.65; word-break:break-word; max-width:${Math.round(width * 0.75)}px; margin:0 auto;">
             ${bodyText}
           </div>
           ${servicesHtml}
@@ -211,9 +224,9 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
   const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
   const darkText = '#1a2a3a';
 
-  const headline = (config.headline ? cleanText(config.headline) : '').slice(0, 56);
-  const subtitle = (config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72);
-  const bodyText = (config.bodyText ? cleanText(config.bodyText) : '').slice(0, 120);
+  const headline = splitLongText((config.headline ? cleanText(config.headline) : '').slice(0, 56), 28);
+  const subtitle = splitLongText((config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72), 36);
+  const bodyText = splitLongText((config.bodyText ? cleanText(config.bodyText) : '').slice(0, 160), 50);
   const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
   const phone = config.phone || '';
   const email = config.email || '';
@@ -228,7 +241,7 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));" />` : '';
+         style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3)); mix-blend-mode:multiply;" />` : '';
 
   // Contact strip at bottom — brand colored
   const contactStripHeight = Math.round(height * 0.12);
@@ -263,8 +276,8 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
       ` : ''}
 
       <!-- Bottom gradient for text area -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${textAreaHeight + contactStripHeight}px;
-                  background:linear-gradient(0deg, ${hexToRgba(primary, 0.92)} 0%, ${hexToRgba(primary, 0.7)} 40%, ${hexToRgba(primary, 0.2)} 75%, transparent 100%);
+      <div style="position:absolute; bottom:0; left:0; right:0; height:${textAreaHeight + contactStripHeight + Math.round(height * 0.1)}px;
+                  background:linear-gradient(0deg, ${hexToRgba(primary, 0.92)} 0%, ${hexToRgba(primary, 0.7)} 35%, ${hexToRgba(primary, 0.2)} 70%, transparent 100%);
                   pointer-events:none; z-index:1;"></div>
 
       <!-- Body text in lower portion -->
@@ -272,7 +285,8 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
         <div style="position:absolute; bottom:${contactStripHeight + Math.round(16 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px;
                     text-align:center; z-index:2;">
           <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
-                      text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.55;">
+                      text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.65; word-break:break-word;
+                      max-width:${Math.round(width * 0.75)}px; margin:0 auto;">
             ${bodyText}
           </div>
         </div>
@@ -302,9 +316,9 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
   const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
 
-  const headline = config.headline ? cleanText(config.headline) : '';
-  const subtitle = config.subtitle ? cleanText(config.subtitle) : '';
-  const bodyText = config.bodyText ? cleanText(config.bodyText) : '';
+  const headline = splitLongText(config.headline ? cleanText(config.headline) : '', 28);
+  const subtitle = splitLongText(config.subtitle ? cleanText(config.subtitle) : '', 36);
+  const bodyText = splitLongText(config.bodyText ? cleanText(config.bodyText) : '', 50);
   const ctaText = config.ctaText ? cleanText(config.ctaText) : '';
   const businessName = config.businessName ? cleanText(config.businessName) : '';
   const phone = config.phone || '';
@@ -325,7 +339,7 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous" 
-         style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));" />` : '';
+         style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4)); mix-blend-mode:multiply;" />` : '';
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
@@ -394,8 +408,8 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
   const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
   const textOnSecondary = isLightColor(secondary) ? '#1a1a1a' : '#FFFFFF';
 
-  const headline = config.headline ? cleanText(config.headline) : '';
-  const bodyText = config.bodyText ? cleanText(config.bodyText) : '';
+  const headline = splitLongText(config.headline ? cleanText(config.headline) : '', 28);
+  const bodyText = splitLongText(config.bodyText ? cleanText(config.bodyText) : '', 50);
   const ctaText = config.ctaText ? cleanText(config.ctaText) : '';
   const businessName = config.businessName ? cleanText(config.businessName) : '';
   const phone = config.phone || '';
@@ -450,7 +464,7 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
 
       ${isRenderableImageUrl(config.logoUrl) ? `
         <div style="position:absolute; bottom:${Math.round(height*0.08)}px; left:${Math.round(20*scale)}px;">
-          <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));" />
+          <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4)); mix-blend-mode:multiply;" />
         </div>
       ` : ''}
     </div>
@@ -465,8 +479,8 @@ function buildSideStripHTML(config: TextOverlayConfig, width: number, height: nu
   const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
   const subColor = isLightColor(primary) ? '#444' : '#d0d0d0';
 
-  const headline = config.headline ? cleanText(config.headline) : '';
-  const bodyText = config.bodyText ? cleanText(config.bodyText) : '';
+  const headline = splitLongText(config.headline ? cleanText(config.headline) : '', 24);
+  const bodyText = splitLongText(config.bodyText ? cleanText(config.bodyText) : '', 40);
   const ctaText = config.ctaText ? cleanText(config.ctaText) : '';
   const businessName = config.businessName ? cleanText(config.businessName) : '';
   const phone = config.phone || '';
@@ -482,7 +496,7 @@ function buildSideStripHTML(config: TextOverlayConfig, width: number, height: nu
       <div style="position:absolute; top:0; right:0; width:${stripWidth}px; height:100%; 
                   display:flex; flex-direction:column; align-items:center; justify-content:center; 
                   padding:${Math.round(24*scale)}px; gap:${Math.round(16*scale)}px; text-align:center;">
-        ${isRenderableImageUrl(config.logoUrl) ? `<img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(60*scale)}px; max-width:${Math.round(stripWidth*0.7)}px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));" />` : ''}
+        ${isRenderableImageUrl(config.logoUrl) ? `<img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(60*scale)}px; max-width:${Math.round(stripWidth*0.7)}px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3)); mix-blend-mode:multiply;" />` : ''}
         ${businessName ? `<div style="font-size:${Math.round(32*scale)}px; font-weight:900; color:${textOnPrimary};">${businessName}</div>` : ''}
         <div style="width:60%; height:3px; background:${secondary};"></div>
         ${headline ? `<div style="font-size:${Math.round(26*scale)}px; font-weight:900; color:${textOnPrimary}; line-height:1.3;">${headline}</div>` : ''}
@@ -498,7 +512,7 @@ function buildSideStripHTML(config: TextOverlayConfig, width: number, height: nu
 
 function buildMinimalHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   const secondary = config.secondaryColor || darkenHex(config.primaryColor || '#2BA5B5', 0.3);
-  const headline = config.headline ? cleanText(config.headline) : '';
+  const headline = splitLongText(config.headline ? cleanText(config.headline) : '', 28);
   const businessName = config.businessName ? cleanText(config.businessName) : '';
   const phone = config.phone || '';
   const scale = Math.min(width, height) / 1024;
@@ -513,7 +527,7 @@ function buildMinimalHTML(config: TextOverlayConfig, width: number, height: numb
       </div>
       ${isRenderableImageUrl(config.logoUrl) ? `
         <div style="position:absolute; bottom:${Math.round(16*scale)}px; left:${Math.round(16*scale)}px;">
-          <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(50*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));" />
+          <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(50*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5)); mix-blend-mode:multiply;" />
         </div>
       ` : ''}
     </div>
