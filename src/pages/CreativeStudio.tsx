@@ -309,7 +309,7 @@ const CreativeStudio = () => {
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('year_round');
   
   // Text layout style
-  const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend'>('magazine-blend');
+  const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend' | 'brand-top'>('magazine-blend');
 
   // Engine version selection
   const [engineVersion, setEngineVersion] = useState<'nano-banana-pro' | 'nano-banana'>('nano-banana-pro');
@@ -1142,7 +1142,7 @@ const CreativeStudio = () => {
         try {
           const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
           // Vary layout style per concept for visual diversity
-          const layoutStyles = ['magazine-blend', 'classic-ad', 'side-strip'] as const;
+          const layoutStyles = ['magazine-blend', 'brand-top', 'professional-ad'] as const;
           const conceptLayout = textLayoutStyle || layoutStyles[index % 3];
           finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
             headline: concept.headline || textMeta.headline,
@@ -1913,11 +1913,11 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
             <div className="flex items-center gap-2 flex-wrap" dir="rtl">
               <span className="text-sm text-muted-foreground">סגנון טקסט:</span>
               {([
+                { id: 'magazine-blend' as const, label: 'מגזין', icon: '📋' },
+                { id: 'brand-top' as const, label: 'כותרת על הוויזואל', icon: '🎨' },
                 { id: 'classic-ad' as const, label: 'מודעה קלאסית', icon: '📰' },
                 { id: 'professional-ad' as const, label: 'מודעה מקצועית', icon: '🎯' },
-                { id: 'top-headline' as const, label: 'כותרת עליונה', icon: '▬' },
                 { id: 'side-strip' as const, label: 'פס צד', icon: '▐' },
-                { id: 'center-card' as const, label: 'כרטיס מרכזי', icon: '▣' },
                 { id: 'minimal' as const, label: 'מינימליסטי', icon: '▁' },
               ]).map(ls => (
                 <Button
