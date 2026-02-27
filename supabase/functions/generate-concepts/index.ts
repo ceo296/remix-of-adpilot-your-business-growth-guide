@@ -201,7 +201,16 @@ CRITICAL — למד מהרפרנסים:
 - אורך הטקסט והטון
 - השתמש בהם כהשראה, אל תעתיק — תצור משהו חדש באותה רמה
 
-Generate exactly 3 creative concepts for ${isRadio ? 'radio spots' : 'advertising campaigns'}. Each concept should have:
+=== כלל קריטי: התאמת ויזואל למוצר/שירות בפועל ===
+הויזואל חייב להתאים במדויק למוצר או לשירות שמפורסם. אסור "החלקה" בין תחומים קרובים:
+- טיפול פנים ≠ שיניים. קוסמטיקה = פנים, עור, קרמים. לא כלים דנטליים.
+- רופא עיניים ≠ רופא שיניים ≠ רופא כללי. כל אחד עם הכלים שלו בלבד.
+- מסעדה ≠ קייטרינג ≠ סופרמרקט. אוכל מוגמר ≠ מדפים ≠ שירות אירועים.
+- נדל"ן מגורים ≠ נדל"ן מסחרי ≠ שיפוצים. בניין ≠ משרד ≠ פטיש.
+כלל: "האם לקוח שרואה את התמונה מבין מיד מה השירות?" אם לא — תחליף.
+===
+
+Generate exactly 3 creative ${isRadio ? 'radio spot' : 'advertising'} concepts for ${isRadio ? 'radio spots' : 'advertising campaigns'}. Each concept should have:
 1. A distinct angle (emotional, hard-sale, or pain-point)
 2. ${isRadio ? 'A radio script with narration instructions' : 'A visual idea description (what the image should show)'}
 3. ${isRadio ? 'The complete radio script in Hebrew (30 seconds)' : 'A short copy/slogan in Hebrew'}
