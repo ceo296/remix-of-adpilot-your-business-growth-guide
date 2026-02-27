@@ -257,15 +257,15 @@ function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicC
   const source = normalizePromptText(rawHeadline || campaignContext?.offer || '');
   if (!source) return 'סטנדרט חדש של איכות';
 
-  const dentalSignal = /שן|שיניים|דנטל|חיוך|מרפא/.test(`${source} ${campaignContext?.offer || ''}`.toLowerCase()) || topicCategory === 'dental';
-  if (dentalSignal) return 'חיוך מהודר שמתחיל נכון';
-
+  // If the AI already generated a creative headline (short, punchy, no promo words) — use it as-is
   const normalized = source.replace(/[.!?]+$/g, '');
-  const tooLiteral = normalized.length > 40 || /(?:\d{1,3}%|מבצע|הנחה|חייגו|קבלו|עכשיו|לפרטים)/.test(normalized);
+  const isPromoSpeak = /(?:\d{1,3}%|מבצע|הנחה|חייגו|קבלו|עכשיו|לפרטים|התקשרו)/.test(normalized);
+  const isShortEnough = normalized.length <= 45;
 
-  if (!tooLiteral) return normalized;
-  if (campaignContext?.goal === 'promotion') return 'איכות שמרגישים מהמפגש הראשון';
-  return 'שירות מדויק לקהל שמבין איכות';
+  if (isShortEnough && !isPromoSpeak) return normalized;
+
+  // Headline is too literal/long — return as-is but trimmed, let the AI agent produce the real headline
+  return normalized.slice(0, 45).trim();
 }
 
 function buildSecondaryLines(rawSource: string, businessName: string): { subtitle: string; bodyText: string } {
