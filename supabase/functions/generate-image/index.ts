@@ -415,6 +415,8 @@ CRITICAL - NO TEXT RULES:
 
 VISUAL IMPACT — MAKE IT EXTRAORDINARY (CRITICAL):
 - Think CANNES LIONS, D&AD, ONE SHOW award-winning visual concepts
+- Output must look like PREMIUM COMMERCIAL PHOTOGRAPHY, not clipart/illustration templates
+- If the scene can be interpreted as an icon/illustration (e.g., tooth logo, generic symbol), REGENERATE as a real photographed scene
 - Use BOLD, UNEXPECTED visual metaphors: surreal scale shifts, dramatic juxtaposition, impossible perspectives
 - Create VISUAL TENSION: contrast between luxury and everyday, big and small, old and new
 - Use CINEMATIC composition: dramatic angles (low angle hero shots, bird's eye, Dutch tilt), leading lines, rule of thirds with intent
@@ -423,11 +425,12 @@ VISUAL IMPACT — MAKE IT EXTRAORDINARY (CRITICAL):
 - COLOR should be INTENTIONAL: complementary color schemes, monochromatic with one pop accent, rich saturated palettes
 - Think EDITORIAL PHOTOGRAPHY meets FINE ART: every frame should feel like a gallery piece
 - AVOID: flat compositions, centered subjects with no context, generic stock-photo poses, boring angles, plain backgrounds
+- STRICTLY FORBIDDEN: vector icons, mascot-like drawings, infographic style, 2D clipart, logo-like symbols, medical stock templates
 
 COMPOSITION FOR TEXT INTEGRATION:
 - TOP 20% of image: Keep relatively simple or with darker tones — headline will be placed here
 - BOTTOM 30% of image: Natural gradient/dark area that transitions organically — text and contact info go here
-- BOTTOM-LEFT corner: Reserve space for the brand logo
+- BOTTOM-LEFT corner: Reserve space for the brand logo (clear and uncluttered)
 - CENTER: The hero visual should be in the center-upper area
 - Use natural darkening: deeper shadows at edges, atmospheric haze, organic color transitions
 - Think MAGAZINE AD composition: professional photographer who knows text will be overlaid
@@ -459,18 +462,18 @@ ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campai
 DESIGN APPROACH (CRITICAL):
 ${visualApproach === 'product-focus' ? `
 - THIS IS A PRODUCT-FOCUSED visual. Show ONLY the product/service itself.
-- For dental clinic → teeth, dental tools, smile close-up (no face). For real estate → building exterior, luxury interior. For food → food photography.
-- ZERO people/characters. Focus entirely on the product/service with professional studio photography style.
-- Clean background, professional lighting, hero product shot.
+- For dental clinic → premium clinic interior, macro-quality dental instruments, high-end treatment context (NO tooth icons).
+- ZERO people/characters. Focus entirely on the product/service with professional studio/editorial photography style.
+- Clean background, premium lighting, hero product shot with believable realism.
 ` : visualApproach === 'lifestyle' ? `
 - This concept MAY include ONE person (Orthodox Jewish man or boy in modest attire) if relevant to the message.
-- Alternatively, use illustration, 3D render, or a scene with elements relevant to the product.
+- Use cinematic lifestyle photography aesthetics, NEVER cartoon/illustration look.
 - People are OPTIONAL, not mandatory. If the product doesn't need a person, don't force one.
 ` : `
-- THIS IS A GRAPHIC DESIGN visual. Pure graphic design — NO photographs, NO people, NO characters.
-- Use bold typography areas (leave space for text), brand colors, abstract graphic elements, geometric patterns, gradients, icons.
-- Think modern poster design, editorial layout, brand identity design. Clean, bold, professional.
-- Inspiration: magazine covers, luxury brand ads, tech company marketing materials.
+- THIS IS A GRAPHIC-LED visual but still PREMIUM and realistic in finish.
+- No clipart, no flat icon language, no template-like flyer graphics.
+- Use advanced editorial composition, textured backgrounds, refined geometric systems, and luxury brand art direction.
+- Keep it modern, bold, and high-end — not old-school coupon/flyer design.
 `}
 - Do NOT force holiday elements unless the campaign is specifically about that holiday
 - Focus on the PRODUCT/SERVICE itself, not generic "Haredi scenes"
