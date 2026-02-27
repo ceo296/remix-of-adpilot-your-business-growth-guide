@@ -85,126 +85,80 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
   const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
 
-  const headline = config.headline ? cleanText(config.headline) : '';
-  const subtitle = config.subtitle ? cleanText(config.subtitle) : '';
-  const bodyText = config.bodyText ? cleanText(config.bodyText) : '';
-  const ctaText = config.ctaText ? cleanText(config.ctaText) : '';
-  const businessName = config.businessName ? cleanText(config.businessName) : '';
+  const headline = (config.headline ? cleanText(config.headline) : '').slice(0, 64);
+  const subtitle = (config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72);
+  const bodyText = (config.bodyText ? cleanText(config.bodyText) : '').slice(0, 150);
+  const ctaText = (config.ctaText ? cleanText(config.ctaText) : '').slice(0, 28);
+  const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
   const phone = config.phone || '';
-  const whatsapp = config.whatsapp || '';
-  const address = config.address || '';
-  const services = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
-  const promoText = config.promoText ? cleanText(config.promoText) : '';
-  const promoValue = config.promoValue ? cleanText(config.promoValue) : '';
 
   const scale = Math.min(width, height) / 1024;
-  const headlineSize = Math.round(48 * scale);
-  const subtitleSize = Math.round(22 * scale);
-  const bodySize = Math.round(16 * scale);
-  const ctaSize = Math.round(20 * scale);
+  const headlineSize = Math.round(50 * scale);
+  const subtitleSize = Math.round(24 * scale);
+  const bodySize = Math.round(15 * scale);
+  const ctaSize = Math.round(19 * scale);
+  const phoneSize = Math.round(21 * scale);
   const nameSize = Math.round(16 * scale);
-  const phoneSize = Math.round(22 * scale);
-  const serviceSize = Math.round(13 * scale);
-
-  // Decorative wave SVG path for organic bottom transition
-  const waveHeight = Math.round(60 * scale);
-  const bottomZoneHeight = Math.round(height * 0.28);
-  const waveY = height - bottomZoneHeight - waveHeight;
-
-  const waveSvg = `
-    <svg style="position:absolute; left:0; top:${waveY}px; width:100%; height:${waveHeight + 4}px;" viewBox="0 0 ${width} ${waveHeight}" preserveAspectRatio="none">
-      <path d="M0,${waveHeight} C${Math.round(width*0.25)},${Math.round(waveHeight*0.1)} ${Math.round(width*0.5)},${Math.round(waveHeight*0.8)} ${width},${Math.round(waveHeight*0.2)} L${width},${waveHeight} L0,${waveHeight} Z" 
-            fill="${primary}" opacity="0.92"/>
-    </svg>`;
-
-  // Services pills
-  const servicesHtml = services.length > 0 ? `
-    <div style="display:flex; flex-wrap:wrap; gap:${Math.round(5*scale)}px; justify-content:center; margin-top:${Math.round(6*scale)}px;">
-      ${services.map(s => `
-        <span style="background:${hexToRgba('#fff',0.15)}; color:#fff; padding:${Math.round(2*scale)}px ${Math.round(10*scale)}px; 
-              border-radius:${Math.round(14*scale)}px; font-size:${serviceSize}px; font-weight:600;
-              border:1px solid ${hexToRgba('#fff',0.2)};">${s}</span>
-      `).join('')}
-    </div>` : '';
-
-  // Promo badge (floating above the wave)
-  const promoHtml = (promoText || promoValue) ? `
-    <div style="position:absolute; left:50%; transform:translateX(-50%); top:${waveY - Math.round(30*scale)}px; z-index:5;
-                display:flex; gap:${Math.round(8*scale)}px; align-items:center;">
-      ${promoValue ? `<div style="background:${secondary}; color:${isLightColor(secondary)?'#1a1a1a':'#fff'}; 
-           padding:${Math.round(8*scale)}px ${Math.round(20*scale)}px; border-radius:${Math.round(12*scale)}px; 
-           font-size:${Math.round(28*scale)}px; font-weight:900; 
-           box-shadow:0 4px 16px ${hexToRgba(secondary,0.5)};">${promoValue}</div>` : ''}
-      ${promoText ? `<div style="background:${hexToRgba('#000',0.6)}; color:#fff; 
-           padding:${Math.round(6*scale)}px ${Math.round(14*scale)}px; border-radius:${Math.round(10*scale)}px; 
-           font-size:${Math.round(16*scale)}px; font-weight:700;">${promoText}</div>` : ''}
-    </div>` : '';
 
   const logoHtml = config.logoUrl ? `
-    <img src="${config.logoUrl}" crossorigin="anonymous" 
-         style="max-height:${Math.round(45*scale)}px; max-width:${Math.round(100*scale)}px; object-fit:contain; 
-                filter:drop-shadow(0 1px 4px rgba(0,0,0,0.3));" />` : '';
+    <img src="${config.logoUrl}" crossorigin="anonymous"
+         style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain;
+                filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35));" />` : '';
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
-      <!-- Background Image -->
-      <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;" />
-      
-      <!-- Top gradient overlay for headline readability -->
-      <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height*0.28)}px;
-                  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 50%, rgba(0,0,0,0.05) 85%, transparent 100%); pointer-events:none;"></div>
+      <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
 
-      <!-- Headline — always on top gradient background -->
+      <!-- Top cinematic vignette for integrated headlines -->
+      <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height * 0.3)}px;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.12) 82%, transparent 100%);
+                  pointer-events:none;"></div>
+
       ${headline ? `
-        <div style="position:absolute; top:${Math.round(20*scale)}px; left:${Math.round(24*scale)}px; right:${Math.round(24*scale)}px; text-align:center; z-index:3;">
-          <div style="font-size:${headlineSize}px; font-weight:900; color:#fff; line-height:1.2; letter-spacing:-0.5px;
-               text-shadow: 0 0 30px rgba(0,0,0,0.9), 0 2px 12px rgba(0,0,0,0.7), 0 0 60px rgba(0,0,0,0.5);">
+        <div style="position:absolute; top:${Math.round(22 * scale)}px; left:${Math.round(28 * scale)}px; right:${Math.round(28 * scale)}px;
+                    text-align:center; z-index:3;">
+          <div style="font-size:${headlineSize}px; font-weight:900; color:#fff; line-height:1.14; letter-spacing:-0.6px;
+                      text-shadow:0 2px 16px rgba(0,0,0,0.75), 0 0 34px rgba(0,0,0,0.5);">
             ${headline}
           </div>
-          ${subtitle ? `<div style="font-size:${subtitleSize}px; font-weight:600; color:rgba(255,255,255,0.95); margin-top:${Math.round(6*scale)}px;
-               text-shadow:0 2px 10px rgba(0,0,0,0.7);">${subtitle}</div>` : ''}
+          ${subtitle ? `<div style="font-size:${subtitleSize}px; font-weight:600; color:rgba(255,255,255,0.94); margin-top:${Math.round(7 * scale)}px;
+                           text-shadow:0 2px 10px rgba(0,0,0,0.65);">${subtitle}</div>` : ''}
         </div>
       ` : ''}
 
-      ${promoHtml}
+      <!-- Bottom atmospheric blend (no old-school solid panel) -->
+      <div style="position:absolute; left:0; right:0; bottom:0; height:${Math.round(height * 0.38)}px;
+                  background:linear-gradient(0deg, ${hexToRgba(primary, 0.86)} 0%, ${hexToRgba(primary, 0.62)} 42%, ${hexToRgba(primary, 0.28)} 72%, transparent 100%);
+                  pointer-events:none;"></div>
 
-      <!-- Decorative wave transition -->
-      ${waveSvg}
-
-      <!-- Bottom brand zone -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${bottomZoneHeight}px; background:${hexToRgba(primary,0.92)}; z-index:2;">
-        
-        <!-- Body text + services inside the brand zone -->
-        <div style="padding:${Math.round(16*scale)}px ${Math.round(24*scale)}px ${Math.round(8*scale)}px; text-align:center;">
-          ${bodyText ? `<div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.9); line-height:1.6;
-               max-width:${Math.round(width*0.8)}px; margin:0 auto;">${bodyText}</div>` : ''}
-          ${servicesHtml}
+      ${bodyText ? `
+        <div style="position:absolute; left:50%; transform:translateX(-50%); bottom:${Math.round(height * 0.175)}px;
+                    width:${Math.round(width * 0.78)}px; text-align:center; z-index:3;">
+          <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.92); line-height:1.55;
+                      text-shadow:0 1px 8px rgba(0,0,0,0.45);">${bodyText}</div>
         </div>
+      ` : ''}
 
-        <!-- CTA Button -->
-        ${ctaText ? `
-          <div style="text-align:center; margin-top:${Math.round(6*scale)}px;">
-            <span style="display:inline-block; background:linear-gradient(135deg, ${secondary}, ${darkenHex(secondary,0.15)}); 
-                 color:${isLightColor(secondary)?'#1a1a1a':'#fff'}; padding:${Math.round(8*scale)}px ${Math.round(28*scale)}px; 
-                 border-radius:${Math.round(24*scale)}px; font-size:${ctaSize}px; font-weight:800;
-                 box-shadow:0 4px 14px ${hexToRgba(secondary,0.4)}, inset 0 1px 0 rgba(255,255,255,0.2);">
-              ${ctaText}
-            </span>
-          </div>
-        ` : ''}
-
-        <!-- Contact strip at very bottom — logo always bottom-left -->
-        <div style="position:absolute; bottom:0; left:0; right:0; padding:${Math.round(8*scale)}px ${Math.round(16*scale)}px;
-                    display:flex; align-items:center; justify-content:space-between; gap:${Math.round(8*scale)}px;
-                    border-top:1px solid ${hexToRgba('#fff',0.12)}; direction:ltr;">
-          <div style="display:flex; align-items:center; gap:${Math.round(6*scale)}px;">
-            ${logoHtml}
-          </div>
-          ${phone ? `<div style="font-size:${phoneSize}px; font-weight:900; color:${secondary}; direction:ltr; letter-spacing:0.5px;">${phone}</div>` : ''}
-          <div style="display:flex; align-items:center; gap:${Math.round(6*scale)}px;">
-            <div style="font-size:${nameSize}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
-          </div>
+      ${ctaText ? `
+        <div style="position:absolute; left:50%; transform:translateX(-50%); bottom:${Math.round(height * 0.1)}px; z-index:4;">
+          <span style="display:inline-block; background:linear-gradient(135deg, ${secondary}, ${darkenHex(secondary, 0.15)});
+                       color:${isLightColor(secondary) ? '#1a1a1a' : '#fff'}; padding:${Math.round(9 * scale)}px ${Math.round(28 * scale)}px;
+                       border-radius:${Math.round(26 * scale)}px; font-size:${ctaSize}px; font-weight:800;
+                       box-shadow:0 6px 18px ${hexToRgba(secondary, 0.42)}, inset 0 1px 0 rgba(255,255,255,0.22);">
+            ${ctaText}
+          </span>
         </div>
+      ` : ''}
+
+      <!-- Clean contact strip: logo locked to bottom-left -->
+      <div style="position:absolute; left:${Math.round(14 * scale)}px; right:${Math.round(14 * scale)}px; bottom:${Math.round(8 * scale)}px;
+                  padding:${Math.round(8 * scale)}px ${Math.round(12 * scale)}px; border-radius:${Math.round(14 * scale)}px;
+                  background:${hexToRgba('#0b1220', 0.36)}; backdrop-filter:blur(8px);
+                  border:1px solid ${hexToRgba('#fff', 0.16)};
+                  display:flex; align-items:center; justify-content:space-between; gap:${Math.round(10 * scale)}px; direction:ltr; z-index:5;">
+        <div style="display:flex; align-items:center; min-width:${Math.round(110 * scale)}px;">${logoHtml}</div>
+        ${phone ? `<div style="font-size:${phoneSize}px; font-weight:900; color:${secondary}; letter-spacing:0.4px; direction:ltr;">${phone}</div>` : ''}
+        <div style="font-size:${nameSize}px; font-weight:800; color:${textOnPrimary}; text-align:right; direction:rtl;">${businessName}</div>
       </div>
     </div>
   `;
