@@ -578,7 +578,27 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     // Extract text meta for frontend programmatic overlay
     const rawHeadline = textPrompt || campaignContext?.offer || '';
     const businessName = brandContext?.businessName || '';
-    const phone = brandContext?.contactPhone || '';
+    
+    // Extract contact details: prefer brand context, then try past_materials analysis
+    let phone = brandContext?.contactPhone || '';
+    let email = brandContext?.contactEmail || '';
+    let address = brandContext?.contactAddress || '';
+    
+    // If no contact details in brand context, try to extract from past materials analysis
+    if (brandContext?.pastMaterialsAnalysis?.length) {
+      for (const analysis of brandContext.pastMaterialsAnalysis) {
+        if (!phone && analysis.extractedPhone) phone = analysis.extractedPhone;
+        if (!email && analysis.extractedEmail) email = analysis.extractedEmail;
+        if (!address && analysis.extractedAddress) address = analysis.extractedAddress;
+        // Also check for contact info in layout notes
+        if (analysis.contactInfo) {
+          if (!phone && analysis.contactInfo.phone) phone = analysis.contactInfo.phone;
+          if (!email && analysis.contactInfo.email) email = analysis.contactInfo.email;
+          if (!address && analysis.contactInfo.address) address = analysis.contactInfo.address;
+        }
+      }
+    }
+    
     const headline = buildCreativeHeadline(rawHeadline, campaignContext, topicCategory);
     const secondaryLines = buildSecondaryLines(campaignContext?.offer || textPrompt || '', businessName);
     const bodyText = secondaryLines.bodyText;
@@ -605,6 +625,8 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
         ctaText,
         businessName,
         phone,
+        email,
+        address,
         servicesList,
         promoText,
         promoValue,
