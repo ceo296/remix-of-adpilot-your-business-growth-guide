@@ -311,6 +311,9 @@ const CreativeStudio = () => {
   // Text layout style
   const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend'>('magazine-blend');
 
+  // Engine version selection
+  const [engineVersion, setEngineVersion] = useState<'nano-banana-pro' | 'nano-banana'>('nano-banana-pro');
+
   // Auto-set aspect ratio based on media type
   useEffect(() => {
     if (mediaTypes.length === 1) {
@@ -662,7 +665,7 @@ const CreativeStudio = () => {
             visualPrompt,
             textPrompt: textPrompt || null,
             style: style || 'ultra-realistic',
-            engine: config.engine === 'nano-banana' ? 'nano-banana' : 'flux-realism',
+            engine: engineVersion,
             templateId: selectedTemplate?.id || null,
             templateHints: selectedTemplate?.promptHints || null,
             dimensions: selectedTemplate?.dimensions || null,
@@ -1114,7 +1117,7 @@ const CreativeStudio = () => {
         visualPrompt: enhancedVisualPrompt,
         textPrompt: enhancedTextPrompt,
         style: 'modern',
-        engine: 'nano-banana',
+        engine: engineVersion,
         brandContext,
         campaignContext,
         topicCategory: detectedTopic,
@@ -1657,6 +1660,35 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                   <ChevronRight className="h-4 w-4" />
                   <span>חזרה לבחירת מסלול</span>
                 </button>
+                {/* Engine Version Selector */}
+                <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-muted/50 border border-border" dir="rtl">
+                  <span className="text-sm font-medium text-foreground whitespace-nowrap">🍌 מנוע:</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEngineVersion('nano-banana-pro')}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        engineVersion === 'nano-banana-pro'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-background text-muted-foreground hover:text-foreground border border-border'
+                      }`}
+                    >
+                      Nano Banana Pro
+                    </button>
+                    <button
+                      onClick={() => setEngineVersion('nano-banana')}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        engineVersion === 'nano-banana'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-background text-muted-foreground hover:text-foreground border border-border'
+                      }`}
+                    >
+                      Nano Banana
+                    </button>
+                  </div>
+                  <span className="text-xs text-muted-foreground mr-auto">
+                    {engineVersion === 'nano-banana-pro' ? 'איכות מקסימלית, יותר איטי' : 'מהיר יותר, איכות טובה'}
+                  </span>
+                </div>
                 
                 <StudioAutopilot
                   isGenerating={isGeneratingConcepts || isGenerating}
