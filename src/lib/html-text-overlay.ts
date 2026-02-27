@@ -53,6 +53,14 @@ function cleanText(text: string): string {
     .trim();
 }
 
+/** Check if a URL is a renderable image (not PDF/SVG data) */
+function isRenderableImageUrl(url?: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('data:application/pdf')) return false;
+  if (url.startsWith('data:image/svg')) return false; // SVGs can be problematic in html-to-image
+  return true;
+}
+
 function isLightColor(hex: string): boolean {
   const c = hex.replace('#', '');
   if (c.length < 6) return false;
@@ -83,7 +91,6 @@ function darkenHex(hex: string, factor = 0.3): string {
 function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   const primary = config.primaryColor || '#2BA5B5';
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
-  const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
   const darkText = '#1a2a3a';
 
   const headline = (config.headline ? cleanText(config.headline) : '').slice(0, 56);
@@ -95,27 +102,28 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
   const address = config.address || '';
 
   const scale = Math.min(width, height) / 1024;
-  const headlineSize = Math.round(46 * scale);
-  const subtitleSize = Math.round(26 * scale);
-  const bodySize = Math.round(18 * scale);
+  const headlineSize = Math.round(44 * scale);
+  const subtitleSize = Math.round(22 * scale);
+  const bodySize = Math.round(17 * scale);
   const phoneSize = Math.round(28 * scale);
-  const nameSize = Math.round(14 * scale);
+  const nameSize = Math.round(16 * scale);
   const labelSize = Math.round(13 * scale);
 
-  // Photo occupies ~52% top, text area below
-  const photoHeight = Math.round(height * 0.52);
-  const textAreaHeight = height - photoHeight;
+  // Photo occupies ~55% top, compact text area below — NO wasted white space
+  const photoHeight = Math.round(height * 0.55);
+  const contactHeight = Math.round(height * 0.13);
+  const textAreaHeight = height - photoHeight - contactHeight;
 
-  const logoHtml = config.logoUrl ? `
+  const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(52 * scale)}px; max-width:${Math.round(130 * scale)}px; object-fit:contain;" />` : '';
+         style="max-height:${Math.round(56 * scale)}px; max-width:${Math.round(140 * scale)}px; object-fit:contain;" />` : '';
 
   // Services/social proof bar
   const servicesHtml = config.servicesList?.length ? `
-    <div style="background:${primary}; padding:${Math.round(7 * scale)}px ${Math.round(16 * scale)}px;
+    <div style="background:${primary}; padding:${Math.round(6 * scale)}px ${Math.round(16 * scale)}px;
                 display:flex; align-items:center; justify-content:center; gap:${Math.round(16 * scale)}px;">
       ${config.servicesList.slice(0, 4).map(s => `
-        <span style="color:#fff; font-size:${Math.round(14 * scale)}px; font-weight:700;">${cleanText(s)}</span>
+        <span style="color:#fff; font-size:${Math.round(13 * scale)}px; font-weight:700;">${cleanText(s)}</span>
       `).join(`<span style="color:rgba(255,255,255,0.5); font-size:${Math.round(12 * scale)}px;">|</span>`)}
     </div>` : '';
 
@@ -126,27 +134,28 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
       <div style="position:relative; width:100%; height:${photoHeight}px; overflow:hidden;">
         <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
         <!-- Soft bottom fade to white -->
-        <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(photoHeight * 0.18)}px;
+        <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(photoHeight * 0.15)}px;
                     background:linear-gradient(0deg, #fff 0%, transparent 100%); pointer-events:none;"></div>
       </div>
 
-      <!-- Text area — below photo -->
-      <div style="position:absolute; top:${photoHeight}px; left:0; right:0; bottom:0;
-                  display:flex; flex-direction:column; background:#fff;">
+      <!-- Text area — compact, no wasted space -->
+      <div style="position:absolute; top:${photoHeight}px; left:0; right:0; height:${textAreaHeight}px;
+                  display:flex; flex-direction:column; justify-content:center; background:#fff;
+                  padding:${Math.round(6 * scale)}px ${Math.round(20 * scale)}px;">
         
-        <!-- Headline block -->
+        <!-- Headline in brand color -->
         ${headline ? `
-          <div style="padding:${Math.round(14 * scale)}px ${Math.round(24 * scale)}px ${Math.round(8 * scale)}px; text-align:center;">
+          <div style="text-align:center; margin-bottom:${Math.round(4 * scale)}px;">
             <div style="font-size:${headlineSize}px; font-weight:900; color:${primary}; line-height:1.2; letter-spacing:-0.5px;">
               ${headline}
             </div>
           </div>
         ` : ''}
 
-        <!-- Subtitle in brand color -->
+        <!-- Subtitle -->
         ${subtitle ? `
-          <div style="padding:${Math.round(2 * scale)}px ${Math.round(28 * scale)}px ${Math.round(6 * scale)}px; text-align:center;">
-            <div style="font-size:${subtitleSize}px; font-weight:700; color:${primary}; line-height:1.35;">
+          <div style="text-align:center; margin-bottom:${Math.round(4 * scale)}px;">
+            <div style="font-size:${subtitleSize}px; font-weight:600; color:${darkText}; line-height:1.35;">
               ${subtitle}
             </div>
           </div>
@@ -154,41 +163,39 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
 
         <!-- Body text -->
         ${bodyText ? `
-          <div style="padding:${Math.round(4 * scale)}px ${Math.round(32 * scale)}px ${Math.round(8 * scale)}px; text-align:center;">
-            <div style="font-size:${bodySize}px; font-weight:500; color:#444; line-height:1.55;">
+          <div style="text-align:center;">
+            <div style="font-size:${bodySize}px; font-weight:500; color:#555; line-height:1.5;">
               ${bodyText}
             </div>
           </div>
         ` : ''}
 
-        <!-- Services / social proof accent bar -->
+        <!-- Services bar -->
         ${servicesHtml}
+      </div>
 
-        <!-- Spacer to push contact to bottom -->
-        <div style="flex:1;"></div>
+      <!-- Contact strip — fixed at bottom, brand accent -->
+      <div style="position:absolute; bottom:0; left:0; right:0; height:${contactHeight}px;
+                  background:${hexToRgba(primary, 0.06)}; border-top:2px solid ${primary};
+                  display:grid; grid-template-columns:auto 1fr auto; align-items:center;
+                  padding:0 ${Math.round(18 * scale)}px; gap:${Math.round(12 * scale)}px; direction:ltr;">
+        
+        <!-- Logo — bottom left -->
+        <div style="display:flex; align-items:center;">${logoHtml}</div>
 
-        <!-- Contact strip — brand colored background -->
-        <div style="background:${hexToRgba(primary, 0.08)}; border-top:2px solid ${primary};
-                    padding:${Math.round(10 * scale)}px ${Math.round(18 * scale)}px;
-                    display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:${Math.round(12 * scale)}px; direction:ltr;">
-          
-          <!-- Logo — bottom left -->
-          <div style="display:flex; align-items:center;">${logoHtml}</div>
+        <!-- Phone prominent center -->
+        <div style="text-align:center; direction:rtl;">
+          ${phone ? `
+            <div style="font-size:${labelSize}px; color:${primary}; font-weight:600;">חייגו עוד היום:</div>
+            <div style="font-size:${phoneSize}px; font-weight:900; color:${darkText}; direction:ltr; letter-spacing:1px;">${phone}</div>
+          ` : ''}
+          ${address ? `<div style="font-size:${Math.round(11 * scale)}px; color:#666; margin-top:${Math.round(1 * scale)}px;">${address}</div>` : ''}
+          ${email ? `<div style="font-size:${Math.round(11 * scale)}px; color:#666;">${email}</div>` : ''}
+        </div>
 
-          <!-- Phone prominent center -->
-          <div style="text-align:center; direction:rtl;">
-            ${phone ? `
-              <div style="font-size:${labelSize}px; color:${primary}; font-weight:600;">חייגו עוד היום:</div>
-              <div style="font-size:${phoneSize}px; font-weight:900; color:${darkText}; direction:ltr; letter-spacing:1px;">${phone}</div>
-            ` : ''}
-            ${address ? `<div style="font-size:${Math.round(11 * scale)}px; color:#666; margin-top:${Math.round(2 * scale)}px;">${address}</div>` : ''}
-            ${email ? `<div style="font-size:${Math.round(11 * scale)}px; color:#666;">${email}</div>` : ''}
-          </div>
-
-          <!-- Business name — right side -->
-          <div style="text-align:right; direction:rtl;">
-            <div style="font-size:${nameSize}px; font-weight:800; color:${primary};">${businessName}</div>
-          </div>
+        <!-- Business name — right side -->
+        <div style="text-align:right; direction:rtl;">
+          <div style="font-size:${nameSize}px; font-weight:800; color:${primary};">${businessName}</div>
         </div>
       </div>
     </div>
@@ -218,7 +225,7 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
   const phoneSize = Math.round(26 * scale);
   const nameSize = Math.round(14 * scale);
 
-  const logoHtml = config.logoUrl ? `
+  const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
          style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));" />` : '';
 
@@ -315,7 +322,7 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
       `).join('')}
     </div>` : '';
 
-  const logoHtml = config.logoUrl ? `
+  const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous" 
          style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));" />` : '';
 
@@ -440,7 +447,7 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
         </div>
       </div>
 
-      ${config.logoUrl ? `
+      ${isRenderableImageUrl(config.logoUrl) ? `
         <div style="position:absolute; bottom:${Math.round(height*0.08)}px; left:${Math.round(20*scale)}px;">
           <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));" />
         </div>
@@ -474,7 +481,7 @@ function buildSideStripHTML(config: TextOverlayConfig, width: number, height: nu
       <div style="position:absolute; top:0; right:0; width:${stripWidth}px; height:100%; 
                   display:flex; flex-direction:column; align-items:center; justify-content:center; 
                   padding:${Math.round(24*scale)}px; gap:${Math.round(16*scale)}px; text-align:center;">
-        ${config.logoUrl ? `<img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(60*scale)}px; max-width:${Math.round(stripWidth*0.7)}px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));" />` : ''}
+        ${isRenderableImageUrl(config.logoUrl) ? `<img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(60*scale)}px; max-width:${Math.round(stripWidth*0.7)}px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));" />` : ''}
         ${businessName ? `<div style="font-size:${Math.round(32*scale)}px; font-weight:900; color:${textOnPrimary};">${businessName}</div>` : ''}
         <div style="width:60%; height:3px; background:${secondary};"></div>
         ${headline ? `<div style="font-size:${Math.round(26*scale)}px; font-weight:900; color:${textOnPrimary}; line-height:1.3;">${headline}</div>` : ''}
@@ -503,7 +510,7 @@ function buildMinimalHTML(config: TextOverlayConfig, width: number, height: numb
         ${businessName ? `<div style="font-size:${Math.round(18*scale)}px; font-weight:700; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.7);">${businessName}</div>` : ''}
         ${phone ? `<div style="font-size:${Math.round(20*scale)}px; font-weight:900; color:${secondary}; direction:ltr; text-shadow:0 2px 8px rgba(0,0,0,0.5); margin-top:${Math.round(6*scale)}px;">${phone}</div>` : ''}
       </div>
-      ${config.logoUrl ? `
+      ${isRenderableImageUrl(config.logoUrl) ? `
         <div style="position:absolute; bottom:${Math.round(16*scale)}px; left:${Math.round(16*scale)}px;">
           <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(50*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));" />
         </div>
