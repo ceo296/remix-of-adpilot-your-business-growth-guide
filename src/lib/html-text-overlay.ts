@@ -107,19 +107,18 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
 
   const headline = splitLongText((config.headline ? cleanText(config.headline) : '').slice(0, 56), 28);
   const subtitle = splitLongText((config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72), 36);
-  const bodyText = splitLongText((config.bodyText ? cleanText(config.bodyText) : '').slice(0, 160), 50);
+  const bodyText = splitLongText((config.bodyText ? cleanText(config.bodyText) : '').slice(0, 200), 50);
   const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
   const phone = config.phone || '';
   const email = config.email || '';
   const address = config.address || '';
 
   const scale = Math.min(width, height) / 1024;
-  const headlineSize = Math.round(46 * scale);
-  const subtitleSize = Math.round(22 * scale);
-  const bodySize = Math.round(17 * scale);
+  const headlineSize = Math.round(48 * scale);
+  const subtitleSize = Math.round(24 * scale);
+  const bodySize = Math.round(18 * scale);
   const phoneSize = Math.round(26 * scale);
   const nameSize = Math.round(16 * scale);
-  const labelSize = Math.round(13 * scale);
 
   const contactHeight = Math.round(height * 0.12);
 
@@ -129,9 +128,9 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
 
   // Services bar
   const servicesHtml = config.servicesList?.length ? `
-    <div style="display:flex; align-items:center; justify-content:center; gap:${Math.round(14 * scale)}px; margin-top:${Math.round(6 * scale)}px;">
-      ${config.servicesList.slice(0, 4).map(s => `
-        <span style="color:rgba(255,255,255,0.95); font-size:${Math.round(13 * scale)}px; font-weight:700;
+    <div style="display:flex; align-items:center; justify-content:center; gap:${Math.round(14 * scale)}px; margin-top:${Math.round(10 * scale)}px;">
+      ${config.servicesList.slice(0, 5).map(s => `
+        <span style="color:rgba(255,255,255,0.95); font-size:${Math.round(14 * scale)}px; font-weight:700;
                      text-shadow:0 1px 4px rgba(0,0,0,0.5);">${cleanText(s)}</span>
       `).join(`<span style="color:rgba(255,255,255,0.4); font-size:${Math.round(12 * scale)}px;">|</span>`)}
     </div>` : '';
@@ -142,51 +141,46 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
       <!-- Full-bleed background image -->
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
 
-      <!-- Top cinematic vignette for headline readability -->
-      <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height * 0.35)}px;
-                  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 55%, transparent 100%); pointer-events:none;"></div>
-
-      <!-- Headline overlaid on image — top area -->
-      ${headline ? `
-        <div style="position:absolute; top:${Math.round(28 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px; text-align:center; z-index:2;">
-          <div style="font-size:${headlineSize}px; font-weight:900; color:#fff; line-height:1.25; letter-spacing:-0.5px;
-                      text-shadow:0 3px 16px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5);">
-            ${headline}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Subtitle — below headline on image -->
-      ${subtitle ? `
-        <div style="position:absolute; top:${Math.round(88 * scale)}px; left:${Math.round(28 * scale)}px; right:${Math.round(28 * scale)}px; text-align:center; z-index:2;">
-          <div style="font-size:${subtitleSize}px; font-weight:600; color:rgba(255,255,255,0.95);
-                      text-shadow:0 2px 10px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4); line-height:1.35;">
-            ${subtitle}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Bottom gradient for body text + contact -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height * 0.55)}px;
-                  background:linear-gradient(0deg, ${hexToRgba(primary, 0.88)} 0%, ${hexToRgba(primary, 0.65)} 30%, ${hexToRgba(primary, 0.25)} 60%, transparent 100%);
+      <!-- Full overlay gradient for text readability -->
+      <div style="position:absolute; inset:0;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.1) 50%, ${hexToRgba(primary, 0.3)} 65%, ${hexToRgba(primary, 0.85)} 85%, ${hexToRgba(primary, 0.92)} 100%);
                   pointer-events:none; z-index:1;"></div>
 
-      <!-- Body text — positioned in middle-lower area to fill the gap -->
-      ${bodyText ? `
-        <div style="position:absolute; bottom:${contactHeight + Math.round(16 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px;
-                    text-align:center; z-index:2; max-width:${Math.round(width * 0.8)}px; margin:0 auto; left:50%; transform:translateX(-50%);">
-          <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
-                      text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.65; word-break:break-word; max-width:${Math.round(width * 0.75)}px; margin:0 auto;">
-            ${bodyText}
-          </div>
+      <!-- Main text content block — fills the ad vertically -->
+      <div style="position:absolute; inset:0; bottom:${contactHeight}px; display:flex; flex-direction:column; justify-content:space-between; 
+                  padding:${Math.round(28 * scale)}px ${Math.round(24 * scale)}px ${Math.round(20 * scale)}px; z-index:2;">
+        
+        <!-- Top section: Headline + Subtitle -->
+        <div style="text-align:center;">
+          ${headline ? `
+            <div style="font-size:${headlineSize}px; font-weight:900; color:#fff; line-height:1.3; letter-spacing:-0.5px;
+                        text-shadow:0 3px 16px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5);">
+              ${headline}
+            </div>
+          ` : ''}
+          ${subtitle ? `
+            <div style="font-size:${subtitleSize}px; font-weight:600; color:rgba(255,255,255,0.95);
+                        text-shadow:0 2px 10px rgba(0,0,0,0.6); line-height:1.4; margin-top:${Math.round(8 * scale)}px;">
+              ${subtitle}
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Middle: empty space lets the visual breathe -->
+        <div style="flex:1;"></div>
+
+        <!-- Bottom section: Body text + services (above contact strip) -->
+        <div style="text-align:center;">
+          ${bodyText ? `
+            <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
+                        text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.7; word-break:break-word;
+                        max-width:${Math.round(width * 0.82)}px; margin:0 auto ${Math.round(8 * scale)}px;">
+              ${bodyText}
+            </div>
+          ` : ''}
           ${servicesHtml}
         </div>
-      ` : servicesHtml ? `
-        <div style="position:absolute; bottom:${contactHeight + Math.round(16 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px;
-                    text-align:center; z-index:2;">
-          ${servicesHtml}
-        </div>
-      ` : ''}
+      </div>
 
       <!-- Contact strip — fixed at bottom -->
       <div style="position:absolute; bottom:0; left:0; right:0; height:${contactHeight}px;
@@ -253,44 +247,46 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
       <!-- Full background image -->
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
 
-      <!-- Headline overlaid on image — top area with brand color -->
-      ${headline ? `
-        <div style="position:absolute; top:${Math.round(24 * scale)}px; left:${Math.round(20 * scale)}px; right:${Math.round(20 * scale)}px; text-align:center; z-index:2;">
-          <div style="display:inline-block; background:${hexToRgba(primary, 0.88)}; padding:${Math.round(12 * scale)}px ${Math.round(28 * scale)}px;
-                      border-radius:${Math.round(6 * scale)}px;">
-            <div style="font-size:${headlineSize}px; font-weight:900; color:${textOnPrimary}; line-height:1.25; letter-spacing:-0.5px;">
-              ${headline}
-            </div>
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Subtitle — below headline, also on image -->
-      ${subtitle ? `
-        <div style="position:absolute; top:${Math.round(90 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px; text-align:center; z-index:2;">
-          <div style="font-size:${subtitleSize}px; font-weight:700; color:#fff;
-                      text-shadow:0 2px 12px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5); line-height:1.35;">
-            ${subtitle}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Bottom gradient for text area -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${textAreaHeight + contactStripHeight + Math.round(height * 0.1)}px;
-                  background:linear-gradient(0deg, ${hexToRgba(primary, 0.92)} 0%, ${hexToRgba(primary, 0.7)} 35%, ${hexToRgba(primary, 0.2)} 70%, transparent 100%);
+      <!-- Full overlay gradient -->
+      <div style="position:absolute; inset:0;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 35%, ${hexToRgba(primary, 0.25)} 60%, ${hexToRgba(primary, 0.88)} 85%, ${hexToRgba(primary, 0.95)} 100%);
                   pointer-events:none; z-index:1;"></div>
 
-      <!-- Body text in lower portion -->
-      ${bodyText ? `
-        <div style="position:absolute; bottom:${contactStripHeight + Math.round(16 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px;
-                    text-align:center; z-index:2;">
-          <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
-                      text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.65; word-break:break-word;
-                      max-width:${Math.round(width * 0.75)}px; margin:0 auto;">
-            ${bodyText}
-          </div>
+      <!-- Main text block — fills the ad -->
+      <div style="position:absolute; inset:0; bottom:${contactStripHeight}px; display:flex; flex-direction:column; justify-content:space-between;
+                  padding:${Math.round(24 * scale)}px ${Math.round(20 * scale)}px ${Math.round(16 * scale)}px; z-index:2;">
+        
+        <!-- Top: Headline badge + Subtitle -->
+        <div style="text-align:center;">
+          ${headline ? `
+            <div style="display:inline-block; background:${hexToRgba(primary, 0.88)}; padding:${Math.round(12 * scale)}px ${Math.round(28 * scale)}px;
+                        border-radius:${Math.round(6 * scale)}px;">
+              <div style="font-size:${headlineSize}px; font-weight:900; color:${textOnPrimary}; line-height:1.3; letter-spacing:-0.5px;">
+                ${headline}
+              </div>
+            </div>
+          ` : ''}
+          ${subtitle ? `
+            <div style="font-size:${subtitleSize}px; font-weight:700; color:#fff;
+                        text-shadow:0 2px 12px rgba(0,0,0,0.7); line-height:1.4; margin-top:${Math.round(10 * scale)}px;">
+              ${subtitle}
+            </div>
+          ` : ''}
         </div>
-      ` : ''}
+
+        <!-- Middle spacer -->
+        <div style="flex:1;"></div>
+
+        <!-- Bottom: Body text -->
+        ${bodyText ? `
+          <div style="text-align:center; max-width:${Math.round(width * 0.82)}px; margin:0 auto ${Math.round(6 * scale)}px;">
+            <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
+                        text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.7; word-break:break-word;">
+              ${bodyText}
+            </div>
+          </div>
+        ` : ''}
+      </div>
 
       <!-- Contact strip at bottom -->
       <div style="position:absolute; bottom:0; left:0; right:0; background:${hexToRgba(primary, 0.95)};
@@ -345,49 +341,53 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;" />
       
-      <!-- Stronger top gradient for headline readability -->
-      <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height*0.28)}px;
-                  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 50%, rgba(0,0,0,0.05) 85%, transparent 100%); pointer-events:none;"></div>
+      <!-- Full gradient overlay -->
+      <div style="position:absolute; inset:0;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 35%, ${hexToRgba(primary,0.2)} 55%, ${hexToRgba(primary,0.85)} 80%, ${hexToRgba(primary,0.95)} 100%);
+                  pointer-events:none; z-index:1;"></div>
 
-      ${headline ? `
-        <div style="position:absolute; top:${Math.round(20*scale)}px; left:${Math.round(20*scale)}px; right:${Math.round(20*scale)}px; text-align:center;">
-          <div style="font-size:${Math.round(44*scale)}px; font-weight:900; color:#fff; line-height:1.25; 
-               text-shadow:0 2px 16px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.6); letter-spacing:-0.5px;">
-            ${headline}
-          </div>
-          ${subtitle ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:600; color:rgba(255,255,255,0.95);
-               margin-top:${Math.round(4*scale)}px; text-shadow:0 2px 10px rgba(0,0,0,0.7);">${subtitle}</div>` : ''}
+      <!-- Main text block — fills the ad -->
+      <div style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between;
+                  padding:${Math.round(20*scale)}px ${Math.round(20*scale)}px 0; z-index:2;">
+        
+        <!-- Top: Headline + Subtitle -->
+        <div style="text-align:center;">
+          ${headline ? `
+            <div style="font-size:${Math.round(46*scale)}px; font-weight:900; color:#fff; line-height:1.3; 
+                 text-shadow:0 2px 16px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.6); letter-spacing:-0.5px;">
+              ${headline}
+            </div>
+            ${subtitle ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:600; color:rgba(255,255,255,0.95);
+                 margin-top:${Math.round(6*scale)}px; text-shadow:0 2px 10px rgba(0,0,0,0.7);">${subtitle}</div>` : ''}
+          ` : ''}
         </div>
-      ` : ''}
 
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height*0.45)}px;
-                  background:linear-gradient(0deg, ${hexToRgba(primary,0.92)} 0%, ${hexToRgba(primary,0.7)} 30%, ${hexToRgba(primary,0.3)} 60%, transparent 100%); pointer-events:none;"></div>
+        <!-- Middle spacer -->
+        <div style="flex:1;"></div>
 
-      ${bodyText || services.length > 0 ? `
-        <div style="position:absolute; bottom:${Math.round(height*0.18)}px; left:50%; transform:translateX(-50%);
-                    width:${Math.round(width*0.85)}px; text-align:center;">
-          ${bodyText ? `<div style="font-size:${Math.round(17*scale)}px; font-weight:500; color:rgba(255,255,255,0.95);
-               text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.6;
-               max-width:${Math.round(width*0.75)}px; margin:0 auto;">${bodyText}</div>` : ''}
+        <!-- Bottom: Body + Services + CTA -->
+        <div style="text-align:center; padding-bottom:${Math.round(height*0.14)}px;">
+          ${bodyText ? `<div style="font-size:${Math.round(18*scale)}px; font-weight:500; color:rgba(255,255,255,0.95);
+               text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.7; word-break:break-word;
+               max-width:${Math.round(width*0.8)}px; margin:0 auto ${Math.round(8*scale)}px;">${bodyText}</div>` : ''}
           ${servicesHtml}
+          ${ctaText ? `
+            <div style="margin-top:${Math.round(12*scale)}px;">
+              <span style="background:linear-gradient(135deg, ${secondary}, ${darkenHex(secondary,0.15)}); 
+                   color:${isLightColor(secondary)?'#1a1a1a':'#FFFFFF'}; padding:${Math.round(10*scale)}px ${Math.round(32*scale)}px; 
+                   border-radius:${Math.round(26*scale)}px; font-size:${Math.round(20*scale)}px; font-weight:800; 
+                   box-shadow:0 4px 16px ${hexToRgba(secondary,0.5)};">
+                ${ctaText}
+              </span>
+            </div>
+          ` : ''}
         </div>
-      ` : ''}
-
-      ${ctaText ? `
-        <div style="position:absolute; left:50%; transform:translateX(-50%); bottom:${Math.round(height*0.08)}px;">
-          <div style="background:linear-gradient(135deg, ${secondary}, ${darkenHex(secondary,0.15)}); 
-               color:${isLightColor(secondary)?'#1a1a1a':'#FFFFFF'}; padding:${Math.round(10*scale)}px ${Math.round(32*scale)}px; 
-               border-radius:${Math.round(26*scale)}px; font-size:${Math.round(20*scale)}px; font-weight:800; 
-               box-shadow:0 4px 16px ${hexToRgba(secondary,0.5)}, 0 0 0 2px rgba(255,255,255,0.15);">
-            ${ctaText}
-          </div>
-        </div>
-      ` : ''}
+      </div>
 
       <!-- Contact strip — logo always bottom-left -->
       <div style="position:absolute; bottom:0; left:0; right:0; background:${hexToRgba(primary,0.95)};
                   padding:${Math.round(8*scale)}px ${Math.round(16*scale)}px;
-                  display:flex; align-items:center; justify-content:space-between; gap:${Math.round(10*scale)}px; direction:ltr;">
+                  display:flex; align-items:center; justify-content:space-between; gap:${Math.round(10*scale)}px; direction:ltr; z-index:3;">
         <div style="display:flex; align-items:center; gap:${Math.round(8*scale)}px;">
           ${logoHtml}
         </div>
@@ -421,52 +421,62 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;" />
       
-      ${headline ? `
-        <div style="position:absolute; top:0; left:0; right:0; 
-                    padding:${Math.round(30*scale)}px ${Math.round(24*scale)}px ${Math.round(50*scale)}px;
-                    background:linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 70%, transparent 100%);">
-          <div style="font-size:${Math.round(48*scale)}px; font-weight:900; color:#fff; text-align:center;
-               text-shadow:0 3px 12px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5); line-height:1.2; letter-spacing:-0.5px;">
-            ${headline}
-          </div>
-        </div>
-      ` : ''}
+      <!-- Full gradient overlay -->
+      <div style="position:absolute; inset:0;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.12) 35%, ${hexToRgba(primary,0.2)} 60%, ${hexToRgba(primary,0.88)} 85%, ${hexToRgba(primary,0.92)} 100%);
+                  pointer-events:none; z-index:1;"></div>
 
-      ${bodyText ? `
-        <div style="position:absolute; bottom:${Math.round(height*0.18)}px; left:50%; transform:translateX(-50%); width:${Math.round(width*0.8)}px; text-align:center;">
-          <div style="font-size:${Math.round(20*scale)}px; font-weight:600; color:#fff;
-               text-shadow:0 2px 10px rgba(0,0,0,0.7); line-height:1.5;">
-            ${bodyText}
+      <!-- Main text block -->
+      <div style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between;
+                  padding:${Math.round(28*scale)}px ${Math.round(24*scale)}px 0; z-index:2;">
+        
+        <!-- Top: Headline -->
+        ${headline ? `
+          <div style="text-align:center;">
+            <div style="font-size:${Math.round(48*scale)}px; font-weight:900; color:#fff;
+                 text-shadow:0 3px 12px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5); line-height:1.3; letter-spacing:-0.5px;">
+              ${headline}
+            </div>
           </div>
-        </div>
-      ` : ''}
+        ` : '<div></div>'}
 
-      ${ctaText ? `
-        <div style="position:absolute; left:50%; transform:translateX(-50%); bottom:${Math.round(height*0.10)}px;">
-          <div style="background:linear-gradient(135deg, ${secondary}, ${darkenHex(secondary,0.15)});
-               color:${textOnSecondary}; padding:${Math.round(12*scale)}px ${Math.round(36*scale)}px;
-               border-radius:${Math.round(30*scale)}px; font-size:${Math.round(22*scale)}px; font-weight:800;
-               box-shadow:0 6px 20px ${hexToRgba(secondary,0.5)}, 0 0 0 2px rgba(255,255,255,0.2);">
-            ${ctaText}
-          </div>
-        </div>
-      ` : ''}
+        <!-- Middle spacer -->
+        <div style="flex:1;"></div>
 
-      <div style="position:absolute; bottom:0; left:0; right:0;">
-        <div style="height:2px; background:${secondary};"></div>
-        <div style="background:${hexToRgba(primary,0.92)}; padding:${Math.round(10*scale)}px ${Math.round(20*scale)}px;
-                    display:flex; align-items:center; justify-content:space-between;">
-        <div style="font-size:${Math.round(20*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
-          ${phone ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:900; color:${secondary}; direction:ltr;">${phone}</div>` : ''}
-          <div style="font-size:${Math.round(14*scale)}px; color:${hexToRgba(textOnPrimary==='#FFFFFF'?'#fff':'#000',0.7)};">${address || whatsapp || ''}</div>
+        <!-- Bottom: Body + CTA -->
+        <div style="text-align:center; padding-bottom:${Math.round(height*0.12)}px;">
+          ${bodyText ? `
+            <div style="font-size:${Math.round(20*scale)}px; font-weight:600; color:#fff;
+                 text-shadow:0 2px 10px rgba(0,0,0,0.7); line-height:1.6; word-break:break-word;
+                 max-width:${Math.round(width*0.8)}px; margin:0 auto ${Math.round(10*scale)}px;">
+              ${bodyText}
+            </div>
+          ` : ''}
+          ${ctaText ? `
+            <div style="margin-top:${Math.round(8*scale)}px;">
+              <span style="background:linear-gradient(135deg, ${secondary}, ${darkenHex(secondary,0.15)});
+                   color:${textOnSecondary}; padding:${Math.round(12*scale)}px ${Math.round(36*scale)}px;
+                   border-radius:${Math.round(30*scale)}px; font-size:${Math.round(22*scale)}px; font-weight:800;
+                   box-shadow:0 6px 20px ${hexToRgba(secondary,0.5)};">
+                ${ctaText}
+              </span>
+            </div>
+          ` : ''}
         </div>
       </div>
 
-      ${isRenderableImageUrl(config.logoUrl) ? `
-        <div style="position:absolute; bottom:${Math.round(height*0.08)}px; left:${Math.round(20*scale)}px;">
-          <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4)); mix-blend-mode:multiply;" />
+      <!-- Contact strip -->
+      <div style="position:absolute; bottom:0; left:0; right:0; z-index:3;">
+        <div style="height:2px; background:${secondary};"></div>
+        <div style="background:${hexToRgba(primary,0.92)}; padding:${Math.round(10*scale)}px ${Math.round(20*scale)}px;
+                    display:flex; align-items:center; justify-content:space-between; direction:ltr;">
+          ${isRenderableImageUrl(config.logoUrl) ? `
+            <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(42*scale)}px; max-width:${Math.round(100*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4)); mix-blend-mode:multiply;" />
+          ` : '<div></div>'}
+          ${phone ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:900; color:${secondary}; direction:ltr;">${phone}</div>` : ''}
+          <div style="font-size:${Math.round(20*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
         </div>
-      ` : ''}
+      </div>
     </div>
   `;
 }
