@@ -89,13 +89,20 @@ interface AIModelConfig {
   donts: string[] | null;
 }
 
+// Engine version → model priority mapping
+const ENGINE_MODELS: Record<string, string[]> = {
+  'nano-banana-pro': ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'],
+  'nano-banana': ['google/gemini-2.5-flash-image', 'google/gemini-3-pro-image-preview'],
+};
+
 // ───── LAYER 1: Visual-only generation ─────
 async function generateVisualLayer(
   fullPrompt: string,
   brandContext: any,
-  LOVABLE_API_KEY: string
+  LOVABLE_API_KEY: string,
+  engineVersion: string = 'nano-banana-pro'
 ): Promise<{ imageUrl: string; model: string }> {
-  const models = ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'];
+  const models = ENGINE_MODELS[engineVersion] || ENGINE_MODELS['nano-banana-pro'];
 
   const messageContent: any[] = [{ type: "text", text: ART_DIRECTOR_GUIDELINES + "\n\n" + fullPrompt }];
 
@@ -486,8 +493,9 @@ Incorporate ALL these corrections into the new design.
 
 Remember: ZERO text. Pure visual design only. Beautiful composition with empty areas for text overlay.`;
 
-    console.log("[Pipeline] Starting Layer 1 - Visual generation");
-    const visualResult = await generateVisualLayer(visualOnlyPrompt, brandContext, LOVABLE_API_KEY);
+    const engineVersion = engine === 'nano-banana-pro' ? 'nano-banana-pro' : 'nano-banana';
+    console.log(`[Pipeline] Starting Layer 1 - Visual generation (engine: ${engineVersion})`);
+    const visualResult = await generateVisualLayer(visualOnlyPrompt, brandContext, LOVABLE_API_KEY, engineVersion);
     console.log("[Pipeline] Layer 1 complete. Skipping Layer 2 — Hebrew text will be applied programmatically on the frontend for perfect rendering.");
 
     // ═══════════════════════════════════════════
