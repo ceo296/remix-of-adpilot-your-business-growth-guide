@@ -5,7 +5,7 @@
 
 import { toPng } from 'html-to-image';
 
-export type TextLayoutStyle = 'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend';
+export type TextLayoutStyle = 'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend' | 'brand-top';
 
 export interface TextOverlayConfig {
   headline?: string;
@@ -137,7 +137,7 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
         <!-- Headline block -->
         ${headline ? `
           <div style="padding:${Math.round(14 * scale)}px ${Math.round(24 * scale)}px ${Math.round(8 * scale)}px; text-align:center;">
-            <div style="font-size:${headlineSize}px; font-weight:900; color:${darkText}; line-height:1.2; letter-spacing:-0.5px;">
+            <div style="font-size:${headlineSize}px; font-weight:900; color:${primary}; line-height:1.2; letter-spacing:-0.5px;">
               ${headline}
             </div>
           </div>
@@ -189,6 +189,98 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
           <div style="text-align:right; direction:rtl;">
             <div style="font-size:${nameSize}px; font-weight:800; color:${primary};">${businessName}</div>
           </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Brand Top Layout (headline overlaid on image with brand color accents) ───
+
+function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
+  const primary = config.primaryColor || '#2BA5B5';
+  const secondary = config.secondaryColor || darkenHex(primary, 0.3);
+  const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
+  const darkText = '#1a2a3a';
+
+  const headline = (config.headline ? cleanText(config.headline) : '').slice(0, 56);
+  const subtitle = (config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72);
+  const bodyText = (config.bodyText ? cleanText(config.bodyText) : '').slice(0, 120);
+  const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
+  const phone = config.phone || '';
+  const email = config.email || '';
+  const address = config.address || '';
+
+  const scale = Math.min(width, height) / 1024;
+  const headlineSize = Math.round(44 * scale);
+  const subtitleSize = Math.round(22 * scale);
+  const bodySize = Math.round(17 * scale);
+  const phoneSize = Math.round(26 * scale);
+  const nameSize = Math.round(14 * scale);
+
+  const logoHtml = config.logoUrl ? `
+    <img src="${config.logoUrl}" crossorigin="anonymous"
+         style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));" />` : '';
+
+  // Contact strip at bottom — brand colored
+  const contactStripHeight = Math.round(height * 0.12);
+  // Text area in lower portion — semi-transparent brand background
+  const textAreaHeight = Math.round(height * 0.32);
+
+  return `
+    <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
+      <!-- Full background image -->
+      <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
+
+      <!-- Headline overlaid on image — top area with brand color -->
+      ${headline ? `
+        <div style="position:absolute; top:${Math.round(24 * scale)}px; left:${Math.round(20 * scale)}px; right:${Math.round(20 * scale)}px; text-align:center; z-index:2;">
+          <div style="display:inline-block; background:${hexToRgba(primary, 0.88)}; padding:${Math.round(12 * scale)}px ${Math.round(28 * scale)}px;
+                      border-radius:${Math.round(6 * scale)}px;">
+            <div style="font-size:${headlineSize}px; font-weight:900; color:${textOnPrimary}; line-height:1.25; letter-spacing:-0.5px;">
+              ${headline}
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Subtitle — below headline, also on image -->
+      ${subtitle ? `
+        <div style="position:absolute; top:${Math.round(90 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px; text-align:center; z-index:2;">
+          <div style="font-size:${subtitleSize}px; font-weight:700; color:#fff;
+                      text-shadow:0 2px 12px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5); line-height:1.35;">
+            ${subtitle}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Bottom gradient for text area -->
+      <div style="position:absolute; bottom:0; left:0; right:0; height:${textAreaHeight + contactStripHeight}px;
+                  background:linear-gradient(0deg, ${hexToRgba(primary, 0.92)} 0%, ${hexToRgba(primary, 0.7)} 40%, ${hexToRgba(primary, 0.2)} 75%, transparent 100%);
+                  pointer-events:none; z-index:1;"></div>
+
+      <!-- Body text in lower portion -->
+      ${bodyText ? `
+        <div style="position:absolute; bottom:${contactStripHeight + Math.round(16 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px;
+                    text-align:center; z-index:2;">
+          <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
+                      text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.55;">
+            ${bodyText}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Contact strip at bottom -->
+      <div style="position:absolute; bottom:0; left:0; right:0; background:${hexToRgba(primary, 0.95)};
+                  padding:${Math.round(10 * scale)}px ${Math.round(18 * scale)}px;
+                  display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:${Math.round(12 * scale)}px; direction:ltr; z-index:3;">
+        <div style="display:flex; align-items:center;">${logoHtml}</div>
+        <div style="text-align:center; direction:rtl;">
+          ${phone ? `<div style="font-size:${phoneSize}px; font-weight:900; color:${textOnPrimary}; direction:ltr; letter-spacing:1px;">${phone}</div>` : ''}
+          ${address ? `<div style="font-size:${Math.round(11 * scale)}px; color:${hexToRgba(textOnPrimary === '#FFFFFF' ? '#fff' : '#000', 0.7)}; margin-top:${Math.round(2 * scale)}px;">${address}</div>` : ''}
+        </div>
+        <div style="text-align:right; direction:rtl;">
+          <div style="font-size:${nameSize}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
         </div>
       </div>
     </div>
@@ -427,6 +519,8 @@ function getLayoutHTML(config: TextOverlayConfig, width: number, height: number,
   switch (style) {
     case 'magazine-blend':
       return buildMagazineBlendHTML(config, width, height, imageUrl);
+    case 'brand-top':
+      return buildBrandTopHTML(config, width, height, imageUrl);
     case 'professional-ad':
       return buildProfessionalAdHTML(config, width, height, imageUrl);
     case 'side-strip':
