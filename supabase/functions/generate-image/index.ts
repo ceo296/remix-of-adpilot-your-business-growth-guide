@@ -255,23 +255,27 @@ function normalizePromptText(value: string): string {
 
 function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicCategory?: string): string {
   const source = normalizePromptText(rawHeadline || campaignContext?.offer || '');
-  if (!source) return 'סטנדרט חדש של איכות';
+  if (!source) return '';
 
   // If the AI already generated a creative headline (short, punchy, no promo words) — use it as-is
   const normalized = source.replace(/[.!?]+$/g, '');
   const isPromoSpeak = /(?:\d{1,3}%|מבצע|הנחה|חייגו|קבלו|עכשיו|לפרטים|התקשרו)/.test(normalized);
+  const isDescriptive = /(?:טיפולי|שירותי|מרפאת|חנות|מוצרי|מכירת)\s/.test(normalized) && normalized.length > 30;
   const isShortEnough = normalized.length <= 45;
 
-  if (isShortEnough && !isPromoSpeak) return normalized;
+  // If it's a creative headline (short, not promotional, not just a service description) — use it
+  if (isShortEnough && !isPromoSpeak && !isDescriptive) return normalized;
 
-  // Headline is too literal/long — return as-is but trimmed, let the AI agent produce the real headline
+  // Headline is too literal/descriptive — return empty to let the overlay use the concept.headline instead
+  // The frontend prioritizes concept.headline over this fallback anyway
   return normalized.slice(0, 45).trim();
 }
 
 function buildSecondaryLines(rawSource: string, businessName: string): { subtitle: string; bodyText: string } {
   const source = normalizePromptText(rawSource);
-  const fallbackSubtitle = businessName ? `ב${businessName} חושבים על כל פרט` : 'שירות מוקפד ברמה גבוהה';
-  const fallbackBody = businessName ? `ב${businessName} תקבלו ליווי מקצועי ואישי` : 'ליווי מקצועי ואישי מהשלב הראשון';
+  // Better fallbacks — empty is better than generic filler text
+  const fallbackSubtitle = '';
+  const fallbackBody = '';
 
   if (!source) return { subtitle: fallbackSubtitle, bodyText: fallbackBody };
 

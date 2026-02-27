@@ -91,7 +91,6 @@ function darkenHex(hex: string, factor = 0.3): string {
 function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   const primary = config.primaryColor || '#2BA5B5';
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
-  const darkText = '#1a2a3a';
 
   const headline = (config.headline ? cleanText(config.headline) : '').slice(0, 56);
   const subtitle = (config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72);
@@ -102,100 +101,102 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
   const address = config.address || '';
 
   const scale = Math.min(width, height) / 1024;
-  const headlineSize = Math.round(44 * scale);
+  const headlineSize = Math.round(46 * scale);
   const subtitleSize = Math.round(22 * scale);
   const bodySize = Math.round(17 * scale);
-  const phoneSize = Math.round(28 * scale);
+  const phoneSize = Math.round(26 * scale);
   const nameSize = Math.round(16 * scale);
   const labelSize = Math.round(13 * scale);
 
-  // Photo occupies ~55% top, compact text area below — NO wasted white space
-  const photoHeight = Math.round(height * 0.55);
-  const contactHeight = Math.round(height * 0.13);
-  const textAreaHeight = height - photoHeight - contactHeight;
+  const contactHeight = Math.round(height * 0.12);
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(56 * scale)}px; max-width:${Math.round(140 * scale)}px; object-fit:contain;" />` : '';
+         style="max-height:${Math.round(52 * scale)}px; max-width:${Math.round(130 * scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));" />` : '';
 
-  // Services/social proof bar
+  // Services bar
   const servicesHtml = config.servicesList?.length ? `
-    <div style="background:${primary}; padding:${Math.round(6 * scale)}px ${Math.round(16 * scale)}px;
-                display:flex; align-items:center; justify-content:center; gap:${Math.round(16 * scale)}px;">
+    <div style="display:flex; align-items:center; justify-content:center; gap:${Math.round(14 * scale)}px; margin-top:${Math.round(6 * scale)}px;">
       ${config.servicesList.slice(0, 4).map(s => `
-        <span style="color:#fff; font-size:${Math.round(13 * scale)}px; font-weight:700;">${cleanText(s)}</span>
-      `).join(`<span style="color:rgba(255,255,255,0.5); font-size:${Math.round(12 * scale)}px;">|</span>`)}
+        <span style="color:rgba(255,255,255,0.95); font-size:${Math.round(13 * scale)}px; font-weight:700;
+                     text-shadow:0 1px 4px rgba(0,0,0,0.5);">${cleanText(s)}</span>
+      `).join(`<span style="color:rgba(255,255,255,0.4); font-size:${Math.round(12 * scale)}px;">|</span>`)}
     </div>` : '';
 
   return `
-    <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden; background:#fff;">
+    <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
       
-      <!-- Photo area — top portion -->
-      <div style="position:relative; width:100%; height:${photoHeight}px; overflow:hidden;">
-        <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
-        <!-- Soft bottom fade to white -->
-        <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(photoHeight * 0.15)}px;
-                    background:linear-gradient(0deg, #fff 0%, transparent 100%); pointer-events:none;"></div>
-      </div>
+      <!-- Full-bleed background image -->
+      <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
 
-      <!-- Text area — compact, no wasted space -->
-      <div style="position:absolute; top:${photoHeight}px; left:0; right:0; height:${textAreaHeight}px;
-                  display:flex; flex-direction:column; justify-content:center; background:#fff;
-                  padding:${Math.round(6 * scale)}px ${Math.round(20 * scale)}px;">
-        
-        <!-- Headline in brand color -->
-        ${headline ? `
-          <div style="text-align:center; margin-bottom:${Math.round(4 * scale)}px;">
-            <div style="font-size:${headlineSize}px; font-weight:900; color:${primary}; line-height:1.2; letter-spacing:-0.5px;">
-              ${headline}
-            </div>
+      <!-- Top cinematic vignette for headline readability -->
+      <div style="position:absolute; top:0; left:0; right:0; height:${Math.round(height * 0.35)}px;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 55%, transparent 100%); pointer-events:none;"></div>
+
+      <!-- Headline overlaid on image — top area -->
+      ${headline ? `
+        <div style="position:absolute; top:${Math.round(28 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px; text-align:center; z-index:2;">
+          <div style="font-size:${headlineSize}px; font-weight:900; color:#fff; line-height:1.25; letter-spacing:-0.5px;
+                      text-shadow:0 3px 16px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5);">
+            ${headline}
           </div>
-        ` : ''}
+        </div>
+      ` : ''}
 
-        <!-- Subtitle -->
-        ${subtitle ? `
-          <div style="text-align:center; margin-bottom:${Math.round(4 * scale)}px;">
-            <div style="font-size:${subtitleSize}px; font-weight:600; color:${darkText}; line-height:1.35;">
-              ${subtitle}
-            </div>
+      <!-- Subtitle — below headline on image -->
+      ${subtitle ? `
+        <div style="position:absolute; top:${Math.round(88 * scale)}px; left:${Math.round(28 * scale)}px; right:${Math.round(28 * scale)}px; text-align:center; z-index:2;">
+          <div style="font-size:${subtitleSize}px; font-weight:600; color:rgba(255,255,255,0.95);
+                      text-shadow:0 2px 10px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4); line-height:1.35;">
+            ${subtitle}
           </div>
-        ` : ''}
+        </div>
+      ` : ''}
 
-        <!-- Body text -->
-        ${bodyText ? `
-          <div style="text-align:center;">
-            <div style="font-size:${bodySize}px; font-weight:500; color:#555; line-height:1.5;">
-              ${bodyText}
-            </div>
+      <!-- Bottom gradient for body text + contact -->
+      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height * 0.40)}px;
+                  background:linear-gradient(0deg, ${hexToRgba(primary, 0.88)} 0%, ${hexToRgba(primary, 0.60)} 35%, ${hexToRgba(primary, 0.15)} 70%, transparent 100%);
+                  pointer-events:none; z-index:1;"></div>
+
+      <!-- Body text above contact -->
+      ${bodyText ? `
+        <div style="position:absolute; bottom:${contactHeight + Math.round(16 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px;
+                    text-align:center; z-index:2;">
+          <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
+                      text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.55;">
+            ${bodyText}
           </div>
-        ` : ''}
+          ${servicesHtml}
+        </div>
+      ` : servicesHtml ? `
+        <div style="position:absolute; bottom:${contactHeight + Math.round(16 * scale)}px; left:${Math.round(24 * scale)}px; right:${Math.round(24 * scale)}px;
+                    text-align:center; z-index:2;">
+          ${servicesHtml}
+        </div>
+      ` : ''}
 
-        <!-- Services bar -->
-        ${servicesHtml}
-      </div>
-
-      <!-- Contact strip — fixed at bottom, brand accent -->
+      <!-- Contact strip — fixed at bottom -->
       <div style="position:absolute; bottom:0; left:0; right:0; height:${contactHeight}px;
-                  background:${hexToRgba(primary, 0.06)}; border-top:2px solid ${primary};
+                  background:${hexToRgba(primary, 0.92)}; backdrop-filter:blur(8px);
                   display:grid; grid-template-columns:auto 1fr auto; align-items:center;
-                  padding:0 ${Math.round(18 * scale)}px; gap:${Math.round(12 * scale)}px; direction:ltr;">
+                  padding:0 ${Math.round(18 * scale)}px; gap:${Math.round(12 * scale)}px; direction:ltr; z-index:3;">
         
         <!-- Logo — bottom left -->
         <div style="display:flex; align-items:center;">${logoHtml}</div>
 
-        <!-- Phone prominent center -->
+        <!-- Phone + details center -->
         <div style="text-align:center; direction:rtl;">
           ${phone ? `
-            <div style="font-size:${labelSize}px; color:${primary}; font-weight:600;">חייגו עוד היום:</div>
-            <div style="font-size:${phoneSize}px; font-weight:900; color:${darkText}; direction:ltr; letter-spacing:1px;">${phone}</div>
+            <div style="font-size:${phoneSize}px; font-weight:900; color:#fff; direction:ltr; letter-spacing:1px;
+                        text-shadow:0 1px 4px rgba(0,0,0,0.3);">${phone}</div>
           ` : ''}
-          ${address ? `<div style="font-size:${Math.round(11 * scale)}px; color:#666; margin-top:${Math.round(1 * scale)}px;">${address}</div>` : ''}
-          ${email ? `<div style="font-size:${Math.round(11 * scale)}px; color:#666;">${email}</div>` : ''}
+          ${address ? `<div style="font-size:${Math.round(11 * scale)}px; color:rgba(255,255,255,0.75); margin-top:${Math.round(1 * scale)}px;">${address}</div>` : ''}
+          ${email ? `<div style="font-size:${Math.round(11 * scale)}px; color:rgba(255,255,255,0.75);">${email}</div>` : ''}
         </div>
 
         <!-- Business name — right side -->
         <div style="text-align:right; direction:rtl;">
-          <div style="font-size:${nameSize}px; font-weight:800; color:${primary};">${businessName}</div>
+          <div style="font-size:${nameSize}px; font-weight:800; color:#fff;">${businessName}</div>
         </div>
       </div>
     </div>
