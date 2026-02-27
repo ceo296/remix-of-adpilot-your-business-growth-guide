@@ -249,6 +249,57 @@ VERY IMPORTANT:
   return { imageUrl: baseImageUrl, model: 'fallback-visual-only' };
 }
 
+function normalizePromptText(value: string): string {
+  return (value || '').replace(/\s+/g, ' ').trim();
+}
+
+function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicCategory?: string): string {
+  const source = normalizePromptText(rawHeadline || campaignContext?.offer || '');
+  if (!source) return 'סטנדרט חדש של איכות';
+
+  const dentalSignal = /שן|שיניים|דנטל|חיוך|מרפא/.test(`${source} ${campaignContext?.offer || ''}`.toLowerCase()) || topicCategory === 'dental';
+  if (dentalSignal) return 'חיוך מהודר שמתחיל נכון';
+
+  const normalized = source.replace(/[.!?]+$/g, '');
+  const tooLiteral = normalized.length > 40 || /(?:\d{1,3}%|מבצע|הנחה|חייגו|קבלו|עכשיו|לפרטים)/.test(normalized);
+
+  if (!tooLiteral) return normalized;
+  if (campaignContext?.goal === 'promotion') return 'איכות שמרגישים מהמפגש הראשון';
+  return 'שירות מדויק לקהל שמבין איכות';
+}
+
+function buildSecondaryLines(rawSource: string, businessName: string): { subtitle: string; bodyText: string } {
+  const source = normalizePromptText(rawSource);
+  const fallbackSubtitle = businessName ? `ב${businessName} חושבים על כל פרט` : 'שירות מוקפד ברמה גבוהה';
+  const fallbackBody = businessName ? `ב${businessName} תקבלו ליווי מקצועי ואישי` : 'ליווי מקצועי ואישי מהשלב הראשון';
+
+  if (!source) return { subtitle: fallbackSubtitle, bodyText: fallbackBody };
+
+  const parts = source
+    .split(/[•|–—]/)
+    .map((p) => normalizePromptText(p))
+    .filter(Boolean);
+
+  if (parts.length >= 2) {
+    return {
+      subtitle: parts[0].slice(0, 56),
+      bodyText: parts[1].slice(0, 68),
+    };
+  }
+
+  if (source.length <= 56) {
+    return {
+      subtitle: source,
+      bodyText: fallbackBody,
+    };
+  }
+
+  return {
+    subtitle: source.slice(0, 56).trim(),
+    bodyText: source.slice(56, 124).trim() || fallbackBody,
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -525,16 +576,16 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     }
 
     // Extract text meta for frontend programmatic overlay
-    const headline = textPrompt || campaignContext?.offer || '';
+    const rawHeadline = textPrompt || campaignContext?.offer || '';
     const businessName = brandContext?.businessName || '';
     const phone = brandContext?.contactPhone || '';
-    const bodyText = campaignContext?.offer && textPrompt && textPrompt !== campaignContext.offer
-      ? campaignContext.offer 
-      : '';
-    const ctaText = phone ? 'חייגו עוד היום!' : '';
+    const headline = buildCreativeHeadline(rawHeadline, campaignContext, topicCategory);
+    const secondaryLines = buildSecondaryLines(campaignContext?.offer || textPrompt || '', businessName);
+    const bodyText = secondaryLines.bodyText;
+    const ctaText = '';
     
-    // Extract subtitle from campaign context
-    const subtitle = campaignContext?.subtitle || (businessName ? `חדש ב${businessName}!` : '');
+    // Keep top short headline + two sub-lines under the visual
+    const subtitle = secondaryLines.subtitle;
     
     // Extract services list from campaign context or x-factors
     const servicesList: string[] = campaignContext?.services 
