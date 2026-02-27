@@ -1988,7 +1988,11 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                     ? 'grid grid-cols-1 lg:grid-cols-2 gap-4' 
                     : mediaTypes.includes('billboard')
                     ? 'grid grid-cols-1 gap-4'
-                    : 'grid grid-cols-2 lg:grid-cols-4 gap-4'
+                    : generatedImages.length === 3
+                    ? 'grid grid-cols-1 sm:grid-cols-3 gap-4'
+                    : generatedImages.length === 4
+                    ? 'grid grid-cols-2 lg:grid-cols-4 gap-4'
+                    : 'grid grid-cols-2 lg:grid-cols-3 gap-4'
                 }>
                   {generatedImages.map((image) => (
                     <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
