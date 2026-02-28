@@ -124,7 +124,10 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
 
   const headline = splitLongText((config.headline ? cleanText(config.headline) : '').slice(0, 56), 28);
   const subtitle = splitLongText((config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72), 36);
-  const bodyText = splitLongText((config.bodyText ? cleanText(config.bodyText) : '').slice(0, 200), 50);
+  // Body text: hard cap at ~90 chars (≈3 lines max) to prevent visual clutter
+  const rawBody = config.bodyText ? cleanText(config.bodyText) : '';
+  const truncatedBody = rawBody.length > 90 ? rawBody.slice(0, 87).replace(/\s+\S*$/, '') + '...' : rawBody;
+  const bodyText = splitLongText(truncatedBody, 42);
   const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
   const phone = config.phone || '';
   const email = config.email || '';
@@ -195,8 +198,9 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
         <div style="text-align:center;">
           ${bodyText ? `
             <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
-                        text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.7; word-break:break-word;
-                        max-width:${Math.round(width * 0.82)}px; margin:0 auto ${Math.round(8 * scale)}px;">
+                        text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.6; word-break:break-word;
+                        max-width:${Math.round(width * 0.78)}px; margin:0 auto ${Math.round(8 * scale)}px;
+                        display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
               ${bodyText}
             </div>
           ` : ''}
@@ -242,7 +246,10 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
 
   const headline = splitLongText((config.headline ? cleanText(config.headline) : '').slice(0, 56), 28);
   const subtitle = splitLongText((config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72), 36);
-  const bodyText = splitLongText((config.bodyText ? cleanText(config.bodyText) : '').slice(0, 160), 50);
+  // Body text: hard cap at ~90 chars (≈3 lines max) to prevent visual clutter
+  const rawBody2 = config.bodyText ? cleanText(config.bodyText) : '';
+  const truncatedBody2 = rawBody2.length > 90 ? rawBody2.slice(0, 87).replace(/\s+\S*$/, '') + '...' : rawBody2;
+  const bodyText = splitLongText(truncatedBody2, 42);
   const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
   const phone = config.phone || '';
   const email = config.email || '';
