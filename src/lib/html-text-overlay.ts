@@ -125,7 +125,7 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(52 * scale)}px; max-width:${Math.round(130 * scale)}px; object-fit:contain; background:transparent; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5)); mix-blend-mode:multiply;" />` : '';
+         style="max-height:${Math.round(52 * scale)}px; max-width:${Math.round(130 * scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.6));" />` : '';
 
   // Services bar
   const servicesHtml = config.servicesList?.length ? `
@@ -237,7 +237,7 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain; background:transparent; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5)); mix-blend-mode:multiply;" />` : '';
+         style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.6));" />` : '';
 
   const contactStripHeight = Math.round(height * 0.12);
   // Text area in lower portion — semi-transparent brand background
@@ -337,7 +337,7 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous" 
-         style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4)); mix-blend-mode:multiply;" />` : '';
+         style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.6));" />` : '';
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
@@ -474,7 +474,7 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
         <div style="position:absolute; bottom:0; left:0; right:0; padding:${Math.round(10*scale)}px ${Math.round(20*scale)}px;
                     display:flex; align-items:center; justify-content:space-between; direction:ltr;">
           ${isRenderableImageUrl(config.logoUrl) ? `
-            <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(42*scale)}px; max-width:${Math.round(100*scale)}px; object-fit:contain; background:transparent; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5)); mix-blend-mode:multiply;" />
+            <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(42*scale)}px; max-width:${Math.round(100*scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.6));" />
           ` : '<div></div>'}
           ${phone ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:900; color:${secondary}; direction:ltr;">${phone}</div>` : ''}
           <div style="font-size:${Math.round(20*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
@@ -509,7 +509,7 @@ function buildSideStripHTML(config: TextOverlayConfig, width: number, height: nu
       <div style="position:absolute; top:0; right:0; width:${stripWidth}px; height:100%; 
                   display:flex; flex-direction:column; align-items:center; justify-content:center; 
                   padding:${Math.round(24*scale)}px; gap:${Math.round(16*scale)}px; text-align:center;">
-        ${isRenderableImageUrl(config.logoUrl) ? `<img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(60*scale)}px; max-width:${Math.round(stripWidth*0.7)}px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3)); mix-blend-mode:multiply;" />` : ''}
+        ${isRenderableImageUrl(config.logoUrl) ? `<img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(60*scale)}px; max-width:${Math.round(stripWidth*0.7)}px; object-fit:contain; background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.5));" />` : ''}
         ${businessName ? `<div style="font-size:${Math.round(32*scale)}px; font-weight:900; color:${textOnPrimary};">${businessName}</div>` : ''}
         <div style="width:60%; height:3px; background:${secondary};"></div>
         ${headline ? `<div style="font-size:${Math.round(26*scale)}px; font-weight:900; color:${textOnPrimary}; line-height:1.3;">${headline}</div>` : ''}
