@@ -145,11 +145,11 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
 
   const contactHeight = Math.round(height * 0.12);
 
-  const logoHeight = Math.max(Math.round(70 * scale), 40);
-  const logoWidth = Math.max(Math.round(170 * scale), 80);
+  const logoHeight = Math.max(Math.round(85 * scale), 48);
+  const logoWidth = Math.max(Math.round(200 * scale), 90);
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${logoHeight}px; max-width:${logoWidth}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7));" />` : '';
+         style="max-height:${logoHeight}px; max-width:${logoWidth}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8)); border-radius:4px;" />` : '';
 
   // Services bar
   const servicesHtml = config.servicesList?.length ? `
@@ -264,7 +264,7 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.max(Math.round(65 * scale), 36)}px; max-width:${Math.max(Math.round(150 * scale), 70)}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7));" />` : '';
+         style="max-height:${Math.max(Math.round(85 * scale), 48)}px; max-width:${Math.max(Math.round(200 * scale), 90)}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8)); border-radius:4px;" />` : '';
 
   const contactStripHeight = Math.round(height * 0.12);
   // Text area in lower portion — semi-transparent brand background
@@ -364,7 +364,7 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous" 
-         style="max-height:${Math.round(50*scale)}px; max-width:${Math.round(120*scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.6));" />` : '';
+         style="max-height:${Math.round(85*scale)}px; max-width:${Math.round(200*scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8)); border-radius:4px;" />` : '';
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
