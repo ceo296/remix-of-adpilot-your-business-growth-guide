@@ -273,11 +273,24 @@ function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicC
 
 function buildSecondaryLines(rawSource: string, businessName: string): { subtitle: string; bodyText: string } {
   const source = normalizePromptText(rawSource);
-  // Better fallbacks — empty is better than generic filler text
   const fallbackSubtitle = '';
   const fallbackBody = '';
 
   if (!source) return { subtitle: fallbackSubtitle, bodyText: fallbackBody };
+
+  // Try to extract meaningful sub-elements from the brief:
+  // 1. Look for discount/promo lines
+  const promoMatch = source.match(/(\d{1,3}%\s*הנחה[^.!]*)/);
+  // 2. Look for price/package lines
+  const priceMatch = source.match(/(\d{3,5}\s*(?:ש"ח|₪)[^.!]*)/);
+  // 3. Look for key USP phrases
+  const uspMatch = source.match(/(היתרון[^.!]*|הכי חשוב[^.!]*|לא קוסמטיקאית[^.!]*|רופאה[^.!]*)/i);
+  
+  if (promoMatch || priceMatch || uspMatch) {
+    const subtitle = (uspMatch?.[1] || promoMatch?.[1] || '').slice(0, 56).trim();
+    const bodyText = (promoMatch?.[1] || priceMatch?.[1] || '').slice(0, 68).trim();
+    if (subtitle || bodyText) return { subtitle, bodyText };
+  }
 
   const parts = source
     .split(/[•|–—]/)
@@ -621,13 +634,40 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     // Keep top short headline + two sub-lines under the visual
     const subtitle = secondaryLines.subtitle;
     
-    // Extract services list from campaign context or x-factors
-    const servicesList: string[] = campaignContext?.services 
-      || (brandContext?.xFactors?.length ? brandContext.xFactors.slice(0, 5) : []);
+    // Extract services list from campaign context, offer text, or x-factors
+    let servicesList: string[] = campaignContext?.services || [];
     
-    // Promo info from campaign context
-    const promoText = campaignContext?.promoText || '';
-    const promoValue = campaignContext?.promoValue || '';
+    // Auto-extract services/treatments from the offer brief if none provided
+    if (!servicesList.length && campaignContext?.offer) {
+      const offerText = campaignContext.offer;
+      // Look for treatment/service names (Hebrew patterns)
+      const treatmentPatterns = offerText.match(/(?:בוטוקס|סקין בוסטר|מיקרונידלינג|עיצוב שפתיים|חומצה היאלורונית|אסטפיל|ביוסטימולטור|פולינוקלאוטידים|טיפולי?[ם]?\s+[\u0590-\u05FF]+|חבילת\s+[\w\s]+)/gi) || [];
+      if (treatmentPatterns.length > 0) {
+        servicesList = [...new Set(treatmentPatterns.map(t => t.trim()))].slice(0, 5);
+      }
+    }
+    
+    if (!servicesList.length && brandContext?.xFactors?.length) {
+      servicesList = brandContext.xFactors.slice(0, 5);
+    }
+    
+    // Auto-extract promo info from the offer brief
+    let promoText = campaignContext?.promoText || '';
+    let promoValue = campaignContext?.promoValue || '';
+    
+    if (!promoText && campaignContext?.offer) {
+      const offerText = campaignContext.offer;
+      // Extract discount percentages
+      const discountMatch = offerText.match(/(\d{1,3}%\s*הנחה(?:\s+על\s+[\u0590-\u05FF\s]+)?)/);
+      if (discountMatch) {
+        promoValue = discountMatch[1].trim();
+      }
+      // Extract price mentions
+      const priceMatch = offerText.match(/(\d{3,5})\s*(?:ש"ח|₪)/);
+      if (priceMatch && !promoValue) {
+        promoValue = `מ-${priceMatch[1]} ₪`;
+      }
+    }
 
     return new Response(JSON.stringify({ 
       imageUrl: visualResult.imageUrl,
