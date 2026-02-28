@@ -135,7 +135,7 @@ const SectorBrain = () => {
   const [aiInsights, setAiInsights] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedInsightType, setSelectedInsightType] = useState<string | null>(null);
-  const [insightCategory, setInsightCategory] = useState<'general' | 'media' | 'stream' | 'holiday' | 'topic'>('general');
+  const [insightCategory, setInsightCategory] = useState<'general' | 'visual' | 'media' | 'stream' | 'holiday' | 'topic'>('general');
   const [enlargedImage, setEnlargedImage] = useState<{ url: string; name: string } | null>(null);
 
   // Check admin role
@@ -1207,8 +1207,9 @@ const SectorBrain = () => {
                   <CardContent className="space-y-4">
                     {/* Category buttons */}
                     <div className="flex flex-wrap gap-2 border-b pb-3">
-                      {[
+                     {[
                         { id: 'general' as const, label: '🎯 כללי' },
+                        { id: 'visual' as const, label: '🎨 ויזואלי' },
                         { id: 'topic' as const, label: '📦 לפי תחום' },
                         { id: 'holiday' as const, label: '🗓️ לפי חג' },
                         { id: 'media' as const, label: '📰 לפי מדיה' },
@@ -1229,6 +1230,7 @@ const SectorBrain = () => {
                     {/* Sub-options */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                       {(insightCategory === 'general' ? [{ id: 'general', label: '🎯 ניתוח כללי' }] :
+                        insightCategory === 'visual' ? [{ id: 'visual_patterns', label: '🎨 דפוסים ויזואליים — אילו תמונות עובדות לאיזה תחום וקהל' }] :
                         insightCategory === 'topic' ? Object.entries(TOPIC_LABELS).filter(([k]) => (stats.byTopic[k] || 0) > 0).map(([k, v]) => ({ id: `topic_${k}`, label: `${v} (${stats.byTopic[k]})` })) :
                         insightCategory === 'holiday' ? Object.entries(HOLIDAY_LABELS).filter(([k]) => k === 'year_round' || (stats.byHoliday[k] || 0) > 0).map(([k, v]) => ({ id: `holiday_${k}`, label: v })) :
                         insightCategory === 'media' ? MEDIA_TYPES.filter(m => (stats.byMedia[m.id] || 0) > 0).map(m => ({ id: `media_${m.id}`, label: `${m.label} (${stats.byMedia[m.id]})` })) :
