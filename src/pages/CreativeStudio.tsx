@@ -871,6 +871,24 @@ const CreativeStudio = () => {
     };
     setPendingCorrections(prev => [...prev, newCorrection]);
     
+    // Save correction as a pending creative rule (insight) for admin approval
+    // This ensures recurring corrections become permanent rules for ALL future creatives
+    try {
+      const correctionText = feedbackText.trim();
+      const targetInfo = selectedSketchIds.length > 0 
+        ? `(סקיצות: ${selectedSketchIds.join(', ')})` 
+        : '(כל הסקיצות)';
+      const correctionContent = `[תיקון קריאייטיב] ${correctionText} ${targetInfo}`;
+      
+      await supabase.from('sector_brain_insights').insert({
+        insight_type: 'creative_correction',
+        content: correctionContent,
+        is_active: false, // Pending admin approval
+      });
+    } catch (e) {
+      console.warn('Failed to save correction as insight:', e);
+    }
+    
     toast.info('מייצר סקיצות מתוקנות... 🎨');
     
     // Reset feedback UI
