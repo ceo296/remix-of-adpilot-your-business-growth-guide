@@ -441,6 +441,24 @@ const SectorBrain = () => {
           } catch { textBuffer = line + '\n' + textBuffer; break; }
         }
       }
+      // Auto-save insight after successful analysis
+      if (fullContent.length > 50) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from('sector_brain_insights').delete().eq('insight_type', insightType);
+            await supabase.from('sector_brain_insights').insert({
+              insight_type: insightType,
+              content: fullContent,
+              created_by: user.id,
+              is_active: true,
+            });
+            toast.success('✅ התובנה נשמרה אוטומטית כידע פעיל לסוכנים');
+          }
+        } catch (autoSaveErr) {
+          console.error('Auto-save insight error:', autoSaveErr);
+        }
+      }
     } catch (error) {
       console.error('Analysis error:', error);
       toast.error('שגיאה בניתוח התוכן');
@@ -1291,13 +1309,13 @@ const SectorBrain = () => {
                         {aiInsights && (
                           <>
                             <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">{aiInsights}</div>
-                            <div className="mt-4 flex gap-2 border-t pt-3">
-                              <Button onClick={saveInsight} className="bg-green-600 hover:bg-green-700 text-white">
-                                <Sparkles className="h-4 w-4 ml-1" />
-                                שמור כידע פעיל לסוכנים
-                              </Button>
-                              <p className="text-xs text-muted-foreground self-center">
-                                לאחר השמירה, כל הסוכנים (אסטרטג, קופירייטר, ארט דירקטור) ישתמשו בתובנה הזו ביצירת מודעות
+                            <div className="mt-4 flex gap-2 border-t pt-3 items-center">
+                              <Badge variant="outline" className="text-green-600 border-green-600">
+                                <Check className="h-3 w-3 ml-1" />
+                                נשמר אוטומטית
+                              </Badge>
+                              <p className="text-xs text-muted-foreground">
+                                התובנה נשמרה אוטומטית — כל הסוכנים ישתמשו בה ביצירת מודעות
                               </p>
                             </div>
                           </>
