@@ -124,7 +124,7 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(52 * scale)}px; max-width:${Math.round(130 * scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3)); mix-blend-mode:multiply;" />` : '';
+         style="max-height:${Math.round(52 * scale)}px; max-width:${Math.round(130 * scale)}px; object-fit:contain; background:transparent; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5)); mix-blend-mode:multiply;" />` : '';
 
   // Services bar
   const servicesHtml = config.servicesList?.length ? `
@@ -182,14 +182,14 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
         </div>
       </div>
 
-      <!-- Contact strip — fixed at bottom -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${contactHeight}px;
-                  background:${hexToRgba(primary, 0.92)}; backdrop-filter:blur(8px);
-                  display:grid; grid-template-columns:auto 1fr auto; align-items:center;
-                  padding:0 ${Math.round(18 * scale)}px; gap:${Math.round(12 * scale)}px; direction:ltr; z-index:3;">
+      <!-- Contact strip — smooth gradient fade at bottom -->
+      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(contactHeight * 1.6)}px;
+                  background:linear-gradient(180deg, transparent 0%, ${hexToRgba(primary, 0.6)} 35%, ${hexToRgba(primary, 0.92)} 70%, ${hexToRgba(primary, 0.95)} 100%);
+                  display:grid; grid-template-columns:auto 1fr auto; align-items:end;
+                  padding:0 ${Math.round(18 * scale)}px ${Math.round(10 * scale)}px; gap:${Math.round(12 * scale)}px; direction:ltr; z-index:3;">
         
-        <!-- Logo — bottom left -->
-        <div style="display:flex; align-items:center;">${logoHtml}</div>
+        <!-- Logo — bottom left, no background -->
+        <div style="display:flex; align-items:center; background:transparent;">${logoHtml}</div>
 
         <!-- Phone + details center -->
         <div style="text-align:center; direction:rtl;">
@@ -235,9 +235,8 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3)); mix-blend-mode:multiply;" />` : '';
+         style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain; background:transparent; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5)); mix-blend-mode:multiply;" />` : '';
 
-  // Contact strip at bottom — brand colored
   const contactStripHeight = Math.round(height * 0.12);
   // Text area in lower portion — semi-transparent brand background
   const textAreaHeight = Math.round(height * 0.32);
@@ -288,11 +287,12 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
         ` : ''}
       </div>
 
-      <!-- Contact strip at bottom -->
-      <div style="position:absolute; bottom:0; left:0; right:0; background:${hexToRgba(primary, 0.95)};
-                  padding:${Math.round(10 * scale)}px ${Math.round(18 * scale)}px;
-                  display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:${Math.round(12 * scale)}px; direction:ltr; z-index:3;">
-        <div style="display:flex; align-items:center;">${logoHtml}</div>
+      <!-- Contact strip — smooth gradient fade -->
+      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height * 0.18)}px;
+                  background:linear-gradient(180deg, transparent 0%, ${hexToRgba(primary, 0.6)} 30%, ${hexToRgba(primary, 0.92)} 65%, ${hexToRgba(primary, 0.95)} 100%);
+                  display:grid; grid-template-columns:auto 1fr auto; align-items:end;
+                  padding:0 ${Math.round(18 * scale)}px ${Math.round(10 * scale)}px; gap:${Math.round(12 * scale)}px; direction:ltr; z-index:3;">
+        <div style="display:flex; align-items:center; background:transparent;">${logoHtml}</div>
         <div style="text-align:center; direction:rtl;">
           ${phone ? `<div style="font-size:${phoneSize}px; font-weight:900; color:${textOnPrimary}; direction:ltr; letter-spacing:1px;">${phone}</div>` : ''}
           ${address ? `<div style="font-size:${Math.round(11 * scale)}px; color:${hexToRgba(textOnPrimary === '#FFFFFF' ? '#fff' : '#000', 0.7)}; margin-top:${Math.round(2 * scale)}px;">${address}</div>` : ''}
@@ -384,11 +384,12 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
         </div>
       </div>
 
-      <!-- Contact strip — logo always bottom-left -->
-      <div style="position:absolute; bottom:0; left:0; right:0; background:${hexToRgba(primary,0.95)};
-                  padding:${Math.round(8*scale)}px ${Math.round(16*scale)}px;
-                  display:flex; align-items:center; justify-content:space-between; gap:${Math.round(10*scale)}px; direction:ltr; z-index:3;">
-        <div style="display:flex; align-items:center; gap:${Math.round(8*scale)}px;">
+      <!-- Contact strip — smooth gradient fade -->
+      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height*0.18)}px;
+                  background:linear-gradient(180deg, transparent 0%, ${hexToRgba(primary,0.55)} 30%, ${hexToRgba(primary,0.9)} 65%, ${hexToRgba(primary,0.95)} 100%);
+                  display:flex; align-items:end; justify-content:space-between; gap:${Math.round(10*scale)}px;
+                  padding:0 ${Math.round(16*scale)}px ${Math.round(10*scale)}px; direction:ltr; z-index:3;">
+        <div style="display:flex; align-items:center; gap:${Math.round(8*scale)}px; background:transparent;">
           ${logoHtml}
         </div>
         ${phone ? `<div style="font-size:${Math.round(20*scale)}px; font-weight:900; color:${secondary}; letter-spacing:1px; direction:ltr;">${phone}</div>` : ''}
@@ -465,13 +466,13 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
         </div>
       </div>
 
-      <!-- Contact strip -->
-      <div style="position:absolute; bottom:0; left:0; right:0; z-index:3;">
-        <div style="height:2px; background:${secondary};"></div>
-        <div style="background:${hexToRgba(primary,0.92)}; padding:${Math.round(10*scale)}px ${Math.round(20*scale)}px;
+      <!-- Contact strip — smooth gradient fade -->
+      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height*0.18)}px; z-index:3;
+                  background:linear-gradient(180deg, transparent 0%, ${hexToRgba(primary,0.55)} 30%, ${hexToRgba(primary,0.9)} 65%, ${hexToRgba(primary,0.95)} 100%);">
+        <div style="position:absolute; bottom:0; left:0; right:0; padding:${Math.round(10*scale)}px ${Math.round(20*scale)}px;
                     display:flex; align-items:center; justify-content:space-between; direction:ltr;">
           ${isRenderableImageUrl(config.logoUrl) ? `
-            <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(42*scale)}px; max-width:${Math.round(100*scale)}px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4)); mix-blend-mode:multiply;" />
+            <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(42*scale)}px; max-width:${Math.round(100*scale)}px; object-fit:contain; background:transparent; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5)); mix-blend-mode:multiply;" />
           ` : '<div></div>'}
           ${phone ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:900; color:${secondary}; direction:ltr;">${phone}</div>` : ''}
           <div style="font-size:${Math.round(20*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
