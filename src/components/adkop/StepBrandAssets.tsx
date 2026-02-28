@@ -10,22 +10,24 @@ interface Props {
 
 const StepBrandAssets = ({ data, onChange }: Props) => {
   const handleLogoDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
+    async (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       const file = e.dataTransfer.files[0];
-      if (file && file.type.startsWith('image/')) {
-        const preview = URL.createObjectURL(file);
-        onChange({ ...data, logoFile: file, logoPreview: preview, extractedColors: [] });
+      if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
+        const { fileToLogoDataUrl } = await import('@/lib/logo-utils');
+        const { dataUrl } = await fileToLogoDataUrl(file);
+        onChange({ ...data, logoFile: file, logoPreview: dataUrl, extractedColors: [] });
       }
     },
     [data, onChange]
   );
 
-  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const preview = URL.createObjectURL(file);
-      onChange({ ...data, logoFile: file, logoPreview: preview, extractedColors: [] });
+      const { fileToLogoDataUrl } = await import('@/lib/logo-utils');
+      const { dataUrl } = await fileToLogoDataUrl(file);
+      onChange({ ...data, logoFile: file, logoPreview: dataUrl, extractedColors: [] });
     }
   };
 
@@ -58,7 +60,7 @@ const StepBrandAssets = ({ data, onChange }: Props) => {
         >
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,.pdf"
             onChange={handleLogoSelect}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />

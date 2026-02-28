@@ -192,13 +192,27 @@ const ClientProfilePage = () => {
 
     setIsUploadingLogo(true);
     try {
-      const fileExt = file.name.split('.').pop();
+      // Auto-convert PDF logos to PNG
+      let uploadFile: File | Blob = file;
+      let fileExt = file.name.split('.').pop();
+      
+      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        toast.loading('ממיר PDF ל-PNG...', { id: 'pdf-convert' });
+        const { fileToLogoDataUrl } = await import('@/lib/logo-utils');
+        const { dataUrl } = await fileToLogoDataUrl(file);
+        // Convert data URL back to blob
+        const res = await fetch(dataUrl);
+        uploadFile = await res.blob();
+        fileExt = 'png';
+        toast.success('PDF הומר בהצלחה!', { id: 'pdf-convert' });
+      }
+      
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `logos/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('client-assets')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, uploadFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
