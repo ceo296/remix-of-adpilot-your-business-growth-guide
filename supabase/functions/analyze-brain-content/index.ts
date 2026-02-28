@@ -302,6 +302,70 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
 
       userPrompt = buildFilteredUserPrompt(relevantExamples, linkContents, holidayLabel, 'holiday_season', holiday);
 
+    } else if (insightType === 'visual_patterns') {
+      // Visual patterns analysis - what visuals work per sector/audience
+      const imageExamplesAll = examples.filter(e => e.file_type?.startsWith('image/') && e.file_path);
+      const relevantExamples = imageExamplesAll;
+      
+      systemPrompt = `אתה מומחה בכיר לפרסום ויזואלי במגזר החרדי עם 20 שנות ניסיון.
+קיבלת גישה לתמונות אמיתיות שהועלו כרפרנסים למערכת.
+
+המשימה שלך: לנתח את התמונות ולזהות דפוסים ויזואליים — אילו סוגי תמונות עובדים לאילו תחומים וקהלים.
+
+הפורמט הרצוי (חובה!):
+
+## 🎨 ניתוח דפוסים ויזואליים — מה עובד ולמה
+
+### 📸 סוגי תמונות שזיהיתי במאגר
+לכל סוג ציין:
+- **שם הסוג** (למשל: "צילום מוצר על רקע נקי", "איור גרפי שטוח", "צילום אווירה")
+- 🖼️ דוגמאות ספציפיות מהמאגר שממחישות
+- 🎯 לאיזה תחומים מתאים (נדל"ן, אופנה, מזון...)
+- 👥 לאיזה קהל מתאים (חסידי, ליטאי, נשים, גברים...)
+
+### 🏷️ המלצות לפי תחום
+לכל תחום שיש עליו דוגמאות, ציין:
+- **[שם התחום]**: איזה סוג ויזואל עובד הכי טוב? למה?
+- 🟢 כן: [תיאור הויזואל המומלץ]
+- 🔴 לא: [מה להימנע]
+
+### 👥 הבדלים לפי קהל יעד
+- מה עובד לקהל חסידי vs ליטאי?
+- הבדלים בין פרסום לגברים vs נשים?
+- סגנון צילום/איור שונה לפי זרם?
+
+### 🔑 3 כללי זהב ויזואליים
+סכם ב-3 משפטים מה הדבר הכי חשוב שלמדת מהתמונות.
+
+כללים:
+- חובה להתייחס לתמונות ספציפיות בשמן!
+- התמקד ב-VISUALS - לא בטקסט או מסרים
+- ציין פלטות צבעים, סגנונות צילום, קומפוזיציה, שימוש ברווח לבן
+- אם זיהית דפוס חוזר (למשל: "רוב מודעות הנדלן משתמשות ב...") — ציין
+- כתוב בעברית ברורה ופרקטית`;
+
+      userPrompt = `📊 סטטיסטיקה ויזואלית:
+- סה"כ תמונות במאגר: ${imageExamplesAll.length}
+- דוגמאות טובות: ${imageExamplesAll.filter(e => e.example_type === 'good').length}
+- דוגמאות רעות: ${imageExamplesAll.filter(e => e.example_type === 'bad').length}
+
+📦 פילוח לפי תחום:
+${Object.entries(TOPIC_LABELS).map(([k, v]) => {
+  const count = imageExamplesAll.filter(e => e.topic_category === k).length;
+  return count > 0 ? `- ${v}: ${count} תמונות` : null;
+}).filter(Boolean).join('\n') || 'אין תיוג'}
+
+🕍 פילוח לפי זרם:
+${Object.entries(STREAM_LABELS).map(([k, v]) => {
+  const count = imageExamplesAll.filter(e => e.stream_type === k).length;
+  return count > 0 ? `- ${v}: ${count} תמונות` : null;
+}).filter(Boolean).join('\n') || 'אין תיוג'}
+
+📁 רשימת תמונות מפורטת:
+${imageExamplesAll.slice(0, 30).map((e, i) => formatExample(e, i)).join('\n\n')}
+
+🎯 נתח את התמונות ויזואלית וזהה דפוסים — אילו סוגי תמונות עובדים לאילו תחומים ולאילו קהלים.`;
+
     } else if (insightType.startsWith('topic_')) {
       // Topic-specific analysis
       const topic = insightType.replace('topic_', '');
@@ -312,20 +376,26 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       systemPrompt = `אתה מומחה בכיר לפרסום במגזר החרדי עם 20 שנות ניסיון, מתמחה בתחום ${topicLabel}.
 קיבלת גישה לדוגמאות ספציפיות שהועלו למערכת עבור תחום ${topicLabel}.
 
-חשוב מאוד - התייחס לדוגמאות ספציפיות!
+חשוב מאוד - התייחס לדוגמאות ספציפיות! נתח גם ויזואלית!
 
 הפורמט הרצוי:
 
 🏷️ **תובנות לפרסום בתחום ${topicLabel}**
 
-כתוב 4-6 תובנות, כל אחת בפורמט:
+### 📸 ויזואלים שעובדים בתחום ${topicLabel}
+- אילו סוגי תמונות עובדים? (צילום מוצר, אווירה, גרפיקה...)
+- פלטת צבעים נפוצה בתחום
+- סגנון עיצוב שחוזר על עצמו
 
+### 📝 תובנות תוכן ומסרים
+כתוב 3-4 תובנות, כל אחת בפורמט:
 • **כותרת התובנה**
   מהדוגמה "[ציטוט או תיאור]" אני רואה ש[התובנה].
   ✅ עשה: [המלצה ספציפית]
   ❌ אל תעשה: [מה להימנע]
 
 כללים:
+- חובה לנתח את התמונות ויזואלית — לא רק את המטאדאטה
 - התמקד באסטרטגיות שעובדות בתחום ${topicLabel} במגזר החרדי
 - ציין מה עובד/לא עובד ספציפית בתחום הזה
 - חובה להתייחס לדוגמאות ספציפיות שקיבלת`;
@@ -412,7 +482,10 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
 
     // Filter relevant images for the insight type
     let filteredImageExamples = imageExamples;
-    if (insightType.startsWith('topic_')) {
+    if (insightType === 'visual_patterns') {
+      // For visual patterns, send diverse images across topics - up to 12
+      filteredImageExamples = examples.filter(e => e.file_type?.startsWith('image/') && e.file_path).slice(0, 12);
+    } else if (insightType.startsWith('topic_')) {
       const topic = insightType.replace('topic_', '');
       filteredImageExamples = examples.filter(e => e.file_type?.startsWith('image/') && e.file_path && e.topic_category === topic).slice(0, 8);
     } else if (insightType.startsWith('holiday_')) {
