@@ -32,6 +32,8 @@ const TopNavbar = () => {
   const { isAgency } = useAgencyClients();
   const { signOut, user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [clientLogo, setClientLogo] = useState<string | null>(null);
+  const [clientName, setClientName] = useState<string | null>(null);
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
@@ -46,6 +48,25 @@ const TopNavbar = () => {
       setIsAdmin(!!data);
     };
     checkAdmin();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchClientLogo = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('client_profiles')
+        .select('logo_url, business_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) {
+        setClientName(data.business_name);
+        // Only set logo if it's a renderable image (not PDF)
+        if (data.logo_url && !data.logo_url.toLowerCase().includes('application/pdf') && !data.logo_url.toLowerCase().endsWith('.pdf')) {
+          setClientLogo(data.logo_url);
+        }
+      }
+    };
+    fetchClientLogo();
   }, [user]);
 
   const menuItems = [
@@ -98,7 +119,17 @@ const TopNavbar = () => {
         </nav>
 
         {/* Right side - Admin selector, Agency selector & Actions */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Client Logo */}
+          {clientLogo && (
+            <img 
+              src={clientLogo} 
+              alt={clientName || 'לוגו'} 
+              className="w-8 h-8 object-contain rounded"
+              style={{ mixBlendMode: 'multiply' }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )}
           {isAdmin && (
             <div className="hidden md:block">
               <AdminClientSelector />
