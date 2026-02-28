@@ -373,7 +373,7 @@ ${sectorBrainData.insights?.length ? `\n=== תובנות AI מהמאגר ===\n${
         },
         body: JSON.stringify({
           model: tryModel,
-          max_tokens: 8192,
+          max_completion_tokens: 8192,
           messages: [
             { role: 'system', content: systemPrompt + sectorContext },
             { role: 'user', content: sectorBrainData?.imageUrls?.length

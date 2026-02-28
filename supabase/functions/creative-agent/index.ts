@@ -329,7 +329,7 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'openai/gpt-5-mini',
           messages,
-          max_tokens: 8192,
+          max_completion_tokens: 8192,
         }),
       });
 
