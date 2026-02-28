@@ -447,6 +447,31 @@ const SectorBrain = () => {
     } finally { setIsAnalyzing(false); }
   };
 
+  // Save insight as active knowledge for agents
+  const saveInsight = async () => {
+    if (!aiInsights || !selectedInsightType) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error('יש להתחבר מחדש'); return; }
+      
+      // Upsert - replace existing insight of same type
+      const { error: deleteError } = await supabase.from('sector_brain_insights').delete().eq('insight_type', selectedInsightType);
+      if (deleteError) console.warn('Delete old insight:', deleteError);
+      
+      const { error } = await supabase.from('sector_brain_insights').insert({
+        insight_type: selectedInsightType,
+        content: aiInsights,
+        created_by: user.id,
+        is_active: true,
+      });
+      if (error) throw error;
+      toast.success('✅ התובנה נשמרה! הסוכנים ישתמשו בה ביצירת מודעות');
+    } catch (error) {
+      console.error('Save insight error:', error);
+      toast.error('שגיאה בשמירת התובנה');
+    }
+  };
+
   // Auto-describe images
   const [isDescribing, setIsDescribing] = useState(false);
   const [describeProgress, setDescribeProgress] = useState<{ processed: number; remaining: number } | null>(null);
@@ -1264,7 +1289,18 @@ const SectorBrain = () => {
                           </div>
                         )}
                         {aiInsights && (
-                          <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">{aiInsights}</div>
+                          <>
+                            <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">{aiInsights}</div>
+                            <div className="mt-4 flex gap-2 border-t pt-3">
+                              <Button onClick={saveInsight} className="bg-green-600 hover:bg-green-700 text-white">
+                                <Sparkles className="h-4 w-4 ml-1" />
+                                שמור כידע פעיל לסוכנים
+                              </Button>
+                              <p className="text-xs text-muted-foreground self-center">
+                                לאחר השמירה, כל הסוכנים (אסטרטג, קופירייטר, ארט דירקטור) ישתמשו בתובנה הזו ביצירת מודעות
+                              </p>
+                            </div>
+                          </>
                         )}
                       </div>
                     )}

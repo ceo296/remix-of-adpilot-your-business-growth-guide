@@ -9,38 +9,56 @@ const corsHeaders = {
 async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCategory?: string | null) {
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const selectFields = 'name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type, file_path, file_type';
-    
+    const selectFields = 'name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type, file_path, file_type, is_general_guideline';
     let topicExamples: any[] = [];
     if (topicCategory) {
-      const { data } = await supabase.from('sector_brain_examples').select(selectFields).eq('topic_category', topicCategory).limit(30);
+      const { data } = await supabase.from('sector_brain_examples').select(selectFields).eq('topic_category', topicCategory).eq('is_general_guideline', false).limit(30);
       topicExamples = data || [];
     }
     let holidayExamples: any[] = [];
     if (holidaySeason && holidaySeason !== 'year_round') {
-      const { data } = await supabase.from('sector_brain_examples').select(selectFields).eq('holiday_season', holidaySeason).limit(30);
+      const { data } = await supabase.from('sector_brain_examples').select(selectFields).eq('holiday_season', holidaySeason).eq('is_general_guideline', false).limit(30);
       holidayExamples = data || [];
     }
     const remainingQuota = Math.max(10, 50 - topicExamples.length - holidayExamples.length);
-    const generalQuery = supabase.from('sector_brain_examples').select(selectFields).limit(remainingQuota);
+    const generalQuery = supabase.from('sector_brain_examples').select(selectFields).eq('is_general_guideline', false).limit(remainingQuota);
     if (topicCategory) generalQuery.or(`topic_category.is.null,topic_category.neq.${topicCategory}`);
     if (holidaySeason && holidaySeason !== 'year_round') generalQuery.or(`holiday_season.is.null,holiday_season.eq.year_round`);
     const { data: generalData, error } = await generalQuery;
     if (error) return null;
+
+    // Fetch Guidelines
+    const { data: guidelinesData } = await supabase.from('sector_brain_examples').select('text_content').eq('is_general_guideline', true).limit(20);
+    const guidelines = (guidelinesData || []).map(g => g.text_content).filter(Boolean);
+
+    // Fetch saved AI Insights (prioritize visual_patterns for studio agent)
+    let insightsQuery = supabase.from('sector_brain_insights').select('insight_type, content').eq('is_active', true).order('updated_at', { ascending: false }).limit(5);
+    if (topicCategory) {
+      insightsQuery = supabase.from('sector_brain_insights').select('insight_type, content').eq('is_active', true).or(`insight_type.eq.general,insight_type.eq.visual_patterns,insight_type.eq.topic_${topicCategory}`).order('updated_at', { ascending: false }).limit(5);
+    }
+    const { data: insightsData } = await insightsQuery;
+    const insights = (insightsData || []).map(i => `[${i.insight_type}]: ${i.content?.substring(0, 2000)}`);
+
     const seen = new Set<string>();
     const allExamples: any[] = [];
     for (const item of [...topicExamples, ...holidayExamples, ...(generalData || [])]) {
       if (!seen.has(item.name)) { seen.add(item.name); allExamples.push(item); }
     }
-    if (!allExamples.length) return null;
+    if (!allExamples.length && !guidelines.length && !insights.length) return null;
     const grouped: Record<string, typeof allExamples> = {};
     for (const item of allExamples) { const zone = item.zone || 'general'; if (!grouped[zone]) grouped[zone] = []; grouped[zone].push(item); }
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const imageExamples = allExamples
       .filter(e => e.file_path && e.file_type && /image|png|jpg|jpeg|webp/i.test(e.file_type))
-      .slice(0, 8)
-      .map(e => `${supabaseUrl}/storage/v1/object/public/sector-brain/${e.file_path}`);
-    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, imageUrls: imageExamples, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
+      .slice(0, 6)
+      .map(e => ({
+        url: `${supabaseUrl}/storage/v1/object/public/sector-brain/${e.file_path}`,
+        name: e.name,
+        description: e.description,
+        example_type: e.example_type,
+        topic: e.topic_category,
+      }));
+    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, imageExamples, guidelines, insights };
   } catch { return null; }
 }
 
@@ -242,7 +260,13 @@ serve(async (req) => {
       contextBlock += `\nyחס גובה-רוחב: ${aspectRatio}\n`;
     }
     if (sectorBrainData) {
-      contextBlock += `\n=== רפרנסים מגזריים (Sector Brain) ===\n${JSON.stringify(sectorBrainData)}\n`;
+      contextBlock += `\n=== רפרנסים מגזריים (Sector Brain) ===\n${JSON.stringify(sectorBrainData.zones)}\n`;
+      if (sectorBrainData.guidelines?.length) {
+        contextBlock += `\n=== כללי אצבע (Guidelines) — חובה! ===\n${sectorBrainData.guidelines.map((g: string, i: number) => `${i+1}. ${g}`).join('\n')}\n`;
+      }
+      if (sectorBrainData.insights?.length) {
+        contextBlock += `\n=== תובנות AI מהמאגר — למד מהם! ===\n${sectorBrainData.insights.join('\n\n')}\n`;
+      }
     }
 
     // Holiday anti-mixing rules
@@ -328,13 +352,39 @@ serve(async (req) => {
 
     if (!aiSuccess && LOVABLE_API_KEY) {
       console.log('Falling back to Lovable Gateway...');
+      
+      // Build multimodal messages with reference images for the studio agent
+      const multimodalMessages: any[] = [
+        { role: 'system', content: messages[0].content }
+      ];
+      // Add conversation history
+      for (const m of messages.slice(1, -1)) {
+        multimodalMessages.push({ role: m.role, content: m.content });
+      }
+      // Build user message with reference images
+      const userMsg = messages[messages.length - 1];
+      const refImages = sectorBrainData?.imageExamples || [];
+      if (refImages.length > 0) {
+        const userContent: any[] = [
+          { type: 'text', text: userMsg.content + `\n\n🖼️ להלן ${refImages.length} תמונות רפרנס מ-Sector Brain. למד מהן סגנון, קומפוזיציה, פלטת צבעים וטיפוגרפיה:` }
+        ];
+        for (const img of refImages) {
+          userContent.push({ type: 'text', text: `📷 "${img.name}" ${img.example_type === 'good' ? '✅' : img.example_type === 'bad' ? '❌' : ''} ${img.description ? `- ${img.description}` : ''}` });
+          userContent.push({ type: 'image_url', image_url: { url: img.url } });
+        }
+        multimodalMessages.push({ role: 'user', content: userContent });
+        console.log(`Sending ${refImages.length} reference images as multimodal to Studio Agent`);
+      } else {
+        multimodalMessages.push({ role: 'user', content: userMsg.content });
+      }
+      
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ model: 'google/gemini-2.5-pro', messages, max_tokens: 8192 }),
+        body: JSON.stringify({ model: 'google/gemini-2.5-pro', messages: multimodalMessages, max_tokens: 8192 }),
       });
 
       if (!aiResponse.ok) {

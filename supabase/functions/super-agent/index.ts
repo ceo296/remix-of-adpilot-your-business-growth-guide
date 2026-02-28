@@ -9,62 +9,49 @@ const corsHeaders = {
 async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCategory?: string | null) {
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const selectFields = 'name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type, file_path, file_type';
+    const selectFields = 'name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type, file_path, file_type, is_general_guideline';
     
     // 1. Topic-specific examples (highest priority)
     let topicExamples: any[] = [];
     if (topicCategory) {
-      const { data } = await supabase
-        .from('sector_brain_examples')
-        .select(selectFields)
-        .eq('topic_category', topicCategory)
-        .limit(30);
+      const { data } = await supabase.from('sector_brain_examples').select(selectFields).eq('topic_category', topicCategory).eq('is_general_guideline', false).limit(30);
       topicExamples = data || [];
     }
-
     // 2. Holiday-specific examples
     let holidayExamples: any[] = [];
     if (holidaySeason && holidaySeason !== 'year_round') {
-      const { data } = await supabase
-        .from('sector_brain_examples')
-        .select(selectFields)
-        .eq('holiday_season', holidaySeason)
-        .limit(30);
+      const { data } = await supabase.from('sector_brain_examples').select(selectFields).eq('holiday_season', holidaySeason).eq('is_general_guideline', false).limit(30);
       holidayExamples = data || [];
     }
-
     // 3. General examples (fill remaining quota)
     const remainingQuota = Math.max(10, 50 - topicExamples.length - holidayExamples.length);
-    const generalQuery = supabase
-      .from('sector_brain_examples')
-      .select(selectFields)
-      .limit(remainingQuota);
-    if (topicCategory) {
-      generalQuery.or(`topic_category.is.null,topic_category.neq.${topicCategory}`);
-    }
-    if (holidaySeason && holidaySeason !== 'year_round') {
-      generalQuery.or(`holiday_season.is.null,holiday_season.eq.year_round`);
-    }
+    const generalQuery = supabase.from('sector_brain_examples').select(selectFields).eq('is_general_guideline', false).limit(remainingQuota);
+    if (topicCategory) generalQuery.or(`topic_category.is.null,topic_category.neq.${topicCategory}`);
+    if (holidaySeason && holidaySeason !== 'year_round') generalQuery.or(`holiday_season.is.null,holiday_season.eq.year_round`);
     const { data: generalData, error } = await generalQuery;
     if (error) return null;
 
-    // Deduplicate by name
+    // 4. Fetch Guidelines (כללי אצבע)
+    const { data: guidelinesData } = await supabase.from('sector_brain_examples').select('text_content').eq('is_general_guideline', true).limit(20);
+    const guidelines = (guidelinesData || []).map(g => g.text_content).filter(Boolean);
+
+    // 5. Fetch saved AI Insights
+    let insightsFilter = supabase.from('sector_brain_insights').select('insight_type, content').eq('is_active', true).order('updated_at', { ascending: false }).limit(5);
+    if (topicCategory) {
+      insightsFilter = supabase.from('sector_brain_insights').select('insight_type, content').eq('is_active', true).or(`insight_type.eq.general,insight_type.eq.visual_patterns,insight_type.eq.topic_${topicCategory}`).order('updated_at', { ascending: false }).limit(5);
+    }
+    const { data: insightsData } = await insightsFilter;
+    const insights = (insightsData || []).map(i => `[${i.insight_type}]: ${i.content?.substring(0, 2000)}`);
+
+    // Deduplicate examples
     const seen = new Set<string>();
     const allExamples: any[] = [];
     for (const item of [...topicExamples, ...holidayExamples, ...(generalData || [])]) {
-      if (!seen.has(item.name)) {
-        seen.add(item.name);
-        allExamples.push(item);
-      }
+      if (!seen.has(item.name)) { seen.add(item.name); allExamples.push(item); }
     }
-    if (!allExamples.length) return null;
-
+    if (!allExamples.length && !guidelines.length && !insights.length) return null;
     const grouped: Record<string, typeof allExamples> = {};
-    for (const item of allExamples) {
-      const zone = item.zone || 'general';
-      if (!grouped[zone]) grouped[zone] = [];
-      grouped[zone].push(item);
-    }
+    for (const item of allExamples) { const zone = item.zone || 'general'; if (!grouped[zone]) grouped[zone] = []; grouped[zone].push(item); }
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const imageExamples = allExamples
       .filter(e => e.file_path && e.file_type && /image|png|jpg|jpeg|webp/i.test(e.file_type))
@@ -78,6 +65,8 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
       holiday: holidaySeason || null,
       zones: grouped,
       imageUrls: imageExamples,
+      guidelines,
+      insights,
       summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', '),
     };
   } catch { return null; }
@@ -207,6 +196,12 @@ serve(async (req) => {
     if (clientProfile) contextParts.push(`פרופיל לקוח: ${JSON.stringify(clientProfile)}`);
     if (campaignContext) contextParts.push(`הקשר קמפיין: ${JSON.stringify(campaignContext)}`);
     if (sectorBrainData) contextParts.push(`רפרנסים מגזריים: ${sectorBrainData.summary || JSON.stringify(sectorBrainData.zones || {})}`);
+    if (sectorBrainData?.guidelines?.length) {
+      contextParts.push(`\n=== כללי אצבע (Guidelines) — חובה לפעול לפיהם! ===\n${sectorBrainData.guidelines.map((g: string, i: number) => `${i+1}. ${g}`).join('\n')}`);
+    }
+    if (sectorBrainData?.insights?.length) {
+      contextParts.push(`\n=== תובנות AI שנלמדו מניתוח המאגר ===\n${sectorBrainData.insights.join('\n\n')}`);
+    }
     
     const systemContent = SYSTEM_PROMPT + (contextParts.length ? '\n\n=== הקשר ===\n' + contextParts.join('\n') : '');
     const messages: { role: string; content: string }[] = [
