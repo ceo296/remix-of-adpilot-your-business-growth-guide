@@ -137,6 +137,7 @@ const SectorBrain = () => {
   const [selectedInsightType, setSelectedInsightType] = useState<string | null>(null);
   const [insightCategory, setInsightCategory] = useState<'general' | 'visual' | 'media' | 'stream' | 'holiday' | 'topic'>('general');
   const [enlargedImage, setEnlargedImage] = useState<{ url: string; name: string } | null>(null);
+  const [savedInsightsCount, setSavedInsightsCount] = useState(0);
 
   // Check admin role
   useEffect(() => {
@@ -165,8 +166,16 @@ const SectorBrain = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (isAdmin) loadExamples();
+    if (isAdmin) {
+      loadExamples();
+      loadInsightsCount();
+    }
   }, [isAdmin]);
+
+  const loadInsightsCount = async () => {
+    const { count } = await supabase.from('sector_brain_insights').select('*', { count: 'exact', head: true }).eq('is_active', true);
+    setSavedInsightsCount(count || 0);
+  };
 
   const loadExamples = async () => {
     setIsLoading(true);
@@ -454,6 +463,7 @@ const SectorBrain = () => {
               is_active: true,
             });
             toast.success('✅ התובנה נשמרה אוטומטית כידע פעיל לסוכנים');
+            loadInsightsCount();
           }
         } catch (autoSaveErr) {
           console.error('Auto-save insight error:', autoSaveErr);
@@ -546,7 +556,11 @@ const SectorBrain = () => {
                 אימון מערכת AI - המוח
               </h1>
               <p className="text-xs text-muted-foreground">
-                {stats.total} דוגמאות • {stats.guidelines} כללי אצבע
+                {stats.total} דוגמאות • {stats.guidelines} כללי אצבע • {savedInsightsCount} תובנות פעילות
+              </p>
+              <p className="text-[10px] text-green-500 flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                הסוכנים מתעדכנים אוטומטית בכל העלאה
               </p>
             </div>
           </div>
