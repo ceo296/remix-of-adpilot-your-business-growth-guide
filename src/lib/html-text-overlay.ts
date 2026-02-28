@@ -53,8 +53,6 @@ function cleanText(text: string): string {
     .trim();
 }
 
-/** Split long text into multiple lines at word boundaries, respecting maxChars per line.
- *  Prefers natural Hebrew phrase breaks (before common prepositions/conjunctions). */
 function splitLongText(text: string, maxCharsPerLine: number = 40): string {
   if (!text || text.length <= maxCharsPerLine) return text;
   
@@ -62,7 +60,6 @@ function splitLongText(text: string, maxCharsPerLine: number = 40): string {
   const lines: string[] = [];
   let currentLine = '';
   
-  // Hebrew prepositions/conjunctions where it's natural to break BEFORE
   const breakBeforeWords = new Set(['של', 'על', 'עם', 'את', 'אל', 'מן', 'כי', 'או', 'גם', 'כמו', 'אבל', 'אך', 'כדי', 'בו', 'לא', 'היא', 'הוא', 'אנו', 'שלכם', 'שלך', 'לפני', 'אחרי']);
   
   for (const word of words) {
@@ -71,7 +68,6 @@ function splitLongText(text: string, maxCharsPerLine: number = 40): string {
       lines.push(currentLine);
       currentLine = word;
     } else if (currentLine && currentLine.length >= maxCharsPerLine * 0.5 && breakBeforeWords.has(word)) {
-      // Natural phrase break — split before preposition if we're past halfway
       lines.push(currentLine);
       currentLine = word;
     } else {
@@ -83,11 +79,10 @@ function splitLongText(text: string, maxCharsPerLine: number = 40): string {
   return lines.join('<br/>');
 }
 
-/** Check if a URL is a renderable image (not PDF/SVG data) */
 function isRenderableImageUrl(url?: string): boolean {
   if (!url) return false;
   if (url.startsWith('data:application/pdf')) return false;
-  if (url.startsWith('data:image/svg')) return false; // SVGs can be problematic in html-to-image
+  if (url.startsWith('data:image/svg')) return false;
   return true;
 }
 
@@ -116,49 +111,118 @@ function darkenHex(hex: string, factor = 0.3): string {
   return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
 }
 
-// ─── Magazine Blend Layout (matches Haredi newspaper ad reference grid) ───
+// ─── Shared Contact Strip (Professional Newspaper Grid) ───
+// Matches the style of real Haredi newspaper ads:
+// Solid opaque background, 3-column grid, pipe-separated services, prominent phone badge
+
+function buildContactStripHTML(config: TextOverlayConfig, width: number, height: number, scale: number): string {
+  const primary = config.primaryColor || '#2BA5B5';
+  const secondary = config.secondaryColor || darkenHex(primary, 0.3);
+  const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
+  const stripBg = isLightColor(primary) ? '#FFFFFF' : primary;
+  const stripText = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
+  const stripSubText = isLightColor(primary) ? '#555' : 'rgba(255,255,255,0.75)';
+
+  const businessName = config.businessName ? cleanText(config.businessName) : '';
+  const phone = config.phone || '';
+  const address = config.address || '';
+  const email = config.email || '';
+  const whatsapp = config.whatsapp || '';
+  const services = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
+
+  const stripHeight = Math.round(height * 0.14);
+  const topBorderHeight = Math.max(Math.round(3 * scale), 2);
+  const phoneSize = Math.max(Math.round(28 * scale), 16);
+  const nameSize = Math.max(Math.round(18 * scale), 12);
+  const detailSize = Math.max(Math.round(12 * scale), 9);
+  const serviceSize = Math.max(Math.round(12 * scale), 9);
+  const logoHeight = Math.max(Math.round(70 * scale), 36);
+  const logoWidth = Math.max(Math.round(160 * scale), 70);
+  const padX = Math.round(16 * scale);
+  const padY = Math.round(8 * scale);
+
+  const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
+    <img src="${config.logoUrl}" crossorigin="anonymous"
+         style="max-height:${logoHeight}px; max-width:${logoWidth}px; object-fit:contain; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.3));" />` : '';
+
+  // Services bar (pipe-separated, like the reference ad)
+  const servicesHtml = services.length > 0 ? `
+    <div style="display:flex; align-items:center; justify-content:center; gap:${Math.round(6 * scale)}px; direction:rtl;">
+      ${services.slice(0, 6).map((s, i) => `
+        ${i > 0 ? `<span style="color:${stripSubText}; font-size:${serviceSize}px; font-weight:400;">|</span>` : ''}
+        <span style="color:${stripText}; font-size:${serviceSize}px; font-weight:600; white-space:nowrap;">${s}</span>
+      `).join('')}
+    </div>` : '';
+
+  // Phone badge (prominent, with colored background like reference)
+  const phoneBadgeHtml = phone ? `
+    <div style="display:flex; align-items:center; gap:${Math.round(8 * scale)}px; direction:ltr;">
+      <div style="background:${secondary}; color:${isLightColor(secondary) ? '#1a1a1a' : '#FFFFFF'};
+                  padding:${Math.round(4 * scale)}px ${Math.round(16 * scale)}px; border-radius:${Math.round(4 * scale)}px;
+                  font-size:${phoneSize}px; font-weight:900; letter-spacing:0.5px; white-space:nowrap;">
+        ${phone}
+      </div>
+    </div>` : '';
+
+  // Contact details line (address + whatsapp/email)
+  const contactDetails: string[] = [];
+  if (address) contactDetails.push(address);
+  if (whatsapp && whatsapp !== phone) contactDetails.push(`☎ ${whatsapp}`);
+  if (email) contactDetails.push(email);
+  const detailsHtml = contactDetails.length > 0 ? `
+    <div style="color:${stripSubText}; font-size:${detailSize}px; font-weight:500; direction:rtl; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+      ${contactDetails.join(' | ')}
+    </div>` : '';
+
+  return `
+    <!-- Solid contact strip — newspaper grid style -->
+    <div style="position:absolute; bottom:0; left:0; right:0; height:${stripHeight}px; z-index:4;">
+      <!-- Top accent border -->
+      <div style="height:${topBorderHeight}px; background:${secondary};"></div>
+      
+      <!-- Main strip with solid background -->
+      <div style="height:calc(100% - ${topBorderHeight}px); background:${stripBg};
+                  display:grid; grid-template-columns:auto 1fr auto; align-items:center;
+                  padding:${padY}px ${padX}px; gap:${Math.round(12 * scale)}px; direction:rtl;">
+        
+        <!-- Right: Logo -->
+        <div style="display:flex; align-items:center; justify-content:center;">
+          ${logoHtml}
+        </div>
+
+        <!-- Center: Phone badge + contact details + services -->
+        <div style="display:flex; flex-direction:column; align-items:center; gap:${Math.round(3 * scale)}px; overflow:hidden;">
+          ${phoneBadgeHtml}
+          ${detailsHtml}
+          ${servicesHtml}
+        </div>
+
+        <!-- Left: Business name -->
+        <div style="text-align:left; direction:rtl;">
+          <div style="font-size:${nameSize}px; font-weight:800; color:${stripText}; white-space:nowrap;">${businessName}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Magazine Blend Layout ───
 
 function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   const primary = config.primaryColor || '#2BA5B5';
-  const secondary = config.secondaryColor || darkenHex(primary, 0.3);
 
   const headline = splitLongText((config.headline ? cleanText(config.headline) : '').slice(0, 56), 28);
   const subtitle = splitLongText((config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72), 36);
-  // Body text: hard cap at ~90 chars (≈3 lines max) to prevent visual clutter
   const rawBody = config.bodyText ? cleanText(config.bodyText) : '';
   const truncatedBody = rawBody.length > 90 ? rawBody.slice(0, 87).replace(/\s+\S*$/, '') + '...' : rawBody;
   const bodyText = splitLongText(truncatedBody, 42);
-  const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
-  const phone = config.phone || '';
-  const email = config.email || '';
-  const address = config.address || '';
 
   const scale = Math.min(width, height) / 1024;
-  // Ensure minimum readable sizes even on small images
-  const minScale = Math.max(scale, 0.55);
-  // Text hierarchy: headline ~2.5x body, subtitle ~1.5x body
   const headlineSize = Math.max(Math.round(54 * scale), 28);
   const subtitleSize = Math.max(Math.round(28 * scale), 18);
   const bodySize = Math.max(Math.round(22 * scale), 14);
-  const phoneSize = Math.max(Math.round(30 * scale), 18);
-  const nameSize = Math.max(Math.round(20 * scale), 13);
 
-  const contactHeight = Math.round(height * 0.12);
-
-  const logoHeight = Math.max(Math.round(85 * scale), 48);
-  const logoWidth = Math.max(Math.round(200 * scale), 90);
-  const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
-    <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${logoHeight}px; max-width:${logoWidth}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8)); border-radius:4px;" />` : '';
-
-  // Services bar
-  const servicesHtml = config.servicesList?.length ? `
-    <div style="display:flex; align-items:center; justify-content:center; gap:${Math.round(14 * scale)}px; margin-top:${Math.round(10 * scale)}px;">
-      ${config.servicesList.slice(0, 5).map(s => `
-        <span style="color:rgba(255,255,255,0.95); font-size:${Math.round(14 * scale)}px; font-weight:700;
-                     text-shadow:0 1px 4px rgba(0,0,0,0.5);">${cleanText(s)}</span>
-      `).join(`<span style="color:rgba(255,255,255,0.4); font-size:${Math.round(12 * scale)}px;">|</span>`)}
-    </div>` : '';
+  const stripHeight = Math.round(height * 0.14);
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
@@ -166,13 +230,13 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
       <!-- Full-bleed background image -->
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
 
-      <!-- Full overlay gradient for text readability -->
-      <div style="position:absolute; inset:0;
-                  background:linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.1) 50%, ${hexToRgba(primary, 0.3)} 65%, ${hexToRgba(primary, 0.85)} 85%, ${hexToRgba(primary, 0.92)} 100%);
+      <!-- Gradient overlay for text readability (stops before strip) -->
+      <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.1) 50%, ${hexToRgba(primary, 0.2)} 75%, ${hexToRgba(primary, 0.5)} 100%);
                   pointer-events:none; z-index:1;"></div>
 
-      <!-- Main text content block — fills the ad vertically -->
-      <div style="position:absolute; inset:0; bottom:${contactHeight}px; display:flex; flex-direction:column; justify-content:space-between; 
+      <!-- Main text content block -->
+      <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px; display:flex; flex-direction:column; justify-content:space-between; 
                   padding:${Math.round(28 * scale)}px ${Math.round(24 * scale)}px ${Math.round(20 * scale)}px; z-index:2;">
         
         <!-- Top section: Headline + Subtitle -->
@@ -194,7 +258,7 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
         <!-- Middle: empty space lets the visual breathe -->
         <div style="flex:1;"></div>
 
-        <!-- Bottom section: Body text + services (above contact strip) -->
+        <!-- Bottom section: Body text (above contact strip) -->
         <div style="text-align:center;">
           ${bodyText ? `
             <div style="font-size:${bodySize}px; font-weight:500; color:rgba(255,255,255,0.95);
@@ -204,84 +268,45 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
               ${bodyText}
             </div>
           ` : ''}
-          ${servicesHtml}
         </div>
       </div>
 
-      <!-- Contact strip — smooth gradient fade at bottom -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(contactHeight * 1.6)}px;
-                  background:linear-gradient(180deg, transparent 0%, ${hexToRgba(primary, 0.6)} 35%, ${hexToRgba(primary, 0.92)} 70%, ${hexToRgba(primary, 0.95)} 100%);
-                  display:grid; grid-template-columns:auto 1fr auto; align-items:end;
-                  padding:0 ${Math.round(18 * scale)}px ${Math.round(10 * scale)}px; gap:${Math.round(12 * scale)}px; direction:ltr; z-index:3;">
-        
-        <!-- Logo — bottom left, with padding for visibility -->
-        <div style="display:flex; align-items:center; background:transparent; padding:${Math.round(4 * scale)}px;">${logoHtml}</div>
-
-        <!-- Phone + details center -->
-        <div style="text-align:center; direction:rtl;">
-          ${phone ? `
-            <div style="font-size:${phoneSize}px; font-weight:900; color:#fff; direction:ltr; letter-spacing:1px;
-                        text-shadow:0 1px 4px rgba(0,0,0,0.3);">${phone}</div>
-          ` : ''}
-          ${address ? `<div style="font-size:${Math.max(Math.round(13 * scale), 10)}px; color:rgba(255,255,255,0.8); margin-top:${Math.round(2 * scale)}px;">${address}</div>` : ''}
-          ${email ? `<div style="font-size:${Math.max(Math.round(13 * scale), 10)}px; color:rgba(255,255,255,0.8);">${email}</div>` : ''}
-        </div>
-
-        <!-- Business name — right side -->
-        <div style="text-align:right; direction:rtl;">
-          <div style="font-size:${nameSize}px; font-weight:800; color:#fff;">${businessName}</div>
-        </div>
-      </div>
+      ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
 }
 
-// ─── Brand Top Layout (headline overlaid on image with brand color accents) ───
+// ─── Brand Top Layout ───
 
 function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   const primary = config.primaryColor || '#2BA5B5';
-  const secondary = config.secondaryColor || darkenHex(primary, 0.3);
   const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
-  const darkText = '#1a2a3a';
 
   const headline = splitLongText((config.headline ? cleanText(config.headline) : '').slice(0, 56), 28);
   const subtitle = splitLongText((config.subtitle ? cleanText(config.subtitle) : '').slice(0, 72), 36);
-  // Body text: hard cap at ~90 chars (≈3 lines max) to prevent visual clutter
   const rawBody2 = config.bodyText ? cleanText(config.bodyText) : '';
   const truncatedBody2 = rawBody2.length > 90 ? rawBody2.slice(0, 87).replace(/\s+\S*$/, '') + '...' : rawBody2;
   const bodyText = splitLongText(truncatedBody2, 42);
-  const businessName = (config.businessName ? cleanText(config.businessName) : '').slice(0, 34);
-  const phone = config.phone || '';
-  const email = config.email || '';
-  const address = config.address || '';
 
   const scale = Math.min(width, height) / 1024;
   const headlineSize = Math.max(Math.round(52 * scale), 26);
   const subtitleSize = Math.max(Math.round(26 * scale), 16);
   const bodySize = Math.max(Math.round(20 * scale), 13);
-  const phoneSize = Math.max(Math.round(28 * scale), 17);
-  const nameSize = Math.max(Math.round(18 * scale), 12);
 
-  const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
-    <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.max(Math.round(85 * scale), 48)}px; max-width:${Math.max(Math.round(200 * scale), 90)}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8)); border-radius:4px;" />` : '';
-
-  const contactStripHeight = Math.round(height * 0.12);
-  // Text area in lower portion — semi-transparent brand background
-  const textAreaHeight = Math.round(height * 0.32);
+  const stripHeight = Math.round(height * 0.14);
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
       <!-- Full background image -->
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
 
-      <!-- Full overlay gradient -->
-      <div style="position:absolute; inset:0;
-                  background:linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 35%, ${hexToRgba(primary, 0.25)} 60%, ${hexToRgba(primary, 0.88)} 85%, ${hexToRgba(primary, 0.95)} 100%);
+      <!-- Gradient overlay (stops before strip) -->
+      <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 35%, ${hexToRgba(primary, 0.15)} 65%, ${hexToRgba(primary, 0.45)} 100%);
                   pointer-events:none; z-index:1;"></div>
 
-      <!-- Main text block — fills the ad -->
-      <div style="position:absolute; inset:0; bottom:${contactStripHeight}px; display:flex; flex-direction:column; justify-content:space-between;
+      <!-- Main text block -->
+      <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px; display:flex; flex-direction:column; justify-content:space-between;
                   padding:${Math.round(24 * scale)}px ${Math.round(20 * scale)}px ${Math.round(16 * scale)}px; z-index:2;">
         
         <!-- Top: Headline badge + Subtitle -->
@@ -316,20 +341,7 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
         ` : ''}
       </div>
 
-      <!-- Contact strip — smooth gradient fade -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height * 0.18)}px;
-                  background:linear-gradient(180deg, transparent 0%, ${hexToRgba(primary, 0.6)} 30%, ${hexToRgba(primary, 0.92)} 65%, ${hexToRgba(primary, 0.95)} 100%);
-                  display:grid; grid-template-columns:auto 1fr auto; align-items:end;
-                  padding:0 ${Math.round(18 * scale)}px ${Math.round(10 * scale)}px; gap:${Math.round(12 * scale)}px; direction:ltr; z-index:3;">
-        <div style="display:flex; align-items:center; background:transparent;">${logoHtml}</div>
-        <div style="text-align:center; direction:rtl;">
-          ${phone ? `<div style="font-size:${phoneSize}px; font-weight:900; color:${textOnPrimary}; direction:ltr; letter-spacing:1px;">${phone}</div>` : ''}
-          ${address ? `<div style="font-size:${Math.round(11 * scale)}px; color:${hexToRgba(textOnPrimary === '#FFFFFF' ? '#fff' : '#000', 0.7)}; margin-top:${Math.round(2 * scale)}px;">${address}</div>` : ''}
-        </div>
-        <div style="text-align:right; direction:rtl;">
-          <div style="font-size:${nameSize}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
-        </div>
-      </div>
+      ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
 }
@@ -339,45 +351,27 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
 function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   const primary = config.primaryColor || '#2BA5B5';
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
-  const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
 
   const headline = splitLongText(config.headline ? cleanText(config.headline) : '', 28);
   const subtitle = splitLongText(config.subtitle ? cleanText(config.subtitle) : '', 36);
   const bodyText = splitLongText(config.bodyText ? cleanText(config.bodyText) : '', 50);
   const ctaText = config.ctaText ? cleanText(config.ctaText) : '';
-  const businessName = config.businessName ? cleanText(config.businessName) : '';
-  const phone = config.phone || '';
-  const whatsapp = config.whatsapp || '';
-  const address = config.address || '';
-  const services = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
 
   const scale = Math.min(width, height) / 1024;
-
-  const servicesHtml = services.length > 0 ? `
-    <div style="display:flex; flex-wrap:wrap; gap:${Math.round(6*scale)}px; justify-content:center; margin-top:${Math.round(8*scale)}px;">
-      ${services.map(s => `
-        <span style="background:${hexToRgba(primary,0.2)}; color:#fff; padding:${Math.round(3*scale)}px ${Math.round(10*scale)}px; 
-              border-radius:${Math.round(16*scale)}px; font-size:${Math.round(14*scale)}px; font-weight:600;
-              border:1px solid ${hexToRgba('#fff',0.15)};">${s}</span>
-      `).join('')}
-    </div>` : '';
-
-  const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
-    <img src="${config.logoUrl}" crossorigin="anonymous" 
-         style="max-height:${Math.round(85*scale)}px; max-width:${Math.round(200*scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8)); border-radius:4px;" />` : '';
+  const stripHeight = Math.round(height * 0.14);
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;" />
       
-      <!-- Full gradient overlay -->
-      <div style="position:absolute; inset:0;
-                  background:linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 35%, ${hexToRgba(primary,0.2)} 55%, ${hexToRgba(primary,0.85)} 80%, ${hexToRgba(primary,0.95)} 100%);
+      <!-- Gradient overlay (stops before strip) -->
+      <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 35%, ${hexToRgba(primary,0.15)} 60%, ${hexToRgba(primary,0.45)} 100%);
                   pointer-events:none; z-index:1;"></div>
 
-      <!-- Main text block — fills the ad -->
-      <div style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between;
-                  padding:${Math.round(20*scale)}px ${Math.round(20*scale)}px 0; z-index:2;">
+      <!-- Main text block -->
+      <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px; display:flex; flex-direction:column; justify-content:space-between;
+                  padding:${Math.round(20*scale)}px ${Math.round(20*scale)}px ${Math.round(12*scale)}px; z-index:2;">
         
         <!-- Top: Headline + Subtitle -->
         <div style="text-align:center;">
@@ -394,14 +388,13 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
         <!-- Middle spacer -->
         <div style="flex:1;"></div>
 
-        <!-- Bottom: Body + Services + CTA -->
-        <div style="text-align:center; padding-bottom:${Math.round(height*0.14)}px;">
+        <!-- Bottom: Body + CTA -->
+        <div style="text-align:center;">
           ${bodyText ? `<div style="font-size:${Math.round(18*scale)}px; font-weight:500; color:rgba(255,255,255,0.95);
                text-shadow:0 1px 6px rgba(0,0,0,0.4); line-height:1.7; word-break:break-word;
                max-width:${Math.round(width*0.8)}px; margin:0 auto ${Math.round(8*scale)}px;">${bodyText}</div>` : ''}
-          ${servicesHtml}
           ${ctaText ? `
-            <div style="margin-top:${Math.round(12*scale)}px;">
+            <div style="margin-top:${Math.round(8*scale)}px;">
               <span style="background:linear-gradient(135deg, ${secondary}, ${darkenHex(secondary,0.15)}); 
                    color:${isLightColor(secondary)?'#1a1a1a':'#FFFFFF'}; padding:${Math.round(10*scale)}px ${Math.round(32*scale)}px; 
                    border-radius:${Math.round(26*scale)}px; font-size:${Math.round(20*scale)}px; font-weight:800; 
@@ -413,19 +406,7 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
         </div>
       </div>
 
-      <!-- Contact strip — smooth gradient fade -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height*0.18)}px;
-                  background:linear-gradient(180deg, transparent 0%, ${hexToRgba(primary,0.55)} 30%, ${hexToRgba(primary,0.9)} 65%, ${hexToRgba(primary,0.95)} 100%);
-                  display:flex; align-items:end; justify-content:space-between; gap:${Math.round(10*scale)}px;
-                  padding:0 ${Math.round(16*scale)}px ${Math.round(10*scale)}px; direction:ltr; z-index:3;">
-        <div style="display:flex; align-items:center; gap:${Math.round(8*scale)}px; background:transparent;">
-          ${logoHtml}
-        </div>
-        ${phone ? `<div style="font-size:${Math.round(20*scale)}px; font-weight:900; color:${secondary}; letter-spacing:1px; direction:ltr;">${phone}</div>` : ''}
-        <div style="display:flex; align-items:center; gap:${Math.round(8*scale)}px;">
-          <div style="font-size:${Math.round(18*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
-        </div>
-      </div>
+      ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
 }
@@ -435,30 +416,27 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
 function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   const primary = config.primaryColor || '#2BA5B5';
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
-  const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
   const textOnSecondary = isLightColor(secondary) ? '#1a1a1a' : '#FFFFFF';
 
   const headline = splitLongText(config.headline ? cleanText(config.headline) : '', 28);
   const bodyText = splitLongText(config.bodyText ? cleanText(config.bodyText) : '', 50);
   const ctaText = config.ctaText ? cleanText(config.ctaText) : '';
-  const businessName = config.businessName ? cleanText(config.businessName) : '';
-  const phone = config.phone || '';
-  const address = config.address || '';
-  const whatsapp = config.whatsapp || '';
+
   const scale = Math.min(width, height) / 1024;
+  const stripHeight = Math.round(height * 0.14);
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
       <img src="${imageUrl}" crossorigin="anonymous" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;" />
       
-      <!-- Full gradient overlay -->
-      <div style="position:absolute; inset:0;
-                  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.12) 35%, ${hexToRgba(primary,0.2)} 60%, ${hexToRgba(primary,0.88)} 85%, ${hexToRgba(primary,0.92)} 100%);
+      <!-- Gradient overlay (stops before strip) -->
+      <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px;
+                  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.12) 35%, ${hexToRgba(primary,0.15)} 65%, ${hexToRgba(primary,0.45)} 100%);
                   pointer-events:none; z-index:1;"></div>
 
       <!-- Main text block -->
-      <div style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between;
-                  padding:${Math.round(28*scale)}px ${Math.round(24*scale)}px 0; z-index:2;">
+      <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px; display:flex; flex-direction:column; justify-content:space-between;
+                  padding:${Math.round(28*scale)}px ${Math.round(24*scale)}px ${Math.round(12*scale)}px; z-index:2;">
         
         <!-- Top: Headline -->
         ${headline ? `
@@ -474,7 +452,7 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
         <div style="flex:1;"></div>
 
         <!-- Bottom: Body + CTA -->
-        <div style="text-align:center; padding-bottom:${Math.round(height*0.12)}px;">
+        <div style="text-align:center;">
           ${bodyText ? `
             <div style="font-size:${Math.round(20*scale)}px; font-weight:600; color:#fff;
                  text-shadow:0 2px 10px rgba(0,0,0,0.7); line-height:1.6; word-break:break-word;
@@ -495,18 +473,7 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
         </div>
       </div>
 
-      <!-- Contact strip — smooth gradient fade -->
-      <div style="position:absolute; bottom:0; left:0; right:0; height:${Math.round(height*0.18)}px; z-index:3;
-                  background:linear-gradient(180deg, transparent 0%, ${hexToRgba(primary,0.55)} 30%, ${hexToRgba(primary,0.9)} 65%, ${hexToRgba(primary,0.95)} 100%);">
-        <div style="position:absolute; bottom:0; left:0; right:0; padding:${Math.round(10*scale)}px ${Math.round(20*scale)}px;
-                    display:flex; align-items:center; justify-content:space-between; direction:ltr;">
-          ${isRenderableImageUrl(config.logoUrl) ? `
-            <img src="${config.logoUrl}" crossorigin="anonymous" style="max-height:${Math.round(42*scale)}px; max-width:${Math.round(100*scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.6));" />
-          ` : '<div></div>'}
-          ${phone ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:900; color:${secondary}; direction:ltr;">${phone}</div>` : ''}
-          <div style="font-size:${Math.round(20*scale)}px; font-weight:800; color:${textOnPrimary};">${businessName}</div>
-        </div>
-      </div>
+      ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
 }
