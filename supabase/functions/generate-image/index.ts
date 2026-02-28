@@ -655,8 +655,12 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     let promoText = campaignContext?.promoText || '';
     let promoValue = campaignContext?.promoValue || '';
     
-    if (!promoText && campaignContext?.offer) {
+    // Auto-extract bullet items (services, prices, advantages) from the brief
+    const bulletItems: { icon: string; text: string; highlight?: boolean }[] = [];
+    
+    if (campaignContext?.offer) {
       const offerText = campaignContext.offer;
+      
       // Extract discount percentages
       const discountMatch = offerText.match(/(\d{1,3}%\s*הנחה(?:\s+על\s+[\u0590-\u05FF\s]+)?)/);
       if (discountMatch) {
@@ -667,6 +671,38 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       if (priceMatch && !promoValue) {
         promoValue = `מ-${priceMatch[1]} ₪`;
       }
+      
+      // 1. Extract package deals with prices (e.g., "חבילת skin glow ... 3490 ש"ח")
+      const packageRegex = /חבילת\s+([^\n-–]+?)[\s-–]*(\d{3,5})\s*(?:ש"ח|₪)/gi;
+      let pkgMatch;
+      while ((pkgMatch = packageRegex.exec(offerText)) !== null && bulletItems.length < 6) {
+        bulletItems.push({ icon: '🏷️', text: `${pkgMatch[1].trim()} - ${pkgMatch[2]} ₪`, highlight: true });
+      }
+      
+      // 2. Extract discount lines (e.g., "10% הנחה על בוטוקס")
+      const discountRegex = /(\d{1,3}%\s*הנחה\s+על\s+[^\n,]+)/gi;
+      let discMatch;
+      while ((discMatch = discountRegex.exec(offerText)) !== null && bulletItems.length < 6) {
+        bulletItems.push({ icon: '🔥', text: discMatch[1].trim() });
+      }
+      
+      // 3. Extract USP / advantage phrases
+      const uspPhrases = offerText.match(/(?:רופאה[^.!,\n]*|לא קוסמטיקאית[^.!,\n]*|אבחון רפואי[^.!,\n]*|התאמה אישית[^.!,\n]*|מראה טבעי[^.!,\n]*)/gi);
+      if (uspPhrases) {
+        for (const usp of uspPhrases.slice(0, 3)) {
+          if (bulletItems.length >= 6) break;
+          bulletItems.push({ icon: '⭐', text: usp.trim().slice(0, 40) });
+        }
+      }
+      
+      // 4. Extract specific treatment/service names as bullets if we have room
+      if (bulletItems.length < 4 && servicesList.length > 0) {
+        for (const svc of servicesList.slice(0, 4 - bulletItems.length)) {
+          bulletItems.push({ icon: '✓', text: svc });
+        }
+      }
+    } else if (!promoText && !promoValue) {
+      // No offer text, skip promo extraction
     }
 
     return new Response(JSON.stringify({ 
@@ -684,6 +720,7 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
         servicesList,
         promoText,
         promoValue,
+        bulletItems: bulletItems.length > 0 ? bulletItems : undefined,
       },
       status: 'approved',
       message: `שכבה ויזואלית: ${visualResult.model} | טקסט: עיבוד פרוגרמטי`,
