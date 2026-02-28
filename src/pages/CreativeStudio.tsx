@@ -236,6 +236,9 @@ const CreativeStudio = () => {
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackType, setFeedbackType] = useState<FeedbackType>(null);
   const [pendingCorrections, setPendingCorrections] = useState<Array<{type: string; text: string}>>([]);
+  const [selectedSketchIds, setSelectedSketchIds] = useState<string[]>([]);
+  const [approvedSketchId, setApprovedSketchId] = useState<string | null>(null);
+  const [showApproveSelection, setShowApproveSelection] = useState(false);
   
   // Autopilot state
   const [concepts, setConcepts] = useState<CreativeConcept[]>([]);
@@ -874,6 +877,7 @@ const CreativeStudio = () => {
     setFeedbackMode('none');
     setFeedbackText('');
     setFeedbackType(null);
+    setSelectedSketchIds([]);
     
     // Regenerate — corrections will be passed as separate field to the edge function
     await handleGenerate();
@@ -2043,7 +2047,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                 {!isGenerating && generatedImages.some(img => img.status === 'approved' || img.status === 'needs-review') && (
                   <div className="mt-8 space-y-4">
                     {/* Feedback Buttons */}
-                    {feedbackMode === 'none' && (
+                    {feedbackMode === 'none' && !showApproveSelection && (
                       <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <Button
                           variant="outline"
@@ -2057,7 +2061,10 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                         <Button
                           variant="outline"
                           size="lg"
-                          onClick={() => setFeedbackMode('small-fixes')}
+                          onClick={() => {
+                            setFeedbackMode('small-fixes');
+                            setSelectedSketchIds([]);
+                          }}
                           className="gap-2 bg-card border-2 border-border hover:bg-muted"
                         >
                           <MessageSquare className="h-5 w-5" />
@@ -2066,8 +2073,43 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                       </div>
                     )}
 
-                    {/* Feedback Type Selection - Copy vs Visual */}
-                    {feedbackMode === 'small-fixes' && !feedbackType && (
+                    {/* Sketch Selection for Fixes */}
+                    {feedbackMode === 'small-fixes' && selectedSketchIds.length === 0 && !feedbackType && (
+                      <Card className="p-5 max-w-2xl mx-auto animate-fade-in">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-lg">על איזו סקיצה יש תיקונים?</h3>
+                            <Button variant="ghost" size="sm" onClick={() => { setFeedbackMode('none'); setSelectedSketchIds([]); }}>ביטול</Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            {generatedImages.filter(img => img.status !== 'rejected').map((img, idx) => (
+                              <button
+                                key={img.id}
+                                onClick={() => setSelectedSketchIds([img.id])}
+                                className="relative rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-all aspect-square group"
+                              >
+                                <img src={img.url} alt={`סקיצה ${idx + 1}`} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors flex items-center justify-center">
+                                  <span className="bg-background/80 px-3 py-1 rounded-full text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                    סקיצה {idx + 1}
+                                  </span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => setSelectedSketchIds(generatedImages.filter(img => img.status !== 'rejected').map(img => img.id))}
+                          >
+                            על כולן
+                          </Button>
+                        </div>
+                      </Card>
+                    )}
+
+                    {/* Feedback Type Selection - Copy vs Visual (after sketch selected) */}
+                    {feedbackMode === 'small-fixes' && selectedSketchIds.length > 0 && !feedbackType && (
                       <Card className="p-5 max-w-2xl mx-auto animate-fade-in">
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
@@ -2078,11 +2120,17 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                               onClick={() => {
                                 setFeedbackMode('none');
                                 setFeedbackText('');
+                                setSelectedSketchIds([]);
                               }}
                             >
                               ביטול
                             </Button>
                           </div>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedSketchIds.length === generatedImages.filter(img => img.status !== 'rejected').length
+                              ? '📌 תיקון על כל הסקיצות'
+                              : `📌 תיקון על סקיצה ${generatedImages.findIndex(img => img.id === selectedSketchIds[0]) + 1}`}
+                          </p>
                           <div className="grid grid-cols-2 gap-4">
                             <Button
                               variant="outline"
@@ -2090,7 +2138,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                               onClick={() => setFeedbackType('copy')}
                               className="flex flex-col h-auto py-6 gap-2 border-2 hover:border-primary hover:bg-primary/5"
                             >
-                              <Type className="h-8 w-8 text-blue-500" />
+                              <Type className="h-8 w-8 text-primary" />
                               <span className="font-bold">הקופי / המלל</span>
                               <span className="text-xs text-muted-foreground">כותרות, טקסטים, ניסוחים</span>
                             </Button>
@@ -2100,7 +2148,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                               onClick={() => setFeedbackType('visual')}
                               className="flex flex-col h-auto py-6 gap-2 border-2 hover:border-primary hover:bg-primary/5"
                             >
-                              <ImageIcon className="h-8 w-8 text-pink-500" />
+                              <ImageIcon className="h-8 w-8 text-primary" />
                               <span className="font-bold">הוויזואל / העיצוב</span>
                               <span className="text-xs text-muted-foreground">תמונות, צבעים, פריסה</span>
                             </Button>
@@ -2128,6 +2176,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                                 setFeedbackMode('none');
                                 setFeedbackText('');
                                 setFeedbackType(null);
+                                setSelectedSketchIds([]);
                               }}
                             >
                               ביטול
@@ -2158,19 +2207,63 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                       </Card>
                     )}
 
+                    {/* Approve Selection — pick which sketch to approve */}
+                    {showApproveSelection && (
+                      <Card className="p-5 max-w-2xl mx-auto animate-fade-in">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-lg">איזו סקיצה מאושרת?</h3>
+                            <Button variant="ghost" size="sm" onClick={() => setShowApproveSelection(false)}>ביטול</Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            {generatedImages.filter(img => img.status !== 'rejected').map((img, idx) => (
+                              <button
+                                key={img.id}
+                                onClick={() => {
+                                  setApprovedSketchId(img.id);
+                                  setShowApproveSelection(false);
+                                  setShowMediaSelection(true);
+                                  toast.success(`סקיצה ${idx + 1} אושרה! ממשיכים למדיה 🎯`);
+                                }}
+                                className="relative rounded-lg overflow-hidden border-2 border-border hover:border-green-500 transition-all aspect-square group"
+                              >
+                                <img src={img.url} alt={`סקיצה ${idx + 1}`} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-foreground/0 group-hover:bg-green-500/20 transition-colors flex items-center justify-center">
+                                  <span className="bg-background/80 px-3 py-1.5 rounded-full text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5">
+                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                    אשר סקיצה {idx + 1}
+                                  </span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </Card>
+                    )}
+
                     {/* Fixed Approve Button */}
-                    <div className="flex justify-center pt-4 border-t border-border mt-6">
-                      <Button 
-                        size="lg" 
-                        onClick={handleProceedToMediaSelection} 
-                        variant="gradient"
-                        className="h-14 px-8 text-lg gap-2"
-                      >
-                        <CheckCircle2 className="h-5 w-5" />
-                        הקו מאושר! ממשיכים למדיה
-                        <ChevronLeft className="h-5 w-5" />
-                      </Button>
-                    </div>
+                    {!showApproveSelection && feedbackMode === 'none' && (
+                      <div className="flex justify-center pt-4 border-t border-border mt-6">
+                        <Button 
+                          size="lg" 
+                          onClick={() => {
+                            const nonRejected = generatedImages.filter(img => img.status !== 'rejected');
+                            if (nonRejected.length === 1) {
+                              setApprovedSketchId(nonRejected[0].id);
+                              setShowMediaSelection(true);
+                            } else {
+                              setShowApproveSelection(true);
+                            }
+                          }}
+                          variant="gradient"
+                          className="h-14 px-8 text-lg gap-2"
+                        >
+                          <CheckCircle2 className="h-5 w-5" />
+                          הקו מאושר! ממשיכים למדיה
+                          <ChevronLeft className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </>
