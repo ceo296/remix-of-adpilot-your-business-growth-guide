@@ -114,8 +114,9 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
   const address = config.address || '';
 
   const scale = Math.min(width, height) / 1024;
-  const headlineSize = Math.round(48 * scale);
-  const subtitleSize = Math.round(24 * scale);
+  // Text hierarchy: headline ~2.5x body, subtitle ~1.4x body
+  const headlineSize = Math.round(54 * scale);
+  const subtitleSize = Math.round(26 * scale);
   const bodySize = Math.round(18 * scale);
   const phoneSize = Math.round(26 * scale);
   const nameSize = Math.round(16 * scale);
@@ -227,8 +228,9 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
   const address = config.address || '';
 
   const scale = Math.min(width, height) / 1024;
-  const headlineSize = Math.round(44 * scale);
-  const subtitleSize = Math.round(22 * scale);
+  // Text hierarchy: headline ~2.5x body, subtitle ~1.3x body
+  const headlineSize = Math.round(52 * scale);
+  const subtitleSize = Math.round(24 * scale);
   const bodySize = Math.round(17 * scale);
   const phoneSize = Math.round(26 * scale);
   const nameSize = Math.round(14 * scale);
@@ -353,8 +355,8 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
         <!-- Top: Headline + Subtitle -->
         <div style="text-align:center;">
           ${headline ? `
-            <div style="font-size:${Math.round(46*scale)}px; font-weight:900; color:#fff; line-height:1.3; 
-                 text-shadow:0 2px 16px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.6); letter-spacing:-0.5px;">
+             <div style="font-size:${Math.round(54*scale)}px; font-weight:900; color:#fff; line-height:1.2; 
+                  text-shadow:0 2px 16px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.6); letter-spacing:-0.5px;">
               ${headline}
             </div>
             ${subtitle ? `<div style="font-size:${Math.round(22*scale)}px; font-weight:600; color:rgba(255,255,255,0.95);
@@ -434,8 +436,8 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
         <!-- Top: Headline -->
         ${headline ? `
           <div style="text-align:center;">
-            <div style="font-size:${Math.round(48*scale)}px; font-weight:900; color:#fff;
-                 text-shadow:0 3px 12px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5); line-height:1.3; letter-spacing:-0.5px;">
+             <div style="font-size:${Math.round(56*scale)}px; font-weight:900; color:#fff;
+                  text-shadow:0 3px 12px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5); line-height:1.2; letter-spacing:-0.5px;">
               ${headline}
             </div>
           </div>
