@@ -404,83 +404,67 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
       }
     }
 
-    // Build text-only content (image URLs cause errors in both Google API and Gateway)
-    const textOnlyPrompt = userContent
+    // Build multimodal content for Lovable gateway (supports images)
+    const trimmedTextContent = userContent
       .filter((item: any) => item.type === 'text')
       .map((item: any) => item.text)
       .join('\n\n');
 
-    // Trim prompt if too large (keep under 30000 chars)
-    const trimmedPrompt = textOnlyPrompt.length > 30000 
-      ? textOnlyPrompt.substring(0, 30000) + '\n\n[תוכן נוסף נחתך עקב מגבלת גודל]'
-      : textOnlyPrompt;
+    // Filter relevant images for the insight type
+    let filteredImageExamples = imageExamples;
+    if (insightType.startsWith('topic_')) {
+      const topic = insightType.replace('topic_', '');
+      filteredImageExamples = examples.filter(e => e.file_type?.startsWith('image/') && e.file_path && e.topic_category === topic).slice(0, 8);
+    } else if (insightType.startsWith('holiday_')) {
+      const holiday = insightType.replace('holiday_', '');
+      filteredImageExamples = examples.filter(e => e.file_type?.startsWith('image/') && e.file_path && e.holiday_season === holiday).slice(0, 8);
+    } else if (insightType.startsWith('stream_')) {
+      const stream = insightType.replace('stream_', '');
+      filteredImageExamples = examples.filter(e => e.file_type?.startsWith('image/') && e.file_path && e.stream_type === stream).slice(0, 8);
+    } else if (insightType.startsWith('media_')) {
+      const media = insightType.replace('media_', '');
+      filteredImageExamples = examples.filter(e => e.file_type?.startsWith('image/') && e.file_path && e.media_type === media).slice(0, 8);
+    }
+    // Fallback: if no filtered images, use general ones
+    if (filteredImageExamples.length === 0) {
+      filteredImageExamples = imageExamples.slice(0, 6);
+    }
 
-    console.log(`Prompt length: ${trimmedPrompt.length} chars`);
+    console.log(`Using ${filteredImageExamples.length} images for multimodal analysis`);
 
-    let streamResponse: Response | null = null;
-
-    // Attempt 1: Direct Google Gemini API (non-streaming, then convert to SSE)
-    if (GOOGLE_GEMINI_API_KEY) {
-      console.log('Trying direct Google Gemini API...');
-      try {
-        const directResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{ text: `${systemPrompt}\n\n${trimmedPrompt}` }]
-              }],
-              generationConfig: { temperature: 0.8, maxOutputTokens: 8192 },
-            }),
-          }
-        );
-
-        if (directResponse.ok) {
-          const data = await directResponse.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          if (text) {
-            console.log('Google Gemini direct success, converting to SSE');
-            // Convert to SSE format for client
-            const encoder = new TextEncoder();
-            const sseStream = new ReadableStream({
-              start(controller) {
-                // Send content in chunks
-                const chunkSize = 100;
-                for (let i = 0; i < text.length; i += chunkSize) {
-                  const chunk = text.substring(i, i + chunkSize);
-                  const sseData = JSON.stringify({
-                    choices: [{ delta: { content: chunk } }]
-                  });
-                  controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
-                }
-                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-                controller.close();
-              }
-            });
-
-            return new Response(sseStream, {
-              headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-            });
-          }
+    // Build multimodal message content
+    const multimodalContent: any[] = [
+      { type: "text", text: trimmedTextContent.length > 25000 ? trimmedTextContent.substring(0, 25000) + '\n\n[תוכן נוסף נחתך]' : trimmedTextContent }
+    ];
+    
+    if (filteredImageExamples.length > 0) {
+      multimodalContent.push({ type: "text", text: `\n\n🖼️ להלן ${filteredImageExamples.length} תמונות מהמאגר. נתח כל אחת ויזואלית והסק תובנות על סגנון, פלטת צבעים, טיפוגרפיה, קומפוזיציה ואיכות:` });
+      
+      for (const img of filteredImageExamples) {
+        let imageUrl: string;
+        if (img.file_path.startsWith('http')) {
+          try {
+            const parsed = new URL(img.file_path);
+            parsed.pathname = parsed.pathname.split('/').map((segment: string) => encodeURIComponent(decodeURIComponent(segment))).join('/');
+            imageUrl = parsed.toString();
+          } catch { imageUrl = img.file_path; }
         } else {
-          const errorText = await directResponse.text();
-          console.error('Google Gemini direct error:', directResponse.status, errorText);
+          const encodedPath = img.file_path.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
+          imageUrl = `${SUPABASE_URL}/storage/v1/object/public/sector-brain/${encodedPath}`;
         }
-      } catch (err) {
-        console.error('Google Gemini direct fetch error:', err);
+        multimodalContent.push({ type: "text", text: `📷 "${img.name}" ${img.example_type === 'good' ? '✅' : img.example_type === 'bad' ? '❌' : ''}:` });
+        multimodalContent.push({ type: "image_url", image_url: { url: imageUrl } });
       }
     }
 
-    // Attempt 2: Lovable AI Gateway fallback
+    // Use Lovable AI Gateway with multimodal support
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: 'שירות AI אינו זמין כרגע' }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log('Falling back to Lovable AI Gateway (text-only)...');
+    console.log('Calling Lovable AI Gateway with multimodal content...');
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -491,7 +475,7 @@ ${linkContents.slice(0, 5).map(lc => lc.content.substring(0, 600)).join('\n\n') 
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: trimmedPrompt },
+          { role: "user", content: multimodalContent },
         ],
         stream: true,
       }),

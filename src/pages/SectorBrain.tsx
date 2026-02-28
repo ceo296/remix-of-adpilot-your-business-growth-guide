@@ -1092,23 +1092,127 @@ const SectorBrain = () => {
             {/* === INSIGHTS TAB === */}
             {activeTab === 'insights' && (
               <div className="space-y-4 max-w-4xl mx-auto">
+                
+                {/* Knowledge Coverage Map */}
+                <Card className="border border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      מפת כיסוי ידע — מה המערכת יודעת
+                    </CardTitle>
+                    <CardDescription>ככל שיש יותר דוגמאות בקטגוריה, התוצרים יהיו טובים יותר</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Topics coverage */}
+                    <div>
+                      <p className="text-sm font-semibold mb-2 text-muted-foreground">📦 לפי תחום עסקי</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {Object.entries(TOPIC_LABELS).map(([key, label]) => {
+                          const count = stats.byTopic[key] || 0;
+                          const strength = count >= 20 ? 'strong' : count >= 5 ? 'medium' : count > 0 ? 'weak' : 'empty';
+                          return (
+                            <div key={key} className={cn(
+                              "flex items-center justify-between p-2 rounded-lg text-sm border",
+                              strength === 'strong' && "bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400",
+                              strength === 'medium' && "bg-yellow-500/10 border-yellow-500/30 text-yellow-700 dark:text-yellow-400",
+                              strength === 'weak' && "bg-orange-500/10 border-orange-500/30 text-orange-700 dark:text-orange-400",
+                              strength === 'empty' && "bg-muted/30 border-border text-muted-foreground opacity-60",
+                            )}>
+                              <span>{label}</span>
+                              <Badge variant="outline" className={cn(
+                                "text-xs",
+                                strength === 'strong' && "border-green-500/50",
+                                strength === 'medium' && "border-yellow-500/50",
+                                strength === 'weak' && "border-orange-500/50",
+                              )}>
+                                {count}
+                              </Badge>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {stats.untaggedTopic > 0 && (
+                        <p className="text-xs text-muted-foreground mt-2">⚠️ {stats.untaggedTopic} דוגמאות ללא תחום מוגדר</p>
+                      )}
+                    </div>
+
+                    {/* Holiday coverage */}
+                    <div>
+                      <p className="text-sm font-semibold mb-2 text-muted-foreground">🗓️ לפי חג/עונה</p>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(HOLIDAY_LABELS).map(([key, label]) => {
+                          const count = stats.byHoliday[key] || 0;
+                          if (key === 'year_round') return null;
+                          return (
+                            <Badge key={key} variant={count > 0 ? "default" : "outline"} className={cn(
+                              "text-xs",
+                              count >= 10 && "bg-green-600",
+                              count > 0 && count < 10 && "bg-yellow-600",
+                              count === 0 && "opacity-50",
+                            )}>
+                              {label} ({count})
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                      <p className="text-sm font-semibold mb-1 flex items-center gap-1.5">
+                        <Lightbulb className="h-4 w-4 text-primary" />
+                        המלצות להעשרת המאגר
+                      </p>
+                      <ul className="text-xs space-y-1 text-muted-foreground">
+                        {(() => {
+                          const recommendations: string[] = [];
+                          const weakTopics = Object.entries(TOPIC_LABELS).filter(([k]) => (stats.byTopic[k] || 0) < 5 && (stats.byTopic[k] || 0) > 0);
+                          const emptyTopics = Object.entries(TOPIC_LABELS).filter(([k]) => !stats.byTopic[k]);
+                          const weakHolidays = Object.entries(HOLIDAY_LABELS).filter(([k]) => k !== 'year_round' && (stats.byHoliday[k] || 0) < 5 && (stats.byHoliday[k] || 0) > 0);
+                          
+                          if (emptyTopics.length > 0) {
+                            recommendations.push(`תחומים חסרים לגמרי: ${emptyTopics.slice(0, 5).map(([,v]) => v).join(', ')}. הוסף לפחות 5 דוגמאות לכל אחד.`);
+                          }
+                          if (weakTopics.length > 0) {
+                            recommendations.push(`תחומים חלשים (פחות מ-5): ${weakTopics.map(([,v]) => v).join(', ')}. שפר עם דוגמאות נוספות.`);
+                          }
+                          if (weakHolidays.length > 0) {
+                            recommendations.push(`חגים שצריכים חיזוק: ${weakHolidays.map(([,v]) => v).join(', ')}.`);
+                          }
+                          if (stats.untaggedTopic > 10) {
+                            recommendations.push(`${stats.untaggedTopic} דוגמאות ללא תחום — תייג אותן כדי שה-AI ישתמש בהן בצורה ממוקדת.`);
+                          }
+                          if (guidelines.length < 3) {
+                            recommendations.push('הוסף כללי אצבע (Guidelines) — הם משפיעים ישירות על איכות התוצרים.');
+                          }
+                          if (recommendations.length === 0) {
+                            recommendations.push('✅ המאגר מכוסה היטב! המשך להוסיף דוגמאות עדכניות.');
+                          }
+                          return recommendations.map((r, i) => <li key={i}>• {r}</li>);
+                        })()}
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* AI Deep Analysis */}
                 <Card className="border-2 border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-purple-500" />
-                      תובנות AI ממוקדות
+                      ניתוח AI עמוק — מה המערכת למדה מהתמונות
                     </CardTitle>
-                    <CardDescription>בחר קטגוריה ולחץ לניתוח</CardDescription>
+                    <CardDescription>ה-AI רואה את התמונות ומנתח סגנון, צבעים, טיפוגרפיה וקומפוזיציה</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Category buttons */}
                     <div className="flex flex-wrap gap-2 border-b pb-3">
                       {[
-                        { id: 'general' as const, label: 'כללי' },
-                        { id: 'topic' as const, label: 'לפי תחום' },
-                        { id: 'holiday' as const, label: 'לפי חג' },
-                        { id: 'media' as const, label: 'לפי מדיה' },
-                        { id: 'stream' as const, label: 'לפי זרם' },
+                        { id: 'general' as const, label: '🎯 כללי' },
+                        { id: 'topic' as const, label: '📦 לפי תחום' },
+                        { id: 'holiday' as const, label: '🗓️ לפי חג' },
+                        { id: 'media' as const, label: '📰 לפי מדיה' },
+                        { id: 'stream' as const, label: '🕍 לפי זרם' },
                       ].map(cat => (
                         <Button
                           key={cat.id}
@@ -1124,7 +1228,7 @@ const SectorBrain = () => {
 
                     {/* Sub-options */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                      {(insightCategory === 'general' ? [{ id: 'general', label: 'ניתוח כללי' }] :
+                      {(insightCategory === 'general' ? [{ id: 'general', label: '🎯 ניתוח כללי' }] :
                         insightCategory === 'topic' ? Object.entries(TOPIC_LABELS).filter(([k]) => (stats.byTopic[k] || 0) > 0).map(([k, v]) => ({ id: `topic_${k}`, label: `${v} (${stats.byTopic[k]})` })) :
                         insightCategory === 'holiday' ? Object.entries(HOLIDAY_LABELS).filter(([k]) => k === 'year_round' || (stats.byHoliday[k] || 0) > 0).map(([k, v]) => ({ id: `holiday_${k}`, label: v })) :
                         insightCategory === 'media' ? MEDIA_TYPES.filter(m => (stats.byMedia[m.id] || 0) > 0).map(m => ({ id: `media_${m.id}`, label: `${m.label} (${stats.byMedia[m.id]})` })) :
@@ -1152,8 +1256,9 @@ const SectorBrain = () => {
                     {(aiInsights || isAnalyzing) && (
                       <div className="p-4 bg-card rounded-lg border border-purple-200 dark:border-purple-800">
                         {isAnalyzing && !aiInsights && (
-                          <div className="flex items-center justify-center py-8">
+                          <div className="flex flex-col items-center justify-center py-8 gap-2">
                             <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+                            <p className="text-sm text-muted-foreground">מנתח את התמונות והדוגמאות...</p>
                           </div>
                         )}
                         {aiInsights && (
@@ -1164,7 +1269,7 @@ const SectorBrain = () => {
 
                     {!aiInsights && !isAnalyzing && (
                       <p className="text-sm text-muted-foreground text-center py-4">
-                        בחר קטגוריה ולחץ לקבלת ניתוח AI ממוקד
+                        בחר קטגוריה ולחץ — ה-AI ינתח את התמונות שהעלת ויחזיר תובנות מפורטות
                       </p>
                     )}
                   </CardContent>
