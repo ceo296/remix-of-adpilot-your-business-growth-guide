@@ -36,9 +36,9 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
     const guidelines = (guidelinesData || []).map(g => g.text_content).filter(Boolean);
 
     // 5. Fetch saved AI Insights
-    let insightsFilter = supabase.from('sector_brain_insights').select('insight_type, content').eq('is_active', true).order('updated_at', { ascending: false }).limit(5);
+    let insightsFilter = supabase.from('sector_brain_insights').select('insight_type, content').eq('is_active', true).order('updated_at', { ascending: false }).limit(10);
     if (topicCategory) {
-      insightsFilter = supabase.from('sector_brain_insights').select('insight_type, content').eq('is_active', true).or(`insight_type.eq.general,insight_type.eq.visual_patterns,insight_type.eq.topic_${topicCategory}`).order('updated_at', { ascending: false }).limit(5);
+      insightsFilter = supabase.from('sector_brain_insights').select('insight_type, content').eq('is_active', true).or(`insight_type.eq.general,insight_type.eq.visual_patterns,insight_type.eq.creative_correction,insight_type.eq.topic_${topicCategory}`).order('updated_at', { ascending: false }).limit(10);
     }
     const { data: insightsData } = await insightsFilter;
     const insights = (insightsData || []).map(i => `[${i.insight_type}]: ${i.content?.substring(0, 2000)}`);
