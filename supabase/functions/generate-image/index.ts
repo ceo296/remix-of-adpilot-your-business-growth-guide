@@ -536,9 +536,19 @@ ${visualApproach === 'product-focus' ? `
 
 COMMUNITY RULES:
 - This targets the Haredi (Ultra-Orthodox) Jewish community
-- ABSOLUTELY NO women or girls
+- ABSOLUTELY NO women or girls in images
 - If people ARE needed: men/boys in modest Orthodox attire only
 - Clean, premium, professional
+
+CRITICAL — GENDER-VISUAL MATCHING (IRON RULE):
+- If the campaign copy/offer targets WOMEN (feminine language: את, שלך, מגיע לך, מושלמת, הרגישי) or the product is FOR WOMEN (facial treatments for women, women's fashion, wigs/sheitels, cosmetics, dresses):
+  → DO NOT show ANY male figures (no bearded men, no boys, no male characters)
+  → Use ONLY: product photography, graphic design, abstract elements, feminine aesthetics (flowers, spa elements, creams, fabrics)
+  → A man with a beard in an ad for women's facial treatments is a CATASTROPHIC ERROR
+- If the campaign copy targets MEN (masculine language: אתה, שלך, אבא):
+  → Male figures are appropriate
+  → Do NOT use feminine product imagery
+- WHEN IN DOUBT: Use pure product/graphic design with NO people at all. This is ALWAYS safe.
 
 ${sectorInsights}
 ${modelRules}
