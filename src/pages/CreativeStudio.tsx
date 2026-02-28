@@ -2021,28 +2021,16 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                         )}
                         {image.status !== 'rejected' && image.status !== 'pending' && (
                           <div 
-                            className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 cursor-pointer"
+                            className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                            onClick={() => setEnlargedImage(image)}
                           >
                             <Button
                               size="sm"
                               variant="secondary"
                               className="gap-1.5"
-                              onClick={() => setEnlargedImage(image)}
                             >
                               <ZoomIn className="h-4 w-4" />
-                              הגדל
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="gap-1.5"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setFabricEditImage({ id: image.id, url: image.url });
-                              }}
-                            >
-                              <Move className="h-4 w-4" />
-                              ערוך
+                              הגדל וערוך טקסט
                             </Button>
                           </div>
                         )}
