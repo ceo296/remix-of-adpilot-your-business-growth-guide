@@ -29,9 +29,21 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const dataUrl = event.target?.result as string;
+    // Auto-convert PDF to PNG
+    const { fileToLogoDataUrl } = await import('@/lib/logo-utils');
+    
+    try {
+      let dataUrl: string;
+      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        toast.loading('ממיר PDF ל-PNG...', { id: 'pdf-convert' });
+        const result = await fileToLogoDataUrl(file);
+        dataUrl = result.dataUrl;
+        toast.success('PDF הומר בהצלחה!', { id: 'pdf-convert' });
+      } else {
+        const result = await fileToLogoDataUrl(file);
+        dataUrl = result.dataUrl;
+      }
+      
       updateData({
         brand: {
           ...data.brand,
@@ -65,8 +77,10 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         console.error('Auto color extraction failed:', err);
         toast.error('לא הצלחנו לחלץ צבעים מהלוגו', { id: 'auto-color-extract' });
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Logo upload failed:', err);
+      toast.error('שגיאה בהעלאת הלוגו');
+    }
   };
 
   const handleColorChange = (colorType: 'primary' | 'secondary' | 'background', value: string) => {

@@ -138,16 +138,19 @@ const OnboardingWizard = () => {
     }
   };
 
-  const uploadLogoToStorage = async (dataUrl: string, userId: string): Promise<string | null> => {
+   const uploadLogoToStorage = async (dataUrl: string, userId: string): Promise<string | null> => {
     try {
+      // Auto-convert PDF logos to PNG so they render everywhere
+      const { ensureImageDataUrl } = await import('@/lib/logo-utils');
+      dataUrl = await ensureImageDataUrl(dataUrl);
+
       // Extract the file type and base64 data
       const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
       if (!match) return null;
 
       const mimeType = match[1];
       const base64Data = match[2];
-      const isPdf = mimeType === 'application/pdf';
-      const extension = isPdf ? 'pdf' : mimeType.split('/')[1] || 'png';
+      const extension = mimeType.split('/')[1] || 'png';
       const fileName = `${userId}/logo-${Date.now()}.${extension}`;
 
       // Convert base64 to blob
