@@ -384,7 +384,7 @@ serve(async (req) => {
           'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ model: 'google/gemini-2.5-pro', messages: multimodalMessages, max_tokens: 8192 }),
+        body: JSON.stringify({ model: 'google/gemini-2.5-pro', messages: multimodalMessages, max_completion_tokens: 8192 }),
       });
 
       if (!aiResponse.ok) {
