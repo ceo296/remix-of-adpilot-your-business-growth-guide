@@ -248,6 +248,15 @@ serve(async (req) => {
 
     if (campaignContext) {
       contextBlock += `\n=== הקשר קמפיין ===\n`;
+      if (campaignContext.offer) {
+        contextBlock += `\n🔴 בריף מלא מהלקוח (חובה לקרוא ולהשתמש!):\n${campaignContext.offer}\n`;
+        contextBlock += `\nהוראה קריטית: חלץ מהבריף הזה את הפרטים הבאים ושלב אותם בקונספטים:\n`;
+        contextBlock += `- סוגי טיפולים/שירותים/מוצרים ספציפיים שהלקוח מציע\n`;
+        contextBlock += `- מחירים, הנחות, חבילות, מבצעים\n`;
+        contextBlock += `- יתרון מרכזי / USP שהלקוח מדגיש\n`;
+        contextBlock += `- פרטים ספציפיים שחשובים ללקוח (למשל "רופאה ולא קוסמטיקאית")\n`;
+        contextBlock += `כלול לפחות 2-3 פרטים ספציפיים מהבריף בכל קונספט (בכותרת משנה, באדי או CTA).\n`;
+      }
       if (campaignContext.goal) contextBlock += `מטרה: ${campaignContext.goal}\n`;
       if (campaignContext.vibe) contextBlock += `וייב: ${campaignContext.vibe}\n`;
       if (campaignContext.structure) contextBlock += `מבנה: ${campaignContext.structure}\n`;
