@@ -7,6 +7,12 @@ import { toPng } from 'html-to-image';
 
 export type TextLayoutStyle = 'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend' | 'brand-top';
 
+export interface BulletItem {
+  icon?: '✓' | '₪' | '⭐' | '🔥' | '💎' | '🎯' | '📞' | '🏷️' | '⚡' | string;
+  text: string;
+  highlight?: boolean; // use brand color background
+}
+
 export interface TextOverlayConfig {
   headline?: string;
   subtitle?: string;
@@ -26,6 +32,7 @@ export interface TextOverlayConfig {
   servicesList?: string[];
   promoText?: string;
   promoValue?: string;
+  bulletItems?: BulletItem[];
 }
 
 // ─── Utility functions ───
@@ -109,6 +116,51 @@ function darkenHex(hex: string, factor = 0.3): string {
   const g = Math.round(parseInt(c.substring(2, 4), 16) * (1 - factor));
   const b = Math.round(parseInt(c.substring(4, 6), 16) * (1 - factor));
   return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+// ─── Bullet/Badge Strip (services, prices, advantages) ───
+
+function buildBulletsStripHTML(config: TextOverlayConfig, width: number, height: number, scale: number): string {
+  const bullets = config.bulletItems;
+  if (!bullets || bullets.length === 0) return '';
+
+  const primary = config.primaryColor || '#2BA5B5';
+  const secondary = config.secondaryColor || darkenHex(primary, 0.3);
+  const textOnPrimary = isLightColor(primary) ? '#1a1a1a' : '#FFFFFF';
+  const textOnSecondary = isLightColor(secondary) ? '#1a1a1a' : '#FFFFFF';
+
+  const padX = Math.round(16 * scale);
+  const padY = Math.round(8 * scale);
+  const fontSize = Math.max(Math.round(14 * scale), 10);
+  const iconSize = Math.max(Math.round(16 * scale), 11);
+  const gap = Math.round(8 * scale);
+  const itemPadX = Math.round(12 * scale);
+  const itemPadY = Math.round(6 * scale);
+  const radius = Math.round(6 * scale);
+
+  const itemsHtml = bullets.slice(0, 6).map(b => {
+    const bg = b.highlight ? secondary : hexToRgba(primary, 0.85);
+    const color = b.highlight ? textOnSecondary : textOnPrimary;
+    const icon = b.icon || '✓';
+    return `
+      <div style="display:inline-flex; align-items:center; gap:${Math.round(4 * scale)}px;
+                  background:${bg}; color:${color};
+                  padding:${itemPadY}px ${itemPadX}px; border-radius:${radius}px;
+                  font-size:${fontSize}px; font-weight:700; white-space:nowrap;
+                  box-shadow:0 2px 8px rgba(0,0,0,0.25); direction:rtl;">
+        <span style="font-size:${iconSize}px; line-height:1;">${icon}</span>
+        <span>${cleanText(b.text)}</span>
+      </div>`;
+  }).join('');
+
+  return `
+    <!-- Bullets/Badges strip -->
+    <div style="position:absolute; bottom:${Math.round(height * 0.14 + padY * 2)}px; left:0; right:0; z-index:3;
+                display:flex; flex-wrap:wrap; justify-content:center; gap:${gap}px;
+                padding:0 ${padX}px; direction:rtl;">
+      ${itemsHtml}
+    </div>
+  `;
 }
 
 // ─── Shared Contact Strip (Professional Newspaper Grid) ───
@@ -271,6 +323,7 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
         </div>
       </div>
 
+      ${buildBulletsStripHTML(config, width, height, scale)}
       ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
@@ -341,6 +394,7 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
         ` : ''}
       </div>
 
+      ${buildBulletsStripHTML(config, width, height, scale)}
       ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
@@ -406,6 +460,7 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
         </div>
       </div>
 
+      ${buildBulletsStripHTML(config, width, height, scale)}
       ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
@@ -473,6 +528,7 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
         </div>
       </div>
 
+      ${buildBulletsStripHTML(config, width, height, scale)}
       ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
