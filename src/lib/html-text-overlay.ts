@@ -53,17 +53,34 @@ function cleanText(text: string): string {
     .trim();
 }
 
-/** Split long text into 2 lines if it exceeds maxChars per line */
+/** Split long text into multiple lines at word boundaries, respecting maxChars per line.
+ *  Prefers natural Hebrew phrase breaks (before common prepositions/conjunctions). */
 function splitLongText(text: string, maxCharsPerLine: number = 40): string {
   if (!text || text.length <= maxCharsPerLine) return text;
-  const mid = Math.floor(text.length / 2);
-  let splitAt = -1;
-  for (let i = 0; i <= 15; i++) {
-    if (mid + i < text.length && text[mid + i] === ' ') { splitAt = mid + i; break; }
-    if (mid - i >= 0 && text[mid - i] === ' ') { splitAt = mid - i; break; }
+  
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  
+  // Hebrew prepositions/conjunctions where it's natural to break BEFORE
+  const breakBeforeWords = new Set(['של', 'על', 'עם', 'את', 'אל', 'מן', 'כי', 'או', 'גם', 'כמו', 'אבל', 'אך', 'כדי', 'בו', 'לא', 'היא', 'הוא', 'אנו', 'שלכם', 'שלך', 'לפני', 'אחרי']);
+  
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    if (testLine.length > maxCharsPerLine && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else if (currentLine && currentLine.length >= maxCharsPerLine * 0.5 && breakBeforeWords.has(word)) {
+      // Natural phrase break — split before preposition if we're past halfway
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
   }
-  if (splitAt === -1) return text;
-  return text.substring(0, splitAt) + '<br/>' + text.substring(splitAt + 1);
+  if (currentLine) lines.push(currentLine);
+  
+  return lines.join('<br/>');
 }
 
 /** Check if a URL is a renderable image (not PDF/SVG data) */
@@ -114,18 +131,22 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
   const address = config.address || '';
 
   const scale = Math.min(width, height) / 1024;
-  // Text hierarchy: headline ~2.5x body, subtitle ~1.4x body
-  const headlineSize = Math.round(54 * scale);
-  const subtitleSize = Math.round(26 * scale);
-  const bodySize = Math.round(18 * scale);
-  const phoneSize = Math.round(26 * scale);
-  const nameSize = Math.round(16 * scale);
+  // Ensure minimum readable sizes even on small images
+  const minScale = Math.max(scale, 0.55);
+  // Text hierarchy: headline ~2.5x body, subtitle ~1.5x body
+  const headlineSize = Math.max(Math.round(54 * scale), 28);
+  const subtitleSize = Math.max(Math.round(28 * scale), 18);
+  const bodySize = Math.max(Math.round(22 * scale), 14);
+  const phoneSize = Math.max(Math.round(30 * scale), 18);
+  const nameSize = Math.max(Math.round(20 * scale), 13);
 
   const contactHeight = Math.round(height * 0.12);
 
+  const logoHeight = Math.max(Math.round(70 * scale), 40);
+  const logoWidth = Math.max(Math.round(170 * scale), 80);
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(52 * scale)}px; max-width:${Math.round(130 * scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.6));" />` : '';
+         style="max-height:${logoHeight}px; max-width:${logoWidth}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7));" />` : '';
 
   // Services bar
   const servicesHtml = config.servicesList?.length ? `
@@ -189,8 +210,8 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
                   display:grid; grid-template-columns:auto 1fr auto; align-items:end;
                   padding:0 ${Math.round(18 * scale)}px ${Math.round(10 * scale)}px; gap:${Math.round(12 * scale)}px; direction:ltr; z-index:3;">
         
-        <!-- Logo — bottom left, no background -->
-        <div style="display:flex; align-items:center; background:transparent;">${logoHtml}</div>
+        <!-- Logo — bottom left, with padding for visibility -->
+        <div style="display:flex; align-items:center; background:transparent; padding:${Math.round(4 * scale)}px;">${logoHtml}</div>
 
         <!-- Phone + details center -->
         <div style="text-align:center; direction:rtl;">
@@ -198,8 +219,8 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
             <div style="font-size:${phoneSize}px; font-weight:900; color:#fff; direction:ltr; letter-spacing:1px;
                         text-shadow:0 1px 4px rgba(0,0,0,0.3);">${phone}</div>
           ` : ''}
-          ${address ? `<div style="font-size:${Math.round(11 * scale)}px; color:rgba(255,255,255,0.75); margin-top:${Math.round(1 * scale)}px;">${address}</div>` : ''}
-          ${email ? `<div style="font-size:${Math.round(11 * scale)}px; color:rgba(255,255,255,0.75);">${email}</div>` : ''}
+          ${address ? `<div style="font-size:${Math.max(Math.round(13 * scale), 10)}px; color:rgba(255,255,255,0.8); margin-top:${Math.round(2 * scale)}px;">${address}</div>` : ''}
+          ${email ? `<div style="font-size:${Math.max(Math.round(13 * scale), 10)}px; color:rgba(255,255,255,0.8);">${email}</div>` : ''}
         </div>
 
         <!-- Business name — right side -->
@@ -228,16 +249,15 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
   const address = config.address || '';
 
   const scale = Math.min(width, height) / 1024;
-  // Text hierarchy: headline ~2.5x body, subtitle ~1.3x body
-  const headlineSize = Math.round(52 * scale);
-  const subtitleSize = Math.round(24 * scale);
-  const bodySize = Math.round(17 * scale);
-  const phoneSize = Math.round(26 * scale);
-  const nameSize = Math.round(14 * scale);
+  const headlineSize = Math.max(Math.round(52 * scale), 26);
+  const subtitleSize = Math.max(Math.round(26 * scale), 16);
+  const bodySize = Math.max(Math.round(20 * scale), 13);
+  const phoneSize = Math.max(Math.round(28 * scale), 17);
+  const nameSize = Math.max(Math.round(18 * scale), 12);
 
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
-         style="max-height:${Math.round(48 * scale)}px; max-width:${Math.round(120 * scale)}px; object-fit:contain; background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.6));" />` : '';
+         style="max-height:${Math.max(Math.round(65 * scale), 36)}px; max-width:${Math.max(Math.round(150 * scale), 70)}px; object-fit:contain; background:none; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7));" />` : '';
 
   const contactStripHeight = Math.round(height * 0.12);
   // Text area in lower portion — semi-transparent brand background
