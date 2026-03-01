@@ -51,25 +51,68 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
     if (!files) return;
 
     Array.from(files).forEach((file) => {
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
+        let preview = event.target?.result as string;
+
+        // Convert PDF to PNG for analysis and display
+        if (isPdf) {
+          try {
+            const { pdfToImage } = await import('@/lib/pdf-utils');
+            preview = await pdfToImage(preview, { scale: 2 });
+          } catch (err) {
+            console.error('PDF conversion failed:', err);
+          }
+        }
+
         const material: UploadedMaterial = {
           id: Math.random().toString(36).substr(2, 9),
           name: file.name,
-          type: file.type.startsWith('image/') ? 'image' : 'document',
-          preview: event.target?.result as string,
+          type: 'image', // After conversion, everything is an image
+          preview,
         };
         
         const updatedMaterials = [...data.pastMaterials, material];
         updateData({ pastMaterials: updatedMaterials });
 
-        // Auto-analyze images
-        if (file.type.startsWith('image/')) {
-          analyzeAd(material, updatedMaterials);
-        }
+        // Auto-analyze all materials (images and converted PDFs)
+        analyzeAd(material, updatedMaterials);
+
+        // Also run direct color extraction for more accurate brand colors
+        extractColorsFromMaterial(preview);
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  // Direct color extraction from materials using the extract-logo-colors function
+  const extractColorsFromMaterial = async (imageDataUrl: string) => {
+    const colors = data.brand.colors;
+    const isDefault = (c: string) => !c || c === '#000000' || c === '#FFFFFF' || c === '#ffffff';
+    if (!isDefault(colors.primary) && !isDefault(colors.secondary)) return; // Already have colors
+
+    try {
+      const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
+        body: { imageBase64: imageDataUrl }
+      });
+      if (!error && result?.colors) {
+        updateData({
+          brand: {
+            ...data.brand,
+            colors: {
+              primary: result.colors.primary,
+              secondary: result.colors.secondary,
+              background: result.colors.background || '#FFFFFF',
+            },
+          },
+        });
+        toast.success('צבעי מותג חולצו מהחומרים!', { icon: '🎨' });
+      }
+    } catch (err) {
+      console.error('Color extraction from material failed:', err);
+    }
   };
 
   const analyzeAd = async (material: UploadedMaterial, currentMaterials: UploadedMaterial[]) => {
