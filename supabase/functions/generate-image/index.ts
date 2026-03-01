@@ -526,6 +526,14 @@ IMPORTANT: The generated image MUST follow the same visual structure, compositio
 
 ${brandContext ? `BRAND CONTEXT: "${brandContext.businessName || ''}" - ${brandContext.targetAudience || 'Haredi audience'}. ${brandContext.primaryXFactor ? `Differentiator: ${brandContext.primaryXFactor}` : ''}` : ''}
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
+${campaignContext?.goal === 'awareness' ? `
+GOAL STYLE DIRECTIVE (awareness): Premium, elegant, aspirational composition. Soft diffused lighting. Clean layout with generous white space. Muted sophisticated color palette. No prices or discounts in the visual.` : 
+campaignContext?.goal === 'promotion' ? `
+GOAL STYLE DIRECTIVE (promotion): Bold, energetic, eye-catching composition. Warm contrasting colors (red, orange, gold accents). Dynamic layout. Clear large text area for prices/offers. Sense of urgency.` :
+campaignContext?.goal === 'launch' ? `
+GOAL STYLE DIRECTIVE (launch): Dramatic, surprising composition. Strong theatrical lighting with deep shadows. Unconventional camera angles. Shallow depth of field focusing on ONE key element. Sense of reveal and mystery.` :
+campaignContext?.goal === 'seasonal' ? `
+GOAL STYLE DIRECTIVE (seasonal): Warm, festive, inviting composition. Golden hour warm lighting. Rich colors (gold, burgundy, deep green depending on holiday). Subtle seasonal elements in background. Warm family atmosphere.` : ''}
 
 DESIGN APPROACH (CRITICAL):
 ${visualApproach === 'product-focus' ? `

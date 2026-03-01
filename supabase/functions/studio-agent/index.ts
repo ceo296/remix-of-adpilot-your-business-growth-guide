@@ -218,6 +218,7 @@ serve(async (req) => {
       creativePayload,
       superAgentPayload,
       brandContext,
+      campaignContext,
       generateImage,
       aspectRatio,
       conversationHistory,
@@ -243,8 +244,26 @@ serve(async (req) => {
       });
     }
 
+    // Campaign goal → visual style directives
+    const GOAL_VISUAL_MAP: Record<string, string> = {
+      'awareness': '🎯 מטרת הקמפיין: מודעות למותג — הוויזואל צריך להיות premium, אלגנטי ו-aspirational. קומפוזיציה נקייה, הרבה שטח לבן, תאורה רכה ומפוזרת. פלטת צבעים רגועה ומעודנת. NO מחירים או הנחות על הוויזואל.',
+      'promotion': '🔥 מטרת הקמפיין: סייל/מבצע — הוויזואל צריך להיות בולט, אנרגטי ודחוף. צבעים חמים וקונטרסטיים (אדום, כתום, זהב). קומפוזיציה דינמית שמושכת עין מיד. אזור טקסט גדול וברור למחירים.',
+      'launch': '🚀 מטרת הקמפיין: השקה — הוויזואל צריך להיות דרמטי ומפתיע. תאורה דרמטית עם צללים חזקים. זוויות צילום לא שגרתיות. תחושת "reveal" ומסתורין. עומק שדה רדוד שמתמקד באלמנט אחד.',
+      'seasonal': '🎉 מטרת הקמפיין: עונתי/חג — הוויזואל צריך להיות חגיגי, חם ומזמין. גווני זהב, בורדו, ירוק כהה (לפי החג). תאורת Golden Hour חמה. אלמנטים עונתיים עדינים ברקע (לא כיתוב!).',
+    };
+    const goalVisualDirective = campaignContext?.goal ? GOAL_VISUAL_MAP[campaignContext.goal] || '' : '';
+
     // Build context
     let contextBlock = '';
+    if (goalVisualDirective) {
+      contextBlock += `\n=== הנחיית סגנון ויזואלי לפי מטרת הקמפיין ===\n${goalVisualDirective}\n`;
+    }
+    if (campaignContext) {
+      contextBlock += `\n=== הקשר קמפיין ===\n`;
+      if (campaignContext.offer) contextBlock += `הצעה: ${campaignContext.offer}\n`;
+      if (campaignContext.goal) contextBlock += `מטרה: ${campaignContext.goal}\n`;
+      if (campaignContext.structure) contextBlock += `מבנה: ${campaignContext.structure}\n`;
+    }
     if (superAgentPayload) {
       contextBlock += `\n=== הנחיות סוכן-העל ===\n${JSON.stringify(superAgentPayload, null, 2)}\n`;
     }

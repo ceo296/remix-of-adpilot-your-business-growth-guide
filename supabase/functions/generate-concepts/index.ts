@@ -343,7 +343,7 @@ ${campaignTitle || campaignOffer ? `
 === CAMPAIGN BRIEF - CRITICAL ===
 ${campaignTitle ? `Campaign Name: ${campaignTitle}` : ''}
 ${campaignOffer ? `MAIN OFFER/MESSAGE (MUST be the central focus of ALL concepts): ${campaignOffer}` : ''}
-${campaignGoal ? `Campaign Goal: ${campaignGoal === 'promotion' ? 'Sale/Promotion' : campaignGoal === 'awareness' ? 'Brand Awareness' : campaignGoal === 'launch' ? 'Product Launch' : campaignGoal === 'seasonal' ? 'Seasonal/Holiday Campaign' : campaignGoal}` : ''}
+${campaignGoal ? `Campaign Goal: ${campaignGoal === 'promotion' ? 'Sale/Promotion — tone must be URGENT, direct, action-oriented. Prices/discounts must be prominent. Strong CTA.' : campaignGoal === 'awareness' ? 'Brand Awareness — tone must be ELEGANT, aspirational, inspiring. No hard sell. Short powerful brand-building headlines.' : campaignGoal === 'launch' ? 'Product Launch — tone must be DRAMATIC, surprising, exciting. Build curiosity. "Something new is coming" energy.' : campaignGoal === 'seasonal' ? 'Seasonal/Holiday — tone must be FESTIVE, warm, family-oriented. Connect to holiday atmosphere and traditions.' : campaignGoal}` : ''}
 
 IMPORTANT: The main offer "${campaignOffer}" MUST appear prominently in each concept's copy and be the central message. Do not create generic brand concepts - focus specifically on this offer!
 =================================
