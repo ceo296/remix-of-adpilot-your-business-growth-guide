@@ -79,9 +79,6 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
 
         // Auto-analyze all materials (images and converted PDFs)
         analyzeAd(material, updatedMaterials);
-
-        // Also run direct color extraction for more accurate brand colors
-        extractColorsFromMaterial(preview);
       };
       reader.readAsDataURL(file);
     });
