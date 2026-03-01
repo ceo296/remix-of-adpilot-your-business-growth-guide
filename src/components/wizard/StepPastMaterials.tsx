@@ -3,7 +3,7 @@ import { WizardData, UploadedMaterial, AdLayoutAnalysis } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, X, ArrowLeft, ArrowRight, Loader2, Eye, Palette, Layout, Type, MapPin, Sparkles } from 'lucide-react';
+import { Upload, FileText, X, ArrowLeft, ArrowRight, Loader2, Eye, Palette, Layout, Type, MapPin, Sparkles, Camera } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +21,31 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
   const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set());
   const [viewingAnalysis, setViewingAnalysis] = useState<UploadedMaterial | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const businessPhotoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBusinessPhotos = (files: FileList | null) => {
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const photo: UploadedMaterial = {
+          id: Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          type: 'image',
+          preview: event.target?.result as string,
+        };
+        updateData({ businessPhotos: [...(data.businessPhotos || []), photo] });
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeBusinessPhoto = (id: string) => {
+    updateData({
+      businessPhotos: (data.businessPhotos || []).filter((p) => p.id !== id),
+    });
+  };
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -120,6 +145,79 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
         <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
           תעלו מודעה שעשיתם לאחרונה. המערכת תנתח את הגריד, מיקום הלוגו, הצבעים והטיפוגרפיה.
         </p>
+      </div>
+
+      {/* Business / Product Photos Section */}
+      <div className="max-w-3xl mx-auto space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Camera className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-bold text-lg text-foreground">תמונות מהעסק או המוצר</h3>
+            <p className="text-sm text-muted-foreground">
+              תמונות שנוכל להשתמש בהן בחומרי הפרסום — מוצרים, חנות, צוות, לפני/אחרי...
+            </p>
+          </div>
+        </div>
+        
+        <input
+          ref={businessPhotoInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => handleBusinessPhotos(e.target.files)}
+          className="hidden"
+        />
+        
+        <Card 
+          className="border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all cursor-pointer"
+          onClick={() => businessPhotoInputRef.current?.click()}
+        >
+          <CardContent className="p-6">
+            {data.businessPhotos && data.businessPhotos.length > 0 ? (
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                {data.businessPhotos.map((photo) => (
+                  <div key={photo.id} className="relative group rounded-lg overflow-hidden border border-border" onClick={(e) => e.stopPropagation()}>
+                    <img src={photo.preview} alt={photo.name} className="w-full h-28 object-cover" />
+                    <button
+                      onClick={() => removeBusinessPhoto(photo.id)}
+                      className="absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
+                      <p className="text-xs text-white truncate">{photo.name}</p>
+                    </div>
+                  </div>
+                ))}
+                <div className="rounded-lg border-2 border-dashed border-primary/30 flex items-center justify-center h-28 hover:border-primary hover:bg-primary/5 transition-all">
+                  <div className="text-center">
+                    <Camera className="w-6 h-6 mx-auto text-primary mb-1" />
+                    <span className="text-xs font-medium text-primary">הוסף עוד</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center space-y-3 py-4">
+                <div className="inline-flex items-center gap-3 text-muted-foreground">
+                  <Camera className="w-8 h-8 text-primary/50" />
+                  <span className="text-base">העלו תמונות מהמוצר, החנות, או כל דבר שרלוונטי לפרסום</span>
+                </div>
+                <p className="text-sm text-muted-foreground/70">אופציונלי — אבל עוזר לנו ליצור קריאייטיב אותנטי ומדויק</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Divider */}
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px bg-border"></div>
+          <span className="text-sm text-muted-foreground font-medium">מודעות קודמות לניתוח</span>
+          <div className="flex-1 h-px bg-border"></div>
+        </div>
       </div>
 
       <div className="max-w-3xl mx-auto">

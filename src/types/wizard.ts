@@ -147,6 +147,7 @@ export interface WizardData {
   
   // Step 4: Past Materials
   pastMaterials: UploadedMaterial[];
+  businessPhotos: UploadedMaterial[]; // Product/business photos for use in ads
   
   // Contact Assets
   contactAssets: ContactAssets;
@@ -210,6 +211,7 @@ export const initialWizardData: WizardData = {
     bodyFont: 'Heebo',
   },
   pastMaterials: [],
+  businessPhotos: [],
   contactAssets: initialContactAssets,
   strategy: {
     designDirection: null,
