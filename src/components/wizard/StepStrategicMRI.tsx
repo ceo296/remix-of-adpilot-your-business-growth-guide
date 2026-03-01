@@ -218,6 +218,24 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                       <p className="text-xs text-muted-foreground mt-1">{factor.description}</p>
                     </div>
                     </div>
+                    {isSelected && (
+                      <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                        <Input
+                          value={mri.xFactorDetails?.[factor.id] || ''}
+                          onChange={(e) => updateMRI({ 
+                            xFactorDetails: { ...mri.xFactorDetails, [factor.id]: e.target.value } 
+                          })}
+                          placeholder={
+                            factor.id === 'veteran' ? 'למשל: 25 שנה בתחום, מעל 10,000 לקוחות...' :
+                            factor.id === 'product' ? 'למשל: טכנולוגיה ייחודית, חומרי גלם מובחרים...' :
+                            factor.id === 'price' ? 'למשל: הזול ביותר בקטגוריה, חבילות משתלמות...' :
+                            factor.id === 'service' ? 'למשל: מענה 24/7, ליווי אישי לכל לקוח...' :
+                            'למשל: הסיפור שמאחורי המותג, ערכים ייחודיים...'
+                          }
+                          className="text-sm bg-background"
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               })}

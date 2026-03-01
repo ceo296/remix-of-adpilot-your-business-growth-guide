@@ -81,6 +81,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
           xFactors: data.strategicMRI.xFactors,
           primaryXFactor: data.strategicMRI.primaryXFactor,
           otherXFactor: data.strategicMRI.otherXFactor || '',
+          xFactorDetails: data.strategicMRI.xFactorDetails || {},
           advantageType: data.strategicMRI.advantageType,
           pricePosition: data.strategicMRI.myPosition.x,
           stylePosition: data.strategicMRI.myPosition.y,
