@@ -330,6 +330,7 @@ export type Database = {
           background_color: string | null
           body_font: string | null
           business_name: string
+          business_photos: Json | null
           competitor_positions: Json | null
           competitors: string[] | null
           contact_address: string | null
@@ -372,6 +373,7 @@ export type Database = {
           background_color?: string | null
           body_font?: string | null
           business_name: string
+          business_photos?: Json | null
           competitor_positions?: Json | null
           competitors?: string[] | null
           contact_address?: string | null
@@ -414,6 +416,7 @@ export type Database = {
           background_color?: string | null
           body_font?: string | null
           business_name?: string
+          business_photos?: Json | null
           competitor_positions?: Json | null
           competitors?: string[] | null
           contact_address?: string | null
