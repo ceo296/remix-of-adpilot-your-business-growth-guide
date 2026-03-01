@@ -278,6 +278,9 @@ serve(async (req) => {
       if (brandContext.logoUrl) contextBlock += `לוגו: ${brandContext.logoUrl}\n`;
       if (brandContext.headerFont) contextBlock += `פונט כותרת: ${brandContext.headerFont}\n`;
       if (brandContext.bodyFont) contextBlock += `פונט גוף: ${brandContext.bodyFont}\n`;
+      if (brandContext.businessPhotoUrls?.length) {
+        contextBlock += `\n📸 ללקוח יש ${brandContext.businessPhotoUrls.length} תמונות עסק/מוצר אמיתיות. כלול בהוראות הויזואליות שהתמונה צריכה לשקף את המוצרים והסביבה האמיתיים של העסק.\n`;
+      }
     }
     if (aspectRatio) {
       contextBlock += `\nyחס גובה-רוחב: ${aspectRatio}\n`;

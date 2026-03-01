@@ -100,11 +100,39 @@ async function generateVisualLayer(
   fullPrompt: string,
   brandContext: any,
   LOVABLE_API_KEY: string,
-  engineVersion: string = 'nano-banana-pro'
+  engineVersion: string = 'nano-banana-pro',
+  campaignContext?: any
 ): Promise<{ imageUrl: string; model: string }> {
   const models = ENGINE_MODELS[engineVersion] || ENGINE_MODELS['nano-banana-pro'];
 
   const messageContent: any[] = [{ type: "text", text: ART_DIRECTOR_GUIDELINES + "\n\n" + fullPrompt }];
+
+  // Include campaign-specific image if provided (highest priority visual reference)
+  const campaignImageUrl = campaignContext?.campaignImageUrl;
+  if (campaignImageUrl && !campaignImageUrl.startsWith('data:application/pdf')) {
+    console.log("Including client campaign image as PRIMARY visual reference");
+    messageContent.push({
+      type: "image_url",
+      image_url: { url: campaignImageUrl }
+    });
+    messageContent[0].text = `CRITICAL: The client has provided a SPECIFIC CAMPAIGN IMAGE (attached). Use this as the PRIMARY visual reference — incorporate or draw strong inspiration from this image in the final design.\n\n` + messageContent[0].text;
+  }
+
+  // Include business photos as visual references (up to 2 to avoid overloading)
+  const businessPhotoUrls = brandContext?.businessPhotoUrls || [];
+  const photosToInclude = businessPhotoUrls.slice(0, 2);
+  for (const photoUrl of photosToInclude) {
+    if (photoUrl && typeof photoUrl === 'string' && !photoUrl.startsWith('data:application/pdf')) {
+      console.log("Including business photo as visual reference:", photoUrl.substring(0, 80));
+      messageContent.push({
+        type: "image_url",
+        image_url: { url: photoUrl }
+      });
+    }
+  }
+  if (photosToInclude.length > 0) {
+    messageContent[0].text = `The client has provided ${photosToInclude.length} REAL business/product photos (attached). Draw inspiration from these actual products/settings to create authentic visuals.\n\n` + messageContent[0].text;
+  }
 
   // Include logo as visual input (skip PDFs - image models can't process them)
   const logoUrl = brandContext?.logoUrl;
@@ -116,7 +144,7 @@ async function generateVisualLayer(
       type: "image_url",
       image_url: { url: logoUrl }
     });
-    messageContent[0].text = `IMPORTANT: The attached image is the brand's LOGO. Place this exact logo in the BOTTOM-LEFT corner of the image. Do not modify the logo.\n\n` + messageContent[0].text;
+    messageContent[0].text = `IMPORTANT: One of the attached images is the brand's LOGO. Place this exact logo in the BOTTOM-LEFT corner of the image. Do not modify the logo.\n\n` + messageContent[0].text;
   } else if (isPdfLogo) {
     console.log("Skipping PDF logo - image generation models cannot process PDF files");
     messageContent[0].text = `IMPORTANT: The brand has a logo but it's in PDF format and cannot be attached. Leave a clear, prominent space in the BOTTOM-LEFT corner for the logo to be added later.\n\n` + messageContent[0].text;
@@ -525,7 +553,12 @@ IMPORTANT: The generated image MUST follow the same visual structure, compositio
 ` : ''}
 
 ${brandContext ? `BRAND CONTEXT: "${brandContext.businessName || ''}" - ${brandContext.targetAudience || 'Haredi audience'}. ${brandContext.primaryXFactor ? `Differentiator: ${brandContext.primaryXFactor}` : ''}` : ''}
+${brandContext?.businessPhotoUrls?.length ? `
+CLIENT'S REAL BUSINESS/PRODUCT PHOTOS ARE AVAILABLE (${brandContext.businessPhotoUrls.length} photos). 
+The AI should draw INSPIRATION from the real products/settings shown in these photos to create authentic visuals that match the client's actual business environment.` : ''}
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
+${campaignContext?.campaignImageUrl ? `
+A SPECIFIC CAMPAIGN IMAGE has been provided by the client. Use this image as the PRIMARY visual reference for the ad composition.` : ''}
 ${campaignContext?.goal === 'awareness' ? `
 GOAL STYLE DIRECTIVE (awareness): Premium, elegant, aspirational composition. Soft diffused lighting. Clean layout with generous white space. Muted sophisticated color palette. No prices or discounts in the visual.` : 
 campaignContext?.goal === 'promotion' ? `
@@ -584,7 +617,7 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
 
     const engineVersion = engine === 'nano-banana-pro' ? 'nano-banana-pro' : 'nano-banana';
     console.log(`[Pipeline] Starting Layer 1 - Visual generation (engine: ${engineVersion})`);
-    const visualResult = await generateVisualLayer(visualOnlyPrompt, brandContext, LOVABLE_API_KEY, engineVersion);
+    const visualResult = await generateVisualLayer(visualOnlyPrompt, brandContext, LOVABLE_API_KEY, engineVersion, campaignContext);
     console.log("[Pipeline] Layer 1 complete. Skipping Layer 2 — Hebrew text will be applied programmatically on the frontend for perfect rendering.");
 
     // ═══════════════════════════════════════════

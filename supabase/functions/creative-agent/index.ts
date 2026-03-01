@@ -244,6 +244,9 @@ serve(async (req) => {
       if (brandContext.primaryColor) contextBlock += `צבע ראשי: ${brandContext.primaryColor}\n`;
       if (brandContext.secondaryColor) contextBlock += `צבע משני: ${brandContext.secondaryColor}\n`;
       if (brandContext.xFactors?.length) contextBlock += `גורמי X: ${brandContext.xFactors.join(', ')}\n`;
+      if (brandContext.businessPhotoUrls?.length) {
+        contextBlock += `\n📸 ללקוח יש ${brandContext.businessPhotoUrls.length} תמונות עסק/מוצר אמיתיות. הקריאייטיב צריך להתחשב במוצרים/סביבה האמיתיים ולא להמציא ויזואל מנותק.\n`;
+      }
     }
 
     if (campaignContext) {
@@ -272,6 +275,7 @@ serve(async (req) => {
       if (campaignContext.structure) contextBlock += `מבנה: ${campaignContext.structure}\n`;
       if (campaignContext.timing) contextBlock += `טיימינג: ${campaignContext.timing}\n`;
       if (campaignContext.mediaTypes?.length) contextBlock += `סוגי מדיה: ${campaignContext.mediaTypes.join(', ')}\n`;
+      if (campaignContext.campaignImageUrl) contextBlock += `\n📷 הלקוח צירף תמונה ייעודית לקמפיין — התייחס אליה בקונספטים הויזואליים.\n`;
     }
 
     if (sectorBrainData) {

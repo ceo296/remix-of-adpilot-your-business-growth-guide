@@ -187,6 +187,37 @@ const OnboardingWizard = () => {
     }
   };
 
+  const uploadBusinessPhotos = async (photos: any[], userId: string): Promise<any[]> => {
+    const uploadedPhotos: any[] = [];
+    for (const photo of photos.slice(0, 10)) {
+      try {
+        if (!photo.preview) continue;
+        const match = photo.preview.match(/^data:([^;]+);base64,(.+)$/);
+        if (!match) continue;
+        const mimeType = match[1];
+        const base64Data = match[2];
+        const extension = mimeType.split('/')[1] || 'jpg';
+        const fileName = `${userId}/business-photo-${Date.now()}-${Math.random().toString(36).substr(2, 5)}.${extension}`;
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        const { data, error } = await supabase.storage
+          .from('brand-assets')
+          .upload(fileName, blob, { contentType: mimeType, upsert: true });
+        if (error) { console.error('Error uploading business photo:', error); continue; }
+        const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(data.path);
+        uploadedPhotos.push({ name: photo.name, url: urlData.publicUrl });
+      } catch (err) {
+        console.error('Error uploading business photo:', err);
+      }
+    }
+    return uploadedPhotos;
+  };
+
   const extractColorsFromLogo = async (imageDataUrl: string): Promise<{ primary: string; secondary: string; background: string } | null> => {
     try {
 
@@ -287,6 +318,27 @@ const OnboardingWizard = () => {
     setIsSaving(true);
     
     try {
+      // Upload business photos to storage
+      let businessPhotoUrls: any[] = [];
+      if (wizardData.businessPhotos && wizardData.businessPhotos.length > 0) {
+        toast.loading('מעלה תמונות עסק...', { id: 'upload-photos' });
+        businessPhotoUrls = await uploadBusinessPhotos(wizardData.businessPhotos, user.id);
+        toast.dismiss('upload-photos');
+        if (businessPhotoUrls.length > 0) {
+          toast.success(`${businessPhotoUrls.length} תמונות עסק הועלו בהצלחה`);
+        }
+      }
+
+      // Upload past materials to storage  
+      let pastMaterialsData: any[] = [];
+      if (wizardData.pastMaterials && wizardData.pastMaterials.length > 0) {
+        pastMaterialsData = wizardData.pastMaterials.map(m => ({
+          name: m.name,
+          type: m.type,
+          adAnalysis: m.adAnalysis || null,
+        }));
+      }
+
       // Update profile with user name
       const { error: profileError } = await supabase
         .from('profiles')
@@ -332,6 +384,8 @@ const OnboardingWizard = () => {
             social_instagram: wizardData.contactAssets.social_instagram || null,
             social_tiktok: wizardData.contactAssets.social_tiktok || null,
             social_linkedin: wizardData.contactAssets.social_linkedin || null,
+            business_photos: businessPhotoUrls,
+            past_materials: pastMaterialsData,
             onboarding_completed: true,
           })
           .eq('id', selectedAgencyClientId);
@@ -397,6 +451,8 @@ const OnboardingWizard = () => {
               social_tiktok: wizardData.contactAssets.social_tiktok || null,
               social_linkedin: wizardData.contactAssets.social_linkedin || null,
               is_agency_profile: false,
+              business_photos: businessPhotoUrls,
+              past_materials: pastMaterialsData,
               onboarding_completed: true,
               honorific_preference: wizardData.honorific,
             })
@@ -438,6 +494,8 @@ const OnboardingWizard = () => {
               social_tiktok: wizardData.contactAssets.social_tiktok || null,
               social_linkedin: wizardData.contactAssets.social_linkedin || null,
               is_agency_profile: false,
+              business_photos: businessPhotoUrls,
+              past_materials: pastMaterialsData,
               onboarding_completed: true,
               honorific_preference: wizardData.honorific,
             }]);

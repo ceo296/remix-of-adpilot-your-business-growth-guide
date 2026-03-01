@@ -79,6 +79,7 @@ interface ClientProfile {
   body_font: string | null;
   logo_url: string | null;
   past_materials: any[] | null;
+  business_photos: any[] | null;
 }
 
 interface MediaPackage {
@@ -383,7 +384,7 @@ const CreativeStudio = () => {
 
       const { data: profile } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials')
+        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, business_photos')
         .eq('user_id', user.id)
         .single();
 
@@ -391,6 +392,7 @@ const CreativeStudio = () => {
         setClientProfile({
           ...profile,
           past_materials: Array.isArray(profile.past_materials) ? profile.past_materials : [],
+          business_photos: Array.isArray(profile.business_photos) ? profile.business_photos : [],
         });
       }
     };
@@ -656,6 +658,7 @@ const CreativeStudio = () => {
         goal: campaignBrief.goal,
         structure: campaignBrief.structure,
         contactInfo: campaignBrief.contactSelection,
+        campaignImageUrl: campaignBrief.campaignImage || null,
       };
 
       for (let i = 0; i < 4; i++) {
@@ -1048,6 +1051,11 @@ const CreativeStudio = () => {
       contactEmail: clientProfile.contact_email,
       contactAddress: clientProfile.contact_address,
       pastMaterialsAnalysis,
+      // Business photos URLs for AI to reference
+      businessPhotoUrls: (clientProfile.business_photos as any[])
+        ?.filter((p: any) => p.url)
+        ?.map((p: any) => p.url)
+        ?.slice(0, 5) || [],
     } : null;
   };
 
@@ -1417,6 +1425,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
         goal: campaignBrief.goal,
         structure: campaignBrief.structure,
         holidaySeason: selectedHoliday || null,
+        campaignImageUrl: campaignBrief.campaignImage || null,
       };
 
       const results: GeneratedImage[] = [];
