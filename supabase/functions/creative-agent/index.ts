@@ -50,9 +50,15 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const imageExamples = allExamples
       .filter(e => e.file_path && e.file_type && /image|png|jpg|jpeg|webp/i.test(e.file_type))
-      .slice(0, 8)
-      .map(e => `${supabaseUrl}/storage/v1/object/public/sector-brain/${e.file_path}`);
-    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, imageUrls: imageExamples, guidelines, insights, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
+      .slice(0, 6)
+      .map(e => ({
+        url: `${supabaseUrl}/storage/v1/object/public/sector-brain/${e.file_path}`,
+        name: e.name,
+        description: e.description,
+        example_type: e.example_type,
+        topic: e.topic_category,
+      }));
+    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, imageExamples, guidelines, insights, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
   } catch { return null; }
 }
 
@@ -190,8 +196,20 @@ const SYSTEM_PROMPT = `זהות ותפקיד:
 אסור: שלושת הקונספטים עם דמויות/אנשים. מקסימום אחד מתוך שלושה יכול לכלול דמות.
 אסור: אלמנטים דתיים/חגיים שלא קשורים ישירות למוצר.
 
+=== מבנה גריד תחתון (Contact Strip) — סטנדרט חובה! ===
+כל מודעת דפוס/דיגיטל חייבת לכלול סטריפ תחתון עם פרטי קשר. המבנה:
+- פס רקע אטום (Solid) בצבע כהה (שחור/כחול כהה/צבע מותג כהה) עם פס עליון דק בצבע המותג
+- חלוקה ל-3 עמודות:
+  • ימין: לוגו העסק (נקי, ללא רקע לבן)
+  • מרכז: פרטי התקשרות (טלפון בולט כבאדג', מייל, כתובת)
+  • שמאל: שם העסק + תיאור קצר
+- שירותים/מוצרים מוצגים כרשימה מופרדת בקווים (|) — למשל: "טיפולי פנים | הסרת שיער | טיפוח כלות"
+- הטלפון הוא האלמנט הבולט ביותר בסטריפ — מוצג כבאדג' בצבע נוגד
+חובה: כלול את מבנה הגריד התחתון (contact_strip) ב-JSON של כל קונספט עם השדות: phone, email, address, services_list
+===
+
 פלט טכני (JSON) - SYSTEM_COMMAND:
-- creative_options: [{headline, body_text, cta, visual_description, visual_approach, radio_script, social_text}]
+- creative_options: [{headline, body_text, cta, visual_description, visual_approach, contact_strip: {phone, email, address, services_list}, radio_script, social_text}]
 - concept_logic: הסבר ל"וואו" והקשר לאסטרטגיה
 - format_adaptation: שלט/עיתון/רדיו/ווצאפ
 - next_agent: "Super_Agent" (לאישור) או "Studio" (לאחר אישור)`;
@@ -247,6 +265,13 @@ serve(async (req) => {
       if (brandContext.businessPhotoUrls?.length) {
         contextBlock += `\n📸 ללקוח יש ${brandContext.businessPhotoUrls.length} תמונות עסק/מוצר אמיתיות. הקריאייטיב צריך להתחשב במוצרים/סביבה האמיתיים ולא להמציא ויזואל מנותק.\n`;
       }
+      // Contact details for including in concepts
+      contextBlock += `\n=== פרטי קשר של העסק (לשילוב בקונספטים) ===\n`;
+      if (brandContext.contactPhone) contextBlock += `טלפון: ${brandContext.contactPhone}\n`;
+      if (brandContext.contactWhatsapp) contextBlock += `וואטסאפ: ${brandContext.contactWhatsapp}\n`;
+      if (brandContext.contactEmail) contextBlock += `מייל: ${brandContext.contactEmail}\n`;
+      if (brandContext.contactAddress) contextBlock += `כתובת: ${brandContext.contactAddress}\n`;
+      contextBlock += `הנחיה: כלול את פרטי הקשר הרלוונטיים ב-CTA ובגריד התחתון של כל קונספט. הטלפון הוא החשוב ביותר.\n`;
     }
 
     if (campaignContext) {
@@ -347,9 +372,33 @@ serve(async (req) => {
       }
     }
 
-    // Attempt 2: Lovable AI Gateway fallback
+    // Attempt 2: Lovable AI Gateway fallback (with multimodal reference images)
     if (!aiSuccess && LOVABLE_API_KEY) {
       console.log('Falling back to Lovable AI Gateway...');
+      
+      // Build multimodal messages with reference images
+      const multimodalMessages: any[] = [
+        { role: 'system', content: messages[0].content }
+      ];
+      for (const m of messages.slice(1, -1)) {
+        multimodalMessages.push({ role: m.role, content: m.content });
+      }
+      const userMsg = messages[messages.length - 1];
+      const refImages = sectorBrainData?.imageExamples || [];
+      if (refImages.length > 0) {
+        const userContent: any[] = [
+          { type: 'text', text: userMsg.content + `\n\n🖼️ להלן ${refImages.length} תמונות רפרנס מ-Sector Brain. למד מהן סגנון, קומפוזיציה, היררכיית טקסט וגריד פרטי קשר:` }
+        ];
+        for (const img of refImages) {
+          userContent.push({ type: 'text', text: `📷 "${img.name}" ${img.example_type === 'good' ? '✅ Hall of Fame' : img.example_type === 'bad' ? '❌ Red Line' : ''} ${img.description ? `- ${img.description}` : ''}` });
+          userContent.push({ type: 'image_url', image_url: { url: img.url } });
+        }
+        multimodalMessages.push({ role: 'user', content: userContent });
+        console.log(`Sending ${refImages.length} reference images as multimodal to Creative Agent`);
+      } else {
+        multimodalMessages.push({ role: 'user', content: userMsg.content });
+      }
+      
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -357,8 +406,8 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'openai/gpt-5-mini',
-          messages,
+          model: 'google/gemini-2.5-pro',
+          messages: multimodalMessages,
           max_completion_tokens: 8192,
         }),
       });

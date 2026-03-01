@@ -189,9 +189,20 @@ const SYSTEM_PROMPT = `זהות ותפקיד:
 כלל ברזל: אם הכותרת והבאדי נראים באותו גודל — המודעה נכשלה. הכותרת חייבת "לצעוק", הבאדי "ללחוש".
 תסתכל על רפרנסים מקצועיים: כותרת תופסת 30-40% מהמרחב הטקסטואלי, הבאדי 15-20%.
 
+=== מבנה גריד תחתון (Contact Strip) — סטנדרט חובה! ===
+כל מודעת דפוס/דיגיטל חייבת לכלול סטריפ תחתון. במפרט הויזואלי ציין:
+- פס רקע אטום (Solid) בצבע כהה עם פס עליון דק בצבע המותג
+- 3 עמודות: לוגו (ימין) | טלפון+מייל+כתובת (מרכז) | שם העסק (שמאל)
+- הטלפון מוצג כבאדג' בולט בצבע נוגד
+- שירותים מופרדים בקווים (|)
+- בפרומפט התמונה: השאר 10% תחתון ריק לגמרי עבור הסטריפ הזה
+חשוב: כלול ב-SYSTEM_COMMAND שדה contact_strip עם הפרטים: phone, email, address, services_list
+===
+
 פלט טכני (JSON) - SYSTEM_COMMAND:
 - design_specs: {layout_structure, typography_choices, primary_elements_focus}
 - image_generation_prompt: פרומפט באנגלית לננו בננה – חייב לכלול ניואנסים מגזריים!
+- contact_strip: {phone, email, address, services_list}
 - technical_notes: הנחיות סגירה
 - series_continuity: איך נשמר הרצף הוויזואלי (אם יש סדרה)
 - generate_image: true/false (האם לייצר תמונה עכשיו)
@@ -281,6 +292,13 @@ serve(async (req) => {
       if (brandContext.businessPhotoUrls?.length) {
         contextBlock += `\n📸 ללקוח יש ${brandContext.businessPhotoUrls.length} תמונות עסק/מוצר אמיתיות. כלול בהוראות הויזואליות שהתמונה צריכה לשקף את המוצרים והסביבה האמיתיים של העסק.\n`;
       }
+      // Contact details for bottom strip design
+      contextBlock += `\n=== פרטי קשר של העסק (לגריד תחתון) ===\n`;
+      if (brandContext.contactPhone) contextBlock += `טלפון: ${brandContext.contactPhone}\n`;
+      if (brandContext.contactWhatsapp) contextBlock += `וואטסאפ: ${brandContext.contactWhatsapp}\n`;
+      if (brandContext.contactEmail) contextBlock += `מייל: ${brandContext.contactEmail}\n`;
+      if (brandContext.contactAddress) contextBlock += `כתובת: ${brandContext.contactAddress}\n`;
+      contextBlock += `הנחיה: בפרומפט לתמונה — השאר שטח ריק בתחתית (10% מהגובה) עבור סטריפ פרטי קשר. הטלפון הוא החשוב ביותר.\n`;
     }
     if (aspectRatio) {
       contextBlock += `\nyחס גובה-רוחב: ${aspectRatio}\n`;
