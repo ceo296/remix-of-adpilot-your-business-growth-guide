@@ -257,7 +257,17 @@ serve(async (req) => {
         contextBlock += `- פרטים ספציפיים שחשובים ללקוח (למשל "רופאה ולא קוסמטיקאית")\n`;
         contextBlock += `כלול לפחות 2-3 פרטים ספציפיים מהבריף בכל קונספט (בכותרת משנה, באדי או CTA).\n`;
       }
-      if (campaignContext.goal) contextBlock += `מטרה: ${campaignContext.goal}\n`;
+      if (campaignContext.goal) {
+        const goalMap: Record<string, string> = {
+          'awareness': 'מודעות למותג — טון אלגנטי ומעורר השראה, כותרות מותגיות קצרות וחזקות, אל תלחץ על מכירה אלא על תחושה. הקופי צריך להיות premium.',
+          'promotion': 'סייל/מבצע — טון דחוף וישיר, המחיר/ההנחה חייבים להיות מרכזיים, CTA חזק ובהיר. כותרות שמדגישות את ההצעה. תחושת דחיפות.',
+          'launch': 'השקה — טון דרמטי ומפתיע, כותרות שמעוררות סקרנות, אלמנט של חידוש. קופי שמשדר "משהו חדש ומרגש מגיע".',
+          'seasonal': 'עונתי/חג — טון חגיגי וחם, שילוב אלמנטים עונתיים, תחושת שמחה ושייכות. קופי שמתחבר לאווירת החג.',
+        };
+        contextBlock += `מטרה: ${campaignContext.goal}\n`;
+        const goalDirective = goalMap[campaignContext.goal];
+        if (goalDirective) contextBlock += `\n🎯 הנחיית סגנון לפי מטרה: ${goalDirective}\n`;
+      }
       if (campaignContext.vibe) contextBlock += `וייב: ${campaignContext.vibe}\n`;
       if (campaignContext.structure) contextBlock += `מבנה: ${campaignContext.structure}\n`;
       if (campaignContext.timing) contextBlock += `טיימינג: ${campaignContext.timing}\n`;

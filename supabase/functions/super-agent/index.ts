@@ -191,8 +191,18 @@ serve(async (req) => {
       });
     }
 
+    // Campaign goal → style directives
+    const GOAL_STYLE_MAP: Record<string, string> = {
+      'awareness': '🎯 מטרה: מודעות למותג — הטון צריך להיות אלגנטי, מרשים ומעורר השראה. הוויזואל צריך להיות premium ו-aspirational. אל תלחץ על מכירה, תלחץ על תחושה. כותרות קצרות וחזקות שמעבירות מסר מותגי.',
+      'promotion': '🔥 מטרה: סייל/מבצע — הטון צריך להיות דחוף, ישיר ואקטיבי. המחיר/ההנחה חייבים להיות בולטים. CTA חזק ובהיר. צבעים חמים ובולטים. תחושת "עכשיו או לעולם לא". כותרות שמדגישות את ההצעה.',
+      'launch': '🚀 מטרה: השקה — הטון צריך להיות דרמטי, מפתיע ומלהיב. ויזואל שובר מוסכמות עם אלמנט של חידוש. תחושת "משהו חדש ומרגש מגיע". כותרות שמעוררות סקרנות ותשומת לב.',
+      'seasonal': '🎉 מטרה: עונתי/חג — הטון צריך להיות חגיגי, חם ומשפחתי. שילוב אלמנטים עונתיים רלוונטיים. תחושת שמחה ושייכות. ויזואל שמשדר אווירת חג ומסורת.',
+    };
+    const goalDirective = campaignContext?.goal ? GOAL_STYLE_MAP[campaignContext.goal] || '' : '';
+
     // Build messages array
     const contextParts = [];
+    if (goalDirective) contextParts.push(`\n=== הנחיית סגנון לפי מטרת הקמפיין ===\n${goalDirective}`);
     if (clientProfile) contextParts.push(`פרופיל לקוח: ${JSON.stringify(clientProfile)}`);
     if (campaignContext) contextParts.push(`הקשר קמפיין: ${JSON.stringify(campaignContext)}`);
     if (sectorBrainData) contextParts.push(`רפרנסים מגזריים: ${sectorBrainData.summary || JSON.stringify(sectorBrainData.zones || {})}`);
