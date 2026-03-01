@@ -50,7 +50,7 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const imageExamples = allExamples
       .filter(e => e.file_path && e.file_type && /image|png|jpg|jpeg|webp/i.test(e.file_type))
-      .slice(0, 6)
+      .slice(0, 10)
       .map(e => ({
         url: `${supabaseUrl}/storage/v1/object/public/sector-brain/${e.file_path}`,
         name: e.name,
