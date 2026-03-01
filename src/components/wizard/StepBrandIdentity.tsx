@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { WizardData, FONT_OPTIONS } from '@/types/wizard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -24,6 +24,50 @@ interface StepBrandIdentityProps {
 const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdentityProps) => {
   const [editingColor, setEditingColor] = useState<'primary' | 'secondary' | 'background' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasAttemptedAutoExtract = useRef(false);
+
+  // Auto-extract colors if logo exists but colors are all default/white
+  useEffect(() => {
+    if (hasAttemptedAutoExtract.current) return;
+    if (!data.brand.logo) return;
+    
+    const colors = data.brand.colors;
+    const isDefault = (c: string) => !c || c === '#000000' || c === '#FFFFFF' || c === '#ffffff';
+    const allDefault = isDefault(colors.primary) && isDefault(colors.secondary);
+    
+    if (!allDefault) return;
+    
+    hasAttemptedAutoExtract.current = true;
+    
+    const extractColors = async () => {
+      toast.loading('מחלץ צבעים מהלוגו...', { id: 'auto-color-extract' });
+      try {
+        const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
+          body: { imageBase64: data.brand.logo }
+        });
+        if (!error && result?.colors) {
+          updateData({
+            brand: {
+              ...data.brand,
+              colors: {
+                primary: result.colors.primary,
+                secondary: result.colors.secondary,
+                background: result.colors.background,
+              },
+            },
+          });
+          toast.success('צבעים חולצו בהצלחה מהלוגו!', { id: 'auto-color-extract' });
+        } else {
+          toast.dismiss('auto-color-extract');
+        }
+      } catch (err) {
+        console.error('Auto color extraction failed:', err);
+        toast.error('לא הצלחנו לחלץ צבעים מהלוגו', { id: 'auto-color-extract' });
+      }
+    };
+    
+    extractColors();
+  }, [data.brand.logo]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
