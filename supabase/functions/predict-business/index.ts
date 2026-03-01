@@ -23,11 +23,11 @@ serve(async (req) => {
   }
 
   try {
-    const { brandName, websiteUrl } = await req.json();
+    const { brandName, websiteUrl, scrapedContent, brandingInfo } = await req.json();
     
-    if (!brandName) {
+    if (!brandName && !websiteUrl && !scrapedContent) {
       return new Response(
-        JSON.stringify({ error: 'Brand name is required' }),
+        JSON.stringify({ error: 'Brand name or website URL is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -37,29 +37,55 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log(`Predicting business info for: ${brandName}, URL: ${websiteUrl || 'none'}`);
+    const hasScrapedData = !!(scrapedContent || brandingInfo);
+    console.log(`Predicting business info for: ${brandName || 'unknown'}, URL: ${websiteUrl || 'none'}, hasScrapedData: ${hasScrapedData}`);
 
     const systemPrompt = `אתה מומחה לניתוח עסקים בשוק החרדי בישראל. 
-המשימה שלך היא לנחש פרטים על עסק על סמך שם העסק וכתובת האתר (אם ניתנה).
+המשימה שלך היא לזהות פרטים על עסק על סמך המידע שמסופק לך.
 הנחה: העסק פועל במגזר החרדי/דתי בישראל.
 
-כללים חשובים לזיהוי קהל יעד:
-- עסקי מזון, מאפים, קייטרינג, מסעדות = קהל יעד: משפחות חרדיות או כלל הציבור החרדי (צרכנים פרטיים!)
+כללים חשובים:
+1. אם יש תוכן שנשאב מהאתר (scrapedContent) - זה המקור האמין ביותר! השתמש בו כבסיס העיקרי לניתוח.
+2. שם העסק שמסופק עשוי להיות שגוי או מיושן - אם התוכן מהאתר מצביע על שם עסק אחר, העדף את מה שכתוב באתר.
+3. זהה את שם העסק האמיתי מתוך התוכן שנשאב (כותרות, לוגו, תוכן ראשי).
+
+כללים לזיהוי קהל יעד:
+- עסקי מזון, מאפים, קייטרינג, מסעדות = קהל יעד: משפחות חרדיות או כלל הציבור החרדי
 - חנויות קמעונאיות (בגדים, אלקטרוניקה, ריהוט) = קהל יעד: משפחות חרדיות או כלל הציבור החרדי
 - עסקים שמוכרים לעסקים אחרים (B2B) בלבד = קהל יעד: בעלי עסקים
 - מוסדות חינוך וגנים = קהל יעד: הורים (משפחות חרדיות)
 - שירותי בניין, שיפוצים לבתים = קהל יעד: משפחות חרדיות
+- שירותי בריאות, רפואה, טיפולים = קהל יעד: כלל הציבור החרדי
 
 חשוב: החזר את התשובה בפורמט JSON בלבד, ללא טקסט נוסף.`;
 
-    const userPrompt = `נתח את העסק הבא:
-שם העסק: ${brandName}
-${websiteUrl ? `כתובת האתר: ${websiteUrl}` : 'אין כתובת אתר'}
+    // Build user prompt with all available data
+    let userPrompt = `נתח את העסק הבא:\n`;
+    
+    if (brandName) {
+      userPrompt += `שם העסק שהוזן: ${brandName}\n`;
+    }
+    if (websiteUrl) {
+      userPrompt += `כתובת האתר: ${websiteUrl}\n`;
+    }
+    
+    if (scrapedContent) {
+      userPrompt += `\nתוכן שנשאב מהאתר (זה המקור האמין ביותר!):\n${scrapedContent}\n`;
+    }
+    
+    if (brandingInfo) {
+      const brandingStr = typeof brandingInfo === 'string' ? brandingInfo : JSON.stringify(brandingInfo);
+      userPrompt += `\nמידע מיתוגי שנשאב מהאתר:\n${brandingStr}\n`;
+    }
+
+    userPrompt += `
+חשוב מאוד: אם התוכן מהאתר מציג שם עסק שונה מ"${brandName || ''}", השתמש בשם שמופיע באתר!
 
 נחש את הפרטים הבאים והחזר בפורמט JSON:
 {
+  "businessName": "שם העסק האמיתי כפי שזוהה מהתוכן (אם יש תוכן מהאתר - העדף את השם שמופיע שם)",
   "industry": "תחום העיסוק (לדוגמה: ריהוט לבית ולמשרד, מזון ומאפים, טכנולוגיה ומחשוב, אופנה והלבשה, שירותי בריאות, חינוך והדרכה, נדל\"ן, שירותים פיננסיים, אירועים ושמחות)",
-  "audience": "קהל היעד - שים לב: אם זה עסק שמוכר לצרכן הסופי (אוכל, בגדים, מוצרים לבית) התשובה צריכה להיות 'משפחות חרדיות' או 'כלל הציבור החרדי'. רק אם זה עסק שמוכר לעסקים אחרים (B2B) בחר 'בעלי עסקים'. אפשרויות: משפחות חרדיות, קהילות חסידיות, ציבור ליטאי, נשים חרדיות, גברים חרדיים, בעלי עסקים, מוסדות חינוך, כלל הציבור החרדי",
+  "audience": "קהל היעד - בחר מהאפשרויות: משפחות חרדיות, קהילות חסידיות, ציבור ליטאי, נשים חרדיות, גברים חרדיים, בעלי עסקים, מוסדות חינוך, כלל הציבור החרדי",
   "coreOffering": "המוצר או השירות המרכזי של העסק - משפט קצר",
   "seniority": "הערכה לגבי ותק העסק (לדוגמה: עסק ותיק, עסק חדש, פעיל מזה מספר שנים)"
 }`;
@@ -107,7 +133,6 @@ ${websiteUrl ? `כתובת האתר: ${websiteUrl}` : 'אין כתובת אתר'
     // Parse JSON from response
     let predictions;
     try {
-      // Try to extract JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         predictions = JSON.parse(jsonMatch[0]);
@@ -116,7 +141,6 @@ ${websiteUrl ? `כתובת האתר: ${websiteUrl}` : 'אין כתובת אתר'
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
-      // Fallback predictions
       predictions = {
         industry: 'אחר',
         audience: 'כלל הציבור החרדי',
