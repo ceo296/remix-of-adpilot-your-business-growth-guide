@@ -1196,7 +1196,13 @@ const CreativeStudio = () => {
                 promoValue: textMeta.promoValue,
                 bulletItems: textMeta.bulletItems,
           });
-          console.log(`[Canvas] Hebrew text applied with layout "${conceptLayout}" for concept ${index}`);
+          console.log(`[Canvas] Hebrew text applied with layout "${conceptLayout}" for concept ${index}`, {
+            primaryColor: brandContext?.colors?.primary,
+            secondaryColor: brandContext?.colors?.secondary,
+            logoUrl: (brandContext as any)?.logoUrl ? 'present' : clientProfile?.logo_url ? 'from profile' : 'none',
+            phone: textMeta.phone,
+            businessName: textMeta.businessName,
+          });
         } catch (canvasError) {
           console.error('[Canvas] Failed to apply text overlay, using visual-only:', canvasError);
           // Fall back to visual-only image
