@@ -1340,9 +1340,15 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
         input: `הצעה: "${campaignBrief.offer}"\nמטרה: ${campaignBrief.goal || 'לא הוגדרה'}\nמדיה: ${mediaTypes.join(', ')}\nחג: ${selectedHoliday || 'כל השנה'}\nנושא: ${detectedTopic || 'כללי'}${strategyOutput ? `\n\nניתוח אסטרטגי:\n${strategyOutput.substring(0, 300)}...` : ''}`,
       });
 
+      // Strip large base64 data (like PDF logos) from profile to avoid oversized request bodies
+      const lightProfile: any = { ...profile };
+      if (lightProfile.logo_url && String(lightProfile.logo_url).length > 5000) {
+        lightProfile.logo_url = null;
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-concepts', {
         body: { 
-          profile, 
+          profile: lightProfile, 
           mediaTypes,
           campaignBrief: {
             title: campaignBrief.title,
