@@ -34,6 +34,11 @@ export interface BrandIdentity {
   bodyFont: string;
 }
 
+// Deep-partial type for updateData to allow partial brand updates
+export type WizardDataUpdate = Omit<Partial<WizardData>, 'brand'> & {
+  brand?: Omit<Partial<BrandIdentity>, 'colors'> & { colors?: Partial<BrandColors> };
+};
+
 export interface AdLayoutAnalysis {
   logoPosition: string; // e.g. "top-right", "top-left", "center-top"
   gridStructure: string; // e.g. "2-column split", "hero + text block"

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { WizardData } from '@/types/wizard';
+import { WizardData, WizardDataUpdate } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,7 +18,7 @@ interface UploadedFile {
 
 interface StepMagicLinkProps {
   data: WizardData;
-  updateData: (data: Partial<WizardData>) => void;
+  updateData: (data: WizardDataUpdate) => void;
   onNext: () => void;
   onPrev?: () => void;
 }
@@ -75,7 +75,6 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
       setLogoFile(newFile);
       updateData({
         brand: {
-          ...data.brand,
           logo: dataUrl,
         }
       });
@@ -89,7 +88,6 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
         if (!error && result?.colors) {
           updateData({
             brand: {
-              ...data.brand,
               logo: dataUrl,
               colors: {
                 primary: result.colors.primary,
