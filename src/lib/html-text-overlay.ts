@@ -120,9 +120,32 @@ function darkenHex(hex: string, factor = 0.3): string {
 
 // ─── Bullet/Badge Strip (services, prices, advantages) ───
 
-function buildBulletsStripHTML(config: TextOverlayConfig, width: number, height: number, scale: number): string {
+// Determine if bullets should appear based on layout style and content relevance.
+// Not every ad benefits from badges — only show when there's strong promo/pricing content.
+function shouldShowBullets(bullets: BulletItem[] | undefined, layoutStyle: string): boolean {
+  if (!bullets || bullets.length === 0) return false;
+
+  // Layouts that are editorial/cinematic — only show bullets if there are strong promo items (prices/discounts)
+  const editorialLayouts = ['magazineBlend', 'sideStrip'];
+  if (editorialLayouts.includes(layoutStyle)) {
+    const hasPromoContent = bullets.some(b => 
+      b.icon === '🔥' || b.icon === '🏷️' || b.icon === '₪' || 
+      /\d/.test(b.text) // contains numbers (prices, percentages)
+    );
+    // Need at least 2 strong promo items to justify showing in editorial layouts
+    const promoCount = bullets.filter(b => 
+      b.icon === '🔥' || b.icon === '🏷️' || b.icon === '₪' || /₪|%|\d{3,}/.test(b.text)
+    ).length;
+    return hasPromoContent && promoCount >= 2;
+  }
+
+  // Professional/BrandTop/Classic — show if there are at least 2 meaningful items
+  return bullets.length >= 2;
+}
+
+function buildBulletsStripHTML(config: TextOverlayConfig, width: number, height: number, scale: number, layoutStyle: string = 'classic'): string {
   const bullets = config.bulletItems;
-  if (!bullets || bullets.length === 0) return '';
+  if (!shouldShowBullets(bullets, layoutStyle)) return '';
 
   const primary = config.primaryColor || '#2BA5B5';
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
@@ -323,7 +346,7 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
         </div>
       </div>
 
-      ${buildBulletsStripHTML(config, width, height, scale)}
+      ${buildBulletsStripHTML(config, width, height, scale, 'magazineBlend')}
       ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
@@ -394,7 +417,7 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
         ` : ''}
       </div>
 
-      ${buildBulletsStripHTML(config, width, height, scale)}
+      ${buildBulletsStripHTML(config, width, height, scale, 'brandTop')}
       ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
@@ -460,7 +483,7 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
         </div>
       </div>
 
-      ${buildBulletsStripHTML(config, width, height, scale)}
+      ${buildBulletsStripHTML(config, width, height, scale, 'professional')}
       ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
@@ -528,7 +551,7 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
         </div>
       </div>
 
-      ${buildBulletsStripHTML(config, width, height, scale)}
+      ${buildBulletsStripHTML(config, width, height, scale, 'classic')}
       ${buildContactStripHTML(config, width, height, scale)}
     </div>
   `;
