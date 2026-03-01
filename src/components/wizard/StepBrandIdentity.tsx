@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Upload, Palette, Type, Check, ArrowRight, ArrowLeft, Pencil, FileText } from 'lucide-react';
+import { Upload, Palette, Type, Check, ArrowRight, ArrowLeft, Pencil, FileText, RefreshCw, Loader2 } from 'lucide-react';
 
 interface StepBrandIdentityProps {
   data: WizardData;
@@ -23,6 +23,7 @@ interface StepBrandIdentityProps {
 
 const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdentityProps) => {
   const [editingColor, setEditingColor] = useState<'primary' | 'secondary' | 'background' | null>(null);
+  const [isExtractingColors, setIsExtractingColors] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasAttemptedAutoExtract = useRef(false);
 
@@ -157,6 +158,41 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
     });
   };
 
+  const handleManualExtractColors = async () => {
+    if (!data.brand.logo) {
+      toast.error('אין לוגו – העלו לוגו קודם');
+      return;
+    }
+    setIsExtractingColors(true);
+    toast.loading('מחלץ צבעים מהלוגו...', { id: 'manual-color-extract' });
+    try {
+      const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
+        body: { imageBase64: data.brand.logo }
+      });
+      if (!error && result?.colors) {
+        updateData({
+          brand: {
+            ...data.brand,
+            colors: {
+              primary: result.colors.primary,
+              secondary: result.colors.secondary,
+              background: result.colors.background,
+            },
+          },
+        });
+        toast.success('צבעים חולצו בהצלחה!', { id: 'manual-color-extract' });
+      } else {
+        console.error('Color extraction error:', error, result);
+        toast.error('לא הצלחנו לחלץ צבעים', { id: 'manual-color-extract' });
+      }
+    } catch (err) {
+      console.error('Manual color extraction failed:', err);
+      toast.error('שגיאה בחילוץ צבעים', { id: 'manual-color-extract' });
+    } finally {
+      setIsExtractingColors(false);
+    }
+  };
+
   const colorLabels = {
     primary: 'צבע ראשי',
     secondary: 'צבע משני',
@@ -254,13 +290,30 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
               שלא ייצא בטעות כתום במקום אדום...
             </p>
             
+            {data.brand.logo && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManualExtractColors}
+                disabled={isExtractingColors}
+                className="w-full"
+              >
+                {isExtractingColors ? (
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 ml-2" />
+                )}
+                חלץ צבעים מהלוגו
+              </Button>
+            )}
+            
             <div className="space-y-4">
               {(['primary', 'secondary', 'background'] as const).map((colorType) => (
                 <div key={colorType} className="flex items-center gap-4">
                   <div className="relative">
                     <input
                       type="color"
-                      value={data.brand.colors[colorType]}
+                      value={data.brand.colors[colorType] || '#FFFFFF'}
                       onChange={(e) => handleColorChange(colorType, e.target.value)}
                       className="w-14 h-14 rounded-xl cursor-pointer border-2 border-border shadow-md"
                     />
@@ -268,7 +321,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
                   <div className="flex-1">
                     <p className="text-base font-semibold">{colorLabels[colorType]}</p>
                     <p className="text-sm text-muted-foreground uppercase">
-                      {data.brand.colors[colorType]}
+                      {data.brand.colors[colorType] || '—'}
                     </p>
                   </div>
                 </div>

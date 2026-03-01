@@ -48,27 +48,67 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
   const [showBrandingStudio, setShowBrandingStudio] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const newFile: UploadedFile = {
-          name: file.name,
-          type: file.type,
-          dataUrl: event.target?.result as string,
-        };
-        setLogoFile(newFile);
-        // Update wizard data with the logo
-        updateData({
-          brand: {
-            ...data.brand,
-            logo: event.target?.result as string,
-          }
-        });
+    if (!file) return;
+    e.target.value = '';
+
+    try {
+      const { fileToLogoDataUrl } = await import('@/lib/logo-utils');
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      
+      if (isPdf) {
+        toast.loading('ממיר PDF ל-PNG...', { id: 'pdf-convert' });
+      }
+      
+      const { dataUrl } = await fileToLogoDataUrl(file);
+      
+      if (isPdf) {
+        toast.success('PDF הומר בהצלחה!', { id: 'pdf-convert' });
+      }
+
+      const newFile: UploadedFile = {
+        name: file.name,
+        type: file.type,
+        dataUrl,
       };
-      reader.readAsDataURL(file);
-      e.target.value = '';
+      setLogoFile(newFile);
+      updateData({
+        brand: {
+          ...data.brand,
+          logo: dataUrl,
+        }
+      });
+
+      // Auto-extract colors from logo
+      toast.loading('מחלץ צבעים מהלוגו...', { id: 'auto-color-extract' });
+      try {
+        const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
+          body: { imageBase64: dataUrl }
+        });
+        if (!error && result?.colors) {
+          updateData({
+            brand: {
+              ...data.brand,
+              logo: dataUrl,
+              colors: {
+                primary: result.colors.primary,
+                secondary: result.colors.secondary,
+                background: result.colors.background,
+              },
+            },
+          });
+          toast.success('צבעים חולצו בהצלחה מהלוגו!', { id: 'auto-color-extract' });
+        } else {
+          toast.dismiss('auto-color-extract');
+        }
+      } catch (err) {
+        console.error('Auto color extraction failed:', err);
+        toast.dismiss('auto-color-extract');
+      }
+    } catch (err) {
+      console.error('Logo upload failed:', err);
+      toast.error('שגיאה בהעלאת הלוגו');
     }
   };
 
