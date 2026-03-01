@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { WizardData, initialWizardData, ContactAssets, HonorificType } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, initialWizardData, ContactAssets, HonorificType } from '@/types/wizard';
 import { getGreeting, getTitlePrefix } from '@/lib/honorific-utils';
 import WizardProgress from '@/components/wizard/WizardProgress';
 import StepWelcome from '@/components/wizard/StepWelcome';
@@ -127,8 +127,22 @@ const OnboardingWizard = () => {
      loadProfileBrand();
    }, [user, authLoading]);
 
-  const updateData = (data: Partial<WizardData>) => {
-    setWizardData((prev) => ({ ...prev, ...data }));
+  const updateData = (newData: WizardDataUpdate) => {
+    setWizardData((prev) => {
+      const merged = { ...prev, ...newData } as WizardData;
+      // Deep-merge brand to prevent stale closures from wiping colors/logo
+      if (newData.brand) {
+        merged.brand = {
+          ...prev.brand,
+          ...newData.brand,
+          colors: {
+            ...prev.brand.colors,
+            ...(newData.brand?.colors || {}),
+          },
+        } as WizardData['brand'];
+      }
+      return merged;
+    });
   };
 
   const nextStep = () => {

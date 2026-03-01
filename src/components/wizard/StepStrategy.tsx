@@ -1,4 +1,4 @@
-import { WizardData, DesignDirection, CampaignStructure } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, DesignDirection, CampaignStructure } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ import {
 
 interface StepStrategyProps {
   data: WizardData;
-  updateData: (data: Partial<WizardData>) => void;
+  updateData: (data: WizardDataUpdate) => void;
   onNext: () => void;
   onPrev: () => void;
 }

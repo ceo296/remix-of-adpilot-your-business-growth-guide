@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { WizardData, XFactorType, CompetitorPosition } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, XFactorType, CompetitorPosition } from '@/types/wizard';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { getYourWord } from '@/lib/honorific-utils';
 
 interface StepProps {
   data: WizardData;
-  updateData: (data: Partial<WizardData>) => void;
+  updateData: (data: WizardDataUpdate) => void;
   onNext: () => void;
   onPrev: () => void;
 }

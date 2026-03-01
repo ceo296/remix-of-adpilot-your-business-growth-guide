@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { WizardData } from '@/types/wizard';
+import { WizardData, WizardDataUpdate } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,7 @@ interface ValidationIssue {
 
 interface StepBrandPassportProps {
   data: WizardData;
-  updateData: (data: Partial<WizardData>) => void;
+  updateData: (data: WizardDataUpdate) => void;
   onComplete: () => void;
   onPrev: () => void;
 }
@@ -131,7 +131,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
 
       updateData({
         brand: {
-          ...data.brand,
           colors: {
             primary: colors.primary,
             secondary: colors.secondary,
@@ -153,7 +152,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
   const handleSaveFonts = () => {
     updateData({
       brand: {
-        ...data.brand,
         headerFont: editedFonts.headerFont,
         bodyFont: editedFonts.bodyFont,
       }
@@ -165,7 +163,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
   const handleSaveColors = () => {
     updateData({
       brand: {
-        ...data.brand,
         colors: {
           primary: editedColors.primary,
           secondary: editedColors.secondary,

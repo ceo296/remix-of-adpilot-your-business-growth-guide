@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { WizardData, UploadedMaterial, AdLayoutAnalysis } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, UploadedMaterial, AdLayoutAnalysis } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface StepPastMaterialsProps {
   data: WizardData;
-  updateData: (data: Partial<WizardData>) => void;
+  updateData: (data: WizardDataUpdate) => void;
   onNext: () => void;
   onPrev: () => void;
 }
@@ -100,7 +100,6 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
       if (!error && result?.colors) {
         updateData({
           brand: {
-            ...data.brand,
             colors: {
               primary: result.colors.primary,
               secondary: result.colors.secondary,
@@ -147,7 +146,6 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           if (palette.length >= 1) {
             updateData({
               brand: {
-                ...data.brand,
                 colors: {
                   primary: palette[0] || colors.primary,
                   secondary: palette[1] || palette[0] || colors.secondary,

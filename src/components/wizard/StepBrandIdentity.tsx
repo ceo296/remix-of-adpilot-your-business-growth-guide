@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { WizardData, FONT_OPTIONS } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, FONT_OPTIONS } from '@/types/wizard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import { Upload, Palette, Type, Check, ArrowRight, ArrowLeft, Pencil, FileText, 
 
 interface StepBrandIdentityProps {
   data: WizardData;
-  updateData: (data: Partial<WizardData>) => void;
+  updateData: (data: WizardDataUpdate) => void;
   onNext: () => void;
   onPrev: () => void;
 }
@@ -49,7 +49,6 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         if (!error && result?.colors) {
           updateData({
             brand: {
-              ...data.brand,
               colors: {
                 primary: result.colors.primary,
                 secondary: result.colors.secondary,
@@ -90,10 +89,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
       }
       
       updateData({
-        brand: {
-          ...data.brand,
-          logo: dataUrl,
-        },
+        brand: { logo: dataUrl },
       });
 
       // Auto-extract colors from logo (supports images and PDFs)
@@ -105,7 +101,6 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
           if (!error && result?.colors) {
             updateData({
               brand: {
-                ...data.brand,
                 logo: dataUrl,
                 colors: {
                   primary: result.colors.primary,
@@ -131,30 +126,20 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
   const handleColorChange = (colorType: 'primary' | 'secondary' | 'background', value: string) => {
     updateData({
       brand: {
-        ...data.brand,
-        colors: {
-          ...data.brand.colors,
-          [colorType]: value,
-        },
+        colors: { [colorType]: value },
       },
     });
   };
 
   const handleFontChange = (fontType: 'headerFont' | 'bodyFont', value: string) => {
     updateData({
-      brand: {
-        ...data.brand,
-        [fontType]: value,
-      },
+      brand: { [fontType]: value },
     });
   };
 
   const handleNameChange = (name: string) => {
     updateData({
-      brand: {
-        ...data.brand,
-        name,
-      },
+      brand: { name },
     });
   };
 
@@ -172,7 +157,6 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
       if (!error && result?.colors) {
         updateData({
           brand: {
-            ...data.brand,
             colors: {
               primary: result.colors.primary,
               secondary: result.colors.secondary,
