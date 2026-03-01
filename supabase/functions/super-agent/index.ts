@@ -53,10 +53,37 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
     const grouped: Record<string, typeof allExamples> = {};
     for (const item of allExamples) { const zone = item.zone || 'general'; if (!grouped[zone]) grouped[zone] = []; grouped[zone].push(item); }
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    
+    // Build full image URLs for ALL image examples
     const imageExamples = allExamples
       .filter(e => e.file_path && e.file_type && /image|png|jpg|jpeg|webp/i.test(e.file_type))
-      .slice(0, 8)
-      .map(e => `${supabaseUrl}/storage/v1/object/public/sector-brain/${e.file_path}`);
+      .map(e => ({
+        url: `${supabaseUrl}/storage/v1/object/public/sector-brain/${e.file_path}`,
+        name: e.name,
+        zone: e.zone,
+        description: e.description || '',
+        text_content: e.text_content || '',
+        stream_type: e.stream_type || '',
+        topic_category: e.topic_category || '',
+        media_type: e.media_type || '',
+        example_type: e.example_type || '',
+      }));
+
+    // Build detailed text descriptions of ALL examples
+    const detailedExamples = allExamples.map(e => {
+      const parts = [`📌 "${e.name}"`];
+      if (e.zone) parts.push(`אזור: ${e.zone}`);
+      if (e.example_type) parts.push(`סוג: ${e.example_type}`);
+      if (e.stream_type) parts.push(`זרם: ${e.stream_type}`);
+      if (e.gender_audience) parts.push(`קהל: ${e.gender_audience}`);
+      if (e.topic_category) parts.push(`נושא: ${e.topic_category}`);
+      if (e.holiday_season) parts.push(`עונה: ${e.holiday_season}`);
+      if (e.media_type) parts.push(`מדיה: ${e.media_type}`);
+      if (e.description) parts.push(`תיאור: ${e.description}`);
+      if (e.text_content) parts.push(`תוכן: ${e.text_content.substring(0, 500)}`);
+      return parts.join(' | ');
+    });
+
     return {
       total_examples: allExamples.length,
       topic_specific_count: topicExamples.length,
@@ -64,9 +91,10 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
       holiday_specific_count: holidayExamples.length,
       holiday: holidaySeason || null,
       zones: grouped,
-      imageUrls: imageExamples,
+      imageExamples, // full structured image data
       guidelines,
       insights,
+      detailedExamples, // full text details
       summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', '),
     };
   } catch { return null; }
@@ -98,6 +126,15 @@ const SYSTEM_PROMPT = `זהות ותפקיד:
    - בין הזמנים: לא "חופש" אלא "בין הזמנים", נופש משפחתי
 5. למד מהרפרנסים של Sector Brain ודרוש מהסוכנים להתאים את הרמה
 6. איסור מוחלט על קלישאות: "הכי טוב", "מקצועי ואיכותי", "שירות מעולה" — אלה מילות סרק
+===
+
+=== הוראות למידת רפרנסים ===
+כשאתה מקבל תמונות רפרנס מה-Sector Brain, אתה חייב:
+1. לנתח כל תמונה בפירוט: קומפוזיציה, צבעים, טיפוגרפיה, סגנון, אווירה, מסר
+2. לזהות דפוסים חוזרים בין הרפרנסים — מה משותף למודעות המצליחות?
+3. לזהות "חוקים לא כתובים" של המגזר — מה תמיד מופיע? מה לעולם לא?
+4. להפיק תובנות פרקטיות שניתן להעביר לסוכני הקריאייטיב והסטודיו
+5. לציין דוגמאות ספציפיות בשם כשאתה מתייחס אליהן
 ===
 
 === גארדריילס: התאמה לקהל חרדי ===
@@ -200,12 +237,29 @@ serve(async (req) => {
     };
     const goalDirective = campaignContext?.goal ? GOAL_STYLE_MAP[campaignContext.goal] || '' : '';
 
-    // Build messages array
+    // Build context parts for text
     const contextParts = [];
     if (goalDirective) contextParts.push(`\n=== הנחיית סגנון לפי מטרת הקמפיין ===\n${goalDirective}`);
-    if (clientProfile) contextParts.push(`פרופיל לקוח: ${JSON.stringify(clientProfile)}`);
+    if (clientProfile) {
+      // Strip large base64 logo from profile to avoid payload bloat
+      const lightProfile = { ...clientProfile };
+      if (lightProfile.logo_url && String(lightProfile.logo_url).length > 5000) {
+        lightProfile.logo_url = '[logo_uploaded]';
+      }
+      contextParts.push(`פרופיל לקוח: ${JSON.stringify(lightProfile)}`);
+    }
     if (campaignContext) contextParts.push(`הקשר קמפיין: ${JSON.stringify(campaignContext)}`);
-    if (sectorBrainData) contextParts.push(`רפרנסים מגזריים: ${sectorBrainData.summary || JSON.stringify(sectorBrainData.zones || {})}`);
+    
+    // === KEY FIX: Include FULL detailed examples, not just summary ===
+    if (sectorBrainData) {
+      contextParts.push(`\n=== מאגר רפרנסים: ${sectorBrainData.total_examples} דוגמאות (${sectorBrainData.topic_specific_count} לנושא, ${sectorBrainData.holiday_specific_count} לחג) ===`);
+      
+      // Include full detailed text for each example
+      if (sectorBrainData.detailedExamples?.length) {
+        contextParts.push(`\n=== פירוט דוגמאות הרפרנס — קרא כל אחת בקפידה! ===\n${sectorBrainData.detailedExamples.join('\n')}`);
+      }
+    }
+    
     if (sectorBrainData?.guidelines?.length) {
       contextParts.push(`\n=== כללי אצבע (Guidelines) — חובה לפעול לפיהם! ===\n${sectorBrainData.guidelines.map((g: string, i: number) => `${i+1}. ${g}`).join('\n')}`);
     }
@@ -214,32 +268,95 @@ serve(async (req) => {
     }
     
     const systemContent = SYSTEM_PROMPT + (contextParts.length ? '\n\n=== הקשר ===\n' + contextParts.join('\n') : '');
-    const messages: { role: string; content: string }[] = [
+
+    // Build conversation messages
+    const textMessages: { role: string; content: string }[] = [
       { role: 'system', content: systemContent },
       ...(conversationHistory || []),
       { role: 'user', content: message },
     ];
 
-    // Try Google Gemini API first, fallback to Lovable Gateway
+    // === Fetch reference images and send them as multimodal parts to Gemini ===
+    const imageUrls = sectorBrainData?.imageExamples?.slice(0, 15) || [];
+    
     let content = '';
     let aiSuccess = false;
 
     if (GOOGLE_GEMINI_API_KEY) {
       try {
-        console.log('Trying Google Gemini API...');
-        const geminiMessages = messages.filter(m => m.role !== 'system');
-        const systemText = messages.find(m => m.role === 'system')?.content || '';
+        console.log(`Trying Google Gemini API with ${imageUrls.length} reference images...`);
+        
+        // Fetch images in parallel (up to 15), with timeout
+        const imageParts: any[] = [];
+        if (imageUrls.length > 0) {
+          const fetchPromises = imageUrls.map(async (img: any) => {
+            try {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 8000);
+              const resp = await fetch(img.url, { signal: controller.signal });
+              clearTimeout(timeoutId);
+              if (!resp.ok) return null;
+              const arrayBuf = await resp.arrayBuffer();
+              const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuf)));
+              const mimeType = resp.headers.get('content-type') || 'image/jpeg';
+              return {
+                inlineData: { mimeType, data: base64 },
+                name: img.name,
+              };
+            } catch {
+              return null;
+            }
+          });
+          
+          const results = await Promise.allSettled(fetchPromises);
+          for (const result of results) {
+            if (result.status === 'fulfilled' && result.value) {
+              imageParts.push(result.value);
+            }
+          }
+          console.log(`Successfully fetched ${imageParts.length}/${imageUrls.length} images`);
+        }
+        
+        // Build Gemini multimodal request
+        const geminiSystemText = textMessages.find(m => m.role === 'system')?.content || '';
+        const geminiMessages = textMessages.filter(m => m.role !== 'system');
+        
+        // Build the user message parts with images
+        const contents: any[] = [];
+        for (const msg of geminiMessages) {
+          if (msg.role === 'user' && msg === geminiMessages[geminiMessages.length - 1] && imageParts.length > 0) {
+            // Last user message - attach images
+            const parts: any[] = [];
+            
+            // Add image reference context
+            const imageNames = imageUrls.slice(0, imageParts.length).map((img: any) => img.name);
+            parts.push({ text: `להלן ${imageParts.length} תמונות רפרנס מהמאגר המגזרי (${imageNames.join(', ')}). נתח אותן בקפידה:\n\n` });
+            
+            // Add images
+            for (const imgPart of imageParts) {
+              parts.push({ inlineData: imgPart.inlineData });
+            }
+            
+            // Add the actual user message
+            parts.push({ text: `\n\n${msg.content}` });
+            
+            contents.push({ role: 'user', parts });
+          } else {
+            contents.push({
+              role: msg.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: msg.content }],
+            });
+          }
+        }
+        
         const directResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              systemInstruction: { parts: [{ text: systemText }] },
-              contents: geminiMessages.map(m => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }],
-              })),
+              systemInstruction: { parts: [{ text: geminiSystemText }] },
+              contents,
               generationConfig: { maxOutputTokens: 8192 },
             }),
           }
@@ -257,15 +374,16 @@ serve(async (req) => {
       }
     }
 
+    // Fallback to Lovable Gateway (text-only, but with full details)
     if (!aiSuccess && LOVABLE_API_KEY) {
-      console.log('Falling back to Lovable Gateway...');
+      console.log('Falling back to Lovable Gateway (text-only)...');
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ model: 'google/gemini-2.5-pro', messages, max_completion_tokens: 8192 }),
+        body: JSON.stringify({ model: 'google/gemini-2.5-flash', messages: textMessages, max_completion_tokens: 8192 }),
       });
 
       if (!aiResponse.ok) {
@@ -301,6 +419,7 @@ serve(async (req) => {
       response: content,
       systemCommand,
       agent: 'super-agent',
+      referencesAnalyzed: imageUrls.length,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
