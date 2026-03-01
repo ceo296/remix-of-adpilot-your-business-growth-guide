@@ -298,7 +298,9 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
   const bodySize = Math.max(Math.round(22 * scale), 14);
 
   const stripHeight = Math.round(height * 0.14);
-  const headerHeight = Math.round(height * 0.18);
+  // Increase header height to prevent text cutoff for long headlines + subtitles
+  const hasSubtitle = !!subtitle;
+  const headerHeight = Math.round(height * (hasSubtitle ? 0.24 : 0.20));
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
@@ -379,7 +381,8 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
   const bodySize = Math.max(Math.round(20 * scale), 13);
 
   const stripHeight = Math.round(height * 0.14);
-  const headerHeight = Math.round(height * 0.16);
+  const hasSubtitle2 = !!subtitle;
+  const headerHeight = Math.round(height * (hasSubtitle2 ? 0.22 : 0.18));
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
@@ -453,7 +456,7 @@ function buildProfessionalAdHTML(config: TextOverlayConfig, width: number, heigh
 
   const scale = Math.min(width, height) / 1024;
   const stripHeight = Math.round(height * 0.14);
-  const headerHeight = Math.round(height * 0.17);
+  const headerHeight = Math.round(height * 0.20);
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
@@ -529,7 +532,7 @@ function buildClassicAdHTML(config: TextOverlayConfig, width: number, height: nu
 
   const scale = Math.min(width, height) / 1024;
   const stripHeight = Math.round(height * 0.14);
-  const headerHeight = Math.round(height * 0.18);
+  const headerHeight = Math.round(height * 0.22);
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
