@@ -109,10 +109,17 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
         await new Promise(resolve => setTimeout(resolve, 2000));
         setShowSparkles(false);
         
+        // Use AI-detected business name if available
+        const detectedName = predictions.businessName || data.brand.name;
+        
         // Update wizard data with predictions
         updateData({
           websiteUrl: url,
           isScanning: false,
+          brand: {
+            ...data.brand,
+            name: detectedName,
+          },
           websiteInsights: {
             industry: predictions.industry || '',
             seniority: predictions.seniority || '',
@@ -214,11 +221,18 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
 
         const predictions = aiResult?.predictions || {};
         
+        // Use AI-detected business name if available (more accurate than user-entered name)
+        const detectedName = predictions.businessName || data.brand.name;
+        
         // Combine scraped branding with AI predictions
         updateData({
           websiteUrl: url,
           socialUrl: data.socialUrl,
           isScanning: false,
+          brand: {
+            ...data.brand,
+            name: detectedName,
+          },
           websiteInsights: {
             industry: predictions.industry || '',
             seniority: predictions.seniority || '',
