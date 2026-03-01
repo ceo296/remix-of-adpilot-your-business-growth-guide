@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check, Image, Calendar, Target, Gift, Tag, Megaphone, Zap } from 'lucide-react';
+import { AutopilotLoadingProgress } from './AutopilotLoadingProgress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -336,17 +337,9 @@ export const StudioAutopilot = ({
     );
   }
 
-  // Loading state
+  // Loading state with progress steps
   if (isGenerating && concepts.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-        <Loader2 className="h-16 w-16 animate-spin text-primary mb-6" />
-        <h2 className="text-xl font-bold mb-2">מעצבים סקיצות מותאמות...</h2>
-        <p className="text-muted-foreground animate-pulse">
-          בונים קונספטים ומייצרים עיצובים בו-זמנית
-        </p>
-      </div>
-    );
+    return <AutopilotLoadingProgress />;
   }
 
   // Get media type label
