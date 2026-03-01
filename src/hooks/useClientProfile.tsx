@@ -27,10 +27,13 @@ export const useClientProfile = () => {
         .from('client_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('is_agency_profile', false)
+        .order('onboarding_completed', { ascending: true })
+        .order('updated_at', { ascending: false })
+        .limit(1);
 
       if (error) throw error;
-      setProfile(data);
+      setProfile(data?.[0] || null);
     } catch (err: any) {
       setError(err.message);
     } finally {
