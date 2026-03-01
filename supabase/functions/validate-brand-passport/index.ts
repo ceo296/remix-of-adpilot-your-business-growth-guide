@@ -14,6 +14,7 @@ interface BrandPassportData {
   xFactors: string[];
   primaryXFactor: string | null;
   otherXFactor: string;
+  xFactorDetails: Record<string, string>;
   advantageType: 'hard' | 'soft' | null;
   pricePosition: number; // -100 to 100
   stylePosition: number; // -100 to 100
@@ -54,7 +55,12 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Build analysis prompt
+    // Build xFactor details string
+    const xFactorDetailsStr = Object.entries(data.xFactorDetails || {})
+      .filter(([_, v]) => v?.trim())
+      .map(([k, v]) => `  - ${k}: ${v}`)
+      .join('\n');
+
     const prompt = `אתה מנתח אסטרטגי של מותגים בשוק החרדי. נתונים הבאים הוזנו עבור מותג:
 
 שם העסק: ${data.businessName || 'לא צוין'}
@@ -64,6 +70,7 @@ serve(async (req) => {
 הצעת הערך: ${data.coreOffering || 'לא צוין'}
 
 גורמים מבדלים שנבחרו: ${data.xFactors.length > 0 ? data.xFactors.join(', ') : 'לא נבחרו'}
+${xFactorDetailsStr ? `פירוט הגורמים המבדלים:\n${xFactorDetailsStr}` : ''}
 ${data.otherXFactor ? `גורם מבדל מותאם אישית: ${data.otherXFactor}` : ''}
 גורם מבדל עיקרי: ${data.primaryXFactor || 'לא נבחר'}
 
@@ -76,12 +83,18 @@ ${data.otherXFactor ? `גורם מבדל מותאם אישית: ${data.otherXFac
 מקבל ההחלטות: ${data.decisionMaker || 'לא צוין'}
 
 נתח את המידע וזהה:
-1. חוסרי התאמה לוגיים (למשל: טוענים שהם הכי זולים אבל ממוקמים כפרימיום, או שאין מתחרים אבל יש תחרות בתחום)
-2. מידע דל או כללי מדי שקשה לעבוד איתו (כמו "אחר" בתחום, "פרסום" כהצעת ערך, תיאורים גנריים)
-3. הזדמנויות לשיפור המיתוג
+1. חוסרי התאמה לוגיים ברורים ומוחשיים (למשל: טוענים שהם הכי זולים אבל ממוקמים כפרימיום)
+2. מידע דל מאוד שחיוני לעבודה (למשל: אין גורם מבדל כלל)
+3. הזדמנויות לשיפור משמעותי בלבד
+
+כללים חשובים:
+- אל תתייחס ל"קהל חרדי" כ"שמרני" באופן אוטומטי. עסקים חרדיים רבים משתמשים בעיצוב מודרני וחדשני. אל תסמן סגנון "מודרני" כבעיה רק בגלל שהקהל חרדי.
+- אל תדווח על "התנגשויות" שאינן התנגשויות אמיתיות. בדוק שיש סתירה לוגית ממשית לפני שמסמן אזהרה.
+- החזר רק בעיות אמיתיות ומשמעותיות. עדיף 0-2 אזהרות מדויקות מ-5 אזהרות מיותרות.
+- אם יש פירוט של הגורם המבדל, קח אותו בחשבון לפני שמסמן "חסר גורם מבדל".
 
 חזור עם מערך JSON של בעיות. כל בעיה צריכה להיות אובייקט עם:
-- type: "warning" (לחוסרי התאמה לוגיים) או "suggestion" (להמלצות)
+- type: "warning" (לחוסרי התאמה לוגיים חמורים) או "suggestion" (להמלצות)
 - category: "inconsistency" (חוסר התאמה), "sparse_data" (מידע דל), או "improvement" (הזדמנות)
 - message: הסבר קצר וברור בעברית (עד 50 מילים)
 - field: השדה הרלוונטי (אופציונלי)
