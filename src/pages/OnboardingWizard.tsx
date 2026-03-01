@@ -68,18 +68,23 @@ const OnboardingWizard = () => {
        return;
      }
      
-     const checkOnboardingStatus = async () => {
-       const { data: profile } = await supabase
-         .from('client_profiles')
-         .select('onboarding_completed, business_name, is_agency_profile')
-         .eq('user_id', user.id)
-         .maybeSingle();
-       
-       if (profile?.onboarding_completed && !profile?.is_agency_profile) {
-         toast.info(`שלום ${profile.business_name || ''}! כבר סיימת את ההיכרות – מעבירים אותך ליצירת קמפיין 🚀`);
-         navigate('/dashboard');
-       }
-     };
+      const checkOnboardingStatus = async () => {
+        // Check if there are any incomplete profiles - if so, don't redirect
+        const { data: profiles } = await supabase
+          .from('client_profiles')
+          .select('onboarding_completed, business_name, is_agency_profile')
+          .eq('user_id', user.id)
+          .eq('is_agency_profile', false);
+        
+        if (profiles && profiles.length > 0) {
+          const hasIncomplete = profiles.some(p => !p.onboarding_completed);
+          if (!hasIncomplete) {
+            const firstName = profiles[0]?.business_name || '';
+            toast.info(`שלום ${firstName}! כבר סיימת את ההיכרות – מעבירים אותך ליצירת קמפיין 🚀`);
+            navigate('/dashboard');
+          }
+        }
+      };
      
      checkOnboardingStatus();
    }, [user, authLoading, adminLoading, isAdmin, navigate]);
@@ -88,12 +93,17 @@ const OnboardingWizard = () => {
    useEffect(() => {
      if (!user || authLoading) return;
      
-     const loadProfileBrand = async () => {
-       const { data: profile } = await supabase
-         .from('client_profiles')
-         .select('business_name, primary_color, secondary_color, background_color, logo_url, header_font, body_font')
-         .eq('user_id', user.id)
-         .maybeSingle();
+      const loadProfileBrand = async () => {
+        // Load the most recent incomplete profile, or the latest one
+        const { data: profiles } = await supabase
+          .from('client_profiles')
+          .select('id, business_name, primary_color, secondary_color, background_color, logo_url, header_font, body_font, onboarding_completed')
+          .eq('user_id', user.id)
+          .eq('is_agency_profile', false)
+          .order('created_at', { ascending: false });
+        
+        // Prefer incomplete profile, otherwise use the latest
+        const profile = profiles?.find(p => !p.onboarding_completed) || profiles?.[0] || null;
        
        if (profile && (profile.primary_color || profile.secondary_color)) {
          setWizardData((prev) => ({
@@ -410,12 +420,15 @@ const OnboardingWizard = () => {
           });
         }
       } else {
-        // Regular user flow - check if profile exists
-        const { data: existingProfile } = await supabase
+        // Regular user flow - find the incomplete profile or the most recent one
+        const { data: profiles } = await supabase
           .from('client_profiles')
           .select('id')
           .eq('user_id', user.id)
-          .maybeSingle();
+          .eq('is_agency_profile', false)
+          .order('created_at', { ascending: false });
+        
+        const existingProfile = profiles?.find(p => true) || null; // get first
 
         if (existingProfile) {
           // Update existing client profile
@@ -456,7 +469,7 @@ const OnboardingWizard = () => {
               onboarding_completed: true,
               honorific_preference: wizardData.honorific,
             })
-            .eq('user_id', user.id);
+            .eq('id', existingProfile.id);
 
           if (clientError) throw clientError;
         } else {
