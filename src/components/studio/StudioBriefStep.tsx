@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +27,10 @@ import {
   Type,
   Palette,
   ArrowLeftRight,
-  History
+  History,
+  Camera,
+  X,
+  ImagePlus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -60,6 +63,7 @@ export interface CampaignBrief {
   structure: CampaignStructure | null;
   contactSelection: ContactSelection;
   colorSelection: ColorSelection;
+  campaignImage?: string | null; // data URL of uploaded campaign-specific image
 }
 
 export interface ContactInfo {
@@ -94,8 +98,21 @@ const GOAL_OPTIONS: { id: CampaignGoal; label: string; description: string; icon
 ];
 
 export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors }: StudioBriefStepProps) => {
+  const campaignImageInputRef = useRef<HTMLInputElement>(null);
+  
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
+  };
+
+  const handleCampaignImage = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      updateBrief({ campaignImage: event.target?.result as string });
+    };
+    reader.readAsDataURL(file);
   };
 
   const toggleContact = (key: keyof CampaignBrief['contactSelection']) => {
@@ -203,7 +220,59 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
         </p>
       </div>
 
-      {/* Campaign Goal */}
+      {/* Campaign Image Upload */}
+      <div className="space-y-3">
+        <Label className="text-foreground font-medium flex items-center gap-2">
+          <ImagePlus className="w-4 h-4 text-primary" />
+          יש תמונה רלוונטית לקמפיין?
+        </Label>
+        <input
+          ref={campaignImageInputRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleCampaignImage(e.target.files)}
+          className="hidden"
+        />
+        {value.campaignImage ? (
+          <div className="relative inline-block group">
+            <img 
+              src={value.campaignImage} 
+              alt="תמונת קמפיין" 
+              className="w-40 h-32 object-cover rounded-xl border-2 border-primary/30 shadow-md" 
+            />
+            <button
+              type="button"
+              onClick={() => updateBrief({ campaignImage: null })}
+              className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => campaignImageInputRef.current?.click()}
+              className="absolute bottom-1 right-1 bg-background/90 text-foreground text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              החלף
+            </button>
+          </div>
+        ) : (
+          <Card 
+            className="border-2 border-dashed border-border hover:border-primary/40 transition-all cursor-pointer max-w-md"
+            onClick={() => campaignImageInputRef.current?.click()}
+          >
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                <Camera className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">העלה תמונה של המוצר, החנות או כל דבר רלוונטי</p>
+                <p className="text-xs text-muted-foreground mt-0.5">אופציונלי — נשתמש בה בקריאייטיב</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
       <div className="space-y-4">
         <Label className="text-foreground font-medium">מה המטרה של הקמפיין?</Label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
