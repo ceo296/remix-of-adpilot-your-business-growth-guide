@@ -239,29 +239,46 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
                 תחום עיסוק *
               </Label>
             </div>
+            {/* Free text input - primary option */}
+            <Input
+              value={formValues.industry === 'אחר' ? formValues.industryOther : (INDUSTRY_OPTIONS.includes(formValues.industry) ? '' : formValues.industry)}
+              onChange={(e) => {
+                handleValueChange('industry', 'אחר');
+                handleValueChange('industryOther', e.target.value);
+              }}
+              placeholder="כתבו את תחום העיסוק שלכם..."
+              className={`text-lg h-12 bg-white text-gray-900 border-amber-200 hover:border-amber-400 focus:border-amber-500 ${formValues.industry === 'אחר' && formValues.industryOther ? 'border-amber-500 ring-1 ring-amber-300' : ''}`}
+            />
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-amber-700/70">או בחרו מהרשימה:</span>
+            </div>
             <Select
-              value={formValues.industry}
-              onValueChange={(value) => handleValueChange('industry', value)}
+              value={formValues.industry !== 'אחר' ? formValues.industry : 'none'}
+              onValueChange={(value) => {
+                if (value === 'none') return;
+                handleValueChange('industry', value);
+                handleValueChange('industryOther', '');
+              }}
             >
-              <SelectTrigger className="text-lg h-12 bg-white text-gray-900 border-amber-200 hover:border-amber-400">
-                <SelectValue placeholder="בחרו תחום עיסוק" />
+              <SelectTrigger className="h-11 bg-white text-gray-900 border-amber-200 hover:border-amber-400" style={{ color: '#111827' }}>
+                <SelectValue placeholder="בחרו מהרשימה" />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-amber-200 z-[9999] shadow-lg" position="popper" sideOffset={4}>
-                {INDUSTRY_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option} className="hover:bg-amber-50">
+              <SelectContent 
+                className="border border-amber-200 shadow-2xl" 
+                position="popper" 
+                sideOffset={4}
+                style={{ backgroundColor: 'white', color: '#111827', zIndex: 99999 }}
+              >
+                <SelectItem value="none" className="text-gray-400 hover:bg-amber-50" style={{ color: '#9ca3af' }}>
+                  — ללא בחירה —
+                </SelectItem>
+                {INDUSTRY_OPTIONS.filter(o => o !== 'אחר').map((option) => (
+                  <SelectItem key={option} value={option} className="hover:bg-amber-50" style={{ color: '#111827' }}>
                     {option}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {formValues.industry === 'אחר' && (
-              <Input
-                value={formValues.industryOther}
-                onChange={(e) => handleValueChange('industryOther', e.target.value)}
-                placeholder="פרטו את תחום העיסוק"
-                className="mt-2 bg-white text-gray-900 border-amber-200"
-              />
-            )}
           </div>
 
           {/* Seniority */}
@@ -319,17 +336,29 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
             </div>
             <Select
               value={formValues.audience}
-              onValueChange={(value) => handleValueChange('audience', value)}
+              onValueChange={(value) => {
+                if (value === 'none') return;
+                handleValueChange('audience', value);
+                handleValueChange('audienceOther', '');
+              }}
             >
-              <SelectTrigger className={`h-12 bg-white text-gray-900 hover:border-pink-400 ${!formValues.audience ? 'border-destructive' : 'border-pink-200'}`}>
+              <SelectTrigger className={`h-12 text-gray-900 hover:border-pink-400 ${!formValues.audience ? 'border-destructive' : 'border-pink-200'}`} style={{ backgroundColor: 'white', color: '#111827' }}>
                 <SelectValue placeholder="בחרו קהל יעד" />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-pink-200 z-[9999] shadow-lg" position="popper" sideOffset={4}>
-                {AUDIENCE_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option} className="hover:bg-pink-50">
+              <SelectContent 
+                className="border border-pink-200 shadow-2xl" 
+                position="popper" 
+                sideOffset={4}
+                style={{ backgroundColor: 'white', color: '#111827', zIndex: 99999 }}
+              >
+                {AUDIENCE_OPTIONS.filter(o => o !== 'אחר').map((option) => (
+                  <SelectItem key={option} value={option} className="hover:bg-pink-50" style={{ color: '#111827' }}>
                     {option}
                   </SelectItem>
                 ))}
+                <SelectItem value="אחר" className="hover:bg-pink-50" style={{ color: '#111827' }}>
+                  אחר (כתבו בעצמכם)
+                </SelectItem>
               </SelectContent>
             </Select>
             {formValues.audience === 'אחר' && (
@@ -337,7 +366,8 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
                 value={formValues.audienceOther}
                 onChange={(e) => handleValueChange('audienceOther', e.target.value)}
                 placeholder="פרטו את קהל היעד"
-                className="mt-2 bg-white text-gray-900 border-pink-200"
+                className="mt-2 text-gray-900 border-pink-200"
+                style={{ backgroundColor: 'white', color: '#111827' }}
               />
             )}
           </div>
