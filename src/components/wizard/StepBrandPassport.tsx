@@ -278,50 +278,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('יש להתחבר כדי לשמור את הפרופיל');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Prepare competitor positions as JSON
-      const competitorPositions = data.strategicMRI.competitorPositions.map(cp => ({
-        id: cp.id,
-        name: cp.name,
-        x: cp.x,
-        y: cp.y,
-      }));
-
-      // Save client profile
-      const { error } = await supabase.from('client_profiles').upsert({
-        user_id: user.id,
-        business_name: data.brand.name || 'עסק ללא שם',
-        website_url: data.websiteUrl || null,
-        primary_color: data.brand.colors.primary,
-        secondary_color: data.brand.colors.secondary,
-        background_color: data.brand.colors.background,
-        header_font: data.brand.headerFont,
-        body_font: data.brand.bodyFont,
-        x_factors: data.strategicMRI.xFactors,
-        primary_x_factor: data.strategicMRI.primaryXFactor,
-        advantage_type: data.strategicMRI.advantageType,
-        advantage_slider: data.strategicMRI.advantageSlider,
-        winning_feature: data.strategicMRI.winningFeature || null,
-        competitors: data.strategicMRI.competitors,
-        my_position_x: data.strategicMRI.myPosition.x,
-        my_position_y: data.strategicMRI.myPosition.y,
-        competitor_positions: competitorPositions,
-        end_consumer: data.strategicMRI.endConsumer || null,
-        decision_maker: data.strategicMRI.decisionMaker || null,
-        onboarding_completed: true,
-      }, {
-        onConflict: 'user_id',
-      });
-
-      if (error) throw error;
-
       updateData({ confirmed: true });
       toast.success('בשעה טובה! הפרופיל נשמר בהצלחה!');
       onComplete();
