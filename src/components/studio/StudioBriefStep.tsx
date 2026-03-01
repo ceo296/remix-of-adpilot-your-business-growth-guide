@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,6 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { 
   Zap, 
   Layers, 
@@ -99,10 +102,87 @@ const GOAL_OPTIONS: { id: CampaignGoal; label: string; description: string; icon
 
 export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors }: StudioBriefStepProps) => {
   const campaignImageInputRef = useRef<HTMLInputElement>(null);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
   };
+
+  // Brief quality analysis
+  const briefQuality = useMemo(() => {
+    const text = value.offer.trim();
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    const wordCount = words.length;
+    
+    // Check for specific details
+    const hasNumbers = /\d/.test(text); // prices, percentages, dates
+    const hasSpecificProduct = wordCount >= 3; // more than generic
+    const hasBenefit = /הנחה|מבצע|חינם|מתנה|יתרון|ייחודי|חדש|השקה|פתיחה|מחיר|₪|%/.test(text);
+    const hasAudience = /נשים|גברים|משפחות|ילדים|בחורים|אברכים|בעלי|לכל/.test(text);
+    
+    let score = 0;
+    const missing: string[] = [];
+    
+    if (wordCount >= 8) score += 25;
+    else if (wordCount >= 4) score += 10;
+    else missing.push('תוסיף עוד פרטים — מה בדיוק מפרסמים?');
+    
+    if (hasNumbers) score += 25;
+    else missing.push('הוסף מספרים: מחיר, אחוז הנחה, כמות');
+    
+    if (hasBenefit) score += 25;
+    else missing.push('מה היתרון? הנחה? מתנה? חידוש?');
+    
+    if (hasAudience || wordCount >= 12) score += 25;
+    else if (wordCount >= 6) missing.push('למי זה מיועד?');
+    
+    let level: 'empty' | 'weak' | 'medium' | 'strong' = 'empty';
+    if (wordCount === 0) level = 'empty';
+    else if (score <= 25) level = 'weak';
+    else if (score <= 60) level = 'medium';
+    else level = 'strong';
+    
+    return { score, level, missing, wordCount };
+  }, [value.offer]);
+
+  const handleEnhanceBrief = useCallback(async () => {
+    if (briefQuality.wordCount < 2) {
+      toast.error('כתוב לפחות כמה מילים על מה הקמפיין, ואז נעזור לך להרחיב');
+      return;
+    }
+    setIsEnhancing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          message: `אתה עוזר לכתוב בריפים לקמפיינים פרסומיים. המשתמש כתב בריף קצר מדי. עזור לו להרחיב.
+
+הבריף שהמשתמש כתב: "${value.offer}"
+${businessName ? `שם העסק: ${businessName}` : ''}
+${value.goal ? `מטרת הקמפיין: ${value.goal}` : ''}
+
+כתוב גרסה משופרת ומורחבת של הבריף שכוללת:
+1. מה בדיוק ההצעה/המוצר/השירות
+2. מה היתרון המרכזי או ה-USP
+3. פרטים ספציפיים (מחירים, אחוזי הנחה, תאריכים אם רלוונטי)
+4. למי זה מיועד
+
+חשוב: כתוב רק את הבריף המשופר, בלי הקדמות או הסברים. 2-4 משפטים מקסימום. בעברית.`,
+          skipHistory: true,
+        },
+      });
+      
+      if (error) throw error;
+      const enhanced = data?.response?.trim();
+      if (enhanced) {
+        updateBrief({ offer: enhanced });
+        toast.success('הבריף הורחב! בדוק שהפרטים נכונים ותקן לפי הצורך');
+      }
+    } catch (err) {
+      toast.error('לא הצלחנו להרחיב — נסה שוב');
+    } finally {
+      setIsEnhancing(false);
+    }
+  }, [value.offer, value.goal, businessName, briefQuality.wordCount]);
 
   const handleCampaignImage = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -212,12 +292,77 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
           id="campaign-offer"
           value={value.offer}
           onChange={(e) => updateBrief({ offer: e.target.value })}
-          placeholder="תאר בקצרה את המסר המרכזי של הקמפיין. לדוגמה: 30% הנחה על כל מערכות הישיבה, השקת טעמים חדשים לסדרת המאפים..."
-          className="min-h-[100px] text-base"
+          placeholder="תאר בפירוט את המסר המרכזי של הקמפיין. ככל שתכתוב יותר פרטים — הקריאייטיב יצא טוב יותר!&#10;&#10;לדוגמה: 30% הנחה על כל מערכות הישיבה של קולקציית &#34;רויאל&#34;. המבצע לרגל פתיחת הסניף החדש בבני ברק, תקף עד ט׳ אדר. כולל משלוח חינם והרכבה. מיועד למשפחות חרדיות שמחפשות ריהוט איכותי במחיר נגיש."
+          className={cn(
+            "min-h-[130px] text-base transition-all",
+            briefQuality.level === 'weak' && 'border-orange-400/60 focus:border-orange-400',
+            briefQuality.level === 'empty' && value.offer.length > 0 && 'border-destructive/60'
+          )}
         />
-        <p className="text-xs text-muted-foreground">
-          זה יעזור לנו לכוון את הקריאייטיב והמסרים
-        </p>
+        
+        {/* Brief Quality Meter */}
+        {value.offer.trim().length > 0 && (
+          <div className="space-y-2 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">{briefQuality.wordCount} מילים</span>
+                <Badge 
+                  variant={briefQuality.level === 'strong' ? 'default' : 'secondary'}
+                  className={cn(
+                    'text-xs',
+                    briefQuality.level === 'weak' && 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+                    briefQuality.level === 'medium' && 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+                    briefQuality.level === 'strong' && 'bg-green-500/20 text-green-400 border-green-500/30'
+                  )}
+                >
+                  {briefQuality.level === 'weak' ? '⚠️ חלש — צריך עוד פרטים' : 
+                   briefQuality.level === 'medium' ? '👍 סביר — אפשר לשפר' : 
+                   '✅ מעולה!'}
+                </Badge>
+              </div>
+              {briefQuality.level !== 'strong' && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleEnhanceBrief}
+                  disabled={isEnhancing}
+                  className="text-xs gap-1.5 h-7"
+                >
+                  <Sparkles className={cn("w-3.5 h-3.5", isEnhancing && "animate-spin")} />
+                  {isEnhancing ? 'מרחיב...' : 'הרחב עם AI'}
+                </Button>
+              )}
+            </div>
+            
+            <Progress 
+              value={briefQuality.score} 
+              className={cn(
+                "h-1.5",
+                briefQuality.level === 'weak' && '[&>div]:bg-orange-400',
+                briefQuality.level === 'medium' && '[&>div]:bg-yellow-400',
+                briefQuality.level === 'strong' && '[&>div]:bg-green-400'
+              )}
+            />
+
+            {/* Missing details hints */}
+            {briefQuality.missing.length > 0 && briefQuality.level !== 'strong' && (
+              <div className="flex flex-wrap gap-2 mt-1">
+                {briefQuality.missing.map((hint, i) => (
+                  <span key={i} className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+                    💡 {hint}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {value.offer.trim().length === 0 && (
+          <p className="text-xs text-muted-foreground">
+            ⚡ ככל שהבריף מפורט יותר — הקריאייטיב יצא מדויק ואיכותי יותר
+          </p>
+        )}
       </div>
 
       {/* Campaign Image Upload */}
