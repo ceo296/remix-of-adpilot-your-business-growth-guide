@@ -91,11 +91,31 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           layoutNotes: result.analysis.layoutNotes || '',
         };
 
-        updateData({
-          pastMaterials: currentMaterials.map(m =>
-            m.id === material.id ? { ...m, adAnalysis: analysis } : m
-          )
-        });
+        const updatedMaterials = currentMaterials.map(m =>
+          m.id === material.id ? { ...m, adAnalysis: analysis } : m
+        );
+        updateData({ pastMaterials: updatedMaterials });
+
+        // Auto-fill brand colors from the first analyzed material's palette if colors are still empty
+        const colors = data.brand.colors;
+        const isDefault = (c: string) => !c || c === '#000000' || c === '#FFFFFF' || c === '#ffffff';
+        if (isDefault(colors.primary) && isDefault(colors.secondary) && analysis.colorPalette.length >= 2) {
+          const palette = analysis.colorPalette.filter(c => c !== '#FFFFFF' && c !== '#ffffff' && c !== '#000000');
+          if (palette.length >= 1) {
+            updateData({
+              brand: {
+                ...data.brand,
+                colors: {
+                  primary: palette[0] || colors.primary,
+                  secondary: palette[1] || palette[0] || colors.secondary,
+                  background: colors.background || '#FFFFFF',
+                },
+              },
+            });
+            toast.success('צבעי מותג עודכנו מהמודעה!', { icon: '🎨' });
+          }
+        }
+
         toast.success(`ניתוח "${material.name}" הושלם!`);
       }
     } catch (err) {
