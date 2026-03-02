@@ -30,7 +30,7 @@ import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor
 import { PrintExportDialog, PrintSettings } from '@/components/studio/PrintExportDialog';
 import { FormatAdaptation } from '@/components/studio/FormatAdaptation';
 import { ImageEditor } from '@/components/studio/ImageEditor';
-import { LayoutShowcase } from '@/components/studio/LayoutShowcase'; // kept for potential admin use
+// LayoutShowcase removed — master template only
 import type { AdaptedCreative } from '@/lib/image-resize';
 
 type AssetChoice = 'full-campaign' | 'has-visual' | 'has-copy';
@@ -323,7 +323,6 @@ const CreativeStudio = () => {
   
   // Text layout style
   const [textLayoutStyle, setTextLayoutStyle] = useState<TextLayoutStyle>('custom');
-  const [showLayoutShowcase, setShowLayoutShowcase] = useState(false); // reserved
   const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
   const [activeCustomTemplate, setActiveCustomTemplate] = useState<CustomTemplate | null>(null);
 
@@ -453,7 +452,37 @@ const CreativeStudio = () => {
     fetchTemplates();
   }, [clientProfile?.default_template_id]);
 
-  // Calculate actual steps based on asset choice and media type
+  // Template auto-refresh: subscribe to DB changes (realtime)
+  useEffect(() => {
+    const channel = supabase
+      .channel('template-updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'ad_layout_templates',
+      }, async () => {
+        // Clear overlay cache
+        const { clearTemplateCache } = await import('@/lib/html-text-overlay');
+        clearTemplateCache();
+        // Re-fetch templates
+        const { data } = await supabase
+          .from('ad_layout_templates')
+          .select('id, name, html_template')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+        if (data && data.length > 0) {
+          setCustomTemplates(data as CustomTemplate[]);
+          if (activeCustomTemplate) {
+            const updated = data.find(t => t.id === activeCustomTemplate.id);
+            if (updated) setActiveCustomTemplate(updated as CustomTemplate);
+          }
+        }
+        toast.info('תבנית עודכנה — שימוש בגרסה החדשה');
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [activeCustomTemplate?.id]);
+
   const getSteps = () => {
     // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt
     // If only radio is selected, skip visual steps
