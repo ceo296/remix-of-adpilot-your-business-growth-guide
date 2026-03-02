@@ -131,6 +131,20 @@ export async function applyHtmlTextOverlay(
   const { headline, bodyText, ctaText, businessName, phone } = config;
   if (!headline && !businessName && !phone && !bodyText) return imageUrl;
 
+  // If no template HTML provided, try to fetch a global one from DB
+  if (!config.customTemplateHtml) {
+    const { data } = await supabase
+      .from('ad_layout_templates')
+      .select('html_template')
+      .eq('is_active', true)
+      .eq('is_global', true)
+      .limit(1)
+      .single();
+    if (data?.html_template) {
+      config = { ...config, customTemplateHtml: data.html_template };
+    }
+  }
+
   const { width, height } = await getImageDimensions(imageUrl);
   const html = getLayoutHTML(config, width, height, imageUrl);
 
