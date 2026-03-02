@@ -29,6 +29,7 @@ import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor
 import { PrintExportDialog, PrintSettings } from '@/components/studio/PrintExportDialog';
 import { FormatAdaptation } from '@/components/studio/FormatAdaptation';
 import { ImageEditor } from '@/components/studio/ImageEditor';
+import { LayoutShowcase } from '@/components/studio/LayoutShowcase';
 import type { AdaptedCreative } from '@/lib/image-resize';
 
 type AssetChoice = 'full-campaign' | 'has-visual' | 'has-copy';
@@ -314,6 +315,7 @@ const CreativeStudio = () => {
   
   // Text layout style
   const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend' | 'brand-top'>('magazine-blend');
+  const [showLayoutShowcase, setShowLayoutShowcase] = useState(false);
 
   // Engine version selection
   const [engineVersion, setEngineVersion] = useState<'nano-banana-pro' | 'nano-banana'>('nano-banana-pro');
@@ -1993,7 +1995,10 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                   className="gap-1 text-xs"
                   onClick={async () => {
                     setTextLayoutStyle(ls.id);
-                    // Re-apply overlay to all images with new style
+                    if (generatedImages.length === 0) {
+                      toast.info('הסגנון יחול על התמונות שייוצרו');
+                      return;
+                    }
                     const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
                     const updated = await Promise.all(generatedImages.map(async (img) => {
                       if (img.visualOnlyUrl && img.textMeta) {
@@ -2032,7 +2037,31 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                   {ls.label}
                 </Button>
               ))}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="gap-1 text-xs text-primary"
+                onClick={() => setShowLayoutShowcase(true)}
+              >
+                👁️ תצוגה מקדימה של כל הסגנונות
+              </Button>
             </div>
+
+            {/* Layout Showcase Dialog */}
+            <Dialog open={showLayoutShowcase} onOpenChange={setShowLayoutShowcase}>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <LayoutShowcase
+                  currentDefault={textLayoutStyle}
+                  clientLogoUrl={clientProfile?.logo_url || undefined}
+                  clientPrimaryColor={clientProfile?.primary_color || undefined}
+                  clientSecondaryColor={clientProfile?.secondary_color || undefined}
+                  onSelectDefault={(id) => {
+                    setTextLayoutStyle(id);
+                    setShowLayoutShowcase(false);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
 
             {/* Agent Pipeline Debug Panel */}
             <AgentPipelineDebug steps={pipelineSteps} isVisible={showPipeline} />
