@@ -38,6 +38,8 @@ export interface TextOverlayConfig {
   bulletItems?: BulletItem[];
   customTemplateId?: string;
   customTemplateHtml?: string;
+  headerFont?: string;
+  kashrutLogo?: string;
 }
 
 function cleanText(text: string): string {
@@ -691,10 +693,10 @@ function getLayoutHTML(config: TextOverlayConfig, width: number, height: number,
       brand_primary_color: config.primaryColor || '#2BA5B5',
       secondaryColor: config.secondaryColor || '#2A2F33',
       backgroundColor: config.backgroundColor || '#FFFFFF',
-      brand_font_family: (config as any).fontFamily || 'Assistant',
+      brand_font_family: config.headerFont || 'Assistant',
       logoUrl: config.logoUrl || '',
       logo_url: config.logoUrl || '',
-      kashrut_logo: (config as any).kashrutLogo || '',
+      kashrut_logo: config.kashrutLogo || '',
       services: cleanedServices,
       servicesList: cleanedServices,
       promoText: config.promoText || '',
