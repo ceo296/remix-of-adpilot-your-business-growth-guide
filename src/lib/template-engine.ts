@@ -185,6 +185,7 @@ export function validateTemplate(template: string): string[] {
 
 // Default sample template
 export const DEFAULT_TEMPLATE = `<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
     --primary: {{brand_primary_color}};

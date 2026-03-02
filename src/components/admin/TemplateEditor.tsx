@@ -28,18 +28,24 @@ interface AdLayoutTemplate {
 
 const SAMPLE_DATA: TemplateData = {
   headline: 'הנחת שתרצו לספר עליה לכולם',
+  subheadline: 'לרגל חופשת פסח והכנה לתקופת הלימודים',
   subtitle: 'לרגל חופשת פסח והכנה לתקופת הלימודים',
   bodyText: 'בחג הזה, העניקו להם מתנה של קשב וריכוז, ותקבלו נחת לכל החיים.',
   ctaText: 'התקשרו עכשיו',
   businessName: 'אקטיב הד',
+  business_name: 'אקטיב הד',
   phone: '033818980',
   email: 'cx@havimoti.co.il',
   address: 'בני ברק',
+  address_list: ['בני ברק', 'ירושלים', 'פתח תקווה', 'אשדוד'],
   primaryColor: '#E34870',
+  brand_primary_color: '#E34870',
   secondaryColor: '#2A2F33',
+  brand_font_family: 'Assistant',
   services: ['אבחון', 'טיפול', 'ייעוץ', 'הדרכה'],
   servicesList: ['אבחון', 'טיפול', 'ייעוץ', 'הדרכה'],
   promoText: 'מבצע חג!',
+  promo_text: '20%\nהנחה!',
   promoValue: '20% הנחה',
   width: 400,
   height: 533,
@@ -127,7 +133,7 @@ export default function TemplateEditor() {
 
   const handlePreview = useCallback(() => {
     const sampleBg = createSampleBgUrl(400, 533);
-    const data: TemplateData = { ...SAMPLE_DATA, imageUrl: sampleBg };
+    const data: TemplateData = { ...SAMPLE_DATA, imageUrl: sampleBg, image_url: sampleBg };
     const rendered = renderTemplate(formHtml, data);
     setPreviewHtml(rendered);
     setShowPreview(true);
@@ -295,12 +301,16 @@ export default function TemplateEditor() {
           {/* Right: Preview */}
           <div className="space-y-2">
             <h3 className="text-sm font-bold text-[#aaa]">תצוגה מקדימה</h3>
-            <div className="bg-[#111] border border-[#333] rounded-lg p-4 min-h-[400px] flex items-center justify-center overflow-auto">
+            <div className="bg-[#111] border border-[#333] rounded-lg min-h-[400px] flex items-center justify-center overflow-hidden">
               {showPreview ? (
-                <div ref={previewRef}
-                     dangerouslySetInnerHTML={{ __html: previewHtml }}
-                     style={{ maxWidth: 400 }}
-                     className="shadow-2xl" />
+                <iframe
+                  ref={previewRef as any}
+                  srcDoc={previewHtml}
+                  className="w-full border-0 shadow-2xl"
+                  style={{ height: 600, maxWidth: 450 }}
+                  sandbox="allow-scripts allow-same-origin"
+                  title="תצוגה מקדימה"
+                />
               ) : (
                 <p className="text-[#555] text-sm">לחץ "תצוגה מקדימה" כדי לראות את התבנית</p>
               )}
