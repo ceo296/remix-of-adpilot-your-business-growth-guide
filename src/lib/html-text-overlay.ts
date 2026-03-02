@@ -187,8 +187,10 @@ export async function applyHtmlTextOverlay(
       height,
       pixelRatio: 1,
       cacheBust: true,
+      skipFonts: true,
     });
 
+    console.log('[Overlay] toPng success, dataUrl length:', dataUrl.length);
     return dataUrl;
   } finally {
     document.body.removeChild(container);
