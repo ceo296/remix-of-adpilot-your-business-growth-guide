@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   Database, Brain, Users, LogOut, Menu, X, 
-  Settings, ChevronLeft, Palette, Newspaper, Link2, Cpu
+  Settings, ChevronLeft, Palette, Newspaper, Link2, Cpu, FileCode2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,13 +14,15 @@ import BrandingOrdersAdmin from '@/components/admin/BrandingOrdersAdmin';
 import ProofManagement from '@/components/admin/ProofManagement';
 import MediaPortalAdmin from '@/components/admin/MediaPortalAdmin';
 import AIModelConfigsAdmin from '@/components/admin/AIModelConfigsAdmin';
+import TemplateEditor from '@/components/admin/TemplateEditor';
 
-type AdminTab = 'media' | 'brain' | 'models' | 'clients' | 'branding' | 'proofs' | 'portal';
+type AdminTab = 'media' | 'brain' | 'models' | 'templates' | 'clients' | 'branding' | 'proofs' | 'portal';
 
 const TABS = [
   { id: 'media' as AdminTab, label: 'ערוצי מדיה', icon: Database },
   { id: 'brain' as AdminTab, label: 'אימון מערכת AI', icon: Brain },
   { id: 'models' as AdminTab, label: 'מודלים ייעודיים', icon: Cpu },
+  { id: 'templates' as AdminTab, label: 'תבניות מודעה', icon: FileCode2 },
   { id: 'clients' as AdminTab, label: 'רשימת לקוחות', icon: Users },
   { id: 'branding' as AdminTab, label: 'הזמנות מיתוג', icon: Palette },
   { id: 'proofs' as AdminTab, label: 'הוכחות פרסום', icon: Newspaper },
@@ -105,6 +107,8 @@ const AdminDashboard = () => {
         return <MediaDatabaseAdmin />;
       case 'models':
         return <AIModelConfigsAdmin />;
+      case 'templates':
+        return <TemplateEditor />;
       case 'clients':
         return <ClientOverview />;
       case 'branding':
