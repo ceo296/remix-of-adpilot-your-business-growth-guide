@@ -439,13 +439,21 @@ const CreativeStudio = () => {
       if (data && data.length > 0) {
         setCustomTemplates(data as CustomTemplate[]);
         
-        // If client has a default template, auto-select it
+        // Auto-select: client's default template, or first available
         if (clientProfile?.default_template_id) {
           const defaultTpl = data.find(t => t.id === clientProfile.default_template_id);
           if (defaultTpl) {
             setActiveCustomTemplate(defaultTpl as CustomTemplate);
             setTextLayoutStyle('custom');
+          } else {
+            // Default template not found, use first available
+            setActiveCustomTemplate(data[0] as CustomTemplate);
+            setTextLayoutStyle('custom');
           }
+        } else if (!activeCustomTemplate) {
+          // No default configured — use first available template
+          setActiveCustomTemplate(data[0] as CustomTemplate);
+          setTextLayoutStyle('custom');
         }
       }
     };
