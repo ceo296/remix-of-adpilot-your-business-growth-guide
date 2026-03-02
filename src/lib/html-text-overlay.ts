@@ -5,8 +5,10 @@
  */
 
 import { toPng } from 'html-to-image';
+import { renderTemplate, type TemplateData } from './template-engine';
+import { supabase } from '@/integrations/supabase/client';
 
-export type TextLayoutStyle = 'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend' | 'brand-top';
+export type TextLayoutStyle = 'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend' | 'brand-top' | 'custom';
 
 export interface BulletItem {
   icon?: '✓' | '₪' | '⭐' | '🔥' | '💎' | '🎯' | '📞' | '🏷️' | '⚡' | string;
@@ -34,9 +36,9 @@ export interface TextOverlayConfig {
   promoText?: string;
   promoValue?: string;
   bulletItems?: BulletItem[];
+  customTemplateId?: string;
+  customTemplateHtml?: string;
 }
-
-// ─── Utility functions ───
 
 function cleanText(text: string): string {
   if (!text) return '';
@@ -669,6 +671,33 @@ function buildMinimalHTML(config: TextOverlayConfig, width: number, height: numb
 // ─── Layout selector ───
 
 function getLayoutHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
+  // Custom template rendering
+  if (config.layoutStyle === 'custom' && config.customTemplateHtml) {
+    const templateData: TemplateData = {
+      headline: config.headline ? cleanText(config.headline) : '',
+      subtitle: config.subtitle ? cleanText(config.subtitle) : '',
+      bodyText: config.bodyText ? cleanText(config.bodyText) : '',
+      ctaText: config.ctaText ? cleanText(config.ctaText) : '',
+      businessName: config.businessName ? cleanText(config.businessName) : '',
+      phone: config.phone || '',
+      whatsapp: config.whatsapp || '',
+      email: config.email || '',
+      address: config.address || '',
+      primaryColor: config.primaryColor || '#2BA5B5',
+      secondaryColor: config.secondaryColor || '#2A2F33',
+      backgroundColor: config.backgroundColor || '#FFFFFF',
+      logoUrl: config.logoUrl || '',
+      services: config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [],
+      servicesList: config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [],
+      promoText: config.promoText || '',
+      promoValue: config.promoValue || '',
+      imageUrl,
+      width,
+      height,
+    };
+    return renderTemplate(config.customTemplateHtml, templateData);
+  }
+
   const style = config.layoutStyle || 'magazine-blend';
   switch (style) {
     case 'magazine-blend':
@@ -747,4 +776,35 @@ export async function applyHtmlTextOverlay(
   } finally {
     document.body.removeChild(container);
   }
+}
+
+// ─── Apply with custom template from DB ───
+
+let templateCache: Record<string, string> = {};
+
+export async function applyCustomTemplate(
+  imageUrl: string,
+  templateId: string,
+  config: Omit<TextOverlayConfig, 'layoutStyle' | 'customTemplateHtml' | 'customTemplateId'>
+): Promise<string> {
+  // Check cache first
+  if (!templateCache[templateId]) {
+    const { data, error } = await supabase
+      .from('ad_layout_templates')
+      .select('html_template')
+      .eq('id', templateId)
+      .single();
+    if (error || !data) throw new Error('תבנית לא נמצאה');
+    templateCache[templateId] = (data as any).html_template;
+  }
+
+  return applyHtmlTextOverlay(imageUrl, {
+    ...config,
+    layoutStyle: 'custom',
+    customTemplateHtml: templateCache[templateId],
+  });
+}
+
+export function clearTemplateCache() {
+  templateCache = {};
 }

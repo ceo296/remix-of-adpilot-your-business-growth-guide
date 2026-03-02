@@ -14,6 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_layout_templates: {
+        Row: {
+          client_profile_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          html_template: string
+          id: string
+          is_active: boolean
+          is_global: boolean
+          media_type: string | null
+          name: string
+          placeholders: Json
+          thumbnail_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_profile_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          html_template: string
+          id?: string
+          is_active?: boolean
+          is_global?: boolean
+          media_type?: string | null
+          name: string
+          placeholders?: Json
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_profile_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          html_template?: string
+          id?: string
+          is_active?: boolean
+          is_global?: boolean
+          media_type?: string | null
+          name?: string
+          placeholders?: Json
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_layout_templates_client_profile_id_fkey"
+            columns: ["client_profile_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_generation_logs: {
         Row: {
           brand_context: Json | null
@@ -340,6 +396,7 @@ export type Database = {
           contact_youtube: string | null
           created_at: string
           decision_maker: string | null
+          default_template_id: string | null
           end_consumer: string | null
           header_font: string | null
           honorific_preference: string | null
@@ -383,6 +440,7 @@ export type Database = {
           contact_youtube?: string | null
           created_at?: string
           decision_maker?: string | null
+          default_template_id?: string | null
           end_consumer?: string | null
           header_font?: string | null
           honorific_preference?: string | null
@@ -426,6 +484,7 @@ export type Database = {
           contact_youtube?: string | null
           created_at?: string
           decision_maker?: string | null
+          default_template_id?: string | null
           end_consumer?: string | null
           header_font?: string | null
           honorific_preference?: string | null
@@ -452,7 +511,15 @@ export type Database = {
           winning_feature?: string | null
           x_factors?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_profiles_default_template_id_fkey"
+            columns: ["default_template_id"]
+            isOneToOne: false
+            referencedRelation: "ad_layout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       generated_images: {
         Row: {

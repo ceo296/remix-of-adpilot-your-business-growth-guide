@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { TextLayoutStyle } from '@/lib/html-text-overlay';
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move } from 'lucide-react';
@@ -314,7 +315,7 @@ const CreativeStudio = () => {
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('year_round');
   
   // Text layout style
-  const [textLayoutStyle, setTextLayoutStyle] = useState<'classic-ad' | 'top-headline' | 'center-card' | 'minimal' | 'side-strip' | 'professional-ad' | 'magazine-blend' | 'brand-top'>('magazine-blend');
+  const [textLayoutStyle, setTextLayoutStyle] = useState<TextLayoutStyle>('magazine-blend');
   const [showLayoutShowcase, setShowLayoutShowcase] = useState(false);
 
   // Engine version selection
