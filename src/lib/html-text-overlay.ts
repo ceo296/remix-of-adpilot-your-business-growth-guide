@@ -127,12 +127,11 @@ function lightenHex(hex: string, factor = 0.3): string {
   return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
 }
 
-// ─── Shared Contact Strip (V3: Two-section professional layout) ───
+// ─── Shared Contact Strip (V4: Transparent, logo on left, no black bar) ───
 
 function buildContactStripHTML(config: TextOverlayConfig, width: number, height: number, scale: number): string {
   const primary = config.primaryColor || '#2BA5B5';
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
-  const stripBg = '#1a1a1a';
 
   const businessName = config.businessName ? cleanText(config.businessName) : '';
   const phone = config.phone || '';
@@ -141,66 +140,65 @@ function buildContactStripHTML(config: TextOverlayConfig, width: number, height:
   const whatsapp = config.whatsapp || '';
   const services = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
 
-  // Compact strip: ~12% of height
   const stripHeight = Math.round(height * 0.12);
-  const topBorderHeight = Math.max(Math.round(3 * scale), 2);
+  const topBorderHeight = Math.max(Math.round(2 * scale), 1);
   const phoneSize = Math.max(Math.round(28 * scale), 16);
-  const nameSize = Math.max(Math.round(16 * scale), 11);
+  const nameSize = Math.max(Math.round(15 * scale), 10);
   const detailSize = Math.max(Math.round(11 * scale), 8);
   const serviceSize = Math.max(Math.round(11 * scale), 8);
-  const logoHeight = Math.max(Math.round(50 * scale), 28);
-  const logoWidth = Math.max(Math.round(120 * scale), 50);
+  const logoHeight = Math.max(Math.round(48 * scale), 26);
+  const logoWidth = Math.max(Math.round(110 * scale), 45);
   const padX = Math.round(16 * scale);
   const padY = Math.round(6 * scale);
 
-  // Logo
+  // Logo — clean, no background box, no square
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
     <img src="${config.logoUrl}" crossorigin="anonymous"
          style="max-height:${logoHeight}px; max-width:${logoWidth}px; object-fit:contain;
-                filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4));" />` : '';
+                background:none; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.6));" />` : '';
 
-  // Services (pipe-separated, compact)
+  // Services (pipe-separated)
   const servicesHtml = services.length > 0 ? `
     <div style="display:flex; align-items:center; gap:${Math.round(5 * scale)}px; direction:rtl; flex-wrap:nowrap; overflow:hidden;">
       ${services.slice(0, 5).map((s, i) => `
-        ${i > 0 ? `<span style="color:rgba(255,255,255,0.4); font-size:${serviceSize}px;">|</span>` : ''}
-        <span style="color:rgba(255,255,255,0.75); font-size:${serviceSize}px; font-weight:500; white-space:nowrap;">${s}</span>
+        ${i > 0 ? `<span style="color:rgba(255,255,255,0.5); font-size:${serviceSize}px;">|</span>` : ''}
+        <span style="color:rgba(255,255,255,0.85); font-size:${serviceSize}px; font-weight:500; white-space:nowrap;">${s}</span>
       `).join('')}
     </div>` : '';
 
-  // Contact details line
+  // Contact details
   const contactParts: string[] = [];
   if (address) contactParts.push(address);
   if (email) contactParts.push(email);
   if (whatsapp && whatsapp !== phone) contactParts.push(`☎ ${whatsapp}`);
   const detailsHtml = contactParts.length > 0 ? `
-    <div style="color:rgba(255,255,255,0.6); font-size:${detailSize}px; font-weight:400; direction:rtl; 
-                white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;">
+    <div style="color:rgba(255,255,255,0.7); font-size:${detailSize}px; font-weight:400; direction:rtl; 
+                white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
       ${contactParts.join(' · ')}
     </div>` : '';
 
   return `
-    <!-- Contact strip V3 -->
+    <!-- Contact strip V4: transparent, logo LEFT -->
     <div style="position:absolute; bottom:0; left:0; right:0; height:${stripHeight}px; z-index:4;">
-      <!-- Top accent border -->
-      <div style="height:${topBorderHeight}px; background:linear-gradient(90deg, ${primary}, ${secondary});"></div>
+      <!-- Thin accent line at top -->
+      <div style="height:${topBorderHeight}px; background:${primary}; opacity:0.7;"></div>
       
-      <!-- Main strip: 2-section layout -->
-      <div style="height:calc(100% - ${topBorderHeight}px); background:${stripBg};
+      <!-- Semi-transparent strip — NOT solid black -->
+      <div style="height:calc(100% - ${topBorderHeight}px); 
+                  background:linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.65) 100%);
+                  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
                   display:flex; align-items:center; justify-content:space-between;
                   padding:${padY}px ${padX}px; direction:rtl;">
         
-        <!-- Right section: Logo + Business name (grouped) -->
-        <div style="display:flex; align-items:center; gap:${Math.round(10 * scale)}px; flex-shrink:0; max-width:40%;">
-          ${logoHtml}
-          <div style="display:flex; flex-direction:column; gap:${Math.round(2 * scale)}px;">
+        <!-- Right section: Business name + services + phone -->
+        <div style="display:flex; align-items:center; gap:${Math.round(14 * scale)}px; flex:1; min-width:0;">
+          <!-- Business name + services -->
+          <div style="display:flex; flex-direction:column; gap:${Math.round(2 * scale)}px; flex-shrink:0;">
             <div style="font-size:${nameSize}px; font-weight:800; color:#FFFFFF; white-space:nowrap;">${businessName}</div>
             ${servicesHtml}
           </div>
-        </div>
-
-        <!-- Left section: Phone + contact details -->
-        <div style="display:flex; flex-direction:column; align-items:center; gap:${Math.round(3 * scale)}px; flex-shrink:0;">
+          
+          <!-- Phone badge -->
           ${phone ? `
             <div style="background:${primary}; color:${isLightColor(primary) ? '#1a1a1a' : '#FFFFFF'};
                         padding:${Math.round(4 * scale)}px ${Math.round(16 * scale)}px; border-radius:${Math.round(6 * scale)}px;
@@ -208,7 +206,14 @@ function buildContactStripHTML(config: TextOverlayConfig, width: number, height:
                         direction:ltr;">
               ${phone}
             </div>` : ''}
+          
+          <!-- Contact details -->
           ${detailsHtml}
+        </div>
+
+        <!-- Left section: Logo only, clean, no box -->
+        <div style="display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          ${logoHtml}
         </div>
       </div>
     </div>
