@@ -5,7 +5,7 @@
  */
 
 import { toPng } from 'html-to-image';
-import { renderTemplate, type TemplateData } from './template-engine';
+import { renderTemplate, DEFAULT_TEMPLATE, type TemplateData } from './template-engine';
 import { supabase } from '@/integrations/supabase/client';
 
 // Only 'custom' is supported — all legacy styles removed
@@ -131,8 +131,9 @@ export async function applyHtmlTextOverlay(
   const { headline, bodyText, ctaText, businessName, phone } = config;
   if (!headline && !businessName && !phone && !bodyText) return imageUrl;
 
-  // If no template HTML provided, try to fetch a global one from DB
+  // Resolve template: config → DB global → hardcoded DEFAULT_TEMPLATE
   if (!config.customTemplateHtml) {
+    console.log('[Overlay] No template in config, fetching global from DB...');
     const { data } = await supabase
       .from('ad_layout_templates')
       .select('html_template')
@@ -142,11 +143,21 @@ export async function applyHtmlTextOverlay(
       .single();
     if (data?.html_template) {
       config = { ...config, customTemplateHtml: data.html_template };
+      console.log('[Overlay] Using global DB template');
+    } else {
+      console.warn('[Overlay] No global template in DB — using hardcoded DEFAULT_TEMPLATE');
+      config = { ...config, customTemplateHtml: DEFAULT_TEMPLATE };
     }
   }
 
   const { width, height } = await getImageDimensions(imageUrl);
   const html = getLayoutHTML(config, width, height, imageUrl);
+
+  console.log('[Overlay] Final HTML length:', html.length, '| Has image_url:', html.includes(imageUrl.substring(0, 30)));
+  if (html.length < 50) {
+    console.error('[Overlay] HTML is suspiciously short! Returning original image.', html);
+    return imageUrl;
+  }
 
   const container = document.createElement('div');
   container.style.position = 'fixed';

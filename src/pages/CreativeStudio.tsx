@@ -1277,7 +1277,7 @@ const CreativeStudio = () => {
             secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined,
             backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
             layoutStyle: 'custom',
-            customTemplateHtml: activeCustomTemplate?.html_template,
+            customTemplateHtml: activeCustomTemplate?.html_template || undefined,
             logoUrl: brandContext?.logoUrl || clientProfile?.logo_url || undefined,
             servicesList: textMeta.servicesList,
             promoText: textMeta.promoText,
