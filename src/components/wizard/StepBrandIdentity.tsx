@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Upload, Palette, Type, Check, ArrowRight, ArrowLeft, Pencil, FileText, RefreshCw, Loader2 } from 'lucide-react';
+import { Upload, Palette, Type, ArrowRight, ArrowLeft, Pencil, FileText, RefreshCw, Loader2, ArrowLeftRight, Star } from 'lucide-react';
 
 interface StepBrandIdentityProps {
   data: WizardData;
@@ -73,7 +73,6 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Auto-convert PDF to PNG
     const { fileToLogoDataUrl } = await import('@/lib/logo-utils');
     
     try {
@@ -92,7 +91,6 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         brand: { logo: dataUrl },
       });
 
-      // Auto-extract colors from logo (supports images and PDFs)
       toast.loading('מחלץ צבעים מהלוגו...', { id: 'auto-color-extract' });
       try {
         const { data: result, error } = await supabase.functions.invoke('extract-logo-colors', {
@@ -129,6 +127,20 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         colors: { [colorType]: value },
       },
     });
+  };
+
+  const handleSwapColors = () => {
+    const currentPrimary = data.brand.colors.primary;
+    const currentSecondary = data.brand.colors.secondary;
+    updateData({
+      brand: {
+        colors: {
+          primary: currentSecondary,
+          secondary: currentPrimary,
+        },
+      },
+    });
+    toast.success('הצבעים הוחלפו!');
   };
 
   const handleFontChange = (fontType: 'headerFont' | 'bodyFont', value: string) => {
@@ -177,15 +189,12 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
     }
   };
 
-  const colorLabels = {
-    primary: 'צבע ראשי',
-    secondary: 'צבע משני',
-    background: 'רקע',
-  };
+  const hasBothColors = data.brand.colors.primary && data.brand.colors.secondary && 
+    data.brand.colors.primary !== '#FFFFFF' && data.brand.colors.secondary !== '#FFFFFF';
 
   return (
     <div className="space-y-10">
-      {/* Header - larger and more prominent */}
+      {/* Header */}
       <div className="text-center space-y-6">
         <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
           <Palette className="w-12 h-12 text-primary" />
@@ -198,7 +207,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         </p>
       </div>
 
-      {/* Brand Name - larger */}
+      {/* Brand Name */}
       <div className="max-w-2xl mx-auto">
         <Card className="border-2 border-primary/20 shadow-lg">
           <CardContent className="p-8">
@@ -217,7 +226,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         </Card>
       </div>
 
-      {/* Brand Cards Grid - larger cards */}
+      {/* Brand Cards Grid */}
       <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
         {/* Logo Card */}
         <Card className="border-2 border-border hover:border-primary/50 transition-colors cursor-pointer group shadow-lg">
@@ -263,16 +272,13 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
           </CardContent>
         </Card>
 
-        {/* Colors Card */}
+        {/* Colors Card - Enhanced with primary/secondary swap */}
         <Card className="border-2 border-border shadow-lg">
-          <CardContent className="p-8 space-y-6">
+          <CardContent className="p-8 space-y-5">
             <h3 className="font-bold text-lg text-foreground flex items-center justify-center gap-2">
               <Palette className="w-5 h-5 text-primary" />
               הצבעים שלכם
             </h3>
-            <p className="text-sm text-muted-foreground text-center">
-              שלא ייצא בטעות כתום במקום אדום...
-            </p>
             
             {data.brand.logo && (
               <Button
@@ -290,27 +296,86 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
                 חלץ צבעים מהלוגו
               </Button>
             )}
-            
-            <div className="space-y-4">
-              {(['primary', 'secondary', 'background'] as const).map((colorType) => (
-                <div key={colorType} className="flex items-center gap-4">
-                  <div className="relative">
-                    <input
-                      type="color"
-                      value={data.brand.colors[colorType] || '#FFFFFF'}
-                      onChange={(e) => handleColorChange(colorType, e.target.value)}
-                      className="w-14 h-14 rounded-xl cursor-pointer border-2 border-border shadow-md"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-base font-semibold">{colorLabels[colorType]}</p>
-                    <p className="text-sm text-muted-foreground uppercase">
-                      {data.brand.colors[colorType] || '—'}
-                    </p>
-                  </div>
+
+            {/* Primary Color - with star badge */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Star className="w-4 h-4 text-primary fill-primary" />
+                <span className="text-sm font-bold text-foreground">צבע ראשי</span>
+                <span className="text-xs text-muted-foreground">(ישלוט במודעות)</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={data.brand.colors.primary || '#FFFFFF'}
+                  onChange={(e) => handleColorChange('primary', e.target.value)}
+                  className="w-14 h-14 rounded-xl cursor-pointer border-2 border-primary/30 shadow-md ring-2 ring-primary/20"
+                />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground uppercase">
+                    {data.brand.colors.primary || '—'}
+                  </p>
                 </div>
-              ))}
+              </div>
             </div>
+
+            {/* Swap Button */}
+            {hasBothColors && (
+              <div className="flex justify-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSwapColors}
+                  className="text-xs gap-1.5 text-muted-foreground hover:text-primary"
+                >
+                  <ArrowLeftRight className="w-3.5 h-3.5" />
+                  החלף ראשי ↔ משני
+                </Button>
+              </div>
+            )}
+
+            {/* Secondary Color */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm font-semibold text-foreground">צבע משני</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={data.brand.colors.secondary || '#FFFFFF'}
+                  onChange={(e) => handleColorChange('secondary', e.target.value)}
+                  className="w-14 h-14 rounded-xl cursor-pointer border-2 border-border shadow-md"
+                />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground uppercase">
+                    {data.brand.colors.secondary || '—'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Background Color - smaller */}
+            <div className="flex items-center gap-3 pt-2 border-t border-border/50">
+              <input
+                type="color"
+                value={data.brand.colors.background || '#FFFFFF'}
+                onChange={(e) => handleColorChange('background', e.target.value)}
+                className="w-10 h-10 rounded-lg cursor-pointer border-2 border-border shadow-sm"
+              />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-muted-foreground">רקע</p>
+                <p className="text-xs text-muted-foreground uppercase">
+                  {data.brand.colors.background || '#FFFFFF'}
+                </p>
+              </div>
+            </div>
+
+            {/* AI suggestion note */}
+            {hasBothColors && (
+              <p className="text-xs text-muted-foreground text-center pt-1 border-t border-border/30">
+                💡 זיהינו את הצבעים מהלוגו. לא מדויק? החליפו או בחרו ידנית.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -365,7 +430,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
         </Card>
       </div>
 
-      {/* Navigation - larger buttons */}
+      {/* Navigation */}
       <div className="flex justify-between max-w-5xl mx-auto pt-8">
         <Button variant="outline" size="lg" onClick={onPrev} className="h-14 px-8 text-lg">
           <ArrowRight className="w-5 h-5 ml-2" />
