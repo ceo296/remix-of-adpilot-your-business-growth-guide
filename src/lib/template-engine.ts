@@ -6,23 +6,32 @@
 
 export interface TemplateData {
   headline?: string;
+  subheadline?: string;
   subtitle?: string;
   bodyText?: string;
   ctaText?: string;
   businessName?: string;
+  business_name?: string;
   phone?: string;
   whatsapp?: string;
   email?: string;
   address?: string;
   primaryColor?: string;
+  brand_primary_color?: string;
   secondaryColor?: string;
   backgroundColor?: string;
+  brand_font_family?: string;
   logoUrl?: string;
+  logo_url?: string;
   services?: string[];
   servicesList?: string[];
+  address_list?: string[];
   promoText?: string;
+  promo_text?: string;
   promoValue?: string;
   imageUrl?: string;
+  image_url?: string;
+  kashrut_logo?: string;
   width?: number;
   height?: number;
   [key: string]: any;
@@ -31,21 +40,30 @@ export interface TemplateData {
 // Available placeholders for the template editor
 export const AVAILABLE_PLACEHOLDERS = [
   { key: 'headline', label: 'כותרת', example: 'הנחת שתרצו לספר עליה' },
+  { key: 'subheadline', label: 'כותרת משנה (סאב)', example: 'לרגל חופשת פסח' },
   { key: 'subtitle', label: 'כותרת משנה', example: 'לרגל חופשת פסח' },
   { key: 'bodyText', label: 'גוף טקסט', example: 'בחג הזה, העניקו להם מתנה...' },
   { key: 'ctaText', label: 'קריאה לפעולה', example: 'התקשרו עכשיו' },
-  { key: 'businessName', label: 'שם העסק', example: 'אקטיב הד' },
+  { key: 'business_name', label: 'שם העסק', example: 'אקטיב הד' },
+  { key: 'businessName', label: 'שם העסק (legacy)', example: 'אקטיב הד' },
   { key: 'phone', label: 'טלפון', example: '033818980' },
   { key: 'whatsapp', label: 'וואטסאפ', example: '0501234567' },
   { key: 'email', label: 'אימייל', example: 'info@example.com' },
   { key: 'address', label: 'כתובת', example: 'בני ברק' },
-  { key: 'primaryColor', label: 'צבע ראשי', example: '#E34870' },
+  { key: 'address_list', label: 'רשימת כתובות/סניפים', example: 'בני ברק, ירושלים, חיפה' },
+  { key: 'brand_primary_color', label: 'צבע ראשי מותג', example: '#E34870' },
+  { key: 'primaryColor', label: 'צבע ראשי (legacy)', example: '#E34870' },
   { key: 'secondaryColor', label: 'צבע משני', example: '#2A2F33' },
-  { key: 'logoUrl', label: 'לוגו (URL)', example: 'https://...' },
+  { key: 'brand_font_family', label: 'פונט מותג', example: 'Heebo' },
+  { key: 'logo_url', label: 'לוגו (URL)', example: 'https://...' },
+  { key: 'logoUrl', label: 'לוגו (legacy)', example: 'https://...' },
+  { key: 'kashrut_logo', label: 'לוגו כשרות', example: 'https://...' },
   { key: 'services', label: 'רשימת שירותים', example: 'אבחון, טיפול, ייעוץ' },
-  { key: 'promoText', label: 'טקסט מבצע', example: 'מבצע חג!' },
+  { key: 'promo_text', label: 'טקסט מבצע', example: '20%\nהנחה!' },
+  { key: 'promoText', label: 'טקסט מבצע (legacy)', example: 'מבצע חג!' },
   { key: 'promoValue', label: 'ערך מבצע', example: '20% הנחה' },
-  { key: 'imageUrl', label: 'תמונת רקע', example: 'data:image/...' },
+  { key: 'image_url', label: 'תמונת רקע', example: 'data:image/...' },
+  { key: 'imageUrl', label: 'תמונת רקע (legacy)', example: 'data:image/...' },
   { key: 'width', label: 'רוחב (px)', example: '800' },
   { key: 'height', label: 'גובה (px)', example: '1067' },
 ];
@@ -166,67 +184,58 @@ export function validateTemplate(template: string): string[] {
 }
 
 // Default sample template
-export const DEFAULT_TEMPLATE = `<div style="position:relative; width:{{width}}px; height:{{height}}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
-  <!-- תמונת רקע -->
-  <img src="{{imageUrl}}" crossorigin="anonymous" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
-  
-  <!-- כותרת -->
-  {{#if headline}}
-  <div style="position:absolute; top:0; left:0; right:0; padding:24px; z-index:2;
-              background:linear-gradient(180deg, {{primaryColor}} 0%, transparent 100%);">
-    <h1 style="font-size:42px; font-weight:900; color:#fff; text-align:center; text-shadow:0 2px 8px rgba(0,0,0,0.3); margin:0;">
-      {{headline}}
-    </h1>
-    {{#if subtitle}}
-    <p style="font-size:20px; font-weight:600; color:rgba(255,255,255,0.9); text-align:center; margin:8px 0 0;">
-      {{subtitle}}
-    </p>
+export const DEFAULT_TEMPLATE = `<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --primary: {{brand_primary_color}};
+    --font: {{brand_font_family}};
+  }
+  .ad-grid { font-family: var(--font), sans-serif; }
+  .brand-bg { background-color: var(--primary); }
+  .brand-text { color: var(--primary); }
+</style>
+<div class="ad-grid relative w-full h-full overflow-hidden text-right" dir="rtl">
+    <img src="{{image_url}}" class="absolute inset-0 w-full h-full object-cover" alt="Main Visual">
+    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20"></div>
+    <div class="absolute top-12 right-10 left-10 z-10">
+        <h1 class="text-6xl font-black text-white leading-[1.1] drop-shadow-2xl">
+            {{headline}}
+        </h1>
+        {{#if subheadline}}
+        <div class="mt-4 brand-bg text-white inline-block px-4 py-1 text-xl font-bold italic shadow-lg">
+            {{subheadline}}
+        </div>
+        {{/if}}
+    </div>
+    {{#if promo_text}}
+    <div class="absolute top-10 left-10 w-28 h-28 brand-bg text-white rounded-full flex items-center justify-center text-center font-black text-2xl border-4 border-white shadow-2xl -rotate-12 transform scale-110">
+        {{promo_text}}
+    </div>
     {{/if}}
-  </div>
-  {{/if}}
-  
-  <!-- גוף טקסט -->
-  {{#if bodyText}}
-  <div style="position:absolute; bottom:14%; left:50%; transform:translateX(-50%); z-index:2;
-              background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); border-radius:12px; padding:16px 24px; max-width:80%;">
-    <p style="font-size:18px; font-weight:600; color:#fff; text-align:center; margin:0; line-height:1.6;">
-      {{bodyText}}
-    </p>
-  </div>
-  {{/if}}
-  
-  <!-- CTA -->
-  {{#if ctaText}}
-  <div style="position:absolute; bottom:20%; left:50%; transform:translateX(-50%); z-index:3;">
-    <div style="background:{{primaryColor}}; color:#fff; padding:10px 32px; border-radius:8px;
-                font-size:20px; font-weight:800; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,0.3);">
-      {{ctaText}}
+    <div class="absolute bottom-0 w-full p-8 flex justify-between items-end text-white z-20">
+        <div class="flex flex-col gap-2 max-w-[50%]">
+            {{#if phone}}
+            <div class="text-3xl font-black tracking-tighter">
+                {{phone}}
+            </div>
+            {{/if}}
+            {{#if address_list}}
+            <div class="grid grid-cols-2 gap-x-6 text-[10px] opacity-90 border-r-2 border-white/50 pr-4 mt-2 font-medium uppercase tracking-tight">
+                {{#each address_list}}
+                <div class="whitespace-nowrap italic">\u2022 {{this}}</div>
+                {{/each}}
+            </div>
+            {{/if}}
+        </div>
+        <div class="flex flex-col items-end">
+            {{#if kashrut_logo}}
+            <img src="{{kashrut_logo}}" class="h-10 opacity-70 mb-4 brightness-0 invert" alt="Kashrut">
+            {{/if}}
+            {{#if logo_url}}
+                <img src="{{logo_url}}" class="h-20 w-auto object-contain drop-shadow-md" alt="Brand Logo">
+            {{else}}
+                <span class="text-5xl font-black tracking-tighter uppercase italic">{{business_name}}</span>
+            {{/if}}
+        </div>
     </div>
-  </div>
-  {{/if}}
-  
-  <!-- פס פרטים תחתון -->
-  <div style="position:absolute; bottom:0; left:0; right:0; z-index:4;
-              background:linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0.6));
-              backdrop-filter:blur(4px); padding:10px 16px; display:flex; align-items:center; justify-content:space-between; direction:rtl;">
-    <div style="display:flex; align-items:center; gap:12px;">
-      <span style="font-size:15px; font-weight:800; color:#fff;">{{businessName}}</span>
-      {{#if services}}
-      <div style="display:flex; gap:6px; align-items:center;">
-        {{#each services}}
-        <span style="color:rgba(255,255,255,0.7); font-size:11px;">{{this}}</span>
-        {{/each}}
-      </div>
-      {{/if}}
-    </div>
-    <div style="display:flex; align-items:center; gap:12px;">
-      {{#if phone}}
-      <div style="background:{{primaryColor}}; color:#fff; padding:4px 14px; border-radius:6px;
-                  font-size:22px; font-weight:900; direction:ltr;">{{phone}}</div>
-      {{/if}}
-      {{#if logoUrl}}
-      <img src="{{logoUrl}}" crossorigin="anonymous" style="max-height:40px; object-fit:contain; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5));" />
-      {{/if}}
-    </div>
-  </div>
 </div>`;
