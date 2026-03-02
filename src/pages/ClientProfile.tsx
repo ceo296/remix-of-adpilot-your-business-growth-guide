@@ -30,7 +30,9 @@ import {
   FileText,
   AlertOctagon,
   Star,
-  MessageCircle
+  MessageCircle,
+  LayoutTemplate,
+  Check
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -80,7 +82,8 @@ const ClientProfilePage = () => {
   const [personalRedLines, setPersonalRedLines] = useState<string[]>((profile as any)?.personal_red_lines || []);
   const [newCampaign, setNewCampaign] = useState('');
   const [newRedLine, setNewRedLine] = useState('');
-
+  const [availableTemplates, setAvailableTemplates] = useState<{id: string; name: string; description: string | null}[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(profile?.default_template_id || null);
   // Sync state when profile loads
   useEffect(() => {
     if (profile) {
@@ -95,8 +98,22 @@ const ClientProfilePage = () => {
       setSuccessfulCampaigns((profile as any).successful_campaigns || []);
       setPersonalRedLines((profile as any).personal_red_lines || []);
       setHonorificPreference(((profile as any).honorific_preference as HonorificType) || 'neutral');
+      setSelectedTemplateId(profile.default_template_id || null);
     }
   }, [profile]);
+
+  // Fetch available templates
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const { data } = await supabase
+        .from('ad_layout_templates')
+        .select('id, name, description')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      if (data) setAvailableTemplates(data);
+    };
+    fetchTemplates();
+  }, []);
 
   // Wait for auth/profile to load before redirecting
   useEffect(() => {
@@ -176,6 +193,7 @@ const ClientProfilePage = () => {
         successful_campaigns: successfulCampaigns,
         personal_red_lines: personalRedLines,
         honorific_preference: honorificPreference,
+        default_template_id: selectedTemplateId,
       } as any);
       toast.success('הפרופיל עודכן בהצלחה!');
       setIsEditing(false);
@@ -554,6 +572,58 @@ const ClientProfilePage = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Default Ad Template */}
+        {availableTemplates.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LayoutTemplate className="w-5 h-5 text-primary" />
+                תבנית מודעה ברירת מחדל
+              </CardTitle>
+              <CardDescription>בחר תבנית שתופעל אוטומטית בסטודיו הקריאייטיב</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTemplateId(null)}
+                  className={`p-4 rounded-xl border-2 transition-all text-right ${
+                    !selectedTemplateId
+                      ? 'border-primary bg-primary/5 shadow-md'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm">סגנונות מובנים</span>
+                    {!selectedTemplateId && <Check className="w-4 h-4 text-primary" />}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">שימוש בסגנונות הלייאאוט הקלאסיים</p>
+                </button>
+                {availableTemplates.map((tpl) => (
+                  <button
+                    key={tpl.id}
+                    type="button"
+                    onClick={() => setSelectedTemplateId(tpl.id)}
+                    className={`p-4 rounded-xl border-2 transition-all text-right ${
+                      selectedTemplateId === tpl.id
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm">🧩 {tpl.name}</span>
+                      {selectedTemplateId === tpl.id && <Check className="w-4 h-4 text-primary" />}
+                    </div>
+                    {tpl.description && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{tpl.description}</p>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Strategic DNA */}
         <Card>

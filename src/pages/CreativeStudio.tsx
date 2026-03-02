@@ -776,6 +776,7 @@ const CreativeStudio = () => {
                 promoText: textMeta.promoText,
                 promoValue: textMeta.promoValue,
                 bulletItems: textMeta.bulletItems,
+                headerFont: clientProfile?.header_font || undefined,
               });
               console.log(`[HTML] Hebrew text applied for sketch ${i}`);
             } catch (canvasError) {
@@ -1255,6 +1256,7 @@ const CreativeStudio = () => {
                 promoText: textMeta.promoText,
                 promoValue: textMeta.promoValue,
                 bulletItems: textMeta.bulletItems,
+                headerFont: clientProfile?.header_font || undefined,
           });
           console.log(`[Canvas] Hebrew text applied with layout "${conceptLayout}" for concept ${index}`, {
             primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color,
@@ -2112,6 +2114,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                             servicesList: img.textMeta.servicesList,
                             promoText: img.textMeta.promoText,
                             promoValue: img.textMeta.promoValue,
+                            headerFont: clientProfile?.header_font || undefined,
                           });
                           return { ...img, url: newUrl };
                         } catch { return img; }
