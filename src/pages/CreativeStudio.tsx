@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { TextLayoutStyle } from '@/lib/html-text-overlay';
+
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move } from 'lucide-react';
@@ -321,8 +321,7 @@ const CreativeStudio = () => {
   // Holiday/Season selection for creative
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('year_round');
   
-  // Text layout style
-  const [textLayoutStyle, setTextLayoutStyle] = useState<TextLayoutStyle>('custom');
+  // Text layout style — always 'custom' (Master Template only)
   const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
   const [activeCustomTemplate, setActiveCustomTemplate] = useState<CustomTemplate | null>(null);
 
@@ -444,16 +443,11 @@ const CreativeStudio = () => {
           const defaultTpl = data.find(t => t.id === clientProfile.default_template_id);
           if (defaultTpl) {
             setActiveCustomTemplate(defaultTpl as CustomTemplate);
-            setTextLayoutStyle('custom');
           } else {
-            // Default template not found, use first available
             setActiveCustomTemplate(data[0] as CustomTemplate);
-            setTextLayoutStyle('custom');
           }
         } else if (!activeCustomTemplate) {
-          // No default configured — use first available template
           setActiveCustomTemplate(data[0] as CustomTemplate);
-          setTextLayoutStyle('custom');
         }
       }
     };
@@ -918,7 +912,7 @@ const CreativeStudio = () => {
     setVisualPrompt('');
     setTextPrompt('');
     setAspectRatio('square');
-    setTextLayoutStyle('custom');
+    // textLayoutStyle is always 'custom' — no reset needed
     setGeneratedImages([]);
     setShowResults(false);
     setShowQuote(false);
@@ -1269,7 +1263,6 @@ const CreativeStudio = () => {
         try {
           const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
           // Always use the master template
-          const conceptLayout = textLayoutStyle;
           finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
             headline: concept.headline || textMeta.headline,
             subtitle: textMeta.subtitle,
@@ -1292,7 +1285,7 @@ const CreativeStudio = () => {
             bulletItems: textMeta.bulletItems,
             headerFont: clientProfile?.header_font || undefined,
           });
-          console.log(`[Canvas] Hebrew text applied with layout "${conceptLayout}" for concept ${index}`, {
+          console.log(`[Canvas] Hebrew text applied with master template for concept ${index}`, {
             primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color,
             secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color,
             logoUrl: brandContext?.logoUrl ? 'from-context' : clientProfile?.logo_url ? 'from-profile' : 'none',
