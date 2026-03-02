@@ -132,21 +132,59 @@ Analyze every detail. The colorPalette should contain 3-6 dominant colors as hex
       });
     }
 
-    // Parse JSON from response
+    // Parse JSON from response - robust extraction
     let analysis;
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        analysis = JSON.parse(jsonMatch[0]);
-      } catch {
-        console.error('[Ad Analysis] JSON parse error');
-      }
-    }
+    try {
+      // Strip markdown fences
+      let cleaned = content
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/g, '')
+        .trim();
 
-    if (!analysis) {
-      return new Response(JSON.stringify({ error: 'Failed to parse analysis' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      // Find JSON object boundaries
+      const jsonStart = cleaned.indexOf('{');
+      const jsonEnd = cleaned.lastIndexOf('}');
+
+      if (jsonStart === -1 || jsonEnd === -1) {
+        throw new Error('No JSON object found');
+      }
+
+      cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+
+      try {
+        analysis = JSON.parse(cleaned);
+      } catch {
+        // Fix common LLM JSON issues
+        cleaned = cleaned
+          .replace(/,\s*}/g, '}')
+          .replace(/,\s*]/g, ']')
+          .replace(/[\x00-\x1F\x7F]/g, '')
+          .replace(/'/g, '"');
+
+        // Try to close truncated JSON
+        const openBraces = (cleaned.match(/{/g) || []).length;
+        const closeBraces = (cleaned.match(/}/g) || []).length;
+        const openBrackets = (cleaned.match(/\[/g) || []).length;
+        const closeBrackets = (cleaned.match(/\]/g) || []).length;
+
+        for (let i = 0; i < openBrackets - closeBrackets; i++) cleaned += ']';
+        for (let i = 0; i < openBraces - closeBraces; i++) cleaned += '}';
+
+        // Remove trailing comma before closing
+        cleaned = cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+
+        analysis = JSON.parse(cleaned);
+      }
+    } catch (parseErr) {
+      console.error('[Ad Analysis] JSON parse error:', parseErr, 'Raw content (first 500):', content.substring(0, 500));
+      // Return a best-effort fallback from raw text
+      analysis = {
+        logoPosition: 'unknown',
+        gridStructure: 'unknown',
+        colorPalette: ['#333333', '#666666', '#999999'],
+        typography: content.substring(0, 200),
+        layoutNotes: 'AI response could not be fully parsed. Please retry.'
+      };
     }
 
     console.log('[Ad Analysis] Success:', JSON.stringify(analysis).substring(0, 200));
