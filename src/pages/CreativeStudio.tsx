@@ -82,6 +82,13 @@ interface ClientProfile {
   logo_url: string | null;
   past_materials: any[] | null;
   business_photos: any[] | null;
+  default_template_id: string | null;
+}
+
+interface CustomTemplate {
+  id: string;
+  name: string;
+  html_template: string;
 }
 
 interface MediaPackage {
@@ -317,6 +324,8 @@ const CreativeStudio = () => {
   // Text layout style
   const [textLayoutStyle, setTextLayoutStyle] = useState<TextLayoutStyle>('magazine-blend');
   const [showLayoutShowcase, setShowLayoutShowcase] = useState(false);
+  const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
+  const [activeCustomTemplate, setActiveCustomTemplate] = useState<CustomTemplate | null>(null);
 
   // Engine version selection
   const [engineVersion, setEngineVersion] = useState<'nano-banana-pro' | 'nano-banana'>('nano-banana-pro');
@@ -387,7 +396,7 @@ const CreativeStudio = () => {
 
       const { data: profiles } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, business_photos')
+        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, business_photos, default_template_id')
         .eq('user_id', user.id)
         .eq('is_agency_profile', false)
         .eq('onboarding_completed', true)
@@ -418,6 +427,31 @@ const CreativeStudio = () => {
 
     fetchProfile();
   }, []);
+
+  // Fetch available custom templates + auto-select client's default
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const { data } = await supabase
+        .from('ad_layout_templates')
+        .select('id, name, html_template')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      
+      if (data && data.length > 0) {
+        setCustomTemplates(data as CustomTemplate[]);
+        
+        // If client has a default template, auto-select it
+        if (clientProfile?.default_template_id) {
+          const defaultTpl = data.find(t => t.id === clientProfile.default_template_id);
+          if (defaultTpl) {
+            setActiveCustomTemplate(defaultTpl as CustomTemplate);
+            setTextLayoutStyle('custom');
+          }
+        }
+      }
+    };
+    fetchTemplates();
+  }, [clientProfile?.default_template_id]);
 
   // Calculate actual steps based on asset choice and media type
   const getSteps = () => {
@@ -735,6 +769,7 @@ const CreativeStudio = () => {
                 secondaryColor: overlaySecondary,
                 backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
                 layoutStyle: textLayoutStyle,
+                customTemplateHtml: textLayoutStyle === 'custom' ? activeCustomTemplate?.html_template : undefined,
                 logoUrl: (brandContext as any)?.logoUrl || clientProfile?.logo_url || undefined,
                 logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
                 servicesList: textMeta.servicesList,
@@ -1213,6 +1248,7 @@ const CreativeStudio = () => {
             secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined,
             backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
             layoutStyle: conceptLayout as any,
+            customTemplateHtml: conceptLayout === 'custom' ? activeCustomTemplate?.html_template : undefined,
             logoUrl: brandContext?.logoUrl || clientProfile?.logo_url || undefined,
             logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
                 servicesList: textMeta.servicesList,
@@ -1996,6 +2032,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                   className="gap-1 text-xs"
                   onClick={async () => {
                     setTextLayoutStyle(ls.id);
+                    setActiveCustomTemplate(null);
                     if (generatedImages.length === 0) {
                       toast.info('הסגנון יחול על התמונות שייוצרו');
                       return;
@@ -2036,6 +2073,57 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
                 >
                   <span>{ls.icon}</span>
                   {ls.label}
+                </Button>
+              ))}
+              {/* Custom template buttons */}
+              {customTemplates.map(tpl => (
+                <Button
+                  key={`custom-${tpl.id}`}
+                  size="sm"
+                  variant={textLayoutStyle === 'custom' && activeCustomTemplate?.id === tpl.id ? 'default' : 'outline'}
+                  className="gap-1 text-xs border-dashed"
+                  onClick={async () => {
+                    setActiveCustomTemplate(tpl);
+                    setTextLayoutStyle('custom');
+                    if (generatedImages.length === 0) {
+                      toast.info('התבנית תחול על התמונות שייוצרו');
+                      return;
+                    }
+                    const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
+                    const updated = await Promise.all(generatedImages.map(async (img) => {
+                      if (img.visualOnlyUrl && img.textMeta) {
+                        try {
+                          const newUrl = await applyHtmlTextOverlay(img.visualOnlyUrl, {
+                            headline: img.textMeta.headline,
+                            subtitle: img.textMeta.subtitle,
+                            bodyText: img.textMeta.bodyText,
+                            ctaText: img.textMeta.ctaText,
+                            businessName: img.textMeta.businessName,
+                            phone: img.textMeta.phone,
+                            email: (img.textMeta as any).email || clientProfile?.contact_email || undefined,
+                            whatsapp: clientProfile?.contact_whatsapp || undefined,
+                            address: (img.textMeta as any).address || clientProfile?.contact_address || undefined,
+                            primaryColor: clientProfile?.primary_color || undefined,
+                            secondaryColor: clientProfile?.secondary_color || undefined,
+                            backgroundColor: clientProfile?.background_color || undefined,
+                            layoutStyle: 'custom',
+                            customTemplateHtml: tpl.html_template,
+                            logoUrl: (buildBrandContext() as any)?.logoUrl || clientProfile?.logo_url || undefined,
+                            servicesList: img.textMeta.servicesList,
+                            promoText: img.textMeta.promoText,
+                            promoValue: img.textMeta.promoValue,
+                          });
+                          return { ...img, url: newUrl };
+                        } catch { return img; }
+                      }
+                      return img;
+                    }));
+                    setGeneratedImages(updated);
+                    toast.success(`תבנית שונתה ל: ${tpl.name}`);
+                  }}
+                >
+                  <span>🧩</span>
+                  {tpl.name}
                 </Button>
               ))}
               <Button

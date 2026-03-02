@@ -673,25 +673,35 @@ function buildMinimalHTML(config: TextOverlayConfig, width: number, height: numb
 function getLayoutHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   // Custom template rendering
   if (config.layoutStyle === 'custom' && config.customTemplateHtml) {
+    const cleanedServices = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
     const templateData: TemplateData = {
       headline: config.headline ? cleanText(config.headline) : '',
+      subheadline: config.subtitle ? cleanText(config.subtitle) : '',
       subtitle: config.subtitle ? cleanText(config.subtitle) : '',
       bodyText: config.bodyText ? cleanText(config.bodyText) : '',
       ctaText: config.ctaText ? cleanText(config.ctaText) : '',
       businessName: config.businessName ? cleanText(config.businessName) : '',
+      business_name: config.businessName ? cleanText(config.businessName) : '',
       phone: config.phone || '',
       whatsapp: config.whatsapp || '',
       email: config.email || '',
       address: config.address || '',
+      address_list: config.address ? config.address.split(/[,،;]\s*/).filter(Boolean) : [],
       primaryColor: config.primaryColor || '#2BA5B5',
+      brand_primary_color: config.primaryColor || '#2BA5B5',
       secondaryColor: config.secondaryColor || '#2A2F33',
       backgroundColor: config.backgroundColor || '#FFFFFF',
+      brand_font_family: (config as any).fontFamily || 'Assistant',
       logoUrl: config.logoUrl || '',
-      services: config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [],
-      servicesList: config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [],
+      logo_url: config.logoUrl || '',
+      kashrut_logo: (config as any).kashrutLogo || '',
+      services: cleanedServices,
+      servicesList: cleanedServices,
       promoText: config.promoText || '',
+      promo_text: config.promoText || '',
       promoValue: config.promoValue || '',
       imageUrl,
+      image_url: imageUrl,
       width,
       height,
     };
