@@ -30,7 +30,7 @@ import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor
 import { PrintExportDialog, PrintSettings } from '@/components/studio/PrintExportDialog';
 import { FormatAdaptation } from '@/components/studio/FormatAdaptation';
 import { ImageEditor } from '@/components/studio/ImageEditor';
-import { LayoutShowcase } from '@/components/studio/LayoutShowcase';
+import { LayoutShowcase } from '@/components/studio/LayoutShowcase'; // kept for potential admin use
 import type { AdaptedCreative } from '@/lib/image-resize';
 
 type AssetChoice = 'full-campaign' | 'has-visual' | 'has-copy';
@@ -322,8 +322,8 @@ const CreativeStudio = () => {
   const [selectedHoliday, setSelectedHoliday] = useState<HolidaySeason>('year_round');
   
   // Text layout style
-  const [textLayoutStyle, setTextLayoutStyle] = useState<TextLayoutStyle>('magazine-blend');
-  const [showLayoutShowcase, setShowLayoutShowcase] = useState(false);
+  const [textLayoutStyle, setTextLayoutStyle] = useState<TextLayoutStyle>('custom');
+  const [showLayoutShowcase, setShowLayoutShowcase] = useState(false); // reserved
   const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
   const [activeCustomTemplate, setActiveCustomTemplate] = useState<CustomTemplate | null>(null);
 
@@ -882,7 +882,7 @@ const CreativeStudio = () => {
     setVisualPrompt('');
     setTextPrompt('');
     setAspectRatio('square');
-    setTextLayoutStyle('magazine-blend');
+    setTextLayoutStyle('custom');
     setGeneratedImages([]);
     setShowResults(false);
     setShowQuote(false);
@@ -1232,9 +1232,8 @@ const CreativeStudio = () => {
       if (textMeta && (textMeta.headline || textMeta.businessName || textMeta.phone)) {
         try {
           const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
-          // Vary layout style per concept for visual diversity
-          const layoutStyles = ['magazine-blend', 'brand-top', 'professional-ad'] as const;
-          const conceptLayout = textLayoutStyle || layoutStyles[index % 3];
+          // Always use the master template
+          const conceptLayout = textLayoutStyle;
           finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
             headline: concept.headline || textMeta.headline,
             subtitle: textMeta.subtitle,
@@ -2016,144 +2015,13 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
               </div>
             </div>
 
-            {/* Text Layout Style Picker */}
-            <div className="flex items-center gap-2 flex-wrap" dir="rtl">
-              <span className="text-sm text-muted-foreground">סגנון טקסט:</span>
-              {([
-                { id: 'magazine-blend' as const, label: 'מגזין', icon: '📋' },
-                { id: 'brand-top' as const, label: 'כותרת על הוויזואל', icon: '🎨' },
-                { id: 'classic-ad' as const, label: 'מודעה קלאסית', icon: '📰' },
-                { id: 'professional-ad' as const, label: 'מודעה מקצועית', icon: '🎯' },
-                { id: 'side-strip' as const, label: 'פס צד', icon: '▐' },
-                { id: 'minimal' as const, label: 'מינימליסטי', icon: '▁' },
-              ]).map(ls => (
-                <Button
-                  key={ls.id}
-                  size="sm"
-                  variant={textLayoutStyle === ls.id ? 'default' : 'outline'}
-                  className="gap-1 text-xs"
-                  onClick={async () => {
-                    setTextLayoutStyle(ls.id);
-                    setActiveCustomTemplate(null);
-                    if (generatedImages.length === 0) {
-                      toast.info('הסגנון יחול על התמונות שייוצרו');
-                      return;
-                    }
-                    const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
-                    const updated = await Promise.all(generatedImages.map(async (img) => {
-                      if (img.visualOnlyUrl && img.textMeta) {
-                        try {
-                          const newUrl = await applyHtmlTextOverlay(img.visualOnlyUrl, {
-                            headline: img.textMeta.headline,
-                            subtitle: img.textMeta.subtitle,
-                            bodyText: img.textMeta.bodyText,
-                            ctaText: img.textMeta.ctaText,
-                            businessName: img.textMeta.businessName,
-                            phone: img.textMeta.phone,
-                            email: (img.textMeta as any).email || clientProfile?.contact_email || undefined,
-                            whatsapp: clientProfile?.contact_whatsapp || undefined,
-                            address: (img.textMeta as any).address || clientProfile?.contact_address || undefined,
-                            primaryColor: clientProfile?.primary_color || undefined,
-                            secondaryColor: clientProfile?.secondary_color || undefined,
-                            backgroundColor: clientProfile?.background_color || undefined,
-                            layoutStyle: ls.id,
-                            logoUrl: (buildBrandContext() as any)?.logoUrl || clientProfile?.logo_url || undefined,
-                            logoPosition: (clientProfile?.past_materials as any[])?.find((m: any) => m.adAnalysis?.logoPosition)?.adAnalysis?.logoPosition || undefined,
-                            servicesList: img.textMeta.servicesList,
-                            promoText: img.textMeta.promoText,
-                            promoValue: img.textMeta.promoValue,
-                            bulletItems: (img.textMeta as any).bulletItems,
-                          });
-                          return { ...img, url: newUrl };
-                        } catch { return img; }
-                      }
-                      return img;
-                    }));
-                    setGeneratedImages(updated);
-                    toast.success(`סגנון שונה ל${ls.label}`);
-                  }}
-                >
-                  <span>{ls.icon}</span>
-                  {ls.label}
-                </Button>
-              ))}
-              {/* Custom template buttons */}
-              {customTemplates.map(tpl => (
-                <Button
-                  key={`custom-${tpl.id}`}
-                  size="sm"
-                  variant={textLayoutStyle === 'custom' && activeCustomTemplate?.id === tpl.id ? 'default' : 'outline'}
-                  className="gap-1 text-xs border-dashed"
-                  onClick={async () => {
-                    setActiveCustomTemplate(tpl);
-                    setTextLayoutStyle('custom');
-                    if (generatedImages.length === 0) {
-                      toast.info('התבנית תחול על התמונות שייוצרו');
-                      return;
-                    }
-                    const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
-                    const updated = await Promise.all(generatedImages.map(async (img) => {
-                      if (img.visualOnlyUrl && img.textMeta) {
-                        try {
-                          const newUrl = await applyHtmlTextOverlay(img.visualOnlyUrl, {
-                            headline: img.textMeta.headline,
-                            subtitle: img.textMeta.subtitle,
-                            bodyText: img.textMeta.bodyText,
-                            ctaText: img.textMeta.ctaText,
-                            businessName: img.textMeta.businessName,
-                            phone: img.textMeta.phone,
-                            email: (img.textMeta as any).email || clientProfile?.contact_email || undefined,
-                            whatsapp: clientProfile?.contact_whatsapp || undefined,
-                            address: (img.textMeta as any).address || clientProfile?.contact_address || undefined,
-                            primaryColor: clientProfile?.primary_color || undefined,
-                            secondaryColor: clientProfile?.secondary_color || undefined,
-                            backgroundColor: clientProfile?.background_color || undefined,
-                            layoutStyle: 'custom',
-                            customTemplateHtml: tpl.html_template,
-                            logoUrl: (buildBrandContext() as any)?.logoUrl || clientProfile?.logo_url || undefined,
-                            servicesList: img.textMeta.servicesList,
-                            promoText: img.textMeta.promoText,
-                            promoValue: img.textMeta.promoValue,
-                            headerFont: clientProfile?.header_font || undefined,
-                          });
-                          return { ...img, url: newUrl };
-                        } catch { return img; }
-                      }
-                      return img;
-                    }));
-                    setGeneratedImages(updated);
-                    toast.success(`תבנית שונתה ל: ${tpl.name}`);
-                  }}
-                >
-                  <span>🧩</span>
-                  {tpl.name}
-                </Button>
-              ))}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="gap-1 text-xs text-primary"
-                onClick={() => setShowLayoutShowcase(true)}
-              >
-                👁️ תצוגה מקדימה של כל הסגנונות
-              </Button>
+            {/* Master Template indicator */}
+            <div className="flex items-center gap-2" dir="rtl">
+              <span className="text-sm text-muted-foreground">תבנית:</span>
+              <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20">
+                ✨ {activeCustomTemplate?.name || 'תבנית מאסטר אוניברסלית'}
+              </Badge>
             </div>
-
-            {/* Layout Showcase Dialog */}
-            <Dialog open={showLayoutShowcase} onOpenChange={setShowLayoutShowcase}>
-              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                <LayoutShowcase
-                  currentDefault={textLayoutStyle}
-                  clientLogoUrl={clientProfile?.logo_url || undefined}
-                  clientPrimaryColor={clientProfile?.primary_color || undefined}
-                  clientSecondaryColor={clientProfile?.secondary_color || undefined}
-                  onSelectDefault={(id) => {
-                    setTextLayoutStyle(id);
-                    setShowLayoutShowcase(false);
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
 
             {/* Agent Pipeline Debug Panel */}
             <AgentPipelineDebug steps={pipelineSteps} isVisible={showPipeline} />
