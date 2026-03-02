@@ -245,7 +245,21 @@ export async function applyHtmlTextOverlay(
 
     await new Promise(r => setTimeout(r, 300));
 
-    const dataUrl = await toPng(container.firstElementChild as HTMLElement, {
+    // Find the actual content element (skip <link>, <style>, <script> tags)
+    let renderTarget: HTMLElement = container;
+    const children = Array.from(container.children) as HTMLElement[];
+    const contentEl = children.find(el => {
+      const tag = el.tagName.toLowerCase();
+      return tag !== 'link' && tag !== 'style' && tag !== 'script';
+    });
+    if (contentEl) {
+      renderTarget = contentEl;
+      console.log('[Overlay] 🎯 Render target found:', contentEl.tagName, contentEl.className?.substring(0, 50));
+    } else {
+      console.warn('[Overlay] ⚠️ No content element found, using container');
+    }
+
+    const dataUrl = await toPng(renderTarget, {
       width,
       height,
       pixelRatio: 1,
