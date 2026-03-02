@@ -382,11 +382,27 @@ const CreativeStudio = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
+      const { data: profiles } = await supabase
         .from('client_profiles')
         .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, business_photos')
         .eq('user_id', user.id)
-        .single();
+        .eq('is_agency_profile', false)
+        .eq('onboarding_completed', true)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+
+      const profile = profiles?.[0] || null;
+      
+      if (profile) {
+        console.log('[Studio] Loaded client profile:', {
+          business: profile.business_name,
+          primaryColor: profile.primary_color,
+          secondaryColor: profile.secondary_color,
+          logoUrl: profile.logo_url ? 'YES' : 'NO',
+        });
+      } else {
+        console.warn('[Studio] No completed client profile found for user');
+      }
 
       if (profile) {
         setClientProfile({
@@ -695,6 +711,11 @@ const CreativeStudio = () => {
           const textMeta = data.textMeta;
           
           if (textMeta && (textMeta.headline || textMeta.businessName || textMeta.phone)) {
+            const overlayPrimary = brandContext?.colors?.primary || clientProfile?.primary_color || undefined;
+            const overlaySecondary = brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined;
+            const overlayLogo = (brandContext as any)?.logoUrl || clientProfile?.logo_url || undefined;
+            console.log(`[Studio] Overlay colors for sketch ${i}:`, { overlayPrimary, overlaySecondary, overlayLogo: overlayLogo ? 'YES' : 'NO' });
+            
             try {
               const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
               finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
@@ -707,8 +728,8 @@ const CreativeStudio = () => {
                 email: textMeta.email || clientProfile?.contact_email || undefined,
                 whatsapp: clientProfile?.contact_whatsapp || undefined,
                 address: textMeta.address || clientProfile?.contact_address || undefined,
-                primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color || undefined,
-                secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined,
+                primaryColor: overlayPrimary,
+                secondaryColor: overlaySecondary,
                 backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
                 layoutStyle: textLayoutStyle,
                 logoUrl: (brandContext as any)?.logoUrl || clientProfile?.logo_url || undefined,

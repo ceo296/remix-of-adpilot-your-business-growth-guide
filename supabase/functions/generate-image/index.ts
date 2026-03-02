@@ -368,7 +368,7 @@ serve(async (req) => {
     }
 
     const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, corrections } = await req.json();
-    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, brandContext: !!brandContext, campaignContext: !!campaignContext, corrections: corrections?.length || 0 });
+    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, brandContext: brandContext ? { businessName: brandContext.businessName, colors: brandContext.colors, logoUrl: !!brandContext.logoUrl } : null, corrections: corrections?.length || 0 });
 
     // Initialize Supabase to fetch model config + sector brain
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
