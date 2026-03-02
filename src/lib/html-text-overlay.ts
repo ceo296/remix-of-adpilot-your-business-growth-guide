@@ -127,12 +127,12 @@ function lightenHex(hex: string, factor = 0.3): string {
   return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
 }
 
-// ─── Shared Contact Strip (V2: Compact, clear logo, professional) ───
+// ─── Shared Contact Strip (V3: Two-section professional layout) ───
 
 function buildContactStripHTML(config: TextOverlayConfig, width: number, height: number, scale: number): string {
   const primary = config.primaryColor || '#2BA5B5';
   const secondary = config.secondaryColor || darkenHex(primary, 0.3);
-  const stripBg = darkenHex(primary, 0.6);
+  const stripBg = '#1a1a1a';
 
   const businessName = config.businessName ? cleanText(config.businessName) : '';
   const phone = config.phone || '';
@@ -141,82 +141,74 @@ function buildContactStripHTML(config: TextOverlayConfig, width: number, height:
   const whatsapp = config.whatsapp || '';
   const services = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
 
-  // Compact strip: 10-12% of height
-  const stripHeight = Math.round(height * 0.11);
+  // Compact strip: ~12% of height
+  const stripHeight = Math.round(height * 0.12);
   const topBorderHeight = Math.max(Math.round(3 * scale), 2);
-  const phoneSize = Math.max(Math.round(24 * scale), 15);
-  const nameSize = Math.max(Math.round(15 * scale), 10);
-  const detailSize = Math.max(Math.round(10 * scale), 8);
-  const serviceSize = Math.max(Math.round(10 * scale), 8);
-  const logoHeight = Math.max(Math.round(55 * scale), 30);
-  const logoWidth = Math.max(Math.round(130 * scale), 55);
-  const padX = Math.round(12 * scale);
-  const padY = Math.round(4 * scale);
+  const phoneSize = Math.max(Math.round(28 * scale), 16);
+  const nameSize = Math.max(Math.round(16 * scale), 11);
+  const detailSize = Math.max(Math.round(11 * scale), 8);
+  const serviceSize = Math.max(Math.round(11 * scale), 8);
+  const logoHeight = Math.max(Math.round(50 * scale), 28);
+  const logoWidth = Math.max(Math.round(120 * scale), 50);
+  const padX = Math.round(16 * scale);
+  const padY = Math.round(6 * scale);
 
-  // Logo with white background circle for visibility
+  // Logo
   const logoHtml = isRenderableImageUrl(config.logoUrl) ? `
-    <div style="display:flex; align-items:center; justify-content:center; 
-                background:rgba(255,255,255,0.95); border-radius:${Math.round(8 * scale)}px; 
-                padding:${Math.round(4 * scale)}px ${Math.round(6 * scale)}px;
-                box-shadow:0 2px 8px rgba(0,0,0,0.2);">
-      <img src="${config.logoUrl}" crossorigin="anonymous"
-           style="max-height:${logoHeight}px; max-width:${logoWidth}px; object-fit:contain;" />
-    </div>` : '';
+    <img src="${config.logoUrl}" crossorigin="anonymous"
+         style="max-height:${logoHeight}px; max-width:${logoWidth}px; object-fit:contain;
+                filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4));" />` : '';
 
-  // Services (pipe-separated, single line)
+  // Services (pipe-separated, compact)
   const servicesHtml = services.length > 0 ? `
-    <div style="display:flex; align-items:center; justify-content:center; gap:${Math.round(4 * scale)}px; direction:rtl; flex-wrap:nowrap; overflow:hidden;">
+    <div style="display:flex; align-items:center; gap:${Math.round(5 * scale)}px; direction:rtl; flex-wrap:nowrap; overflow:hidden;">
       ${services.slice(0, 5).map((s, i) => `
-        ${i > 0 ? `<span style="color:rgba(255,255,255,0.5); font-size:${serviceSize}px;">|</span>` : ''}
-        <span style="color:rgba(255,255,255,0.85); font-size:${serviceSize}px; font-weight:600; white-space:nowrap;">${s}</span>
+        ${i > 0 ? `<span style="color:rgba(255,255,255,0.4); font-size:${serviceSize}px;">|</span>` : ''}
+        <span style="color:rgba(255,255,255,0.75); font-size:${serviceSize}px; font-weight:500; white-space:nowrap;">${s}</span>
       `).join('')}
     </div>` : '';
 
-  // Phone badge
-  const phoneBadgeHtml = phone ? `
-    <div style="background:${secondary}; color:${isLightColor(secondary) ? '#1a1a1a' : '#FFFFFF'};
-                padding:${Math.round(3 * scale)}px ${Math.round(12 * scale)}px; border-radius:${Math.round(4 * scale)}px;
-                font-size:${phoneSize}px; font-weight:900; letter-spacing:0.5px; white-space:nowrap;
-                box-shadow:0 2px 6px rgba(0,0,0,0.3); direction:ltr;">
-      ${phone}
-    </div>` : '';
-
-  // Contact details
-  const contactDetails: string[] = [];
-  if (address) contactDetails.push(address);
-  if (whatsapp && whatsapp !== phone) contactDetails.push(`☎ ${whatsapp}`);
-  if (email) contactDetails.push(email);
-  const detailsHtml = contactDetails.length > 0 ? `
-    <div style="color:rgba(255,255,255,0.65); font-size:${detailSize}px; font-weight:400; direction:rtl; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-      ${contactDetails.join(' · ')}
+  // Contact details line
+  const contactParts: string[] = [];
+  if (address) contactParts.push(address);
+  if (email) contactParts.push(email);
+  if (whatsapp && whatsapp !== phone) contactParts.push(`☎ ${whatsapp}`);
+  const detailsHtml = contactParts.length > 0 ? `
+    <div style="color:rgba(255,255,255,0.6); font-size:${detailSize}px; font-weight:400; direction:rtl; 
+                white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;">
+      ${contactParts.join(' · ')}
     </div>` : '';
 
   return `
-    <!-- Contact strip -->
+    <!-- Contact strip V3 -->
     <div style="position:absolute; bottom:0; left:0; right:0; height:${stripHeight}px; z-index:4;">
       <!-- Top accent border -->
-      <div style="height:${topBorderHeight}px; background:${secondary};"></div>
+      <div style="height:${topBorderHeight}px; background:linear-gradient(90deg, ${primary}, ${secondary});"></div>
       
-      <!-- Main strip -->
+      <!-- Main strip: 2-section layout -->
       <div style="height:calc(100% - ${topBorderHeight}px); background:${stripBg};
-                  display:grid; grid-template-columns:auto 1fr auto; align-items:center;
-                  padding:${padY}px ${padX}px; gap:${Math.round(8 * scale)}px; direction:rtl;">
+                  display:flex; align-items:center; justify-content:space-between;
+                  padding:${padY}px ${padX}px; direction:rtl;">
         
-        <!-- Right: Logo (with white bg for visibility) -->
-        <div style="display:flex; align-items:center; justify-content:center;">
+        <!-- Right section: Logo + Business name (grouped) -->
+        <div style="display:flex; align-items:center; gap:${Math.round(10 * scale)}px; flex-shrink:0; max-width:40%;">
           ${logoHtml}
+          <div style="display:flex; flex-direction:column; gap:${Math.round(2 * scale)}px;">
+            <div style="font-size:${nameSize}px; font-weight:800; color:#FFFFFF; white-space:nowrap;">${businessName}</div>
+            ${servicesHtml}
+          </div>
         </div>
 
-        <!-- Center: Phone + details + services -->
-        <div style="display:flex; flex-direction:column; align-items:center; gap:${Math.round(1 * scale)}px; overflow:hidden;">
-          ${phoneBadgeHtml}
+        <!-- Left section: Phone + contact details -->
+        <div style="display:flex; flex-direction:column; align-items:center; gap:${Math.round(3 * scale)}px; flex-shrink:0;">
+          ${phone ? `
+            <div style="background:${primary}; color:${isLightColor(primary) ? '#1a1a1a' : '#FFFFFF'};
+                        padding:${Math.round(4 * scale)}px ${Math.round(16 * scale)}px; border-radius:${Math.round(6 * scale)}px;
+                        font-size:${phoneSize}px; font-weight:900; letter-spacing:1px; white-space:nowrap;
+                        direction:ltr;">
+              ${phone}
+            </div>` : ''}
           ${detailsHtml}
-          ${servicesHtml}
-        </div>
-
-        <!-- Left: Business name -->
-        <div style="text-align:left; direction:rtl;">
-          <div style="font-size:${nameSize}px; font-weight:800; color:#FFFFFF; white-space:nowrap;">${businessName}</div>
         </div>
       </div>
     </div>
