@@ -293,14 +293,14 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
   const bodyText = splitLongText(truncatedBody, 42);
 
   const scale = Math.min(width, height) / 1024;
-  const headlineSize = Math.max(Math.round(54 * scale), 28);
-  const subtitleSize = Math.max(Math.round(28 * scale), 18);
-  const bodySize = Math.max(Math.round(22 * scale), 14);
+  const headlineSize = Math.max(Math.round(48 * scale), 26);
+  const subtitleSize = Math.max(Math.round(24 * scale), 16);
+  const bodySize = Math.max(Math.round(20 * scale), 13);
 
   const stripHeight = Math.round(height * 0.14);
-  // Increase header height to prevent text cutoff for long headlines + subtitles
+  // Dynamic header height based on content
   const hasSubtitle = !!subtitle;
-  const headerHeight = Math.round(height * (hasSubtitle ? 0.24 : 0.20));
+  const headerHeight = Math.round(height * (hasSubtitle ? 0.28 : 0.22));
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
@@ -319,7 +319,7 @@ function buildMagazineBlendHTML(config: TextOverlayConfig, width: number, height
 
       <!-- Main text content block -->
       <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px; display:flex; flex-direction:column; justify-content:space-between; 
-                  padding:${Math.round(28 * scale)}px ${Math.round(24 * scale)}px ${Math.round(20 * scale)}px; z-index:2;">
+                  padding:${Math.round(36 * scale)}px ${Math.round(28 * scale)}px ${Math.round(20 * scale)}px; z-index:2;">
         
         <!-- Top section: Headline + Subtitle on brand-colored header -->
         <div style="text-align:center;">
@@ -382,7 +382,7 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
 
   const stripHeight = Math.round(height * 0.14);
   const hasSubtitle2 = !!subtitle;
-  const headerHeight = Math.round(height * (hasSubtitle2 ? 0.22 : 0.18));
+  const headerHeight = Math.round(height * (hasSubtitle2 ? 0.26 : 0.20));
 
   return `
     <div style="position:relative; width:${width}px; height:${height}px; direction:rtl; font-family:'Heebo','Arial',sans-serif; overflow:hidden;">
@@ -400,7 +400,7 @@ function buildBrandTopHTML(config: TextOverlayConfig, width: number, height: num
 
       <!-- Main text block -->
       <div style="position:absolute; top:0; left:0; right:0; bottom:${stripHeight}px; display:flex; flex-direction:column; justify-content:space-between;
-                  padding:${Math.round(24 * scale)}px ${Math.round(20 * scale)}px ${Math.round(16 * scale)}px; z-index:2;">
+                  padding:${Math.round(32 * scale)}px ${Math.round(24 * scale)}px ${Math.round(16 * scale)}px; z-index:2;">
         
         <!-- Top: Headline badge + Subtitle -->
         <div style="text-align:center;">
