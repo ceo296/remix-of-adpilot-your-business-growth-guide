@@ -151,11 +151,39 @@ export async function applyHtmlTextOverlay(
   }
 
   const { width, height } = await getImageDimensions(imageUrl);
+
+  // ─── DEBUG: Log template data being sent ───
+  const debugTemplateData = {
+    headline: config.headline ? cleanText(config.headline).substring(0, 50) : '(empty)',
+    subtitle: config.subtitle ? cleanText(config.subtitle).substring(0, 50) : '(empty)',
+    bodyText: config.bodyText ? cleanText(config.bodyText).substring(0, 50) : '(empty)',
+    ctaText: config.ctaText || '(empty)',
+    businessName: config.businessName || '(empty)',
+    phone: config.phone || '(empty)',
+    logoUrl: config.logoUrl ? config.logoUrl.substring(0, 60) + '...' : '(empty)',
+    primaryColor: config.primaryColor || '(empty)',
+    imageUrl_prefix: imageUrl.substring(0, 80),
+    templateSource: config.customTemplateHtml ? 'config/DB' : 'DEFAULT_TEMPLATE',
+    templateLength: config.customTemplateHtml?.length || 0,
+  };
+  console.log('[Overlay] 📋 Template Input Data:', JSON.stringify(debugTemplateData, null, 2));
+
   const html = getLayoutHTML(config, width, height, imageUrl);
 
-  console.log('[Overlay] Final HTML length:', html.length, '| Has image_url:', html.includes(imageUrl.substring(0, 30)));
+  // ─── DEBUG: Check rendered HTML for key elements ───
+  const htmlDebug = {
+    totalLength: html.length,
+    hasImgTag: html.includes('<img'),
+    hasImageSrc: html.includes('src="data:image') || html.includes('src="http'),
+    hasHeadline: config.headline ? html.includes(cleanText(config.headline).substring(0, 20)) : 'N/A',
+    hasBusinessName: config.businessName ? html.includes(config.businessName) : 'N/A',
+    hasPhone: config.phone ? html.includes(config.phone.trim()) : 'N/A',
+    first500chars: html.substring(0, 500),
+  };
+  console.log('[Overlay] 🔍 Rendered HTML Debug:', JSON.stringify(htmlDebug, null, 2));
+
   if (html.length < 50) {
-    console.error('[Overlay] HTML is suspiciously short! Returning original image.', html);
+    console.error('[Overlay] ❌ HTML is suspiciously short! Returning original image.', html);
     return imageUrl;
   }
 
@@ -170,6 +198,35 @@ export async function applyHtmlTextOverlay(
   container.innerHTML = html;
   document.body.appendChild(container);
 
+  // ─── DEBUG: Check actual DOM rendering ───
+  const firstChild = container.firstElementChild as HTMLElement;
+  if (firstChild) {
+    const rect = firstChild.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(firstChild);
+    console.log('[Overlay] 📐 DOM Debug:', JSON.stringify({
+      containerSize: `${width}x${height}`,
+      firstChildTag: firstChild.tagName,
+      firstChildSize: `${rect.width}x${rect.height}`,
+      display: computedStyle.display,
+      visibility: computedStyle.visibility,
+      overflow: computedStyle.overflow,
+      bgColor: computedStyle.backgroundColor,
+      childCount: firstChild.children.length,
+      imgCount: firstChild.querySelectorAll('img').length,
+    }));
+    
+    // Check if images loaded correctly
+    const imgs = firstChild.querySelectorAll('img');
+    imgs.forEach((img, i) => {
+      console.log(`[Overlay] 🖼️ Image ${i}:`, {
+        src: img.src.substring(0, 80) + '...',
+        complete: img.complete,
+        naturalSize: `${img.naturalWidth}x${img.naturalHeight}`,
+        displaySize: `${img.width}x${img.height}`,
+      });
+    });
+  }
+
   try {
     const images = container.querySelectorAll('img');
     await Promise.all(Array.from(images).map(img => {
@@ -180,7 +237,13 @@ export async function applyHtmlTextOverlay(
       });
     }));
 
-    await new Promise(r => setTimeout(r, 100));
+    // Check images after waiting
+    const allImgs = container.querySelectorAll('img');
+    allImgs.forEach((img, i) => {
+      console.log(`[Overlay] 🖼️ After-wait Image ${i}: complete=${img.complete}, natural=${img.naturalWidth}x${img.naturalHeight}`);
+    });
+
+    await new Promise(r => setTimeout(r, 300));
 
     const dataUrl = await toPng(container.firstElementChild as HTMLElement, {
       width,
@@ -190,7 +253,9 @@ export async function applyHtmlTextOverlay(
       skipFonts: true,
     });
 
-    console.log('[Overlay] toPng success, dataUrl length:', dataUrl.length);
+    console.log('[Overlay] ✅ toPng success, dataUrl length:', dataUrl.length);
+    // Log a snippet to check if it's actually an image or just a black rectangle
+    console.log('[Overlay] dataUrl prefix:', dataUrl.substring(0, 100));
     return dataUrl;
   } finally {
     document.body.removeChild(container);
