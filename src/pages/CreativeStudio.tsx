@@ -745,6 +745,11 @@ const CreativeStudio = () => {
         pastMaterialsAnalysis,
         layoutInstructions: buildLayoutInstructions(pastMaterialsAnalysis),
         designApproach: designApproach || null,
+        // Contact info for the edge function to use in textMeta
+        contactPhone: clientProfile.contact_phone || '',
+        contactEmail: clientProfile.contact_email || '',
+        contactAddress: clientProfile.contact_address || '',
+        contactWhatsapp: clientProfile.contact_whatsapp || '',
       } : null;
 
       // Resolve PDF logo to PNG if needed
@@ -808,7 +813,11 @@ const CreativeStudio = () => {
             const overlayPrimary = brandContext?.colors?.primary || clientProfile?.primary_color || undefined;
             const overlaySecondary = brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined;
             const overlayLogo = (brandContext as any)?.logoUrl || clientProfile?.logo_url || undefined;
-            console.log(`[Studio] Overlay colors for sketch ${i}:`, { overlayPrimary, overlaySecondary, overlayLogo: overlayLogo ? 'YES' : 'NO' });
+            console.log(`[Studio] 🎨 Brand colors for sketch ${i}:`, { 
+              overlayPrimary, overlaySecondary, overlayLogo: overlayLogo ? 'YES' : 'NO',
+              profileColors: { primary: clientProfile?.primary_color, secondary: clientProfile?.secondary_color },
+              effectiveColors,
+            });
             
             try {
               const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
