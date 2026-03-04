@@ -201,59 +201,53 @@ export function validateTemplate(template: string): string[] {
 }
 
 // Default sample template
-export const DEFAULT_TEMPLATE = `<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --primary: {{brand_primary_color}};
-    --font: {{brand_font_family}};
-  }
-  .ad-grid { font-family: var(--font), sans-serif; }
-  .brand-bg { background-color: var(--primary); }
-  .brand-text { color: var(--primary); }
+export const DEFAULT_TEMPLATE = `<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  .ad { position:relative; width:100%; height:100%; overflow:hidden; direction:rtl; font-family: {{brand_font_family}}, "Assistant", sans-serif; }
+  .bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+  .grad-top { position:absolute; top:0; width:100%; height:40%; background:linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 60%, transparent 100%); z-index:1; }
+  .top-zone { position:absolute; top:0; right:0; left:0; padding:5% 7% 0; z-index:5; text-align:right; }
+  .headline { color:#fff; font-weight:900; font-size:clamp(28px,6vw,58px); line-height:1.08; text-shadow:0 3px 12px rgba(0,0,0,0.7); margin-bottom:10px; }
+  .sub-strip { display:inline-block; background:{{brand_primary_color}}; color:#fff; font-weight:700; font-size:clamp(14px,2.8vw,24px); padding:6px 18px; border-right:4px solid rgba(255,255,255,0.6); }
+  .promo-badge { position:absolute; top:5%; left:5%; width:clamp(70px,15vw,110px); height:clamp(70px,15vw,110px); background:{{brand_primary_color}}; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; text-align:center; font-weight:900; font-size:clamp(14px,3vw,22px); line-height:1.15; border:3px solid rgba(255,255,255,0.5); box-shadow:0 4px 20px rgba(0,0,0,0.4); transform:rotate(-8deg); z-index:8; }
+  .contact-bar { position:absolute; bottom:0; width:100%; z-index:10; background:linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.75)); backdrop-filter:blur(6px); padding:22px 6% 20px; display:flex; justify-content:space-between; align-items:center; border-top:2.5px solid {{brand_primary_color}}; }
+  .contact-right { display:flex; align-items:center; gap:14px; }
+  .logo-in-bar img { height:clamp(35px,7vw,55px); filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8)); object-fit:contain; }
+  .brand-info { display:flex; flex-direction:column; gap:2px; }
+  .biz-name { color:#fff; font-weight:800; font-size:clamp(14px,2.5vw,20px); }
+  .services-line { color:rgba(255,255,255,0.6); font-size:clamp(9px,1.5vw,12px); }
+  .addr-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:3px; }
+  .addr-item { color:rgba(255,255,255,0.65); font-size:clamp(8px,1.3vw,11px); font-style:italic; }
+  .contact-left { display:flex; align-items:center; gap:14px; }
+  .phone-block { display:flex; flex-direction:column; align-items:flex-start; }
+  .phone-label { color:{{brand_primary_color}}; font-size:clamp(9px,1.4vw,13px); font-weight:700; }
+  .phone-num { color:#fff; font-weight:900; font-size:clamp(22px,4.5vw,36px); letter-spacing:-0.5px; direction:ltr; text-align:left; }
+  .cta-btn { display:inline-block; background:#fff; color:#111; font-weight:800; font-size:clamp(12px,2vw,17px); padding:8px 20px; box-shadow:0 3px 12px rgba(0,0,0,0.3); }
+  .kashrut-in-bar img { height:clamp(22px,4vw,35px); opacity:0.65; filter:brightness(0) invert(1); }
 </style>
-<div class="ad-grid relative w-full h-full overflow-hidden text-right" dir="rtl">
-    <img src="{{image_url}}" class="absolute inset-0 w-full h-full object-cover" alt="Main Visual">
-    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20"></div>
-    <div class="absolute top-12 right-10 left-10 z-10">
-        <h1 class="text-6xl font-black text-white leading-[1.1] drop-shadow-2xl">
-            {{headline}}
-        </h1>
-        {{#if subheadline}}
-        <div class="mt-4 brand-bg text-white inline-block px-4 py-1 text-xl font-bold italic shadow-lg">
-            {{subheadline}}
-        </div>
-        {{/if}}
+<div class="ad">
+  <img src="{{image_url}}" class="bg-img" alt="bg">
+  <div class="grad-top"></div>
+  {{#if promo_text}}<div class="promo-badge">{{promo_text}}</div>{{/if}}
+  <div class="top-zone">
+    {{#if headline}}<h1 class="headline">{{headline}}</h1>{{/if}}
+    {{#if subheadline}}<div class="sub-strip">{{subheadline}}</div>{{/if}}
+  </div>
+  <div class="contact-bar">
+    <div class="contact-right">
+      {{#if logo_url}}<div class="logo-in-bar"><img src="{{logo_url}}" alt="logo"></div>{{/if}}
+      <div class="brand-info">
+        {{#if business_name}}<div class="biz-name">{{business_name}}</div>{{/if}}
+        {{#if services}}<div class="services-line">{{#each services}}{{this}}{{#unless @last}} | {{/unless}}{{/each}}</div>{{/if}}
+        {{#if address_list}}<div class="addr-row">{{#each address_list}}<span class="addr-item">{{this}}</span>{{/each}}</div>{{/if}}
+      </div>
     </div>
-    {{#if promo_text}}
-    <div class="absolute top-10 left-10 w-28 h-28 brand-bg text-white rounded-full flex items-center justify-center text-center font-black text-2xl border-4 border-white shadow-2xl -rotate-12 transform scale-110">
-        {{promo_text}}
+    <div class="contact-left">
+      {{#if kashrut_logo}}<div class="kashrut-in-bar"><img src="{{kashrut_logo}}" alt="kashrut"></div>{{/if}}
+      <div class="phone-block">
+        {{#if phone}}<div class="phone-label">לפרטים והזמנות:</div><div class="phone-num">{{phone}}</div>{{/if}}
+      </div>
+      {{#if ctaText}}<div class="cta-btn">{{ctaText}}</div>{{/if}}
     </div>
-    {{/if}}
-    <div class="absolute bottom-0 w-full p-8 flex justify-between items-end text-white z-20">
-        <div class="flex flex-col gap-2 max-w-[50%]">
-            {{#if phone}}
-            <div class="text-3xl font-black tracking-tighter">
-                {{phone}}
-            </div>
-            {{/if}}
-            {{#if address_list}}
-            <div class="grid grid-cols-2 gap-x-6 text-[10px] opacity-90 border-r-2 border-white/50 pr-4 mt-2 font-medium uppercase tracking-tight">
-                {{#each address_list}}
-                <div class="whitespace-nowrap italic">\u2022 {{this}}</div>
-                {{/each}}
-            </div>
-            {{/if}}
-        </div>
-        <div class="flex flex-col items-end">
-            {{#if kashrut_logo}}
-            <img src="{{kashrut_logo}}" class="h-10 opacity-70 mb-4 brightness-0 invert" alt="Kashrut">
-            {{/if}}
-            {{#if logo_url}}
-                <img src="{{logo_url}}" class="h-20 w-auto object-contain drop-shadow-md" alt="Brand Logo">
-            {{else}}
-                <span class="text-5xl font-black tracking-tighter uppercase italic">{{business_name}}</span>
-            {{/if}}
-        </div>
-    </div>
+  </div>
 </div>`;
