@@ -26,6 +26,8 @@ interface AdLayoutTemplate {
   created_at: string;
 }
 
+const SAMPLE_LOGO_SVG = `data:image/svg+xml;base64,${btoa('<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40"><rect width="120" height="40" rx="4" fill="#E34870"/><text x="60" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="sans-serif">LOGO</text></svg>')}`;
+
 const SAMPLE_DATA: TemplateData = {
   headline: 'הנחת שתרצו לספר עליה לכולם',
   subheadline: 'לרגל חופשת פסח והכנה לתקופת הלימודים',
@@ -42,6 +44,8 @@ const SAMPLE_DATA: TemplateData = {
   brand_primary_color: '#E34870',
   secondaryColor: '#2A2F33',
   brand_font_family: 'Assistant',
+  logoUrl: SAMPLE_LOGO_SVG,
+  logo_url: SAMPLE_LOGO_SVG,
   services: ['אבחון', 'טיפול', 'ייעוץ', 'הדרכה'],
   servicesList: ['אבחון', 'טיפול', 'ייעוץ', 'הדרכה'],
   promoText: 'מבצע חג!',
