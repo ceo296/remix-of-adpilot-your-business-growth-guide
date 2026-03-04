@@ -24,6 +24,7 @@ import { StudioAutopilot, CreativeConcept, HolidaySeason, HOLIDAY_LABELS } from 
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
 import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/studio/StudioBriefStep';
 import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaTypeStep';
+import { StudioDesignApproachStep, DesignApproach } from '@/components/studio/StudioDesignApproachStep';
 import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
@@ -285,6 +286,7 @@ const CreativeStudio = () => {
   const [treatment, setTreatment] = useState<TreatmentChoice | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [style, setStyle] = useState<StyleChoice | null>(null);
+  const [designApproach, setDesignApproach] = useState<DesignApproach | null>(null);
   const [copyChoice, setCopyChoice] = useState<CopyChoice | null>(null);
   const [userCopyText, setUserCopyText] = useState('');
   const [visualPrompt, setVisualPrompt] = useState('');
@@ -506,27 +508,21 @@ const CreativeStudio = () => {
   }, [activeCustomTemplate?.id]);
 
   const getSteps = () => {
-    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt
-    // If only radio is selected, skip visual steps
+    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (isOnlyRadio) {
-      // Radio doesn't need visual steps - just script
       return [0, 1, 6]; // Brief, MediaType, Prompt (for script)
     }
     if (assetChoice === 'full-campaign') {
-      // User has everything (visual + copy) - just upload and submit
-      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload (submits on upload)
+      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
     }
     if (assetChoice === 'has-visual') {
-      // User has visual, needs copy - upload visual, we generate copy
-      // NO style/prompt needed - user already has the design!
-      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload (AI generates copy for existing visual)
+      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
     }
     if (assetChoice === 'has-copy') {
-      // User has copy, needs visual - input copy, then style for visual generation
-      return [0, 1, 2, 4, 5, 6]; // Brief, MediaType, Asset, Copy, Style, Prompt (for visual generation)
+      // User has copy, needs visual: Brief → MediaType → Asset → Copy → DesignApproach → Style → Prompt
+      return [0, 1, 2, 4, 7, 5, 6];
     }
-    // Default flow - shouldn't reach here normally
     return [0, 1, 2];
   };
 
@@ -568,6 +564,7 @@ const CreativeStudio = () => {
         return copyChoice !== null && (copyChoice === 'generate-copy' || userCopyText.trim().length > 0);
       case 5: return style !== null;
       case 6: return visualPrompt.trim().length > 0;
+      case 7: return designApproach !== null;
       default: return false;
     }
   };
@@ -597,6 +594,7 @@ const CreativeStudio = () => {
     if (currentStep === 4) return copyChoice === 'has-copy' && !userCopyText.trim() ? 'כדי להמשיך צריך להזין את הטקסט למודעה' : 'כדי להמשיך צריך לבחור אם יש לך קופי או לא';
     if (currentStep === 5) return 'כדי להמשיך צריך לבחור סגנון';
     if (currentStep === 6) return 'כדי להמשיך צריך למלא תיאור/תוכן';
+    if (currentStep === 7) return 'כדי להמשיך צריך לבחור גישה עיצובית';
     return null;
   };
 
@@ -1749,6 +1747,14 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
         );
       case 5:
         return <StudioStyleStep value={style} onChange={setStyle} />;
+      case 7:
+        return (
+          <StudioDesignApproachStep
+            value={designApproach}
+            onChange={setDesignApproach}
+            hasPastMaterials={!!clientProfile?.past_materials?.some((m: any) => m.adAnalysis)}
+          />
+        );
       case 6:
         return (
           <StudioPromptStep
