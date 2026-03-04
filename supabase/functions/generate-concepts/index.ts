@@ -122,7 +122,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, mediaType, campaignBrief, holidaySeason, topicCategory, strategicAnalysis } = await req.json();
+    const { profile, mediaType, campaignBrief, holidaySeason, topicCategory, strategicAnalysis, designApproach } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -386,6 +386,14 @@ ${strategicAnalysis ? `
 השתמש בתובנות הבאות כדי לחדד את הקונספטים:
 ${strategicAnalysis}
 === סוף ניתוח אסטרטגי ===
+` : ''}
+${designApproach ? `
+=== גישה עיצובית שנבחרה: ${designApproach} ===
+${designApproach === 'brand-follower' ? 'המשכיות מלאה — הוויזואל חייב לשמור על אותו סגנון, מבנה גריד, ושפה עיצובית כמו חומרי העבר של הלקוח. תאר ויזואל שמתאים בדיוק לקו העיצובי הקיים.' : ''}
+${designApproach === 'visual-refresh' ? 'רענון ויזואלי — אותו מבנה גריד אבל שפה עיצובית חדשה ורעננה. תאר ויזואל עם מראה מודרני ומרענן תוך שמירה על המבנה המוכר.' : ''}
+${designApproach === 'structural-flex' ? 'גמישות מבנית — שומרים על ה-DNA המותגי (צבעים, פונטים) אבל עם מבנה גריד חדש ושונה. תאר פריסה חדשנית.' : ''}
+${designApproach === 'creative-freedom' ? 'חופש יצירתי מלא — עיצוב חדש לחלוטין ללא מגבלות של חומרי עבר. תאר ויזואל חדשני ויצירתי.' : ''}
+===
 ` : ''}`;
 
     // Fetch sector brain references with holiday awareness
