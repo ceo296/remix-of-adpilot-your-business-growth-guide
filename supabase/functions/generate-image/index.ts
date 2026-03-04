@@ -367,7 +367,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, corrections } = await req.json();
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, designApproach, corrections } = await req.json();
     console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, brandContext: brandContext ? { businessName: brandContext.businessName, colors: brandContext.colors, logoUrl: !!brandContext.logoUrl } : null, corrections: corrections?.length || 0 });
 
     // Initialize Supabase to fetch model config + sector brain
@@ -569,6 +569,32 @@ campaignContext?.goal === 'seasonal' ? `
 GOAL STYLE DIRECTIVE (seasonal): Warm, festive, inviting composition. Golden hour warm lighting. Rich colors (gold, burgundy, deep green depending on holiday). Subtle seasonal elements in background. Warm family atmosphere.` : ''}
 
 DESIGN APPROACH (CRITICAL):
+${designApproach === 'brand-follower' ? `
+DESIGN CONTINUITY MODE — BRAND FOLLOWER:
+- You MUST replicate the EXACT same grid structure, layout composition, and visual language as the client's existing ads.
+- Same positioning of elements: headline placement, logo position, contact bar, visual hero.
+- Same style DNA: if their ads are clean/minimal → be clean/minimal. If bold/maximalist → match that.
+- Think of this as creating the NEXT AD in an existing campaign series — seamless visual continuity.
+- The viewer should NOT be able to tell if this ad was designed by a different designer.
+` : designApproach === 'visual-refresh' ? `
+DESIGN MODE — VISUAL REFRESH:
+- Keep the SAME grid/layout structure as existing client ads (headline position, logo placement, contact bar location).
+- BUT apply a FRESH visual style: new color treatment, new photographic approach, new typographic energy.
+- Think: same skeleton, new skin. The structure is familiar but the aesthetics feel modern and renewed.
+- Match all structural elements from past materials but make the visual execution feel elevated and current.
+` : designApproach === 'structural-flex' ? `
+DESIGN MODE — STRUCTURAL FLEXIBILITY:
+- Preserve the brand DNA: use the brand colors, fonts, and visual identity faithfully.
+- BUT feel free to create an entirely NEW grid/layout structure.
+- Experiment with different headline positions, hero placements, and contact bar arrangements.
+- The ad should feel like the same brand but presented in a completely different layout format.
+` : designApproach === 'creative-freedom' ? `
+DESIGN MODE — CREATIVE FREEDOM:
+- FULL creative freedom — design from scratch with NO constraints from past materials.
+- Create an entirely new visual identity for this specific campaign.
+- Innovate on both structure AND style — surprise the viewer with unexpected composition and aesthetics.
+- The only constraints are brand colors (if provided) and community rules.
+` : ''}
 ${visualApproach === 'product-focus' ? `
 - THIS IS A PRODUCT-FOCUSED visual. Show ONLY the product/service itself.
 - For dental clinic → premium clinic interior, macro-quality dental instruments, high-end treatment context (NO tooth icons).

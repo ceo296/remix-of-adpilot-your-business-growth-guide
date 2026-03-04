@@ -744,6 +744,7 @@ const CreativeStudio = () => {
         colorMode: colorSelection.mode,
         pastMaterialsAnalysis,
         layoutInstructions: buildLayoutInstructions(pastMaterialsAnalysis),
+        designApproach: designApproach || null,
       } : null;
 
       // Resolve PDF logo to PNG if needed
@@ -783,6 +784,7 @@ const CreativeStudio = () => {
             topicCategory: detectedTopic,
             holidaySeason: selectedHoliday || null,
             aspectRatio,
+            designApproach: designApproach || null,
             corrections: pendingCorrections.length > 0 ? pendingCorrections : undefined,
           }
         });
@@ -1265,6 +1267,7 @@ const CreativeStudio = () => {
         holidaySeason: selectedHoliday || null,
         aspectRatio,
         visualApproach,
+        designApproach: designApproach || null,
       }
     });
 
@@ -1480,6 +1483,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
           holidaySeason: selectedHoliday || null,
           topicCategory: detectedTopic,
           strategicAnalysis: strategyOutput || undefined,
+          designApproach: designApproach || null,
         }
       });
 
