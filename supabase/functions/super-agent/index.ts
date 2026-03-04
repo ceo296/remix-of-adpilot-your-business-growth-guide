@@ -247,6 +247,10 @@ serve(async (req) => {
         lightProfile.logo_url = '[logo_uploaded]';
       }
       contextParts.push(`פרופיל לקוח: ${JSON.stringify(lightProfile)}`);
+      // Inject layout instructions from past materials analysis
+      if (lightProfile.layoutInstructions) {
+        contextParts.push(`\n${lightProfile.layoutInstructions}`);
+      }
     }
     if (campaignContext) contextParts.push(`הקשר קמפיין: ${JSON.stringify(campaignContext)}`);
     

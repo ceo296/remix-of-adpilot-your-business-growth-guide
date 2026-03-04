@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move } from 'lucide-react';
 import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
+import { matchTemplateFromAnalysis, buildLayoutInstructions } from '@/lib/template-matcher';
 import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
 import { AgentPipelineDebug, AgentStep } from '@/components/studio/AgentPipelineDebug';
 import { AIChatWidget } from '@/components/chat/AIChatWidget';
@@ -438,15 +439,34 @@ const CreativeStudio = () => {
       if (data && data.length > 0) {
         setCustomTemplates(data as CustomTemplate[]);
         
-        // Auto-select: client's default template, or first available
+        // Auto-select: client's default template first
         if (clientProfile?.default_template_id) {
           const defaultTpl = data.find(t => t.id === clientProfile.default_template_id);
           if (defaultTpl) {
             setActiveCustomTemplate(defaultTpl as CustomTemplate);
-          } else {
-            setActiveCustomTemplate(data[0] as CustomTemplate);
+            return;
           }
-        } else if (!activeCustomTemplate) {
+        }
+        
+        // Smart match: analyze past_materials and pick the best template
+        const pastAnalyses = (clientProfile?.past_materials as any[])
+          ?.filter((m: any) => m.adAnalysis)
+          ?.map((m: any) => m.adAnalysis) || [];
+        
+        if (pastAnalyses.length > 0) {
+          const match = matchTemplateFromAnalysis(data as CustomTemplate[], pastAnalyses);
+          if (match) {
+            const matched = data.find(t => t.id === match.templateId);
+            if (matched) {
+              setActiveCustomTemplate(matched as CustomTemplate);
+              console.log(`[Studio] 🎯 Auto-matched template "${match.templateName}" (${match.confidence}% confidence):`, match.reasons);
+              return;
+            }
+          }
+        }
+        
+        // Fallback: first available
+        if (!activeCustomTemplate) {
           setActiveCustomTemplate(data[0] as CustomTemplate);
         }
       }
@@ -725,6 +745,7 @@ const CreativeStudio = () => {
         },
         colorMode: colorSelection.mode,
         pastMaterialsAnalysis,
+        layoutInstructions: buildLayoutInstructions(pastMaterialsAnalysis),
       } : null;
 
       // Resolve PDF logo to PNG if needed
