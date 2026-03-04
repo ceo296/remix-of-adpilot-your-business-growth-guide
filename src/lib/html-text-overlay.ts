@@ -92,6 +92,22 @@ function makeOverlayTransparent(html: string): string {
     (match, body) => `.ad {${body}; background: transparent !important; }`
   );
   
+  // Make the contact-bar semi-transparent so the AI image shows through.
+  // Replace near-opaque backgrounds with lighter ones to avoid hiding elements
+  // the AI placed in the bottom area (like logos).
+  result = result.replace(
+    /\.contact-bar\s*\{([^}]*)\}/,
+    (match, body) => {
+      let newBody = body;
+      // Replace opaque gradient with a much lighter one
+      newBody = newBody.replace(
+        /background\s*:\s*linear-gradient\([^)]*rgba\(0\s*,\s*0\s*,\s*0\s*,\s*[\d.]+\)[^;]*/gi,
+        'background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.35))'
+      );
+      return `.contact-bar {${newBody}}`;
+    }
+  );
+  
   return result;
 }
 
