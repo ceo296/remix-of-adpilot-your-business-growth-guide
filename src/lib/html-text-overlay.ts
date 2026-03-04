@@ -76,33 +76,36 @@ function cleanText(text: string): string {
  */
 function makeOverlayTransparent(html: string): string {
   // Remove the bg-img element entirely — the base image is already underneath
-  let result = html.replace(/<img[^>]*class="bg-img"[^>]*>/gi, '');
+  let result = html.replace(/<img[^>]*class=["']bg-img["'][^>]*\/?>/gi, '');
   
   // Remove the gradient overlay that darkens the top (grad-top) — 
   // it obscures the AI visual. The headline text-shadow provides enough contrast.
-  result = result.replace(/<div[^>]*class="grad-top"[^>]*><\/div>/gi, '');
+  result = result.replace(/<div[^>]*class=["']grad-top["'][^>]*>[\s\S]*?<\/div>/gi, '');
   
   // Remove the logo from overlay — the AI visual already contains the logo.
   // This prevents duplicate logos in the final composite.
-  result = result.replace(/<div[^>]*class="logo-in-bar"[^>]*>[\s\S]*?<\/div>/gi, '');
+  result = result.replace(/<div[^>]*class=["']logo-in-bar["'][^>]*>[\s\S]*?<\/div>/gi, '');
   
-  // Make the .ad container background transparent
+  // Force ALL backgrounds to transparent in the <style> block
+  // This ensures no element creates an opaque band over the AI image
   result = result.replace(
     /\.ad\s*\{([^}]*)\}/,
-    (match, body) => `.ad {${body}; background: transparent !important; }`
+    (match, body) => {
+      let newBody = body.replace(/background[^;]*/gi, 'background: transparent');
+      return `.ad {${newBody}; background: transparent !important; }`;
+    }
   );
   
-  // Make the contact-bar semi-transparent so the AI image shows through.
-  // Replace near-opaque backgrounds with lighter ones to avoid hiding elements
-  // the AI placed in the bottom area (like logos).
+  // Make the contact-bar a thin, subtle glass strip — NOT an opaque band.
+  // Use very light transparency so the AI image shows through clearly.
   result = result.replace(
     /\.contact-bar\s*\{([^}]*)\}/,
     (match, body) => {
       let newBody = body;
-      // Replace opaque gradient with a much lighter one
+      // Strip ALL background declarations and replace with ultra-light glass
       newBody = newBody.replace(
-        /background\s*:\s*linear-gradient\([^)]*rgba\(0\s*,\s*0\s*,\s*0\s*,\s*[\d.]+\)[^;]*/gi,
-        'background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.35))'
+        /background\s*:[^;]*/gi,
+        'background: linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0.15))'
       );
       return `.contact-bar {${newBody}}`;
     }

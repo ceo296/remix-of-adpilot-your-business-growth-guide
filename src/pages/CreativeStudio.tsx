@@ -765,6 +765,9 @@ const CreativeStudio = () => {
         campaignImageUrl: campaignBrief.campaignImage || null,
       };
 
+      // Headline position variety: distribute across sketches
+      const headlinePositions = ['top', 'bottom', 'top', 'center'];
+      
       for (let i = 0; i < 4; i++) {
         toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
         
@@ -786,6 +789,8 @@ const CreativeStudio = () => {
             aspectRatio,
             designApproach: designApproach || null,
             corrections: pendingCorrections.length > 0 ? pendingCorrections : undefined,
+            variationIndex: i,
+            headlinePosition: headlinePositions[i],
           }
         });
 
@@ -2074,24 +2079,7 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
               </div>
             </div>
 
-            {/* Template Selector */}
-            <div className="flex items-center gap-2 flex-wrap" dir="rtl">
-              <span className="text-sm text-muted-foreground">תבנית גריד:</span>
-              {customTemplates.map(t => (
-                <Badge
-                  key={t.id}
-                  variant={activeCustomTemplate?.id === t.id ? 'default' : 'outline'}
-                  className={`cursor-pointer transition-all ${
-                    activeCustomTemplate?.id === t.id
-                      ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'hover:bg-primary/10 border-border'
-                  }`}
-                  onClick={() => setActiveCustomTemplate(t)}
-                >
-                  {activeCustomTemplate?.id === t.id ? '✨ ' : ''}{t.name}
-                </Badge>
-              ))}
-            </div>
+            {/* Template auto-selected by system based on client style — no manual selector */}
 
             {/* Agent Pipeline Debug Panel */}
             <AgentPipelineDebug steps={pipelineSteps} isVisible={showPipeline} />
