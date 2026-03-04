@@ -367,8 +367,8 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, designApproach, corrections } = await req.json();
-    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, brandContext: brandContext ? { businessName: brandContext.businessName, colors: brandContext.colors, logoUrl: !!brandContext.logoUrl } : null, corrections: corrections?.length || 0 });
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, designApproach, corrections, variationIndex, headlinePosition } = await req.json();
+    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, headlinePosition, brandContext: brandContext ? { businessName: brandContext.businessName, colors: brandContext.colors, logoUrl: !!brandContext.logoUrl } : null, corrections: corrections?.length || 0 });
 
     // Initialize Supabase to fetch model config + sector brain
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -524,10 +524,21 @@ VISUAL IMPACT — MAKE IT EXTRAORDINARY (CRITICAL):
 - STRICTLY FORBIDDEN: vector icons, mascot-like drawings, infographic style, 2D clipart, logo-like symbols, medical stock templates
 
 COMPOSITION FOR TEXT INTEGRATION:
+${headlinePosition === 'bottom' ? `
+- TOP: The hero visual should dominate the upper 70% of the image — full visual impact
+- BOTTOM 35%: Darker/gradient area for headline + contact info (organic darkening, no solid bands)
+- BOTTOM-LEFT corner: Reserve space for the brand logo
+` : headlinePosition === 'center' ? `
+- TOP 25%: Simple or atmospheric area
+- CENTER: A natural dark band or gradient strip across the middle — headline goes here
+- BOTTOM 15%: Thin contact strip area
+- BOTTOM-LEFT corner: Reserve space for the brand logo
+` : `
 - TOP 20% of image: Keep relatively simple or with darker tones — headline will be placed here
 - BOTTOM 30% of image: Natural gradient/dark area that transitions organically — text and contact info go here
 - BOTTOM-LEFT corner: Reserve space for the brand logo (clear and uncluttered)
 - CENTER: The hero visual should be in the center-upper area
+`}
 - Use natural darkening: deeper shadows at edges, atmospheric haze, organic color transitions
 - Think MAGAZINE AD composition: professional photographer who knows text will be overlaid
 - DO NOT use solid color bands or boxes — transitions must be ORGANIC and GRADUAL
