@@ -89,8 +89,25 @@ export function renderTemplate(template: string, data: TemplateData): string {
         let rendered = body;
         rendered = rendered.replace(/\{\{this\}\}/g, String(item));
         rendered = rendered.replace(/\{\{@index\}\}/g, String(index));
-        rendered = rendered.replace(/\{\{@first\}\}/g, index === 0 ? 'true' : '');
-        rendered = rendered.replace(/\{\{@last\}\}/g, index === arr.length - 1 ? 'true' : '');
+        const isFirst = index === 0;
+        const isLast = index === arr.length - 1;
+        rendered = rendered.replace(/\{\{@first\}\}/g, isFirst ? 'true' : '');
+        rendered = rendered.replace(/\{\{@last\}\}/g, isLast ? 'true' : '');
+        // Process {{#unless @last}}...{{/unless}} inside each
+        rendered = rendered.replace(
+          /\{\{#unless @last\}\}([\s\S]*?)\{\{\/unless\}\}/g,
+          (_, unlessBody) => isLast ? '' : unlessBody
+        );
+        // Process {{#if @last}}...{{/if}} inside each
+        rendered = rendered.replace(
+          /\{\{#if @last\}\}([\s\S]*?)\{\{\/if\}\}/g,
+          (_, ifBody) => isLast ? ifBody : ''
+        );
+        // Process {{#if @first}}...{{/if}} inside each
+        rendered = rendered.replace(
+          /\{\{#if @first\}\}([\s\S]*?)\{\{\/if\}\}/g,
+          (_, ifBody) => isFirst ? ifBody : ''
+        );
         return rendered;
       }).join('');
     }

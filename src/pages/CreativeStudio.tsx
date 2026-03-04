@@ -2043,12 +2043,23 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
               </div>
             </div>
 
-            {/* Master Template indicator */}
-            <div className="flex items-center gap-2" dir="rtl">
-              <span className="text-sm text-muted-foreground">תבנית:</span>
-              <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20">
-                ✨ {activeCustomTemplate?.name || 'תבנית מאסטר אוניברסלית'}
-              </Badge>
+            {/* Template Selector */}
+            <div className="flex items-center gap-2 flex-wrap" dir="rtl">
+              <span className="text-sm text-muted-foreground">תבנית גריד:</span>
+              {customTemplates.map(t => (
+                <Badge
+                  key={t.id}
+                  variant={activeCustomTemplate?.id === t.id ? 'default' : 'outline'}
+                  className={`cursor-pointer transition-all ${
+                    activeCustomTemplate?.id === t.id
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'hover:bg-primary/10 border-border'
+                  }`}
+                  onClick={() => setActiveCustomTemplate(t)}
+                >
+                  {activeCustomTemplate?.id === t.id ? '✨ ' : ''}{t.name}
+                </Badge>
+              ))}
             </div>
 
             {/* Agent Pipeline Debug Panel */}
