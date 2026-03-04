@@ -70,6 +70,31 @@ function cleanText(text: string): string {
 
 // ─── Layout builder (custom template ONLY) ───
 
+/**
+ * Strip the background image and heavy gradients from a template,
+ * keeping only the text/grid overlay elements on a transparent background.
+ */
+function makeOverlayTransparent(html: string): string {
+  // Remove the bg-img element entirely — the base image is already underneath
+  let result = html.replace(/<img[^>]*class="bg-img"[^>]*>/gi, '');
+  
+  // Remove the gradient overlay that darkens the top (grad-top) — 
+  // it obscures the AI visual. The headline text-shadow provides enough contrast.
+  result = result.replace(/<div[^>]*class="grad-top"[^>]*><\/div>/gi, '');
+  
+  // Remove the logo from overlay — the AI visual already contains the logo.
+  // This prevents duplicate logos in the final composite.
+  result = result.replace(/<div[^>]*class="logo-in-bar"[^>]*>[\s\S]*?<\/div>/gi, '');
+  
+  // Make the .ad container background transparent
+  result = result.replace(
+    /\.ad\s*\{([^}]*)\}/,
+    (match, body) => `.ad {${body}; background: transparent !important; }`
+  );
+  
+  return result;
+}
+
 function getLayoutHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   if (!config.customTemplateHtml) {
     throw new Error('אין תבנית HTML מותאמת. יש להגדיר תבנית מאסטר ב-Back Office לפני יצירת מודעות.');
@@ -107,7 +132,10 @@ function getLayoutHTML(config: TextOverlayConfig, width: number, height: number,
     width,
     height,
   };
-  return renderTemplate(config.customTemplateHtml, templateData);
+  
+  // Render the full template, then strip the bg image to create a transparent overlay
+  const fullHtml = renderTemplate(config.customTemplateHtml, templateData);
+  return makeOverlayTransparent(fullHtml);
 }
 
 // ─── Image dimensions helper ───
@@ -152,38 +180,12 @@ export async function applyHtmlTextOverlay(
 
   const { width, height } = await getImageDimensions(imageUrl);
 
-  // ─── DEBUG: Log template data being sent ───
-  const debugTemplateData = {
-    headline: config.headline ? cleanText(config.headline).substring(0, 50) : '(empty)',
-    subtitle: config.subtitle ? cleanText(config.subtitle).substring(0, 50) : '(empty)',
-    bodyText: config.bodyText ? cleanText(config.bodyText).substring(0, 50) : '(empty)',
-    ctaText: config.ctaText || '(empty)',
-    businessName: config.businessName || '(empty)',
-    phone: config.phone || '(empty)',
-    logoUrl: config.logoUrl ? config.logoUrl.substring(0, 60) + '...' : '(empty)',
-    primaryColor: config.primaryColor || '(empty)',
-    imageUrl_prefix: imageUrl.substring(0, 80),
-    templateSource: config.customTemplateHtml ? 'config/DB' : 'DEFAULT_TEMPLATE',
-    templateLength: config.customTemplateHtml?.length || 0,
-  };
-  console.log('[Overlay] 📋 Template Input Data:', JSON.stringify(debugTemplateData, null, 2));
+  console.log('[Overlay] 📋 Rendering transparent overlay, size:', width, 'x', height);
 
   const html = getLayoutHTML(config, width, height, imageUrl);
 
-  // ─── DEBUG: Check rendered HTML for key elements ───
-  const htmlDebug = {
-    totalLength: html.length,
-    hasImgTag: html.includes('<img'),
-    hasImageSrc: html.includes('src="data:image') || html.includes('src="http'),
-    hasHeadline: config.headline ? html.includes(cleanText(config.headline).substring(0, 20)) : 'N/A',
-    hasBusinessName: config.businessName ? html.includes(config.businessName) : 'N/A',
-    hasPhone: config.phone ? html.includes(config.phone.trim()) : 'N/A',
-    first500chars: html.substring(0, 500),
-  };
-  console.log('[Overlay] 🔍 Rendered HTML Debug:', JSON.stringify(htmlDebug, null, 2));
-
   if (html.length < 50) {
-    console.error('[Overlay] ❌ HTML is suspiciously short! Returning original image.', html);
+    console.error('[Overlay] ❌ HTML is suspiciously short! Returning original image.');
     return imageUrl;
   }
 
@@ -198,36 +200,8 @@ export async function applyHtmlTextOverlay(
   container.innerHTML = html;
   document.body.appendChild(container);
 
-  // ─── DEBUG: Check actual DOM rendering ───
-  const firstChild = container.firstElementChild as HTMLElement;
-  if (firstChild) {
-    const rect = firstChild.getBoundingClientRect();
-    const computedStyle = window.getComputedStyle(firstChild);
-    console.log('[Overlay] 📐 DOM Debug:', JSON.stringify({
-      containerSize: `${width}x${height}`,
-      firstChildTag: firstChild.tagName,
-      firstChildSize: `${rect.width}x${rect.height}`,
-      display: computedStyle.display,
-      visibility: computedStyle.visibility,
-      overflow: computedStyle.overflow,
-      bgColor: computedStyle.backgroundColor,
-      childCount: firstChild.children.length,
-      imgCount: firstChild.querySelectorAll('img').length,
-    }));
-    
-    // Check if images loaded correctly
-    const imgs = firstChild.querySelectorAll('img');
-    imgs.forEach((img, i) => {
-      console.log(`[Overlay] 🖼️ Image ${i}:`, {
-        src: img.src.substring(0, 80) + '...',
-        complete: img.complete,
-        naturalSize: `${img.naturalWidth}x${img.naturalHeight}`,
-        displaySize: `${img.width}x${img.height}`,
-      });
-    });
-  }
-
   try {
+    // Wait for any remaining images (logo, kashrut) to load
     const images = container.querySelectorAll('img');
     await Promise.all(Array.from(images).map(img => {
       if (img.complete) return Promise.resolve();
@@ -237,43 +211,59 @@ export async function applyHtmlTextOverlay(
       });
     }));
 
-    // Check images after waiting
-    const allImgs = container.querySelectorAll('img');
-    allImgs.forEach((img, i) => {
-      console.log(`[Overlay] 🖼️ After-wait Image ${i}: complete=${img.complete}, natural=${img.naturalWidth}x${img.naturalHeight}`);
-    });
+    await new Promise(r => setTimeout(r, 200));
 
-    await new Promise(r => setTimeout(r, 300));
-
-    // Find the actual content element (skip <link>, <style>, <script> tags)
+    // Find the content element (skip <style> tags)
     let renderTarget: HTMLElement = container;
     const children = Array.from(container.children) as HTMLElement[];
     const contentEl = children.find(el => {
       const tag = el.tagName.toLowerCase();
       return tag !== 'link' && tag !== 'style' && tag !== 'script';
     });
-    if (contentEl) {
-      renderTarget = contentEl;
-      console.log('[Overlay] 🎯 Render target found:', contentEl.tagName, contentEl.className?.substring(0, 50));
-    } else {
-      console.warn('[Overlay] ⚠️ No content element found, using container');
-    }
+    if (contentEl) renderTarget = contentEl;
 
-    const dataUrl = await toPng(renderTarget, {
+    // Render the overlay as a transparent PNG
+    const overlayDataUrl = await toPng(renderTarget, {
       width,
       height,
       pixelRatio: 1,
       cacheBust: true,
       skipFonts: true,
+      backgroundColor: 'transparent',
     });
 
-    console.log('[Overlay] ✅ toPng success, dataUrl length:', dataUrl.length);
-    // Log a snippet to check if it's actually an image or just a black rectangle
-    console.log('[Overlay] dataUrl prefix:', dataUrl.substring(0, 100));
-    return dataUrl;
+    console.log('[Overlay] ✅ Overlay PNG generated, compositing on base image...');
+
+    // Composite: base image + transparent overlay
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d')!;
+
+    // Draw the base AI image first
+    const baseImg = await loadImage(imageUrl);
+    ctx.drawImage(baseImg, 0, 0, width, height);
+
+    // Draw the transparent overlay on top
+    const overlayImg = await loadImage(overlayDataUrl);
+    ctx.drawImage(overlayImg, 0, 0, width, height);
+
+    const finalDataUrl = canvas.toDataURL('image/png');
+    console.log('[Overlay] ✅ Final composited image ready, length:', finalDataUrl.length);
+    return finalDataUrl;
   } finally {
     document.body.removeChild(container);
   }
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
 }
 
 // ─── Apply with custom template from DB ───
