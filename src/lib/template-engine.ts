@@ -227,6 +227,7 @@ export const DEFAULT_TEMPLATE = `<style>
   .services-line { color:rgba(255,255,255,0.6); font-size:clamp(9px,1.5vw,12px); }
   .addr-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:3px; }
   .addr-item { color:rgba(255,255,255,0.65); font-size:clamp(8px,1.3vw,11px); font-style:italic; }
+  .addr-sep { color:rgba(255,255,255,0.35); font-size:clamp(8px,1.3vw,11px); margin:0 2px; }
   .kashrut-in-bar img { height:clamp(22px,4vw,35px); opacity:0.65; filter:brightness(0) invert(1); }
 </style>
 <div class="ad">
@@ -249,7 +250,8 @@ export const DEFAULT_TEMPLATE = `<style>
       <div class="brand-info">
         {{#if business_name}}<div class="biz-name">{{business_name}}</div>{{/if}}
         {{#if services}}<div class="services-line">{{#each services}}{{this}}{{#unless @last}} | {{/unless}}{{/each}}</div>{{/if}}
-        {{#if address_list}}<div class="addr-row">{{#each address_list}}<span class="addr-item">{{this}}</span>{{/each}}</div>{{/if}}
+        {{#if branches}}<div class="addr-row">{{#each branches}}<span class="addr-item">{{this}}</span>{{#unless @last}}<span class="addr-sep">|</span>{{/unless}}{{/each}}</div>{{/if}}
+        {{#unless branches}}{{#if address_list}}<div class="addr-row">{{#each address_list}}<span class="addr-item">{{this}}</span>{{/each}}</div>{{/if}}{{/unless}}
       </div>
       {{#if logo_url}}<div class="logo-in-bar"><img src="{{logo_url}}" alt="logo"></div>{{/if}}
     </div>
