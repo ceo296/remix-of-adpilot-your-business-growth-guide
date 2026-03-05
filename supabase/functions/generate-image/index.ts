@@ -523,25 +523,28 @@ VISUAL IMPACT — MAKE IT EXTRAORDINARY (CRITICAL):
 - AVOID: flat compositions, centered subjects with no context, generic stock-photo poses, boring angles, plain backgrounds
 - STRICTLY FORBIDDEN: vector icons, mascot-like drawings, infographic style, 2D clipart, logo-like symbols, medical stock templates
 
-COMPOSITION FOR TEXT INTEGRATION:
+COMPOSITION FOR TEXT INTEGRATION (CRITICAL — FILL THE FRAME):
+- The image must be VISUALLY FULL — NO large empty areas, NO excessive blank space
+- Think MAGAZINE COVER: every inch of the frame contributes to the visual story
 ${headlinePosition === 'bottom' ? `
-- TOP: The hero visual should dominate the upper 70% of the image — full visual impact
-- BOTTOM 35%: Darker/gradient area for headline + contact info (organic darkening, no solid bands)
-- BOTTOM-LEFT corner: Reserve space for the brand logo
+- TOP 80%: HERO VISUAL fills the frame with bold composition — subject large, dramatic, frame-filling
+- BOTTOM 25%: Subtle organic darkening (shadow gradient, not a solid band) for contact info overlay
+- BOTTOM-LEFT corner: Small clear space for brand logo
+- The headline will overlay on top of the visual with text-shadow for contrast — the image behind MUST be interesting, not blank
 ` : headlinePosition === 'center' ? `
-- TOP 25%: Simple or atmospheric area
-- CENTER: A natural dark band or gradient strip across the middle — headline goes here
-- BOTTOM 15%: Thin contact strip area
-- BOTTOM-LEFT corner: Reserve space for the brand logo
+- FULL-FRAME visual with the hero subject LARGE and DOMINANT
+- CENTER: A natural depth-of-field zone or atmospheric area where text can sit with contrast
+- BOTTOM 12%: Thin contact strip area with organic darkening
+- BOTTOM-LEFT corner: Small space for brand logo
 ` : `
-- TOP 20% of image: Keep relatively simple or with darker tones — headline will be placed here
-- BOTTOM 30% of image: Natural gradient/dark area that transitions organically — text and contact info go here
-- BOTTOM-LEFT corner: Reserve space for the brand logo (clear and uncluttered)
-- CENTER: The hero visual should be in the center-upper area
+- TOP-RIGHT 25%: Slightly darker atmospheric zone for headline text (NOT blank — use bokeh, gradient, atmospheric depth)
+- The HERO VISUAL fills 85%+ of the frame — subject is LARGE, close-up, dramatic
+- BOTTOM 12%: Thin organic shadow gradient for contact details
+- BOTTOM-LEFT corner: Small clear space for brand logo
 `}
-- Use natural darkening: deeper shadows at edges, atmospheric haze, organic color transitions
-- Think MAGAZINE AD composition: professional photographer who knows text will be overlaid
-- DO NOT use solid color bands or boxes — transitions must be ORGANIC and GRADUAL
+- CRUCIAL: The visual must feel DENSE and RICH — like editorial photography, NOT a template with empty zones
+- Use organic darkening at text zones: deep shadows, bokeh, atmospheric haze — NEVER solid color bands
+- The subject should be CLOSE, LARGE, and COMMANDING — not tiny in the middle of empty space
 
 ${aspectInstruction}
 
