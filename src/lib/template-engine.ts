@@ -207,12 +207,12 @@ export function validateTemplate(template: string): string[] {
 // Default sample template
 export const DEFAULT_TEMPLATE = `<style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  .ad { position:relative; width:100%; height:100%; overflow:hidden; direction:rtl; font-family: {{brand_font_family}}, "Assistant", sans-serif; }
+  .ad { position:relative; width:100%; height:100%; overflow:hidden; direction:rtl; font-family: {{brand_font_family}}, "Assistant", sans-serif; word-break:keep-all; overflow-wrap:break-word; }
   .bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
   .grad-top { position:absolute; top:0; width:100%; height:45%; background:linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 55%, transparent 100%); z-index:1; }
   .top-zone { position:absolute; top:0; right:0; left:0; padding:6% 7% 0; z-index:5; text-align:right; }
-  .headline { color:#fff; font-weight:900; font-size:clamp(36px,7.5vw,68px); line-height:1.05; text-shadow:0 4px 16px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.9); margin-bottom:12px; letter-spacing:-0.5px; }
-  .sub-strip { display:inline-block; background:{{brand_primary_color}}; color:#fff; font-weight:700; font-size:clamp(15px,3vw,26px); padding:8px 22px; border-right:4px solid rgba(255,255,255,0.6); }
+  .headline { color:#fff; font-weight:900; font-size:clamp(36px,7.5vw,68px); line-height:1.05; text-shadow:0 4px 16px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.9); margin-bottom:12px; letter-spacing:-0.5px; word-break:keep-all; overflow-wrap:normal; }
+  .sub-strip { display:inline-block; background:{{brand_primary_color}}; color:#fff; font-weight:700; font-size:clamp(15px,3vw,26px); padding:8px 22px; border-right:4px solid rgba(255,255,255,0.6); word-break:keep-all; overflow-wrap:normal; white-space:normal; }
   .promo-badge { position:absolute; top:5%; left:5%; width:clamp(70px,15vw,110px); height:clamp(70px,15vw,110px); background:{{brand_primary_color}}; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; text-align:center; font-weight:900; font-size:clamp(14px,3vw,22px); line-height:1.15; border:3px solid rgba(255,255,255,0.5); box-shadow:0 4px 20px rgba(0,0,0,0.4); transform:rotate(-8deg); z-index:8; }
   .contact-bar { position:absolute; bottom:0; width:100%; z-index:10; background:linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.8)); backdrop-filter:blur(6px); padding:18px 5% 16px; display:flex; justify-content:space-between; align-items:center; border-top:2.5px solid {{brand_primary_color}}; }
   .contact-right { display:flex; align-items:center; gap:14px; }
