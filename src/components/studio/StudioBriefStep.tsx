@@ -581,7 +581,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             id="campaign-offer"
             value={value.offer}
             onChange={(e) => updateBrief({ offer: e.target.value })}
-            placeholder="ספרו לנו על המהלך, המוצר או השירות. מה המהות שלו ומה הכי חשוב להדגיש? (לדוגמה: השקת טכנולוגיה חדשה להשתלות שיניים ללא כאב שחוסכת לכם זמן יקר...)"
+            placeholder="ספרו לנו על המהלך, המוצר או השירות. מה המהות שלו ומה הכי חשוב להדגיש? לדוגמה: השקת טכנולוגיה חדשה להשתלות שיניים ללא כאב שחוסכת לכם זמן יקר..."
             className={cn(
               "min-h-[130px] text-base transition-all",
               messageQuality.level === 'weak' && 'border-orange-400/60 focus:border-orange-400',
