@@ -342,6 +342,22 @@ const OnboardingWizard = () => {
     setIsSaving(true);
     
     try {
+      // Ensure logo is uploaded to Storage (not stored as base64 in DB)
+      let finalLogoUrl = wizardData.brand.logo || null;
+      if (finalLogoUrl && finalLogoUrl.startsWith('data:')) {
+        console.log('Logo is still base64, uploading to Storage...');
+        toast.loading('מעלה לוגו...', { id: 'upload-logo' });
+        const storageUrl = await uploadLogoToStorage(finalLogoUrl, user.id);
+        toast.dismiss('upload-logo');
+        if (storageUrl) {
+          finalLogoUrl = storageUrl;
+          console.log('Logo uploaded to Storage:', storageUrl);
+        } else {
+          console.warn('Logo upload failed, will save without logo');
+          finalLogoUrl = null;
+        }
+      }
+
       // Upload business photos to storage
       let businessPhotoUrls: any[] = [];
       if (wizardData.businessPhotos && wizardData.businessPhotos.length > 0) {
@@ -452,7 +468,7 @@ const OnboardingWizard = () => {
             .from('client_profiles')
             .update({
               business_name: wizardData.brand.name,
-              logo_url: wizardData.brand.logo || null,
+              logo_url: finalLogoUrl,
               website_url: wizardData.websiteUrl || null,
               primary_color: wizardData.brand.colors.primary,
               secondary_color: wizardData.brand.colors.secondary,
@@ -521,7 +537,7 @@ const OnboardingWizard = () => {
             .insert([{
               user_id: user.id,
               business_name: wizardData.brand.name,
-              logo_url: wizardData.brand.logo || null,
+              logo_url: finalLogoUrl,
               website_url: wizardData.websiteUrl || null,
               primary_color: wizardData.brand.colors.primary,
               secondary_color: wizardData.brand.colors.secondary,
