@@ -41,6 +41,7 @@ import {
   Brain,
   Store,
   MousePointerClick,
+  Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -128,26 +129,26 @@ function mapAdGoalToLegacy(adGoal: AdGoal | null): CampaignGoal | null {
   }
 }
 
-const AD_GOAL_OPTIONS: { id: AdGoal; label: string; description: string; icon: React.ElementType }[] = [
-  { id: 'brand-presence', label: '״תראו אותי״', description: 'חיזוק המותג, יוקרה, סטייל', icon: Eye },
-  { id: 'sell', label: '״תקנו ממני״', description: 'מבצע, הנחה, הצעה מוגבלת', icon: ShoppingCart },
-  { id: 'introduce-product', label: '״תכירו מוצר חדש״', description: 'השקה או חשיפה של מוצר/שירות', icon: Rocket },
-  { id: 'invite-contact', label: '״בואו נדבר או ניפגש״', description: 'הזמנה לשיחה / פגישה', icon: PhoneCall },
+const AD_GOAL_OPTIONS: { id: AdGoal; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
+  { id: 'sell', label: '״תקנו ממני״', description: 'מבצע, הנחה, הצעה מוגבלת', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/30' },
+  { id: 'brand-presence', label: '״תראו אותי״', description: 'חיזוק המותג, יוקרה, סטייל', icon: Eye, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30' },
+  { id: 'invite-contact', label: '״בואו נדבר או ניפגש״', description: 'הזמנה לשיחה / פגישה', icon: PhoneCall, gradient: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/30' },
+  { id: 'introduce-product', label: '״תכירו מוצר חדש״', description: 'השקה או חשיפה של מוצר/שירות', icon: Rocket, gradient: 'from-orange-500 to-amber-600', shadow: 'shadow-orange-500/30' },
 ];
 
-const EMOTIONAL_TONE_OPTIONS: { id: EmotionalTone; label: string; description: string; icon: React.ElementType }[] = [
-  { id: 'luxury', label: '״וואו, זה נראה יוקרתי״', description: 'מראה מפואר ואלגנטי', icon: Crown },
-  { id: 'urgency', label: '״חייב להספיק לפני שיגמר״', description: 'דחיפות ומבצע מוגבל', icon: Timer },
-  { id: 'belonging', label: '״זה המקום בשבילי״', description: 'חיבור אישי ושייכות', icon: Heart },
-  { id: 'professional', label: '״עושה עלי רושם מקצועי״', description: 'אמינות ומקצועיות', icon: Briefcase },
+const EMOTIONAL_TONE_OPTIONS: { id: EmotionalTone; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
+  { id: 'luxury', label: '״וואו, זה נראה יוקרתי״', description: 'מראה מפואר ואלגנטי', icon: Crown, gradient: 'from-amber-500 to-yellow-500', shadow: 'shadow-amber-500/30' },
+  { id: 'urgency', label: '״חייב להספיק לפני שיגמר״', description: 'דחיפות ומבצע מוגבל', icon: Timer, gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30' },
+  { id: 'belonging', label: '״זה המקום בשבילי״', description: 'חיבור אישי ושייכות', icon: Heart, gradient: 'from-pink-500 to-rose-500', shadow: 'shadow-pink-500/30' },
+  { id: 'professional', label: '״עושה עלי רושם מקצועי״', description: 'אמינות ומקצועיות', icon: Briefcase, gradient: 'from-slate-600 to-gray-700', shadow: 'shadow-slate-500/30' },
 ];
 
-const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.ElementType }[] = [
-  { id: 'whatsapp-email', label: 'שליחת מייל / וואטסאפ', icon: MessageCircle },
-  { id: 'phone-call', label: 'שיחה טלפונית', icon: Phone },
-  { id: 'visit-store', label: 'הגעה לסניף / חנות', icon: Store },
-  { id: 'visit-website', label: 'כניסה לאתר', icon: Globe },
-  { id: 'remember-me', label: 'יזכרו אותי', icon: Brain },
+const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
+  { id: 'whatsapp-email', label: 'שליחת מייל / וואטסאפ', icon: MessageCircle, gradient: 'from-green-500 to-emerald-600', shadow: 'shadow-green-500/30' },
+  { id: 'phone-call', label: 'שיחה טלפונית', icon: Phone, gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/30' },
+  { id: 'visit-store', label: 'הגעה לסניף / חנות', icon: Store, gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/30' },
+  { id: 'visit-website', label: 'כניסה לאתר', icon: Globe, gradient: 'from-cyan-500 to-teal-600', shadow: 'shadow-cyan-500/30' },
+  { id: 'remember-me', label: 'יזכרו אותי', icon: Brain, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30' },
 ];
 
 export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors }: StudioBriefStepProps) => {
@@ -342,35 +343,41 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
           <span className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">1</span>
           מה המטרה העיקרית של המודעה היום?
         </Label>
-        <div className="grid grid-cols-2 gap-3">
-          {AD_GOAL_OPTIONS.map((option) => (
-            <Card
-              key={option.id}
-              className={cn(
-                'cursor-pointer transition-all duration-200 border-2',
-                value.adGoal === option.id
-                  ? 'border-primary bg-primary/5 shadow-md'
-                  : 'border-border hover:border-primary/30'
-              )}
-              onClick={() => updateBrief({ 
-                adGoal: option.id, 
-                goal: mapAdGoalToLegacy(option.id),
-                // Reset conditional fields if goal changed
-                ...(option.id !== 'sell' && option.id !== 'introduce-product' ? { showPriceOrBenefit: null, priceOrBenefit: '', isTimeLimited: null, timeLimitText: '' } : {}),
-              })}
-            >
-              <CardContent className="p-4 text-center">
+        <div className="grid grid-cols-2 gap-4">
+          {AD_GOAL_OPTIONS.map((option) => {
+            const isSelected = value.adGoal === option.id;
+            return (
+              <div
+                key={option.id}
+                className={cn(
+                  'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center hover:scale-[1.02]',
+                  isSelected
+                    ? 'border-primary bg-primary/10 shadow-lg'
+                    : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                )}
+                onClick={() => updateBrief({ 
+                  adGoal: option.id, 
+                  goal: mapAdGoalToLegacy(option.id),
+                  ...(option.id !== 'sell' && option.id !== 'introduce-product' ? { showPriceOrBenefit: null, priceOrBenefit: '', isTimeLimited: null, timeLimitText: '' } : {}),
+                })}
+              >
                 <div className={cn(
-                  'w-10 h-10 mx-auto rounded-lg flex items-center justify-center mb-2',
-                  value.adGoal === option.id ? 'bg-primary/20' : 'bg-muted'
+                  'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 shadow-lg transition-all bg-gradient-to-br',
+                  option.gradient, option.shadow,
+                  isSelected ? 'scale-110' : 'opacity-70'
                 )}>
-                  <option.icon className={cn('w-5 h-5', value.adGoal === option.id ? 'text-primary' : 'text-muted-foreground')} />
+                  <option.icon className="w-7 h-7 text-white" />
                 </div>
-                <p className="font-bold text-sm">{option.label}</p>
-                <p className="text-xs text-muted-foreground mt-1">{option.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+                <p className="font-bold text-foreground mb-1">{option.label}</p>
+                <p className="text-xs text-muted-foreground">{option.description}</p>
+                {isSelected && (
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="w-4 h-4 text-primary-foreground" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -483,30 +490,37 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             </span>
             איך היית רוצה שהלקוח ירגיש כשיצפה במודעה?
           </Label>
-          <div className="grid grid-cols-2 gap-3">
-            {EMOTIONAL_TONE_OPTIONS.map((option) => (
-              <Card
-                key={option.id}
-                className={cn(
-                  'cursor-pointer transition-all duration-200 border-2',
-                  value.emotionalTone === option.id
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-border hover:border-primary/30'
-                )}
-                onClick={() => updateBrief({ emotionalTone: option.id })}
-              >
-                <CardContent className="p-4 text-center">
+          <div className="grid grid-cols-2 gap-4">
+            {EMOTIONAL_TONE_OPTIONS.map((option) => {
+              const isSelected = value.emotionalTone === option.id;
+              return (
+                <div
+                  key={option.id}
+                  className={cn(
+                    'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center hover:scale-[1.02]',
+                    isSelected
+                      ? 'border-primary bg-primary/10 shadow-lg'
+                      : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                  )}
+                  onClick={() => updateBrief({ emotionalTone: option.id })}
+                >
                   <div className={cn(
-                    'w-10 h-10 mx-auto rounded-lg flex items-center justify-center mb-2',
-                    value.emotionalTone === option.id ? 'bg-primary/20' : 'bg-muted'
+                    'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 shadow-lg transition-all bg-gradient-to-br',
+                    option.gradient, option.shadow,
+                    isSelected ? 'scale-110' : 'opacity-70'
                   )}>
-                    <option.icon className={cn('w-5 h-5', value.emotionalTone === option.id ? 'text-primary' : 'text-muted-foreground')} />
+                    <option.icon className="w-7 h-7 text-white" />
                   </div>
-                  <p className="font-bold text-sm">{option.label}</p>
+                  <p className="font-bold text-sm text-foreground">{option.label}</p>
                   <p className="text-xs text-muted-foreground mt-1">{option.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+                  {isSelected && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -521,28 +535,35 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             מה הפעולה שהכי חשוב שיבצעו?
           </Label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {DESIRED_ACTION_OPTIONS.map((option) => (
-              <Card
-                key={option.id}
-                className={cn(
-                  'cursor-pointer transition-all duration-200 border-2',
-                  value.desiredAction === option.id
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-border hover:border-primary/30'
-                )}
-                onClick={() => updateBrief({ desiredAction: option.id })}
-              >
-                <CardContent className="p-3 text-center">
+            {DESIRED_ACTION_OPTIONS.map((option) => {
+              const isSelected = value.desiredAction === option.id;
+              return (
+                <div
+                  key={option.id}
+                  className={cn(
+                    'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 text-center hover:scale-[1.02]',
+                    isSelected
+                      ? 'border-primary bg-primary/10 shadow-lg'
+                      : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                  )}
+                  onClick={() => updateBrief({ desiredAction: option.id })}
+                >
                   <div className={cn(
-                    'w-9 h-9 mx-auto rounded-lg flex items-center justify-center mb-2',
-                    value.desiredAction === option.id ? 'bg-primary/20' : 'bg-muted'
+                    'w-11 h-11 mx-auto rounded-xl flex items-center justify-center mb-2 shadow-md transition-all bg-gradient-to-br',
+                    option.gradient, option.shadow,
+                    isSelected ? 'scale-110' : 'opacity-60'
                   )}>
-                    <option.icon className={cn('w-4 h-4', value.desiredAction === option.id ? 'text-primary' : 'text-muted-foreground')} />
+                    <option.icon className="w-5 h-5 text-white" />
                   </div>
-                  <p className="font-medium text-sm">{option.label}</p>
-                </CardContent>
-              </Card>
-            ))}
+                  <p className="font-medium text-sm text-foreground">{option.label}</p>
+                  {isSelected && (
+                    <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-3 h-3 text-primary-foreground" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
