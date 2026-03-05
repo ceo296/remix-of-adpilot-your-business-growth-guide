@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Upload, Image, X } from 'lucide-react';
 import { BrandAssetsData } from '@/types/adkop';
+import LogoUploadGuidelines from '@/components/shared/LogoUploadGuidelines';
 
 interface Props {
   data: BrandAssetsData;
@@ -15,7 +17,10 @@ const StepBrandAssets = ({ data, onChange }: Props) => {
       const file = e.dataTransfer.files[0];
       if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
         const { fileToLogoDataUrl } = await import('@/lib/logo-utils');
-        const { dataUrl } = await fileToLogoDataUrl(file);
+        const { dataUrl, hadWhiteBackground } = await fileToLogoDataUrl(file);
+        if (hadWhiteBackground) {
+          toast.success('זיהינו רקע לבן בלוגו והסרנו אותו אוטומטית 🎨');
+        }
         onChange({ ...data, logoFile: file, logoPreview: dataUrl, extractedColors: [] });
       }
     },
@@ -26,7 +31,10 @@ const StepBrandAssets = ({ data, onChange }: Props) => {
     const file = e.target.files?.[0];
     if (file) {
       const { fileToLogoDataUrl } = await import('@/lib/logo-utils');
-      const { dataUrl } = await fileToLogoDataUrl(file);
+      const { dataUrl, hadWhiteBackground } = await fileToLogoDataUrl(file);
+      if (hadWhiteBackground) {
+        toast.success('זיהינו רקע לבן בלוגו והסרנו אותו אוטומטית 🎨');
+      }
       onChange({ ...data, logoFile: file, logoPreview: dataUrl, extractedColors: [] });
     }
   };
@@ -52,7 +60,10 @@ const StepBrandAssets = ({ data, onChange }: Props) => {
 
       {/* Logo Upload */}
       <div className="space-y-3">
-        <Label className="text-base font-semibold">לוגו</Label>
+        <div className="flex items-center gap-2">
+          <Label className="text-base font-semibold">לוגו</Label>
+          <LogoUploadGuidelines />
+        </div>
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleLogoDrop}

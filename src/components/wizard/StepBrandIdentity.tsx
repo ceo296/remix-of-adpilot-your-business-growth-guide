@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Upload, Palette, Type, ArrowRight, ArrowLeft, Pencil, FileText, RefreshCw, Loader2, ArrowLeftRight, Star } from 'lucide-react';
+import LogoUploadGuidelines from '@/components/shared/LogoUploadGuidelines';
 
 interface StepBrandIdentityProps {
   data: WizardData;
@@ -83,6 +84,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
     
     try {
       let dataUrl: string;
+      let hadWhiteBackground = false;
       if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
         toast.loading('ממיר PDF ל-PNG...', { id: 'pdf-convert' });
         const result = await fileToLogoDataUrl(file);
@@ -91,6 +93,11 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
       } else {
         const result = await fileToLogoDataUrl(file);
         dataUrl = result.dataUrl;
+        hadWhiteBackground = result.hadWhiteBackground ?? false;
+      }
+      
+      if (hadWhiteBackground) {
+        toast.success('זיהינו רקע לבן בלוגו והסרנו אותו אוטומטית 🎨');
       }
       
       updateData({
@@ -247,6 +254,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
               <Upload className="w-5 h-5 text-primary" />
               הלוגו שלכם
             </h3>
+            <LogoUploadGuidelines />
             
             <input
               ref={fileInputRef}
