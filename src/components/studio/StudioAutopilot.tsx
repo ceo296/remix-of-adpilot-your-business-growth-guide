@@ -169,62 +169,7 @@ export const StudioAutopilot = ({
           תשברו אתם את הראש במקומי. המערכת תיצור 3 כיווני קריאייטיב מבוססי האסטרטגיה שלכם.
         </p>
         
-        {/* Campaign Brief Section - REQUIRED */}
-        {onBriefChange && (
-          <div className="w-full max-w-2xl mb-8 text-right">
-            {/* Campaign Offer */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 shadow-sm mb-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-md shadow-primary/30 flex items-center justify-center">
-                  <Gift className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <Label className="text-base font-semibold text-foreground">מה ההצעה הפרסומית? *</Label>
-                  <p className="text-xs text-muted-foreground">בלי זה אי אפשר ליצור קמפיין מותאם</p>
-                </div>
-              </div>
-              <Textarea
-                value={brief.offer}
-                onChange={(e) => onBriefChange({ ...brief, offer: e.target.value })}
-                placeholder="תאר בקצרה את המסר המרכזי. לדוגמה: 30% הנחה על כל מערכות הישיבה, השקת טעמים חדשים..."
-                className="min-h-[80px] text-base bg-white text-gray-900 border-primary/20 focus:border-primary placeholder:text-gray-400"
-                dir="rtl"
-              />
-            </div>
 
-            {/* Campaign Goal */}
-            <div className="mb-4">
-              <Label className="text-sm font-medium text-muted-foreground mb-3 block">מה המטרה של הקמפיין?</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {GOAL_OPTIONS.map((goal) => (
-                  <Card
-                    key={goal.id}
-                    className={cn(
-                      'cursor-pointer transition-all duration-200 border-2',
-                      brief.goal === goal.id
-                        ? 'border-primary bg-primary/5 shadow-md'
-                        : 'border-border hover:border-primary/30'
-                    )}
-                    onClick={() => onBriefChange({ ...brief, goal: goal.id })}
-                  >
-                    <CardContent className="p-3 text-center">
-                      <div className={cn(
-                        'w-8 h-8 mx-auto rounded-lg flex items-center justify-center mb-1',
-                        brief.goal === goal.id ? 'bg-primary/20' : 'bg-muted'
-                      )}>
-                        <goal.icon className={cn(
-                          'w-4 h-4',
-                          brief.goal === goal.id ? 'text-primary' : 'text-muted-foreground'
-                        )} />
-                      </div>
-                      <p className="font-medium text-xs">{goal.label}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Media Type Selection */}
         <div className="w-full max-w-2xl mb-6">
