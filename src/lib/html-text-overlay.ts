@@ -148,8 +148,8 @@ function getLayoutHTML(config: TextOverlayConfig, width: number, height: number,
   const cleanedServices = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
   const templateData: TemplateData = {
     headline: config.headline ? cleanHeadline(config.headline) : '',
-    subheadline: config.subtitle ? cleanText(config.subtitle) : '',
-    subtitle: config.subtitle ? cleanText(config.subtitle) : '',
+    subheadline: '', // IRON RULE: subheadline/subtitle is NOT rendered on the visual overlay — headline only
+    subtitle: '', // IRON RULE: subtitle is NOT rendered on the visual overlay
     bodyText: '', // IRON RULE: bodyText is NEVER rendered on the visual overlay
     ctaText: config.ctaText ? cleanText(config.ctaText) : '',
     businessName: config.businessName ? cleanText(config.businessName) : '',
