@@ -1572,6 +1572,13 @@ ${campaignBrief.title ? `שם הקמפיין: ${campaignBrief.title}` : ''}
 קהל יעד: ${profile.target_audience || profile.end_consumer || 'משפחות חרדיות'}
 יתרון מרכזי: ${profile.primary_x_factor || profile.winning_feature || 'לא הוגדר'}
 ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${selectedHoliday}` : ''}
+${campaignBrief.adGoal ? `מטרת המודעה: ${campaignBrief.adGoal}` : ''}
+${campaignBrief.emotionalTone ? `טון רגשי: ${campaignBrief.emotionalTone}` : ''}
+${campaignBrief.desiredAction ? `פעולה רצויה מהלקוח: ${campaignBrief.desiredAction}` : ''}
+${campaignBrief.showPriceOrBenefit && campaignBrief.priceOrBenefit ? `מחיר/הטבה: ${campaignBrief.priceOrBenefit}` : ''}
+${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בזמן: ${campaignBrief.timeLimitText}` : ''}
+נוכחות מותג: ${(profile as any).brand_presence || 'לא הוגדר'}
+תעודות איכות: ${(profile as any).quality_signatures ? JSON.stringify((profile as any).quality_signatures) : 'לא הוגדרו'}
 
 תן לי בבקשה בקצרה:
 1. מי קהל היעד המדויק
@@ -1586,6 +1593,12 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
               goal: campaignBrief.goal,
               holiday_season: selectedHoliday || null,
               topic_category: detectedTopic,
+              adGoal: campaignBrief.adGoal,
+              emotionalTone: campaignBrief.emotionalTone,
+              desiredAction: campaignBrief.desiredAction,
+              priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
+              isTimeLimited: campaignBrief.isTimeLimited,
+              timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
             },
             topicCategory: detectedTopic,
           }
@@ -1641,6 +1654,12 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
             title: campaignBrief.title,
             offer: campaignBrief.offer,
             goal: campaignBrief.goal,
+            adGoal: campaignBrief.adGoal,
+            emotionalTone: campaignBrief.emotionalTone,
+            desiredAction: campaignBrief.desiredAction,
+            priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
+            isTimeLimited: campaignBrief.isTimeLimited,
+            timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
           },
           holidaySeason: selectedHoliday || null,
           topicCategory: detectedTopic,
@@ -1706,6 +1725,12 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
         structure: campaignBrief.structure,
         holidaySeason: selectedHoliday || null,
         campaignImageUrl: campaignBrief.campaignImage || null,
+        adGoal: campaignBrief.adGoal,
+        emotionalTone: campaignBrief.emotionalTone,
+        desiredAction: campaignBrief.desiredAction,
+        priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
+        isTimeLimited: campaignBrief.isTimeLimited,
+        timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
       };
 
       const results: GeneratedImage[] = [];
