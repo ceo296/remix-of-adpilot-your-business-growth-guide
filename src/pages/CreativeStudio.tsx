@@ -844,6 +844,10 @@ const CreativeStudio = () => {
                 promoValue: textMeta.promoValue,
                 bulletItems: textMeta.bulletItems,
                 headerFont: clientProfile?.header_font || undefined,
+                openingHours: campaignBrief.contactSelection.openingHours ? (clientProfile as any)?.opening_hours || undefined : undefined,
+                branches: campaignBrief.contactSelection.selectedBranches?.length
+                  ? campaignBrief.contactSelection.selectedBranches
+                  : undefined,
               });
               console.log(`[HTML] Hebrew text applied for sketch ${i}`);
             } catch (canvasError) {
@@ -1324,6 +1328,10 @@ const CreativeStudio = () => {
             promoValue: textMeta.promoValue,
             bulletItems: textMeta.bulletItems,
             headerFont: clientProfile?.header_font || undefined,
+            openingHours: campaignBrief.contactSelection.openingHours ? (clientProfile as any)?.opening_hours || undefined : undefined,
+            branches: campaignBrief.contactSelection.selectedBranches?.length
+              ? campaignBrief.contactSelection.selectedBranches
+              : undefined,
           });
           console.log(`[Canvas] Hebrew text applied with master template for concept ${index}`, {
             primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color,
