@@ -86,8 +86,8 @@ const FastTrackWizard = () => {
     structure: null,
     contactSelection: {
       phone: false, whatsapp: false, email: false, address: false,
-      youtube: false, facebook: false, instagram: false, customText: '',
-      openingHours: false, selectedBranches: [],
+      youtube: false, facebook: false, instagram: false, logoOnly: false,
+      customText: '', openingHours: false, selectedBranches: [],
     },
     colorSelection: { mode: 'brand', primaryColor: null, secondaryColor: null, backgroundColor: null },
     adGoal: null,
@@ -294,7 +294,9 @@ const FastTrackWizard = () => {
 
   const canProceedBrief = () => {
     const words = campaignBrief.offer.trim().split(/\s+/).filter(w => w.length > 0);
-    return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && !!campaignBrief.desiredAction && words.length >= 12 && !!campaignBrief.structure;
+    const cs = campaignBrief.contactSelection;
+    const hasContactSelected = cs.phone || cs.whatsapp || cs.email || cs.address || cs.youtube || cs.facebook || cs.instagram || cs.logoOnly || cs.openingHours || (cs.selectedBranches || []).length > 0;
+    return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && !!campaignBrief.desiredAction && words.length >= 12 && !!campaignBrief.structure && hasContactSelected;
   };
 
   const canProceedMedia = () => {
@@ -318,6 +320,7 @@ const FastTrackWizard = () => {
           social_instagram: activeProfile.social_instagram,
           opening_hours: activeProfile.opening_hours,
           branches: activeProfile.branches,
+          logo_url: activeProfile.logo_url,
         } : undefined}
         brandColors={activeProfile ? {
           primary_color: activeProfile.primary_color,
