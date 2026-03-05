@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { WizardData, WizardDataUpdate, XFactorType, CompetitorPosition } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, XFactorType, CompetitorPosition, BrandPresenceType, AudienceToneType, QualitySignature } from '@/types/wizard';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, Trophy, Package, Tag, Heart, Sparkles, Users, User, Plus, X, GripHorizontal, Bot, Edit3 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Trophy, Package, Tag, Heart, Sparkles, Users, User, Plus, X, Bot, Edit3, Crown, Briefcase, Zap, Shield, Clock, Award, Star, Check } from 'lucide-react';
 import { getYourWord } from '@/lib/honorific-utils';
 
 interface StepProps {
@@ -25,7 +25,25 @@ const X_FACTORS: { id: XFactorType; label: string; description: string; icon: Re
   { id: 'brand', label: 'הבטחה פרסומית', description: 'המוצר דומה, אבל הסיפור שלנו אחר.', icon: Sparkles },
 ];
 
-// TARGET_AUDIENCES removed - now using free text fields
+const BRAND_PRESENCE_OPTIONS: { id: BrandPresenceType; label: string; description: string; icon: React.ElementType; gradient: string }[] = [
+  { id: 'known', label: 'מותג מוכר', description: 'השם שלי מספיק, אני מעדיף עיצוב נקי, מינימליסטי ויוקרתי.', icon: Crown, gradient: 'from-amber-500 to-yellow-500' },
+  { id: 'expert', label: 'מומחה בתחומו', description: 'אני בונה אמון דרך מקצועיות, איכות וניסיון.', icon: Briefcase, gradient: 'from-blue-500 to-cyan-600' },
+  { id: 'active', label: 'שחקן אקטיבי', description: 'אני כאן כדי לייצר תוצאות, המודעות שלי צריכות להיות בולטות ונוכחות.', icon: Zap, gradient: 'from-emerald-500 to-teal-600' },
+];
+
+const QUALITY_SIGNATURE_OPTIONS: { type: QualitySignature['type']; label: string; template: string; placeholder: string; icon: React.ElementType; gradient: string }[] = [
+  { type: 'experience', label: 'ותק וניסיון', template: 'מעל {value} שנות ניסיון', placeholder: 'מספר שנים', icon: Clock, gradient: 'from-amber-500 to-orange-500' },
+  { type: 'technology', label: 'טכנולוגיה/איכות', template: 'מובילים ב{value}', placeholder: 'למשל: חדשנות, איכות...', icon: Star, gradient: 'from-blue-500 to-indigo-600' },
+  { type: 'service', label: 'שירות וזמינות', template: 'מענה מהיר ושירות VIP אישי', placeholder: '', icon: Heart, gradient: 'from-pink-500 to-rose-500' },
+  { type: 'trust', label: 'אמינות ואחריות', template: 'אחריות מלאה / באישור המוסדות', placeholder: '', icon: Shield, gradient: 'from-emerald-500 to-green-600' },
+  { type: 'scale', label: 'היקף הצלחה', template: 'מעל {value} לקוחות מרוצים', placeholder: 'מספר לקוחות', icon: Award, gradient: 'from-violet-500 to-purple-600' },
+];
+
+const AUDIENCE_TONE_OPTIONS: { id: AudienceToneType; label: string; description: string; icon: React.ElementType; gradient: string }[] = [
+  { id: 'broad', label: 'הקהל הרחב', description: 'שפה פשוטה, ברורה ובגובה העיניים.', icon: Users, gradient: 'from-blue-500 to-cyan-500' },
+  { id: 'premium', label: 'קהל פרימיום', description: 'שפה גבוהה, מאופקת, דגש על איכות ובלעדיות.', icon: Crown, gradient: 'from-amber-500 to-yellow-500' },
+  { id: 'b2b', label: 'קהל עסקי (B2B)', description: 'שפה מקצועית, עניינית ודגש על תועלות.', icon: Briefcase, gradient: 'from-violet-500 to-purple-600' },
+];
 
 const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
   const [newCompetitor, setNewCompetitor] = useState('');
@@ -33,6 +51,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
   const [otherXFactor, setOtherXFactor] = useState(data.strategicMRI.otherXFactor || '');
   const [isOtherSelected, setIsOtherSelected] = useState(!!data.strategicMRI.otherXFactor);
   const [noCompetitors, setNoCompetitors] = useState(data.strategicMRI.noCompetitors || false);
+
   const toggleOtherXFactor = () => {
     if (isOtherSelected) {
       setIsOtherSelected(false);
@@ -58,21 +77,14 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
 
   // Generate bot message based on selections
   useEffect(() => {
-    const hasVeteran = mri.xFactors.includes('veteran');
-    const hasPrice = mri.xFactors.includes('price');
-    const isPremium = mri.myPosition.x > 30;
-    const isMassMarket = mri.myPosition.x < -30;
-
-    if (hasVeteran && isPremium) {
-      setBotMessage('הבנתי, משדרים יציבות ויוקרה. אולד-סקול איכותי.');
-    } else if (hasPrice && isMassMarket) {
-      setBotMessage("הבנתי, נלך על מסרים של 'אסור לפספס' ומבצעים.");
-    } else if (mri.xFactors.length > 0 && (mri.endConsumer || mri.decisionMaker)) {
-      setBotMessage('מעולה! יש לי תמונה ברורה של הפוזיציה שלכם.');
+    if (mri.brandPresence && mri.audienceTone) {
+      const presenceLabel = BRAND_PRESENCE_OPTIONS.find(o => o.id === mri.brandPresence)?.label;
+      const toneLabel = AUDIENCE_TONE_OPTIONS.find(o => o.id === mri.audienceTone)?.label;
+      setBotMessage(`מעולה! \"${presenceLabel}\" + \"${toneLabel}\" — יש לי תמונה ברורה של הזהות שלכם.`);
     } else {
       setBotMessage(null);
     }
-  }, [mri.xFactors, mri.myPosition, mri.endConsumer, mri.decisionMaker]);
+  }, [mri.brandPresence, mri.audienceTone]);
 
   const toggleXFactor = (factor: XFactorType) => {
     const current = mri.xFactors;
@@ -82,18 +94,13 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
         primaryXFactor: mri.primaryXFactor === factor ? null : mri.primaryXFactor,
       });
     } else {
-      updateMRI({
-        xFactors: [...current, factor],
-      });
+      updateMRI({ xFactors: [...current, factor] });
     }
   };
 
   const setPrimaryXFactor = (factor: XFactorType) => {
     if (!mri.xFactors.includes(factor)) {
-      updateMRI({
-        xFactors: [...mri.xFactors, factor],
-        primaryXFactor: factor,
-      });
+      updateMRI({ xFactors: [...mri.xFactors, factor], primaryXFactor: factor });
     } else {
       updateMRI({ primaryXFactor: factor });
     }
@@ -104,45 +111,47 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
       const newId = `comp-${Date.now()}`;
       updateMRI({
         competitors: [...mri.competitors, newCompetitor.trim()],
-        competitorPositions: [
-          ...mri.competitorPositions,
-          { id: newId, name: newCompetitor.trim(), x: 0, y: 0 },
-        ],
+        competitorPositions: [...mri.competitorPositions, { id: newId, name: newCompetitor.trim(), x: 0, y: 0 }],
       });
       setNewCompetitor('');
     }
   };
 
   const removeCompetitor = (index: number) => {
-    const newComps = mri.competitors.filter((_, i) => i !== index);
-    const newPositions = mri.competitorPositions.filter((_, i) => i !== index);
     updateMRI({
-      competitors: newComps,
-      competitorPositions: newPositions,
+      competitors: mri.competitors.filter((_, i) => i !== index),
+      competitorPositions: mri.competitorPositions.filter((_, i) => i !== index),
     });
   };
 
-  const updateCompetitorPosition = (index: number, x: number, y: number) => {
-    const newPositions = [...mri.competitorPositions];
-    newPositions[index] = { ...newPositions[index], x, y };
-    updateMRI({ competitorPositions: newPositions });
+  const toggleQualitySignature = (type: QualitySignature['type']) => {
+    const existing = mri.qualitySignatures.find(s => s.type === type);
+    if (existing) {
+      updateMRI({ qualitySignatures: mri.qualitySignatures.filter(s => s.type !== type) });
+    } else if (mri.qualitySignatures.length < 3) {
+      updateMRI({ qualitySignatures: [...mri.qualitySignatures, { type, value: '' }] });
+    }
   };
 
-  const hasValidXFactors = mri.xFactors.length > 0 || (isOtherSelected && otherXFactor.trim().length > 0);
-  const otherNeedsText = isOtherSelected && otherXFactor.trim().length === 0;
-  const hasValidAudience = mri.endConsumer === 'private' || mri.endConsumer === 'b2b' || mri.endConsumer === 'both';
-  const hasValidCompetitors = noCompetitors || mri.competitors.length > 0;
-  const isValid = hasValidXFactors && !otherNeedsText && hasValidAudience && hasValidCompetitors;
+  const updateSignatureValue = (type: QualitySignature['type'], value: string) => {
+    updateMRI({
+      qualitySignatures: mri.qualitySignatures.map(s => s.type === type ? { ...s, value } : s),
+    });
+  };
 
   const toggleNoCompetitors = () => {
     const newValue = !noCompetitors;
     setNoCompetitors(newValue);
-    updateMRI({ noCompetitors: newValue });
-    if (newValue) {
-      // Clear competitors when selecting "no competitors"
-      updateMRI({ competitors: [], competitorPositions: [], noCompetitors: newValue });
-    }
+    updateMRI({ noCompetitors: newValue, ...(newValue ? { competitors: [], competitorPositions: [] } : {}) });
   };
+
+  const hasValidXFactors = mri.xFactors.length > 0 || (isOtherSelected && otherXFactor.trim().length > 0);
+  const otherNeedsText = isOtherSelected && otherXFactor.trim().length === 0;
+  const hasValidCompetitors = noCompetitors || mri.competitors.length > 0;
+  const hasValidPresence = !!mri.brandPresence;
+  const hasValidTone = !!mri.audienceTone;
+  const hasValidAudience = mri.endConsumer === 'private' || mri.endConsumer === 'b2b' || mri.endConsumer === 'both';
+  const isValid = hasValidXFactors && !otherNeedsText && hasValidCompetitors && hasValidPresence && hasValidTone && hasValidAudience;
 
   return (
     <div className="space-y-8">
@@ -152,9 +161,51 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
         <p className="text-muted-foreground">לפני שמדברים על עיצוב, בואו נבין את ה-DNA האסטרטגי {getYourWord(data.honorific)}</p>
       </div>
 
-      {/* Section 1: The 'Why You?' */}
+      {/* ─── NEW Section 1: Brand Presence ─── */}
       <Card className="border-2 shadow-xl overflow-hidden">
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <Crown className="w-5 h-5" />
+            נוכחות המותג
+          </h3>
+          <p className="text-sm text-white/80">איך היית מגדיר את הנוכחות של המותג שלך בשוק?</p>
+        </div>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {BRAND_PRESENCE_OPTIONS.map((option) => {
+              const isSelected = mri.brandPresence === option.id;
+              return (
+                <div
+                  key={option.id}
+                  onClick={() => updateMRI({ brandPresence: option.id })}
+                  className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center ${
+                    isSelected
+                      ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]'
+                      : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                  }`}
+                >
+                  <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-all bg-gradient-to-br ${option.gradient} shadow-lg ${
+                    isSelected ? 'scale-110' : 'opacity-70'
+                  }`}>
+                    <option.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="font-bold text-foreground mb-2">{option.label}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{option.description}</p>
+                  {isSelected && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── Section 1b: X-Factor (Why You?) ─── */}
+      <Card className="border-2 shadow-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-violet-500 to-purple-600 p-4">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <Trophy className="w-5 h-5" />
             למה שהלקוח יבחר דווקא בך?
@@ -186,101 +237,84 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                   onClick={() => toggleXFactor(factor.id)}
                   className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                     isSelected
-                      ? isPrimary
-                        ? 'border-primary bg-primary/10 shadow-lg'
-                        : 'border-primary/50 bg-primary/5'
+                      ? isPrimary ? 'border-primary bg-primary/10 shadow-lg' : 'border-primary/50 bg-primary/5'
                       : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
                   }`}
                 >
                   {isSelected && (
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPrimaryXFactor(factor.id);
-                      }}
+                      onClick={(e) => { e.stopPropagation(); setPrimaryXFactor(factor.id); }}
                       className={`absolute top-2 left-2 text-xs px-2 py-0.5 rounded-full ${
-                        isPrimary
-                          ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-sm'
-                          : 'bg-muted text-muted-foreground hover:bg-primary/20'
+                        isPrimary ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground hover:bg-primary/20'
                       }`}
                     >
                       {isPrimary ? '⭐ עיקרי' : 'הפוך לעיקרי'}
-                  </button>
+                    </button>
                   )}
                   <div className="flex items-start gap-3">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all bg-gradient-to-br ${gradients[factor.id]} shadow-lg ${shadows[factor.id]} ${
-                      isSelected ? 'scale-110' : 'opacity-70'
-                    }`}>
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all bg-gradient-to-br ${gradients[factor.id]} shadow-lg ${shadows[factor.id]} ${isSelected ? 'scale-110' : 'opacity-70'}`}>
                       <factor.icon className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 mt-1">
                       <p className="font-semibold text-foreground">{factor.label}</p>
                       <p className="text-xs text-muted-foreground mt-1">{factor.description}</p>
                     </div>
+                  </div>
+                  {isSelected && (
+                    <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                      <Input
+                        value={mri.xFactorDetails?.[factor.id] || ''}
+                        onChange={(e) => updateMRI({ xFactorDetails: { ...mri.xFactorDetails, [factor.id]: e.target.value } })}
+                        placeholder={
+                          factor.id === 'veteran' ? 'למשל: 25 שנה בתחום, מעל 10,000 לקוחות...' :
+                          factor.id === 'product' ? 'למשל: טכנולוגיה ייחודית, חומרי גלם מובחרים...' :
+                          factor.id === 'price' ? 'למשל: הזול ביותר בקטגוריה, חבילות משתלמות...' :
+                          factor.id === 'service' ? 'למשל: מענה 24/7, ליווי אישי לכל לקוח...' :
+                          'למשל: הסיפור שמאחורי המותג, ערכים ייחודיים...'
+                        }
+                        className="text-sm bg-background"
+                      />
                     </div>
-                    {isSelected && (
-                      <div className="mt-3" onClick={(e) => e.stopPropagation()}>
-                        <Input
-                          value={mri.xFactorDetails?.[factor.id] || ''}
-                          onChange={(e) => updateMRI({ 
-                            xFactorDetails: { ...mri.xFactorDetails, [factor.id]: e.target.value } 
-                          })}
-                          placeholder={
-                            factor.id === 'veteran' ? 'למשל: 25 שנה בתחום, מעל 10,000 לקוחות...' :
-                            factor.id === 'product' ? 'למשל: טכנולוגיה ייחודית, חומרי גלם מובחרים...' :
-                            factor.id === 'price' ? 'למשל: הזול ביותר בקטגוריה, חבילות משתלמות...' :
-                            factor.id === 'service' ? 'למשל: מענה 24/7, ליווי אישי לכל לקוח...' :
-                            'למשל: הסיפור שמאחורי המותג, ערכים ייחודיים...'
-                          }
-                          className="text-sm bg-background"
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              
-              {/* Other Option */}
-              <div
-                onClick={toggleOtherXFactor}
-                className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                  isOtherSelected
-                    ? otherNeedsText
-                      ? 'border-destructive bg-gradient-to-br from-red-50 to-rose-50'
-                      : 'border-primary/50 bg-gradient-to-br from-slate-50 to-gray-50'
-                    : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all bg-gradient-to-br from-slate-600 to-gray-700 shadow-lg shadow-slate-500/30 ${
-                    isOtherSelected ? 'scale-110' : 'opacity-70'
-                  }`}>
-                    <Edit3 className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1 mt-1">
-                    <p className="font-semibold text-foreground">אחר</p>
-                    <p className="text-xs text-muted-foreground mt-1">יש לי סיבה ייחודית משלי</p>
-                  </div>
+                  )}
                 </div>
-                {isOtherSelected && (
-                  <div className="mt-3" onClick={(e) => e.stopPropagation()}>
-                    <Textarea
-                      value={otherXFactor}
-                      onChange={(e) => handleOtherXFactorChange(e.target.value)}
-                      placeholder="תארו את הגורם המבדל הייחודי..."
-                      className={`min-h-[60px] text-sm bg-white ${otherNeedsText ? 'border-destructive focus-visible:ring-destructive' : ''}`}
-                    />
-                    {otherNeedsText && (
-                      <p className="text-xs text-destructive mt-1">יש למלא את השדה</p>
-                    )}
-                  </div>
-                )}
+              );
+            })}
+
+            {/* Other Option */}
+            <div
+              onClick={toggleOtherXFactor}
+              className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                isOtherSelected
+                  ? otherNeedsText ? 'border-destructive bg-destructive/5' : 'border-primary/50 bg-primary/5'
+                  : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all bg-gradient-to-br from-slate-600 to-gray-700 shadow-lg shadow-slate-500/30 ${isOtherSelected ? 'scale-110' : 'opacity-70'}`}>
+                  <Edit3 className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 mt-1">
+                  <p className="font-semibold text-foreground">אחר</p>
+                  <p className="text-xs text-muted-foreground mt-1">יש לי סיבה ייחודית משלי</p>
+                </div>
               </div>
+              {isOtherSelected && (
+                <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                  <Textarea
+                    value={otherXFactor}
+                    onChange={(e) => handleOtherXFactorChange(e.target.value)}
+                    placeholder="תארו את הגורם המבדל הייחודי..."
+                    className={`min-h-[60px] text-sm bg-background ${otherNeedsText ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                  />
+                  {otherNeedsText && <p className="text-xs text-destructive mt-1">יש למלא את השדה</p>}
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Section 2: Reality Check - Visual Advantage Spectrum */}
+      {/* ─── Section 2: Reality Check ─── */}
       <Card className="border-border overflow-hidden">
         <CardContent className="p-6 space-y-6">
           <div className="text-center">
@@ -288,20 +322,14 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
             <p className="text-sm text-muted-foreground">לחצו על הצד שמתאים יותר לעסק</p>
           </div>
           
-          {/* Visual Toggle Cards */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Physical Advantage */}
             <div
               onClick={() => updateMRI({ advantageSlider: 20, advantageType: 'hard' })}
               className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center ${
-                mri.advantageSlider < 50
-                  ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]'
-                  : 'border-border bg-card hover:border-primary/30'
+                mri.advantageSlider < 50 ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]' : 'border-border bg-card hover:border-primary/30'
               }`}
             >
-              <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-colors ${
-                mri.advantageSlider < 50 ? 'bg-primary/20' : 'bg-muted'
-              }`}>
+              <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-colors ${mri.advantageSlider < 50 ? 'bg-primary/20' : 'bg-muted'}`}>
                 <Package className={`w-8 h-8 ${mri.advantageSlider < 50 ? 'text-primary' : 'text-muted-foreground'}`} />
               </div>
               <h4 className="font-bold text-foreground mb-2">יתרון פיזי מובהק</h4>
@@ -313,25 +341,18 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
               </div>
               {mri.advantageSlider < 50 && (
                 <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <Check className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
             </div>
 
-            {/* Emotional Advantage */}
             <div
               onClick={() => updateMRI({ advantageSlider: 80, advantageType: 'soft' })}
               className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center ${
-                mri.advantageSlider >= 50
-                  ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]'
-                  : 'border-border bg-card hover:border-primary/30'
+                mri.advantageSlider >= 50 ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]' : 'border-border bg-card hover:border-primary/30'
               }`}
             >
-              <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-colors ${
-                mri.advantageSlider >= 50 ? 'bg-primary/20' : 'bg-muted'
-              }`}>
+              <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-colors ${mri.advantageSlider >= 50 ? 'bg-primary/20' : 'bg-muted'}`}>
                 <Heart className={`w-8 h-8 ${mri.advantageSlider >= 50 ? 'text-primary' : 'text-muted-foreground'}`} />
               </div>
               <h4 className="font-bold text-foreground mb-2">יתרון תדמיתי/רגשי</h4>
@@ -343,9 +364,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
               </div>
               {mri.advantageSlider >= 50 && (
                 <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <Check className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
             </div>
@@ -353,7 +372,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
 
           {mri.advantageSlider < 50 && (
             <div className="animate-fade-in pt-2">
-              <Label htmlFor="winning-feature" className="text-foreground">מה הפיצ׳ר המנצח?</Label>
+              <Label htmlFor="winning-feature" className="text-foreground">מה הפיצ'ר המנצח?</Label>
               <Input
                 id="winning-feature"
                 value={mri.winningFeature}
@@ -366,351 +385,218 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
         </CardContent>
       </Card>
 
-      {/* Section 3: The Arena - Simplified & Cleaner */}
-      <Card className="border-border">
-        <CardContent className="p-6 md:p-8 space-y-10">
-          <div className="text-center">
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-3">איפה אתם ממוקמים בשוק?</h3>
-            <p className="text-lg text-muted-foreground">הגדירו את הפוזיציה בשני צירים פשוטים</p>
+      {/* ─── NEW Section 3: Quality Signatures (conditional - not for "known" brand) ─── */}
+      {mri.brandPresence !== 'known' && (
+        <Card className="border-2 shadow-xl overflow-hidden animate-fade-in">
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-4">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <Award className="w-5 h-5" />
+              חתימות האיכות שלך
+            </h3>
+            <p className="text-sm text-white/80">האם יש הוכחות שתרצה שנספר עליך בגריד? (בחר עד 3)</p>
           </div>
+          <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {QUALITY_SIGNATURE_OPTIONS.map((option) => {
+                const isSelected = mri.qualitySignatures.some(s => s.type === option.type);
+                const signature = mri.qualitySignatures.find(s => s.type === option.type);
+                const isDisabled = !isSelected && mri.qualitySignatures.length >= 3;
+                const needsValue = option.placeholder && isSelected && !signature?.value?.trim();
 
-          {/* Price Positioning - Enhanced Design */}
-          <div className="p-8 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200/50 space-y-6">
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30 flex items-center justify-center">
-                <Tag className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-emerald-800">רמת מחיר</span>
-            </div>
-            
-            {/* Labels above slider */}
-            <div className="flex justify-between items-center px-2" dir="rtl">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <span className="text-3xl">💎</span>
-                <span className="text-base font-bold text-emerald-700">פרימיום / יוקרה</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <span className="text-3xl">💰</span>
-                <span className="text-base font-bold text-emerald-700">זול / משתלם</span>
-              </div>
-            </div>
-
-            <div className="relative py-4 px-4" dir="ltr">
-              <Slider
-                value={[mri.myPosition.x + 100]}
-                onValueChange={(value) => updateMRI({ myPosition: { ...mri.myPosition, x: value[0] - 100 } })}
-                max={200}
-                step={10}
-                className="w-full h-3"
-              />
-            </div>
-
-            <div className="text-center">
-              <Badge className={`text-lg px-6 py-2.5 ${
-                mri.myPosition.x < -30 
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white' 
-                  : mri.myPosition.x > 30 
-                    ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white' 
-                    : 'bg-gradient-to-r from-slate-500 to-gray-500 text-white'
-              }`}>
-                {mri.myPosition.x < -30 ? '💰 זול / משתלם' : mri.myPosition.x > 30 ? '💎 פרימיום / יוקרה' : '⚖️ מחיר ביניים'}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Style Positioning - Enhanced Design */}
-          <div className="p-8 rounded-3xl bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200/50 space-y-6">
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center">
-                <Sparkles className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-violet-800">סגנון תקשורת</span>
-            </div>
-            
-            {/* Labels above slider */}
-            <div className="flex justify-between items-center px-2" dir="rtl">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <span className="text-3xl">✨</span>
-                <span className="text-base font-bold text-violet-700">מודרני / חדשני</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <span className="text-3xl">🏛️</span>
-                <span className="text-base font-bold text-violet-700">קלאסי / מסורתי</span>
-              </div>
-            </div>
-
-            <div className="relative py-4 px-4" dir="ltr">
-              <Slider
-                value={[mri.myPosition.y + 100]}
-                onValueChange={(value) => updateMRI({ myPosition: { ...mri.myPosition, y: value[0] - 100 } })}
-                max={200}
-                step={10}
-                className="w-full h-3"
-              />
-            </div>
-
-            <div className="text-center">
-              <Badge className={`text-lg px-6 py-2.5 ${
-                mri.myPosition.y < -30 
-                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white' 
-                  : mri.myPosition.y > 30 
-                    ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white' 
-                    : 'bg-gradient-to-r from-slate-500 to-gray-500 text-white'
-              }`}>
-                {mri.myPosition.y < -30 ? '🏛️ קלאסי / מסורתי' : mri.myPosition.y > 30 ? '✨ מודרני / חדשני' : '⚖️ סגנון מאוזן'}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Summary Card - Prominent */}
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/30">
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl shrink-0">
-                אני
-              </div>
-              <div>
-                <p className="font-bold text-xl text-foreground">הפוזיציה שלכם:</p>
-                <p className="text-lg text-muted-foreground mt-2">
-                  {mri.myPosition.x < -30 ? 'זול ומשתלם' : mri.myPosition.x > 30 ? 'פרימיום ויוקרתי' : 'מחיר ביניים'}
-                  {' • '}
-                  {mri.myPosition.y < -30 ? 'סגנון קלאסי ומסורתי' : mri.myPosition.y > 30 ? 'סגנון מודרני וחדשני' : 'סגנון מאוזן'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Competitors Section - Required - Prominent Card */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-gray-100 border-2 border-slate-200 space-y-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-gray-700 shadow-md flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <span className="text-lg font-bold text-foreground">מתחרים עיקריים</span>
-                  <span className="text-destructive mr-1">*</span>
-                </div>
-              </div>
-              <span className="text-sm text-muted-foreground bg-white px-3 py-1 rounded-full">עד 3 מתחרים</span>
-            </div>
-            
-            {!noCompetitors && (
-              <>
-                <div className="flex gap-3">
-                  <Input
-                    value={newCompetitor}
-                    onChange={(e) => setNewCompetitor(e.target.value)}
-                    placeholder="שם המתחרה..."
-                    onKeyDown={(e) => e.key === 'Enter' && addCompetitor()}
-                    disabled={mri.competitors.length >= 3}
-                    className={`h-14 text-lg bg-background text-foreground ${!hasValidCompetitors ? 'border-destructive border-2' : 'border-slate-300'}`}
-                  />
-                  <Button
-                    onClick={addCompetitor}
-                    disabled={!newCompetitor.trim() || mri.competitors.length >= 3}
-                    variant="outline"
-                    size="lg"
-                    className="h-14 w-14 border-2"
+                return (
+                  <div
+                    key={option.type}
+                    onClick={() => !isDisabled && toggleQualitySignature(option.type)}
+                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                      isSelected
+                        ? 'border-primary bg-primary/10 shadow-md'
+                        : isDisabled
+                          ? 'border-border bg-muted/50 opacity-50 cursor-not-allowed'
+                          : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                    }`}
                   >
-                    <Plus className="w-6 h-6" />
-                  </Button>
-                </div>
-
-                {mri.competitors.length > 0 && (
-                  <div className="flex flex-wrap gap-3 mt-4">
-                    {mri.competitors.map((comp, idx) => (
-                      <Badge key={idx} variant="outline" className="pl-4 pr-2 py-2.5 gap-3 text-base bg-white border-2 border-slate-300">
-                        {comp}
-                        <button
-                          onClick={() => removeCompetitor(idx)}
-                          className="hover:bg-destructive/20 rounded-full p-1"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </Badge>
-                    ))}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all bg-gradient-to-br ${option.gradient} shadow-md ${isSelected ? 'scale-110' : 'opacity-60'}`}>
+                        <option.icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-foreground text-sm">{option.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{option.template.replace('{value}', '___')}</p>
+                      </div>
+                      {isSelected && (
+                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="w-4 h-4 text-primary-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    {isSelected && option.placeholder && (
+                      <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                        <Input
+                          value={signature?.value || ''}
+                          onChange={(e) => updateSignatureValue(option.type, e.target.value)}
+                          placeholder={option.placeholder}
+                          className={`text-sm bg-background ${needsValue ? 'border-destructive' : ''}`}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </>
-            )}
+                );
+              })}
+            </div>
 
-            <button
-              onClick={toggleNoCompetitors}
-              className={`px-6 py-3 rounded-xl border-2 transition-all text-base font-medium ${
-                noCompetitors
-                  ? 'border-primary bg-primary text-primary-foreground shadow-md'
-                  : 'border-slate-300 bg-white hover:border-primary/50 text-muted-foreground hover:shadow-md'
-              }`}
-            >
-              אין לי מתחרים
-            </button>
+            {mri.qualitySignatures.length > 0 && (
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+                <p className="text-sm font-medium text-foreground mb-2">יופיעו בגריד המודעה:</p>
+                <div className="flex flex-wrap gap-2">
+                  {mri.qualitySignatures.map((sig) => {
+                    const opt = QUALITY_SIGNATURE_OPTIONS.find(o => o.type === sig.type);
+                    const displayText = opt?.template.replace('{value}', sig.value || '___') || sig.type;
+                    return (
+                      <Badge key={sig.type} className="bg-primary/10 text-primary border-primary/30 text-xs">
+                        {displayText}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ─── Section: Competitors ─── */}
+      <Card className="border-border">
+        <CardContent className="p-6 space-y-5">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-gray-700 shadow-md flex items-center justify-center">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <span className="text-lg font-bold text-foreground">מתחרים עיקריים</span>
+              <span className="text-destructive mr-1">*</span>
+              <p className="text-sm text-muted-foreground">עד 3 מתחרים</p>
+            </div>
           </div>
+
+          {!noCompetitors && (
+            <>
+              <div className="flex gap-3">
+                <Input
+                  value={newCompetitor}
+                  onChange={(e) => setNewCompetitor(e.target.value)}
+                  placeholder="שם המתחרה..."
+                  onKeyDown={(e) => e.key === 'Enter' && addCompetitor()}
+                  disabled={mri.competitors.length >= 3}
+                  className={`h-14 text-lg bg-background text-foreground ${!hasValidCompetitors ? 'border-destructive border-2' : ''}`}
+                />
+                <Button onClick={addCompetitor} disabled={!newCompetitor.trim() || mri.competitors.length >= 3} variant="outline" size="lg" className="h-14 w-14 border-2">
+                  <Plus className="w-6 h-6" />
+                </Button>
+              </div>
+              {mri.competitors.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {mri.competitors.map((comp, idx) => (
+                    <Badge key={idx} variant="outline" className="pl-4 pr-2 py-2.5 gap-3 text-base bg-card border-2">
+                      {comp}
+                      <button onClick={() => removeCompetitor(idx)} className="hover:bg-destructive/20 rounded-full p-1">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+          <button
+            onClick={toggleNoCompetitors}
+            className={`px-6 py-3 rounded-xl border-2 transition-all text-base font-medium ${
+              noCompetitors ? 'border-primary bg-primary text-primary-foreground shadow-md' : 'border-border bg-card hover:border-primary/50 text-muted-foreground'
+            }`}
+          >
+            אין לי מתחרים
+          </button>
         </CardContent>
       </Card>
 
-      {/* Section 4: Target Audience - Selection Options */}
+      {/* ─── NEW Section 4: Audience Tone ─── */}
       <Card className="border-2 shadow-xl overflow-hidden">
         <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-4">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <Users className="w-5 h-5" />
-            למי אתם פונים?
+            למי אנחנו מדברים בדרך כלל?
           </h3>
-          <p className="text-sm text-white/80">בחרו את סוג הלקוחות שלכם</p>
+          <p className="text-sm text-white/80">זה יקבע את טון השפה במודעות</p>
         </div>
         <CardContent className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* B2C - Private Customers */}
-            <div
-              onClick={() => updateMRI({ endConsumer: 'private', decisionMaker: '' })}
-              className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                mri.endConsumer === 'private'
-                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-lg'
-                  : 'border-border bg-card hover:border-blue-300 hover:shadow-md'
-              }`}
-            >
-              <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                  mri.endConsumer === 'private' 
-                    ? 'bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md shadow-blue-500/30' 
-                    : 'bg-muted'
-                }`}>
-                  <User className={`w-6 h-6 ${mri.endConsumer === 'private' ? 'text-white' : 'text-muted-foreground'}`} />
-                </div>
-                <div className="flex-1">
-                  <h4 className={`font-semibold mb-1 ${mri.endConsumer === 'private' ? 'text-blue-700' : 'text-foreground'}`}>לקוחות פרטיים</h4>
-                  <p className="text-sm text-muted-foreground">אנשים פרטיים, משפחות, צרכנים</p>
-                </div>
-              </div>
-              {mri.endConsumer === 'private' && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 shadow-sm flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              )}
-            </div>
-
-            {/* B2B - Organizations */}
-            <div
-              onClick={() => updateMRI({ endConsumer: 'b2b', decisionMaker: '' })}
-              className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                mri.endConsumer === 'b2b'
-                  ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-violet-50 shadow-lg'
-                  : 'border-border bg-card hover:border-purple-300 hover:shadow-md'
-              }`}
-            >
-              <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                  mri.endConsumer === 'b2b' 
-                    ? 'bg-gradient-to-br from-purple-500 to-violet-600 shadow-md shadow-purple-500/30' 
-                    : 'bg-muted'
-                }`}>
-                  <Users className={`w-6 h-6 ${mri.endConsumer === 'b2b' ? 'text-white' : 'text-muted-foreground'}`} />
-                </div>
-                <div className="flex-1">
-                  <h4 className={`font-semibold mb-1 ${mri.endConsumer === 'b2b' ? 'text-purple-700' : 'text-foreground'}`}>ארגונים וחברות</h4>
-                  <p className="text-sm text-muted-foreground">רשויות, מוסדות, עסקים, חברות</p>
-                </div>
-              </div>
-              {mri.endConsumer === 'b2b' && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 shadow-sm flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              )}
-            </div>
-
-            {/* Both - Mixed */}
-            <div
-              onClick={() => updateMRI({ endConsumer: 'both', decisionMaker: '' })}
-              className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                mri.endConsumer === 'both'
-                  ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-orange-50 shadow-lg'
-                  : 'border-border bg-card hover:border-amber-300 hover:shadow-md'
-              }`}
-            >
-              <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                  mri.endConsumer === 'both' 
-                    ? 'bg-gradient-to-br from-amber-500 to-orange-500 shadow-md shadow-amber-500/30' 
-                    : 'bg-muted'
-                }`}>
-                  <div className="relative">
-                    <User className={`w-5 h-5 absolute -right-1 -top-1 ${mri.endConsumer === 'both' ? 'text-white' : 'text-muted-foreground'}`} />
-                    <Users className={`w-5 h-5 absolute -left-1 -bottom-1 ${mri.endConsumer === 'both' ? 'text-white' : 'text-muted-foreground'}`} />
+            {AUDIENCE_TONE_OPTIONS.map((option) => {
+              const isSelected = mri.audienceTone === option.id;
+              return (
+                <div
+                  key={option.id}
+                  onClick={() => updateMRI({ audienceTone: option.id, endConsumer: option.id === 'b2b' ? 'b2b' : 'private' })}
+                  className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center ${
+                    isSelected ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]' : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                  }`}
+                >
+                  <div className={`w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center transition-all bg-gradient-to-br ${option.gradient} shadow-lg ${isSelected ? 'scale-110' : 'opacity-70'}`}>
+                    <option.icon className="w-7 h-7 text-white" />
                   </div>
+                  <h4 className="font-bold text-foreground mb-1">{option.label}</h4>
+                  <p className="text-sm text-muted-foreground">{option.description}</p>
+                  {isSelected && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <h4 className={`font-semibold mb-1 ${mri.endConsumer === 'both' ? 'text-amber-700' : 'text-foreground'}`}>גם וגם</h4>
-                  <p className="text-sm text-muted-foreground">פרטיים וגם ארגונים</p>
-                </div>
-              </div>
-              {mri.endConsumer === 'both' && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 shadow-sm flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              )}
-            </div>
+              );
+            })}
           </div>
-
-          {/* Sub-options for B2C */}
-          {mri.endConsumer === 'private' && (
-            <div className="animate-fade-in pt-4 border-t border-border space-y-3">
-              <p className="text-sm font-medium text-foreground">מי מקבל את ההחלטה?</p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { id: 'buyer', label: 'הקונה עצמו', desc: 'מחליט ומשלם בעצמו' },
-                  { id: 'parent', label: 'הורים / משפחה', desc: 'ההורים משלמים' },
-                  { id: 'spouse', label: 'בן/בת זוג', desc: 'החלטה זוגית' },
-                ].map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => updateMRI({ decisionMaker: option.id })}
-                    className={`px-4 py-2 rounded-full border transition-all text-sm ${
-                      mri.decisionMaker === option.id
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Sub-options for B2B */}
-          {mri.endConsumer === 'b2b' && (
-            <div className="animate-fade-in pt-4 border-t border-border space-y-3">
-              <p className="text-sm font-medium text-foreground">איזה סוג ארגון?</p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { id: 'business', label: 'עסקים קטנים' },
-                  { id: 'corporate', label: 'חברות גדולות' },
-                  { id: 'institution', label: 'מוסדות חינוך' },
-                  { id: 'authority', label: 'רשויות מקומיות' },
-                  { id: 'nonprofit', label: 'עמותות' },
-                ].map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => updateMRI({ decisionMaker: option.id })}
-                    className={`px-4 py-2 rounded-full border transition-all text-sm ${
-                      mri.decisionMaker === option.id
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {/* ─── Summary: Brand Identity Card ─── */}
+      {mri.brandPresence && mri.audienceTone && (
+        <Card className="border-2 border-primary/30 shadow-xl overflow-hidden animate-fade-in">
+          <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6">
+            <h3 className="text-xl font-bold text-foreground mb-4 text-center">תעודת הזהות של המותג</h3>
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              {/* Logo */}
+              {data.brand.logo && (
+                <div className="w-20 h-20 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden border-2 border-border shrink-0">
+                  <img src={data.brand.logo} alt="Logo" className="w-full h-full object-contain p-2" />
+                </div>
+              )}
+              <div className="flex-1 text-center md:text-right space-y-3">
+                <h4 className="text-2xl font-bold text-foreground">{data.brand.name}</h4>
+                {/* Colors */}
+                {(data.brand.colors.primary || data.brand.colors.secondary) && (
+                  <div className="flex items-center gap-2 justify-center md:justify-start">
+                    <span className="text-sm text-muted-foreground">צבעי מותג:</span>
+                    {data.brand.colors.primary && <div className="w-8 h-8 rounded-lg border-2 border-white shadow-sm" style={{ backgroundColor: data.brand.colors.primary }} />}
+                    {data.brand.colors.secondary && <div className="w-8 h-8 rounded-lg border-2 border-white shadow-sm" style={{ backgroundColor: data.brand.colors.secondary }} />}
+                  </div>
+                )}
+                {/* DNA Summary */}
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                  <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/30">
+                    {BRAND_PRESENCE_OPTIONS.find(o => o.id === mri.brandPresence)?.label}
+                  </Badge>
+                  <Badge className="bg-pink-500/10 text-pink-700 border-pink-500/30">
+                    {AUDIENCE_TONE_OPTIONS.find(o => o.id === mri.audienceTone)?.label}
+                  </Badge>
+                  {mri.xFactors.length > 0 && (
+                    <Badge className="bg-violet-500/10 text-violet-700 border-violet-500/30">
+                      {X_FACTORS.find(f => f.id === (mri.primaryXFactor || mri.xFactors[0]))?.label}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Bot Message */}
       {botMessage && (
@@ -731,12 +617,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
           <ArrowRight className="w-4 h-4" />
           חזרה
         </Button>
-        <Button
-          onClick={onNext}
-          disabled={!isValid}
-          variant="gradient"
-          className="gap-2"
-        >
+        <Button onClick={onNext} disabled={!isValid} variant="gradient" className="gap-2">
           המשך
           <ArrowLeft className="w-4 h-4" />
         </Button>
