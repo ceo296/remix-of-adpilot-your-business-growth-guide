@@ -383,9 +383,11 @@ export type Database = {
           advantage_slider: number | null
           advantage_type: string | null
           agency_owner_id: string | null
+          audience_tone: string | null
           background_color: string | null
           body_font: string | null
           branches: string | null
+          brand_presence: string | null
           business_name: string
           business_photos: Json | null
           competitor_positions: Json | null
@@ -413,6 +415,7 @@ export type Database = {
           personal_red_lines: string[] | null
           primary_color: string | null
           primary_x_factor: string | null
+          quality_signatures: Json | null
           secondary_color: string | null
           social_facebook: string | null
           social_instagram: string | null
@@ -430,9 +433,11 @@ export type Database = {
           advantage_slider?: number | null
           advantage_type?: string | null
           agency_owner_id?: string | null
+          audience_tone?: string | null
           background_color?: string | null
           body_font?: string | null
           branches?: string | null
+          brand_presence?: string | null
           business_name: string
           business_photos?: Json | null
           competitor_positions?: Json | null
@@ -460,6 +465,7 @@ export type Database = {
           personal_red_lines?: string[] | null
           primary_color?: string | null
           primary_x_factor?: string | null
+          quality_signatures?: Json | null
           secondary_color?: string | null
           social_facebook?: string | null
           social_instagram?: string | null
@@ -477,9 +483,11 @@ export type Database = {
           advantage_slider?: number | null
           advantage_type?: string | null
           agency_owner_id?: string | null
+          audience_tone?: string | null
           background_color?: string | null
           body_font?: string | null
           branches?: string | null
+          brand_presence?: string | null
           business_name?: string
           business_photos?: Json | null
           competitor_positions?: Json | null
@@ -507,6 +515,7 @@ export type Database = {
           personal_red_lines?: string[] | null
           primary_color?: string | null
           primary_x_factor?: string | null
+          quality_signatures?: Json | null
           secondary_color?: string | null
           social_facebook?: string | null
           social_instagram?: string | null

@@ -84,6 +84,14 @@ export interface CompetitorPosition {
   y: number; // -100 (Old School) to 100 (Modern)
 }
 
+export type BrandPresenceType = 'known' | 'expert' | 'active';
+export type AudienceToneType = 'broad' | 'premium' | 'b2b';
+
+export interface QualitySignature {
+  type: 'experience' | 'technology' | 'service' | 'trust' | 'scale';
+  value: string; // fill-in value (e.g. number of years, number of customers)
+}
+
 export interface StrategicMRI {
   // Section 1: The 'Why You?' (X-Factor)
   xFactors: XFactorType[];
@@ -105,6 +113,11 @@ export interface StrategicMRI {
   // Section 4: Target Audience (free text)
   endConsumer: string; // Who uses the product
   decisionMaker: string; // Who makes the purchase decision
+
+  // New: Brand Presence & Tone
+  brandPresence: BrandPresenceType | null;
+  qualitySignatures: QualitySignature[];
+  audienceTone: AudienceToneType | null;
 }
 
 // Contact Assets
@@ -218,6 +231,9 @@ export const initialWizardData: WizardData = {
     competitorPositions: [],
     endConsumer: '',
     decisionMaker: '',
+    brandPresence: null,
+    qualitySignatures: [],
+    audienceTone: null,
   },
   brand: {
     name: '',
