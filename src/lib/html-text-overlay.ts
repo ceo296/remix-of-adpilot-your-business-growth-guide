@@ -8,6 +8,7 @@
 import { toPng } from 'html-to-image';
 import { renderTemplate, DEFAULT_TEMPLATE, type TemplateData } from './template-engine';
 import { supabase } from '@/integrations/supabase/client';
+import { detectWhiteBackground, removeWhiteBackground } from './logo-utils';
 
 // Only 'custom' is supported — all legacy styles removed
 export type TextLayoutStyle = 'custom';
@@ -221,6 +222,20 @@ export async function applyHtmlTextOverlay(
     } else {
       console.warn('[Overlay] No global template in DB — using hardcoded DEFAULT_TEMPLATE');
       config = { ...config, customTemplateHtml: DEFAULT_TEMPLATE };
+    }
+  }
+
+  // Auto-clean logo white background at render time (catches logos uploaded before the detection feature)
+  if (config.logoUrl) {
+    try {
+      const { isWhite } = await detectWhiteBackground(config.logoUrl);
+      if (isWhite) {
+        console.log('[Overlay] 🧹 Logo has white background — removing before render');
+        const cleanLogo = await removeWhiteBackground(config.logoUrl);
+        config = { ...config, logoUrl: cleanLogo };
+      }
+    } catch (e) {
+      console.warn('[Overlay] Logo bg detection failed, using original:', e);
     }
   }
 
