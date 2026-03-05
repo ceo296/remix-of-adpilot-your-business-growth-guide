@@ -2,6 +2,7 @@
  * HTML/CSS-based text overlay system for professional Hebrew ad layouts.
  * V3 - Master Template only. All legacy layout styles removed.
  * Renders via the template engine (renderTemplate) with custom HTML templates from DB.
+ * Updated: force chunk rebuild
  */
 
 import { toPng } from 'html-to-image';
