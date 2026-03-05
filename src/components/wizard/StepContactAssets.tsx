@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { 
   Phone, 
@@ -12,7 +13,9 @@ import {
   Linkedin,
   Music2,
   Link as LinkIcon,
-  Globe
+  Globe,
+  Clock,
+  Building2
 } from 'lucide-react';
 
 export interface ContactAssets {
@@ -26,6 +29,8 @@ export interface ContactAssets {
   social_instagram: string;
   social_tiktok: string;
   social_linkedin: string;
+  opening_hours: string;
+  branches: string;
 }
 
 interface StepContactAssetsProps {
@@ -125,6 +130,49 @@ export const StepContactAssets = ({ data, onChange }: StepContactAssetsProps) =>
                 />
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Business Details - Hours & Branches */}
+      <Card className="border-2 border-border shadow-lg max-w-2xl mx-auto">
+        <CardContent className="p-8 space-y-6">
+          <h3 className="font-bold text-xl text-foreground flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Building2 className="w-6 h-6 text-primary" />
+            </div>
+            סניפים ושעות פעילות
+          </h3>
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <Label htmlFor="opening_hours" className="flex items-center gap-2 text-base font-semibold text-foreground">
+                <Clock className="w-5 h-5 text-primary" />
+                שעות פתיחה
+              </Label>
+              <Input
+                id="opening_hours"
+                type="text"
+                value={data.opening_hours || ''}
+                onChange={(e) => onChange({ opening_hours: e.target.value })}
+                placeholder="א׳-ה׳ 9:00-18:00, ו׳ 9:00-13:00"
+                className="text-lg h-14"
+                dir="rtl"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="branches" className="flex items-center gap-2 text-base font-semibold text-foreground">
+                <MapPin className="w-5 h-5 text-primary" />
+                סניפים (כל סניף בשורה נפרדת)
+              </Label>
+              <Textarea
+                id="branches"
+                value={data.branches || ''}
+                onChange={(e) => onChange({ branches: e.target.value })}
+                placeholder={"בני ברק - רחוב רבי עקיבא 42\nירושלים - רחוב יפו 120\nאשדוד - שד׳ הנשיאים 8"}
+                className="text-lg min-h-[120px]"
+                dir="rtl"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -110,6 +110,8 @@ export interface ContactAssets {
   social_instagram: string;
   social_tiktok: string;
   social_linkedin: string;
+  opening_hours: string;
+  branches: string;
 }
 
 // Website Insights (extracted from URL scan)
@@ -176,6 +178,8 @@ export const initialContactAssets: ContactAssets = {
   social_instagram: '',
   social_tiktok: '',
   social_linkedin: '',
+  opening_hours: '',
+  branches: '',
 };
 
 export const initialWizardData: WizardData = {
