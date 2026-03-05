@@ -381,12 +381,34 @@ const CreativeStudio = () => {
     if (savedBrief) {
       try {
         const briefData = JSON.parse(savedBrief);
-        setCampaignBrief(prev => ({
-          ...prev,
-          title: briefData.campaignName || '',
-          offer: briefData.campaignOffer || '',
-          goal: briefData.goal || null,
-        }));
+        
+        // Load full guided brief if available (from FastTrackWizard)
+        if (briefData.guidedBrief) {
+          const gb = briefData.guidedBrief;
+          setCampaignBrief(prev => ({
+            ...prev,
+            title: gb.title || briefData.campaignName || '',
+            offer: gb.offer || briefData.campaignOffer || '',
+            goal: gb.goal || briefData.goal || null,
+            structure: gb.structure || null,
+            adGoal: gb.adGoal || null,
+            showPriceOrBenefit: gb.showPriceOrBenefit ?? null,
+            priceOrBenefit: gb.priceOrBenefit || '',
+            isTimeLimited: gb.isTimeLimited ?? null,
+            timeLimitText: gb.timeLimitText || '',
+            emotionalTone: gb.emotionalTone || null,
+            desiredAction: gb.desiredAction || null,
+            contactSelection: gb.contactSelection || prev.contactSelection,
+            colorSelection: gb.colorSelection || prev.colorSelection,
+          }));
+        } else {
+          setCampaignBrief(prev => ({
+            ...prev,
+            title: briefData.campaignName || '',
+            offer: briefData.campaignOffer || '',
+            goal: briefData.goal || null,
+          }));
+        }
         // If brief is pre-filled, auto-enter autopilot mode (goal already selected)
         if (briefData.campaignOffer && briefData.goal) {
           setMode('autopilot');
