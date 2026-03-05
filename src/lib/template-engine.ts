@@ -221,14 +221,14 @@ export const DEFAULT_TEMPLATE = `<style>
   .phone-num { color:#fff; font-weight:900; font-size:clamp(24px,5vw,40px); letter-spacing:-0.5px; direction:ltr; text-align:left; }
   .cta-btn { display:inline-block; background:{{brand_primary_color}}; color:#fff; font-weight:800; font-size:clamp(12px,2vw,17px); padding:10px 22px; border-radius:4px; box-shadow:0 3px 12px rgba(0,0,0,0.3); }
   .contact-left { display:flex; align-items:center; gap:12px; }
-  .logo-in-bar img { height:clamp(35px,7vw,55px); filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8)); object-fit:contain; mix-blend-mode:multiply; background:transparent; }
+  .logo-in-bar img { height:clamp(35px,7vw,55px); filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8)); object-fit:contain; mix-blend-mode:screen; background:transparent; }
   .brand-info { display:flex; flex-direction:column; gap:2px; }
   .biz-name { color:#fff; font-weight:800; font-size:clamp(14px,2.5vw,20px); }
   .services-line { color:rgba(255,255,255,0.6); font-size:clamp(9px,1.5vw,12px); }
   .addr-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:3px; }
   .addr-item { color:rgba(255,255,255,0.65); font-size:clamp(8px,1.3vw,11px); font-style:italic; }
   .addr-sep { color:rgba(255,255,255,0.35); font-size:clamp(8px,1.3vw,11px); margin:0 2px; }
-  .kashrut-in-bar img { height:clamp(22px,4vw,35px); opacity:0.65; filter:brightness(0) invert(1); }
+  .kashrut-in-bar img { height:clamp(22px,4vw,35px); opacity:0.65; filter:brightness(0) invert(1); mix-blend-mode:screen; background:transparent; }
 </style>
 <div class="ad">
   <img src="{{image_url}}" class="bg-img" alt="bg">
