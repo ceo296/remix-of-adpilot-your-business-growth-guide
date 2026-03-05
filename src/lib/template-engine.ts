@@ -32,6 +32,8 @@ export interface TemplateData {
   imageUrl?: string;
   image_url?: string;
   kashrut_logo?: string;
+  opening_hours?: string;
+  branches?: string[];
   width?: number;
   height?: number;
   [key: string]: any;
@@ -66,6 +68,8 @@ export const AVAILABLE_PLACEHOLDERS = [
   { key: 'imageUrl', label: 'תמונת רקע (legacy)', example: 'data:image/...' },
   { key: 'width', label: 'רוחב (px)', example: '800' },
   { key: 'height', label: 'גובה (px)', example: '1067' },
+  { key: 'opening_hours', label: 'שעות פתיחה', example: 'א׳-ה׳ 9:00-18:00' },
+  { key: 'branches', label: 'סניפים', example: 'בני ברק, ירושלים' },
 ];
 
 /**

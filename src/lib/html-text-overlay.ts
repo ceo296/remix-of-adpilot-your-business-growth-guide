@@ -41,6 +41,8 @@ export interface TextOverlayConfig {
   customTemplateHtml?: string;
   headerFont?: string;
   kashrutLogo?: string;
+  openingHours?: string;
+  branches?: string[];
 }
 
 // ─── Text utilities (kept — used by template data prep) ───
@@ -99,17 +101,17 @@ function makeOverlayTransparent(html: string): string {
     }
   );
   
-  // Make the contact-bar a thin, subtle glass strip — NOT an opaque band.
-  // Use very light transparency so the AI image shows through clearly.
+  // Make the contact-bar fully transparent — no strip, just floating text on the image.
   result = result.replace(
     /\.contact-bar\s*\{([^}]*)\}/,
     (match, body) => {
       let newBody = body;
-      // Strip ALL background declarations and replace with ultra-light glass
-      newBody = newBody.replace(
-        /background\s*:[^;]*/gi,
-        'background: linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0.15))'
-      );
+      // Strip ALL background and backdrop-filter declarations
+      newBody = newBody.replace(/background\s*:[^;]*/gi, 'background: transparent');
+      newBody = newBody.replace(/backdrop-filter\s*:[^;]*/gi, 'backdrop-filter: none');
+      newBody = newBody.replace(/-webkit-backdrop-filter\s*:[^;]*/gi, '-webkit-backdrop-filter: none');
+      newBody = newBody.replace(/border[^;]*/gi, 'border: none');
+      newBody = newBody.replace(/box-shadow\s*:[^;]*/gi, 'box-shadow: none');
       return `.contact-bar {${newBody}}`;
     }
   );
@@ -149,6 +151,8 @@ function getLayoutHTML(config: TextOverlayConfig, width: number, height: number,
     promoText: config.promoText || '',
     promo_text: config.promoText || '',
     promoValue: config.promoValue || '',
+    opening_hours: config.openingHours || '',
+    branches: config.branches || [],
     imageUrl,
     image_url: imageUrl,
     width,
