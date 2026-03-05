@@ -750,9 +750,9 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       servicesList = brandContext.xFactors.slice(0, 5);
     }
     
-    // Auto-extract promo info from the offer brief
+    // Auto-extract promo info from the offer brief or guided brief
     let promoText = campaignContext?.promoText || '';
-    let promoValue = campaignContext?.promoValue || '';
+    let promoValue = campaignContext?.promoValue || campaignContext?.priceOrBenefit || '';
     
     // Auto-extract bullet items (services, prices, advantages) from the brief
     const bulletItems: { icon: string; text: string; highlight?: boolean }[] = [];

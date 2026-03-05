@@ -349,6 +349,43 @@ Respond ONLY with valid JSON in this exact format:
     const campaignTitle = campaignBrief?.title || '';
     const campaignOffer = campaignBrief?.offer || '';
     const campaignGoal = campaignBrief?.goal || '';
+    const adGoal = campaignBrief?.adGoal || '';
+    const emotionalTone = campaignBrief?.emotionalTone || '';
+    const desiredAction = campaignBrief?.desiredAction || '';
+    const priceOrBenefit = campaignBrief?.priceOrBenefit || '';
+    const isTimeLimited = campaignBrief?.isTimeLimited || false;
+    const timeLimitText = campaignBrief?.timeLimitText || '';
+
+    // Map guided brief values to creative directives
+    const AD_GOAL_DIRECTIVES: Record<string, string> = {
+      sell: 'מטרת המודעה: מכירה ישירה. טון דחוף ומכירתי. הדגש מחירים, הנחות, מבצעים. CTA חזק וברור.',
+      awareness: 'מטרת המודעה: מודעות מותגית. טון יוקרתי ונקי. ללא מכירה ישירה. כותרות קצרות ואלגנטיות שבונות מותג.',
+      new_product: 'מטרת המודעה: השקת מוצר/שירות חדש. טון דרמטי ומסקרן. בנה ציפייה. "משהו חדש מגיע" אנרגיה.',
+      meetup: 'מטרת המודעה: הזמנה לאירוע/מפגש. טון חם ומזמין. הדגש תאריך, מקום, ומה מחכה למשתתפים.',
+    };
+    const TONE_DIRECTIVES: Record<string, string> = {
+      luxury: 'טון רגשי: יוקרה ואלגנטיות. שפה גבוהה, מינימליסטית, שמשדרת בלעדיות.',
+      urgency: 'טון רגשי: דחיפות. "עכשיו או לעולם לא", "מוגבל", "האחרונים". אנרגיה גבוהה.',
+      belonging: 'טון רגשי: שייכות ומשפחתיות. חום, קהילה, ביחד. רגעים משפחתיים.',
+      professional: 'טון רגשי: מקצועיות ואמינות. נתונים, עובדות, ניסיון, מומחיות.',
+    };
+    const ACTION_DIRECTIVES: Record<string, string> = {
+      whatsapp: 'הפעולה הרצויה: פנייה בוואטסאפ/מייל. ה-CTA צריך להיות "שלחו הודעה" או "לפרטים בוואטסאפ".',
+      phone: 'הפעולה הרצויה: שיחת טלפון. ה-CTA צריך להיות "התקשרו עכשיו" או "חייגו".',
+      visit: 'הפעולה הרצויה: ביקור במקום/חנות. ה-CTA צריך להיות "בואו לבקר" או "הכתובת שלנו".',
+      website: 'הפעולה הרצויה: כניסה לאתר. ה-CTA צריך להיות "היכנסו לאתר" או "לפרטים נוספים".',
+      recall: 'הפעולה הרצויה: זכירת המותג. ללא CTA ישיר — הכותרת והוויזואל צריכים להיחרט בזיכרון.',
+    };
+
+    const guidedBriefSection = (adGoal || emotionalTone || desiredAction || priceOrBenefit || isTimeLimited) ? `
+=== בריף מודרך מהלקוח — חובה ליישם! ===
+${adGoal ? AD_GOAL_DIRECTIVES[adGoal] || `מטרת מודעה: ${adGoal}` : ''}
+${emotionalTone ? TONE_DIRECTIVES[emotionalTone] || `טון: ${emotionalTone}` : ''}
+${desiredAction ? ACTION_DIRECTIVES[desiredAction] || `פעולה רצויה: ${desiredAction}` : ''}
+${priceOrBenefit ? `מחיר/הטבה שחייב להופיע בולט: "${priceOrBenefit}"` : ''}
+${isTimeLimited && timeLimitText ? `⏰ מוגבל בזמן! יש להדגיש: "${timeLimitText}"` : ''}
+=== סוף בריף מודרך ===
+` : '';
 
     const userPrompt = `Create 3 creative ${isRadio ? 'radio spot' : 'advertising'} concepts for this business:
 
@@ -358,6 +395,9 @@ Main X-Factor/Unique Selling Point: ${profile.primary_x_factor || 'איכות ו
 Winning Feature: ${profile.winning_feature || 'מקצועיות'}
 Advantage Type: ${profile.advantage_type || 'שירות'}
 All X-Factors: ${profile.x_factors?.join(', ') || 'איכות, מחיר, שירות'}
+Brand Presence: ${profile.brand_presence || 'לא הוגדר'}
+
+${guidedBriefSection}
 
 ${campaignTitle || campaignOffer ? `
 === CAMPAIGN BRIEF - CRITICAL ===
