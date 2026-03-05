@@ -146,7 +146,7 @@ const EMOTIONAL_TONE_OPTIONS: { id: EmotionalTone; label: string; description: s
 const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
   { id: 'whatsapp-email', label: 'שליחת מייל / וואטסאפ', icon: MessageCircle, gradient: 'from-green-500 to-emerald-600', shadow: 'shadow-green-500/30' },
   { id: 'phone-call', label: 'שיחה טלפונית', icon: Phone, gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/30' },
-  { id: 'visit-store', label: 'הגעה לסניף / חנות', icon: Store, gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/30' },
+  { id: 'visit-store', label: 'הגעה למקום / חנות', icon: Store, gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/30' },
   { id: 'visit-website', label: 'כניסה לאתר', icon: Globe, gradient: 'from-cyan-500 to-teal-600', shadow: 'shadow-cyan-500/30' },
   { id: 'remember-me', label: 'יזכרו אותי', icon: Brain, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30' },
 ];
