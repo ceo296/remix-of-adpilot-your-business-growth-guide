@@ -1524,6 +1524,7 @@ const CreativeStudio = () => {
     // Initialize pipeline steps
     const initialSteps: AgentStep[] = [
       { id: 'profile', agent: 'System', label: 'טעינת פרופיל מותג', icon: 'database', status: 'pending' },
+      { id: 'brief-data', agent: 'System', label: '📋 נתוני בריף שהתקבלו', icon: 'lesson', status: 'pending' },
       { id: 'topic', agent: 'System', label: 'זיהוי נושא וקטגוריה', icon: 'brain', status: 'pending' },
       { id: 'strategy', agent: 'Super Agent', label: 'ניתוח אסטרטגי — קהל, כאבים, יתרונות', icon: 'send', status: 'pending' },
       { id: 'concepts', agent: 'Concept Agent', label: 'יצירת 3 קונספטים קריאטיביים', icon: 'sparkles', status: 'pending' },
@@ -1553,6 +1554,33 @@ const CreativeStudio = () => {
         status: 'done', 
         completedAt: Date.now(),
         output: `עסק: ${profile.business_name}\nקהל: ${profile.target_audience || profile.end_consumer || 'לא הוגדר'}\nלוגו: ${(clientProfile as any)?.logo_url ? '✅ נמצא' : '❌ חסר'}`,
+      });
+
+      // Brief Data Summary step
+      const goalLabels: Record<string, string> = { sell: '💰 מכירה', awareness: '📢 מודעות', new_product: '🚀 השקה', meetup: '🤝 כנס/מפגש' };
+      const toneLabels: Record<string, string> = { luxury: '✨ יוקרה', urgency: '⏰ דחיפות', belonging: '🤝 שייכות', professional: '🏢 מקצועיות' };
+      const actionLabels: Record<string, string> = { whatsapp_email: '📱 וואטסאפ/מייל', phone: '📞 טלפון', visit: '🏪 ביקור בחנות', website: '🌐 אתר', recall: '🧠 זכירת מותג' };
+      
+      const briefLines = [
+        `📌 בשורה מרכזית: "${campaignBrief.offer?.substring(0, 80) || 'לא הוגדר'}${(campaignBrief.offer?.length || 0) > 80 ? '...' : ''}"`,
+        `🎯 מטרה: ${goalLabels[campaignBrief.adGoal || ''] || campaignBrief.adGoal || '❌ לא נבחר'}`,
+        `🎭 טון רגשי: ${toneLabels[campaignBrief.emotionalTone || ''] || campaignBrief.emotionalTone || '❌ לא נבחר'}`,
+        `👆 פעולה רצויה: ${actionLabels[campaignBrief.desiredAction || ''] || campaignBrief.desiredAction || '❌ לא נבחר'}`,
+        campaignBrief.showPriceOrBenefit && campaignBrief.priceOrBenefit ? `💲 מחיר/הטבה: ${campaignBrief.priceOrBenefit}` : '💲 מחיר/הטבה: לא הוגדר',
+        campaignBrief.isTimeLimited ? `⏳ מוגבל בזמן: ${campaignBrief.timeLimitText || 'כן'}` : '⏳ ללא הגבלת זמן',
+        `🎨 גישת עיצוב: ${designApproach || 'חופש יצירתי'}`,
+        `📐 סוג מדיה: ${mediaTypes.join(', ') || 'לא נבחר'}`,
+        `🏷️ כותרת קמפיין: ${campaignBrief.title || 'לא הוגדר'}`,
+        clientProfile?.primary_color ? `🎨 צבע ראשי: ${clientProfile.primary_color}` : '',
+        clientProfile?.header_font ? `🔤 פונט: ${clientProfile.header_font}` : '',
+        selectedHoliday && selectedHoliday !== 'year_round' ? `🕎 חג/עונה: ${selectedHoliday}` : '',
+      ].filter(Boolean).join('\n');
+
+      updatePipelineStep('brief-data', { 
+        status: 'done', 
+        startedAt: Date.now(),
+        completedAt: Date.now(),
+        output: briefLines,
       });
 
       // Step 2: Topic Detection
