@@ -283,6 +283,13 @@ const CreativeStudio = () => {
       secondaryColor: null,
       backgroundColor: null,
     },
+    adGoal: null,
+    showPriceOrBenefit: null,
+    priceOrBenefit: '',
+    isTimeLimited: null,
+    timeLimitText: '',
+    emotionalTone: null,
+    desiredAction: null,
   });
   const [mediaTypes, setMediaTypes] = useState<MediaType[]>([]);
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
@@ -544,10 +551,11 @@ const CreativeStudio = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 0: {
-        // Validate offer has meaningful content (not just random characters)
+        // Validate guided brief: need adGoal, emotionalTone, desiredAction, core message (12+ words), structure
         const offer = campaignBrief.offer.trim();
-        const hasValidOffer = offer.length >= 5 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
-        return hasValidOffer && campaignBrief.structure !== null;
+        const words = offer.split(/\s+/).filter(w => w.length > 0);
+        const hasValidOffer = words.length >= 12 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
+        return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && !!campaignBrief.desiredAction && hasValidOffer && campaignBrief.structure !== null;
       }
       case 1: return mediaTypes.length > 0;
       case 2: return assetChoice !== null;
@@ -576,12 +584,15 @@ const CreativeStudio = () => {
   const explainBlockedNext = () => {
     if (currentStep === 0) {
       const missing: string[] = [];
+      if (!campaignBrief.adGoal) missing.push('מטרת המודעה');
+      if (!campaignBrief.emotionalTone) missing.push('טון רגשי');
+      if (!campaignBrief.desiredAction) missing.push('פעולה רצויה');
       const offer = campaignBrief.offer.trim();
-      const hasValidOffer = offer.length >= 5 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
+      const words = offer.split(/\s+/).filter(w => w.length > 0);
       if (!offer) {
-        missing.push('מה ההצעה הפרסומית');
-      } else if (!hasValidOffer) {
-        missing.push('יש להזין הצעה פרסומית תקינה (לפחות 5 תווים עם מילים בעברית או אנגלית)');
+        missing.push('הבשורה המרכזית');
+      } else if (words.length < 12) {
+        missing.push(`הבשורה המרכזית (צריך לפחות 12 מילים, כרגע ${words.length})`);
       }
       if (!campaignBrief.structure) missing.push('מבנה הקמפיין');
       return missing.length ? `כדי להמשיך צריך למלא: ${missing.join(' + ')}` : null;
@@ -764,7 +775,7 @@ const CreativeStudio = () => {
         (brandContext as any).logoUrl = clientProfile.logo_url;
       }
 
-      // Build campaign context
+      // Build campaign context — includes new guided brief fields for AI
       const campaignContext = {
         title: campaignBrief.title,
         offer: campaignBrief.offer,
@@ -772,6 +783,13 @@ const CreativeStudio = () => {
         structure: campaignBrief.structure,
         contactInfo: campaignBrief.contactSelection,
         campaignImageUrl: campaignBrief.campaignImage || null,
+        // New guided brief data
+        adGoal: campaignBrief.adGoal,
+        emotionalTone: campaignBrief.emotionalTone,
+        desiredAction: campaignBrief.desiredAction,
+        priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
+        isTimeLimited: campaignBrief.isTimeLimited,
+        timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
       };
 
       // Headline position variety: distribute across sketches
@@ -948,6 +966,13 @@ const CreativeStudio = () => {
         secondaryColor: null,
         backgroundColor: null,
       },
+      adGoal: null,
+      showPriceOrBenefit: null,
+      priceOrBenefit: '',
+      isTimeLimited: null,
+      timeLimitText: '',
+      emotionalTone: null,
+      desiredAction: null,
     });
     setMediaTypes([]);
     setAssetChoice(null);
