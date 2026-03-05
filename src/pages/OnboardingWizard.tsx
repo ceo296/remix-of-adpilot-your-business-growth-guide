@@ -377,12 +377,20 @@ const OnboardingWizard = () => {
 
       // Upload past materials to storage  
       let pastMaterialsData: any[] = [];
+      let pastMaterialsFonts: any[] = [];
       if (wizardData.pastMaterials && wizardData.pastMaterials.length > 0) {
         pastMaterialsData = wizardData.pastMaterials.map(m => ({
           name: m.name,
           type: m.type,
           adAnalysis: m.adAnalysis || null,
         }));
+        // Extract detected fonts from all analyzed materials
+        pastMaterialsFonts = wizardData.pastMaterials
+          .filter(m => m.adAnalysis?.detectedFonts)
+          .map(m => ({
+            source: m.name,
+            ...m.adAnalysis!.detectedFonts,
+          }));
       }
 
       // Update profile with user name
@@ -434,6 +442,7 @@ const OnboardingWizard = () => {
             branches: wizardData.contactAssets.branches || null,
             business_photos: businessPhotoUrls,
             past_materials: pastMaterialsData,
+            past_materials_fonts: pastMaterialsFonts,
             onboarding_completed: true,
           })
           .eq('id', selectedAgencyClientId);
@@ -506,6 +515,7 @@ const OnboardingWizard = () => {
                is_agency_profile: false,
               business_photos: businessPhotoUrls,
               past_materials: pastMaterialsData,
+              past_materials_fonts: pastMaterialsFonts,
               onboarding_completed: true,
               honorific_preference: wizardData.honorific,
             })
@@ -575,6 +585,7 @@ const OnboardingWizard = () => {
                is_agency_profile: false,
               business_photos: businessPhotoUrls,
               past_materials: pastMaterialsData,
+              past_materials_fonts: pastMaterialsFonts,
               onboarding_completed: true,
               honorific_preference: wizardData.honorific,
             }]);

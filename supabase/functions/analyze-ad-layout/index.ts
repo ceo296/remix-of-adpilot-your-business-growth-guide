@@ -57,8 +57,23 @@ Return ONLY a valid JSON object with these exact fields:
   "gridStructure": "Describe the layout grid precisely (e.g., '3-zone vertical: header band 15%, hero image 60%, info footer 25%', 'asymmetric 2-column: 60% image left, 40% text right', 'full-bleed image with floating text overlay'). Mention alignment, spacing zones, and hierarchy.",
   "colorPalette": ["#hex1", "#hex2", "#hex3", "#hex4", "#hex5"],
   "typography": "Describe the typography: headline style (bold/light, serif/sans-serif, approximate size), body text style, any decorative text. Mention if Hebrew or Latin. Describe text alignment (RTL, centered, etc.)",
+  "detectedFonts": {
+    "headerStyle": "Describe the HEADLINE font style precisely: weight (bold/black/regular), type (serif/sans-serif/display/slab), feel (geometric/humanist/elegant/rounded/condensed)",
+    "bodyStyle": "Describe the BODY TEXT font style: weight, type, feel",
+    "recommendedHeaderFont": "Pick the BEST matching Hebrew Google Font for the headline from this list ONLY: Assistant, Heebo, Rubik, Alef, David Libre, Frank Ruhl Libre, Secular One, Suez One",
+    "recommendedBodyFont": "Pick the BEST matching Hebrew Google Font for the body text from this list ONLY: Assistant, Heebo, Rubik, Alef, David Libre, Frank Ruhl Libre, Secular One, Suez One",
+    "confidence": "high/medium/low - how confident are you in the font match?"
+  },
   "layoutNotes": "Any additional observations: visual style (modern/classic/luxury), use of borders/frames, background treatment (gradient/solid/texture/photo), whitespace usage, call-to-action placement, contact info placement"
 }
+
+FONT MATCHING RULES:
+- Thick/bold/geometric headlines → "Secular One" or "Rubik"
+- Elegant/serif/traditional headlines → "Frank Ruhl Libre" or "Suez One" or "David Libre"
+- Clean/modern/minimalist headlines → "Heebo" or "Assistant"
+- Rounded/friendly headlines → "Rubik" or "Alef"
+- For body text: prefer readable fonts like "Heebo", "Assistant", or "Rubik"
+- Actually look at the weight and style — don't default to "Assistant"
 
 Analyze every detail. The colorPalette should contain 3-6 dominant colors as hex values.`;
 

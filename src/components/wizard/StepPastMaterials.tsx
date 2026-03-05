@@ -127,6 +127,7 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           gridStructure: result.analysis.gridStructure || '',
           colorPalette: result.analysis.colorPalette || [],
           typography: result.analysis.typography || '',
+          detectedFonts: result.analysis.detectedFonts || undefined,
           layoutNotes: result.analysis.layoutNotes || '',
         };
 
@@ -151,6 +152,22 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
               },
             });
             toast.success('צבעי מותג עודכנו מהמודעה!', { icon: '🎨' });
+          }
+        }
+
+        // Auto-fill brand fonts from detected fonts if confidence is high
+        if (analysis.detectedFonts && analysis.detectedFonts.confidence === 'high') {
+          const currentHeader = data.brand.headerFont;
+          const currentBody = data.brand.bodyFont;
+          const isDefaultFont = (f: string) => f === 'Assistant' || f === 'Heebo';
+          if (isDefaultFont(currentHeader) && isDefaultFont(currentBody)) {
+            updateData({
+              brand: {
+                headerFont: analysis.detectedFonts.recommendedHeaderFont || currentHeader,
+                bodyFont: analysis.detectedFonts.recommendedBodyFont || currentBody,
+              },
+            });
+            toast.success('פונטים זוהו מהמודעה הקודמת!', { icon: '🔤' });
           }
         }
 
@@ -506,6 +523,32 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
                             <span className="text-xs font-mono text-muted-foreground">{color}</span>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Detected fonts */}
+                  {viewingAnalysis.adAnalysis.detectedFonts && (
+                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Type className="h-5 w-5 text-cyan-400" />
+                        <h4 className="font-bold text-foreground">פונטים מזוהים</h4>
+                        <Badge variant="outline" className="text-xs">
+                          {viewingAnalysis.adAnalysis.detectedFonts.confidence === 'high' ? 'ביטחון גבוה' : 
+                           viewingAnalysis.adAnalysis.detectedFonts.confidence === 'medium' ? 'ביטחון בינוני' : 'ביטחון נמוך'}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-3 rounded-lg bg-background border border-border">
+                          <p className="text-xs text-muted-foreground mb-1">פונט כותרות</p>
+                          <p className="font-bold text-foreground">{viewingAnalysis.adAnalysis.detectedFonts.recommendedHeaderFont}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{viewingAnalysis.adAnalysis.detectedFonts.headerStyle}</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-background border border-border">
+                          <p className="text-xs text-muted-foreground mb-1">פונט גוף</p>
+                          <p className="font-bold text-foreground">{viewingAnalysis.adAnalysis.detectedFonts.recommendedBodyFont}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{viewingAnalysis.adAnalysis.detectedFonts.bodyStyle}</p>
+                        </div>
                       </div>
                     </div>
                   )}

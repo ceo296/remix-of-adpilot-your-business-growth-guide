@@ -409,6 +409,7 @@ export type Database = {
           onboarding_completed: boolean | null
           opening_hours: string | null
           past_materials: Json | null
+          past_materials_fonts: Json | null
           personal_red_lines: string[] | null
           primary_color: string | null
           primary_x_factor: string | null
@@ -455,6 +456,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           opening_hours?: string | null
           past_materials?: Json | null
+          past_materials_fonts?: Json | null
           personal_red_lines?: string[] | null
           primary_color?: string | null
           primary_x_factor?: string | null
@@ -501,6 +503,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           opening_hours?: string | null
           past_materials?: Json | null
+          past_materials_fonts?: Json | null
           personal_red_lines?: string[] | null
           primary_color?: string | null
           primary_x_factor?: string | null

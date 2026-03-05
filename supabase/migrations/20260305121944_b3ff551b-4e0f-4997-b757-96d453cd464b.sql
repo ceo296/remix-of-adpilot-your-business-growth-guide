@@ -1,0 +1,1 @@
+ALTER TABLE public.client_profiles ADD COLUMN past_materials_fonts jsonb DEFAULT '[]'::jsonb;
