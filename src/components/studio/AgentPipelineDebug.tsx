@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, Loader2, XCircle, Clock, ChevronDown, ChevronUp, Brain, Palette, Shield, Sparkles, Database, Send } from 'lucide-react';
+import { CheckCircle2, Loader2, XCircle, Clock, ChevronDown, ChevronUp, Brain, Palette, Shield, Sparkles, Database, Send, RefreshCw, Lightbulb, AlertTriangle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-export type AgentStepStatus = 'pending' | 'running' | 'done' | 'error' | 'skipped';
+export type AgentStepStatus = 'pending' | 'running' | 'done' | 'error' | 'skipped' | 'rejected' | 'retrying';
 
 export interface AgentStep {
   id: string;
   agent: string;
   label: string;
-  icon: 'brain' | 'palette' | 'shield' | 'sparkles' | 'database' | 'send';
+  icon: 'brain' | 'palette' | 'shield' | 'sparkles' | 'database' | 'send' | 'retry' | 'lesson';
   status: AgentStepStatus;
   startedAt?: number;
   completedAt?: number;
@@ -27,6 +27,8 @@ const AGENT_ICONS = {
   sparkles: Sparkles,
   database: Database,
   send: Send,
+  retry: RefreshCw,
+  lesson: Lightbulb,
 };
 
 const STATUS_COLORS: Record<AgentStepStatus, string> = {
@@ -35,6 +37,8 @@ const STATUS_COLORS: Record<AgentStepStatus, string> = {
   done: 'text-emerald-500',
   error: 'text-destructive',
   skipped: 'text-muted-foreground/50',
+  rejected: 'text-amber-500',
+  retrying: 'text-orange-500',
 };
 
 interface AgentPipelineDebugProps {
@@ -110,8 +114,10 @@ export const AgentPipelineDebug = ({ steps, isVisible }: AgentPipelineDebugProps
                   className={cn(
                     "flex items-center gap-3 p-2.5 rounded-lg transition-all cursor-pointer",
                     step.status === 'running' && "bg-primary/5 border border-primary/20",
+                    step.status === 'retrying' && "bg-orange-500/5 border border-orange-500/20",
                     step.status === 'done' && "bg-emerald-500/5",
                     step.status === 'error' && "bg-destructive/5",
+                    step.status === 'rejected' && "bg-amber-500/5 border border-amber-500/20",
                     step.status === 'pending' && "opacity-50",
                     (step.details || step.input || step.output || step.error) && "hover:bg-muted/50"
                   )}
@@ -123,12 +129,14 @@ export const AgentPipelineDebug = ({ steps, isVisible }: AgentPipelineDebugProps
                 >
                   {/* Status Icon */}
                   <div className={cn("flex-shrink-0", STATUS_COLORS[step.status])}>
-                    {step.status === 'running' ? (
+                    {step.status === 'running' || step.status === 'retrying' ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : step.status === 'done' ? (
                       <CheckCircle2 className="h-5 w-5" />
                     ) : step.status === 'error' ? (
                       <XCircle className="h-5 w-5" />
+                    ) : step.status === 'rejected' ? (
+                      <AlertTriangle className="h-5 w-5" />
                     ) : (
                       <Clock className="h-5 w-5" />
                     )}

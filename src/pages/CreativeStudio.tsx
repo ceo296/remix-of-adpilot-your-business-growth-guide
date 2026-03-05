@@ -6,7 +6,7 @@ import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2
 import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
 import { matchTemplateFromAnalysis, buildLayoutInstructions } from '@/lib/template-matcher';
 import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
-import { AgentPipelineDebug, AgentStep } from '@/components/studio/AgentPipelineDebug';
+import { AgentPipelineDebug, AgentStep, AgentStepStatus } from '@/components/studio/AgentPipelineDebug';
 import { AIChatWidget } from '@/components/chat/AIChatWidget';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -1500,6 +1500,19 @@ const CreativeStudio = () => {
     setPipelineSteps(prev => prev.map(s => s.id === stepId ? { ...s, ...updates } : s));
   };
 
+  // Helper to add a new step dynamically after a specific step
+  const addPipelineStepAfter = (afterStepId: string, newStep: AgentStep) => {
+    setPipelineSteps(prev => {
+      const idx = prev.findIndex(s => s.id === afterStepId);
+      if (idx === -1) return [...prev, newStep];
+      // Don't add if already exists
+      if (prev.some(s => s.id === newStep.id)) return prev;
+      const copy = [...prev];
+      copy.splice(idx + 1, 0, newStep);
+      return copy;
+    });
+  };
+
   // Autopilot: generate concepts AND images in one flow (skip text-only step)
   const handleGenerateConcepts = async () => {
     setIsGeneratingConcepts(true);
@@ -1788,14 +1801,30 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
 
           // Auto-retry if rejected (up to 2 retries)
           if (kosherResult.status === 'rejected') {
+            // Mark kosher step as rejected
+            updatePipelineStep(kosherId, { 
+              status: 'rejected' as AgentStepStatus, 
+              completedAt: Date.now(),
+              output: `❌ נדחה: ${kosherResult.recommendation || 'לא עמד בדרישות'}`,
+            });
+
             let retrySuccess = false;
             for (let retry = 0; retry < 2 && !retrySuccess; retry++) {
-              toast.info(`סקיצה ${i + 1} נדחתה, מייצר חלופה (ניסיון ${retry + 1})... 🔄`);
-              updatePipelineStep(sketchId, { 
-                status: 'running', 
+              const retryStepId = `retry-${i+1}-${retry+1}`;
+              const retryKosherStepId = `retry-kosher-${i+1}-${retry+1}`;
+              
+              // Add dynamic retry step to pipeline
+              addPipelineStepAfter(retry === 0 ? kosherId : `retry-kosher-${i+1}-${retry}`, {
+                id: retryStepId,
+                agent: 'Retry Generator',
+                label: `🔄 ייצור חלופה לסקיצה ${i+1} (ניסיון ${retry + 1})`,
+                icon: 'retry',
+                status: 'retrying' as AgentStepStatus,
                 startedAt: Date.now(),
-                details: `מייצר סקיצה חלופית (ניסיון ${retry + 1})...`,
+                details: `הסקיצה נדחתה — מייצר חלופה שנמנעת מ: ${kosherResult.recommendation}`,
               });
+
+              toast.info(`סקיצה ${i + 1} נדחתה, מייצר חלופה (ניסיון ${retry + 1})... 🔄`);
 
               const retryImageUrl = await generateImageForConcept(
                 concept, i + 10 + retry, brandContext, campaignContext,
@@ -1803,6 +1832,18 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               );
 
               if (retryImageUrl) {
+                // Add retry kosher check step
+                addPipelineStepAfter(retryStepId, {
+                  id: retryKosherStepId,
+                  agent: 'Kosher Filter',
+                  label: `בדיקת כשרות חלופה ${i+1} (ניסיון ${retry + 1})`,
+                  icon: 'shield',
+                  status: 'running',
+                  startedAt: Date.now(),
+                });
+
+                updatePipelineStep(retryStepId, { status: 'done', completedAt: Date.now(), output: `✅ סקיצה חלופית נוצרה` });
+
                 const retryKosher = await runKosherCheck(retryImageUrl);
                 if (retryKosher.status !== 'rejected') {
                   newImage.url = retryImageUrl;
@@ -1810,23 +1851,54 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   newImage.analysis = retryKosher.recommendation;
                   setGeneratedImages([...results]);
                   
-                  updatePipelineStep(sketchId, { status: 'done', completedAt: Date.now(), output: `✅ סקיצה חלופית נוצרה בהצלחה (ניסיון ${retry + 1})` });
-                  updatePipelineStep(kosherId, { 
+                  updatePipelineStep(retryKosherStepId, { 
                     status: 'done', 
                     completedAt: Date.now(),
                     output: `סטטוס חלופי: ${retryKosher.status === 'approved' ? '✅ מאושר' : '⚠️ דורש בדיקה'}\n${retryKosher.recommendation || ''}`,
                   });
+
+                  // Add "lesson learned" step
+                  const lessonStepId = `lesson-${i+1}`;
+                  addPipelineStepAfter(retryKosherStepId, {
+                    id: lessonStepId,
+                    agent: 'System Learning',
+                    label: `💡 לקח נלמד — סקיצה ${i+1}`,
+                    icon: 'lesson',
+                    status: 'done',
+                    startedAt: Date.now(),
+                    completedAt: Date.now(),
+                    output: `🚫 הבעיה: ${kosherResult.recommendation}\n✅ הפתרון: המערכת תימנע מבעיה זו בייצורים הבאים.\n📝 התיקון הועבר כהנחיה לכל הסוכנים.`,
+                  });
+
                   toast.success(`סקיצה ${i + 1} הוחלפה בהצלחה! ✅`);
                   retrySuccess = true;
 
                   await supabase.from('generated_images')
                     .update({ kosher_status: retryKosher.status, kosher_analysis: retryKosher.recommendation })
                     .eq('image_url', retryImageUrl);
+                } else {
+                  updatePipelineStep(retryKosherStepId, { 
+                    status: 'rejected' as AgentStepStatus, 
+                    completedAt: Date.now(),
+                    output: `❌ נדחה שוב: ${retryKosher.recommendation}`,
+                  });
                 }
+              } else {
+                updatePipelineStep(retryStepId, { status: 'error', completedAt: Date.now(), error: 'לא התקבלה תמונה מהמודל' });
               }
             }
             if (!retrySuccess) {
-              updatePipelineStep(sketchId, { status: 'error', completedAt: Date.now(), error: 'סקיצה נדחתה גם אחרי ניסיונות חוזרים' });
+              // Add failure lesson
+              addPipelineStepAfter(`retry-${i+1}-2`, {
+                id: `lesson-fail-${i+1}`,
+                agent: 'System Learning',
+                label: `⚠️ סקיצה ${i+1} — נדחתה סופית`,
+                icon: 'lesson',
+                status: 'error',
+                startedAt: Date.now(),
+                completedAt: Date.now(),
+                output: `🚫 הבעיה שנמשכה: ${kosherResult.recommendation}\n❌ לא הצלחנו לתקן אחרי 2 ניסיונות.\n📝 הבעיה נרשמה ותטופל ידנית.`,
+              });
             }
           }
         } else {
