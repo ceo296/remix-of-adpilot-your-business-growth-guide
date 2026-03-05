@@ -225,17 +225,27 @@ export async function applyHtmlTextOverlay(
     }
   }
 
-  // Auto-clean logo white background at render time (catches logos uploaded before the detection feature)
+  // Auto-clean logo white background at render time, with cache to avoid re-processing
   if (config.logoUrl) {
-    try {
-      const { isWhite } = await detectWhiteBackground(config.logoUrl);
-      if (isWhite) {
-        console.log('[Overlay] 🧹 Logo has white background — removing before render');
-        const cleanLogo = await removeWhiteBackground(config.logoUrl);
-        config = { ...config, logoUrl: cleanLogo };
+    const cached = cleanLogoCache[config.logoUrl];
+    if (cached) {
+      config = { ...config, logoUrl: cached };
+      console.log('[Overlay] 🧹 Using cached clean logo');
+    } else {
+      try {
+        const { isWhite } = await detectWhiteBackground(config.logoUrl);
+        if (isWhite) {
+          console.log('[Overlay] 🧹 Logo has white background — removing before render');
+          const cleanLogo = await removeWhiteBackground(config.logoUrl);
+          cleanLogoCache[config.logoUrl] = cleanLogo;
+          config = { ...config, logoUrl: cleanLogo };
+        } else {
+          // Cache the original too so we skip detection next time
+          cleanLogoCache[config.logoUrl] = config.logoUrl;
+        }
+      } catch (e) {
+        console.warn('[Overlay] Logo bg detection failed, using original:', e);
       }
-    } catch (e) {
-      console.warn('[Overlay] Logo bg detection failed, using original:', e);
     }
   }
 
@@ -327,6 +337,9 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+// ─── Clean logo cache ───
+let cleanLogoCache: Record<string, string> = {};
+
 // ─── Apply with custom template from DB ───
 
 let templateCache: Record<string, { html: string; fetchedAt: number }> = {};
@@ -359,4 +372,5 @@ export async function applyCustomTemplate(
 
 export function clearTemplateCache() {
   templateCache = {};
+  cleanLogoCache = {};
 }
