@@ -17,6 +17,7 @@ const BusinessIdCard = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -76,12 +77,15 @@ const BusinessIdCard = () => {
       >
         {/* Logo */}
         <div className="w-16 h-16 rounded-xl bg-white shadow-lg flex items-center justify-center ml-4 p-1.5 shrink-0">
-          {profile.logo_url ? (
-            isPdfLogo ? (
-              <FileText className="w-8 h-8 text-primary" />
-            ) : (
-              <img src={profile.logo_url} alt={profile.business_name} className="w-full h-full object-contain rounded-lg" />
-            )
+          {profile.logo_url && !isPdfLogo && !logoError ? (
+            <img 
+              src={profile.logo_url} 
+              alt={profile.business_name} 
+              className="w-full h-full object-contain rounded-lg" 
+              onError={() => setLogoError(true)}
+            />
+          ) : isPdfLogo ? (
+            <FileText className="w-8 h-8 text-primary" />
           ) : (
             <Building2 className="w-8 h-8 text-muted-foreground" />
           )}
