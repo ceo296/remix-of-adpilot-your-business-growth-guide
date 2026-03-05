@@ -47,7 +47,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
           body: { imageBase64: data.brand.logo }
         });
         if (!error && result?.colors) {
-          updateData({
+          const updates: any = {
             brand: {
               colors: {
                 primary: result.colors.primary,
@@ -55,8 +55,14 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
                 background: result.colors.background,
               },
             },
-          });
-          toast.success('צבעים חולצו בהצלחה מהלוגו!', { id: 'auto-color-extract' });
+          };
+          if (result.fonts?.headerFont) {
+            updates.brand.headerFont = result.fonts.headerFont;
+            updates.brand.bodyFont = result.fonts.bodyFont || 'Heebo';
+          }
+          updateData(updates);
+          const fontMsg = result.fonts?.headerFont ? ` | פונט: ${result.fonts.headerFont}` : '';
+          toast.success(`צבעים חולצו בהצלחה מהלוגו!${fontMsg}`, { id: 'auto-color-extract' });
         } else {
           toast.dismiss('auto-color-extract');
         }
@@ -97,7 +103,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
           body: { imageBase64: dataUrl }
         });
           if (!error && result?.colors) {
-            updateData({
+            const updates: any = {
               brand: {
                 logo: dataUrl,
                 colors: {
@@ -106,8 +112,14 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
                   background: result.colors.background,
                 },
               },
-            });
-            toast.success('צבעים חולצו בהצלחה מהלוגו!', { id: 'auto-color-extract' });
+            };
+            if (result.fonts?.headerFont) {
+              updates.brand.headerFont = result.fonts.headerFont;
+              updates.brand.bodyFont = result.fonts.bodyFont || 'Heebo';
+            }
+            updateData(updates);
+            const fontMsg = result.fonts?.headerFont ? ` | פונט: ${result.fonts.headerFont}` : '';
+            toast.success(`צבעים וזהות חזותית חולצו מהלוגו!${fontMsg}`, { id: 'auto-color-extract' });
           } else {
             toast.dismiss('auto-color-extract');
           }
