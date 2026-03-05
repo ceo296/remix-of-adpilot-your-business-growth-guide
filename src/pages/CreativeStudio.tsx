@@ -926,6 +926,91 @@ const CreativeStudio = () => {
             kosher_status: kosherResult.status,
             kosher_analysis: kosherResult.recommendation,
           });
+
+          // Auto-retry if rejected (up to 2 retries)
+          if (kosherResult.status === 'rejected') {
+            let retrySuccess = false;
+            for (let retry = 0; retry < 2 && !retrySuccess; retry++) {
+              toast.info(`סקיצה ${i + 1} נדחתה, מייצר חלופה (ניסיון ${retry + 1})... 🔄`);
+              const retryData = await supabase.functions.invoke('generate-image', {
+                body: {
+                  visualPrompt,
+                  textPrompt: textPrompt || null,
+                  style: style || 'ultra-realistic',
+                  engine: engineVersion,
+                  templateId: selectedTemplate?.id || null,
+                  templateHints: selectedTemplate?.promptHints || null,
+                  dimensions: selectedTemplate?.dimensions || null,
+                  brandContext,
+                  campaignContext,
+                  topicCategory: detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title),
+                  holidaySeason: selectedHoliday || null,
+                  aspectRatio,
+                  designApproach: designApproach || null,
+                  corrections: [`הסקיצה הקודמת נדחתה: ${kosherResult.recommendation}. יש להימנע מהבעיה הזו.`],
+                  variationIndex: i + 10 + retry,
+                  headlinePosition: headlinePositions[i],
+                }
+              });
+              if (retryData.error || !retryData.data?.imageUrl) continue;
+
+              let retryFinalUrl = retryData.data.imageUrl;
+              const retryTextMeta = retryData.data.textMeta;
+              if (retryTextMeta && (retryTextMeta.headline || retryTextMeta.businessName || retryTextMeta.phone)) {
+                try {
+                  const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
+                  retryFinalUrl = await applyHtmlTextOverlay(retryData.data.imageUrl, {
+                    headline: retryTextMeta.headline,
+                    subtitle: retryTextMeta.subtitle,
+                    bodyText: retryTextMeta.bodyText,
+                    ctaText: retryTextMeta.ctaText,
+                    businessName: retryTextMeta.businessName,
+                    phone: retryTextMeta.phone,
+                    email: retryTextMeta.email || clientProfile?.contact_email || undefined,
+                    whatsapp: clientProfile?.contact_whatsapp || undefined,
+                    address: retryTextMeta.address || clientProfile?.contact_address || undefined,
+                    primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color || undefined,
+                    secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined,
+                    backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
+                    layoutStyle: 'custom',
+                    customTemplateHtml: activeCustomTemplate?.html_template,
+                    logoUrl: (brandContext as any)?.logoUrl || clientProfile?.logo_url || undefined,
+                    servicesList: retryTextMeta.servicesList,
+                    promoText: retryTextMeta.promoText,
+                    promoValue: retryTextMeta.promoValue,
+                    bulletItems: retryTextMeta.bulletItems,
+                    headerFont: clientProfile?.header_font || undefined,
+                    openingHours: campaignBrief.contactSelection.openingHours ? (clientProfile as any)?.opening_hours || undefined : undefined,
+                    branches: campaignBrief.contactSelection.selectedBranches?.length
+                      ? campaignBrief.contactSelection.selectedBranches
+                      : undefined,
+                  });
+                } catch (e) { console.error('[Retry] Text overlay failed:', e); }
+              }
+
+              const retryKosher = await runKosherCheck(retryData.data.imageUrl);
+              if (retryKosher.status !== 'rejected') {
+                newImage.url = retryFinalUrl;
+                newImage.status = retryKosher.status as GeneratedImage['status'];
+                newImage.analysis = retryKosher.recommendation;
+                newImage.visualOnlyUrl = retryData.data.visualOnlyUrl || retryData.data.imageUrl;
+                newImage.textMeta = retryData.data.textMeta || undefined;
+                setGeneratedImages([...results]);
+                toast.success(`סקיצה ${i + 1} הוחלפה בהצלחה! ✅`);
+                retrySuccess = true;
+
+                await supabase.from('generated_images').insert({
+                  visual_prompt: visualPrompt,
+                  text_prompt: textPrompt,
+                  style,
+                  engine: config.engine,
+                  image_url: retryData.data.imageUrl,
+                  kosher_status: retryKosher.status,
+                  kosher_analysis: retryKosher.recommendation,
+                });
+              }
+            }
+          }
         }
       }
 
@@ -1312,7 +1397,7 @@ const CreativeStudio = () => {
   };
 
   // Helper: generate image for a single concept
-  const generateImageForConcept = async (concept: CreativeConcept, index: number, brandContext: any, campaignContext: any) => {
+  const generateImageForConcept = async (concept: CreativeConcept, index: number, brandContext: any, campaignContext: any, corrections?: string[]) => {
     // Determine visual approach from concept or fallback by index
     const approachByIndex = ['graphic-design', 'product-focus', 'lifestyle'];
     const visualApproach = (concept as any).visual_approach || approachByIndex[index % 3];
@@ -1340,6 +1425,7 @@ const CreativeStudio = () => {
         aspectRatio,
         visualApproach,
         designApproach: designApproach || null,
+        corrections: corrections || undefined,
       }
     });
 
@@ -1674,6 +1760,50 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
           await supabase.from('generated_images')
             .update({ kosher_status: kosherResult.status, kosher_analysis: kosherResult.recommendation })
             .eq('image_url', imageUrl);
+
+          // Auto-retry if rejected (up to 2 retries)
+          if (kosherResult.status === 'rejected') {
+            let retrySuccess = false;
+            for (let retry = 0; retry < 2 && !retrySuccess; retry++) {
+              toast.info(`סקיצה ${i + 1} נדחתה, מייצר חלופה (ניסיון ${retry + 1})... 🔄`);
+              updatePipelineStep(sketchId, { 
+                status: 'running', 
+                startedAt: Date.now(),
+                details: `מייצר סקיצה חלופית (ניסיון ${retry + 1})...`,
+              });
+
+              const retryImageUrl = await generateImageForConcept(
+                concept, i + 10 + retry, brandContext, campaignContext,
+                [`הסקיצה הקודמת נדחתה: ${kosherResult.recommendation}. יש להימנע מהבעיה הזו.`]
+              );
+
+              if (retryImageUrl) {
+                const retryKosher = await runKosherCheck(retryImageUrl);
+                if (retryKosher.status !== 'rejected') {
+                  newImage.url = retryImageUrl;
+                  newImage.status = retryKosher.status as GeneratedImage['status'];
+                  newImage.analysis = retryKosher.recommendation;
+                  setGeneratedImages([...results]);
+                  
+                  updatePipelineStep(sketchId, { status: 'done', completedAt: Date.now(), output: `✅ סקיצה חלופית נוצרה בהצלחה (ניסיון ${retry + 1})` });
+                  updatePipelineStep(kosherId, { 
+                    status: 'done', 
+                    completedAt: Date.now(),
+                    output: `סטטוס חלופי: ${retryKosher.status === 'approved' ? '✅ מאושר' : '⚠️ דורש בדיקה'}\n${retryKosher.recommendation || ''}`,
+                  });
+                  toast.success(`סקיצה ${i + 1} הוחלפה בהצלחה! ✅`);
+                  retrySuccess = true;
+
+                  await supabase.from('generated_images')
+                    .update({ kosher_status: retryKosher.status, kosher_analysis: retryKosher.recommendation })
+                    .eq('image_url', retryImageUrl);
+                }
+              }
+            }
+            if (!retrySuccess) {
+              updatePipelineStep(sketchId, { status: 'error', completedAt: Date.now(), error: 'סקיצה נדחתה גם אחרי ניסיונות חוזרים' });
+            }
+          }
         } else {
           updatePipelineStep(sketchId, { status: 'error', completedAt: Date.now(), error: 'לא התקבלה תמונה מהמודל' });
           updatePipelineStep(kosherId, { status: 'skipped', completedAt: Date.now(), details: 'דילוג — אין תמונה' });
