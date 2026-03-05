@@ -49,7 +49,7 @@ export interface TextOverlayConfig {
 
 function cleanText(text: string): string {
   if (!text) return '';
-  return text
+  let cleaned = text
     .replace(/#{1,6}\s*/g, '')
     .replace(/\*{1,4}/g, '')
     .replace(/_{1,3}/g, '')
@@ -68,6 +68,14 @@ function cleanText(text: string): string {
     .replace(/\n+/g, ' ')
     .replace(/\s{2,}/g, ' ')
     .trim();
+  
+  // Prevent orphaned short words (1-2 chars) at end of text by joining with non-breaking space
+  // e.g. "טכנולוגיה מתקדמת לתוצאה טבעית ו" → joins "ו" with previous word
+  cleaned = cleaned.replace(/\s+([\u0590-\u05FF]{1,2})$/g, '\u00A0$1');
+  // Also prevent orphaned short words before line breaks within text
+  cleaned = cleaned.replace(/\s+([\u0590-\u05FF]{1,2})\s/g, '\u00A0$1 ');
+  
+  return cleaned;
 }
 
 // ─── Layout builder (custom template ONLY) ───
