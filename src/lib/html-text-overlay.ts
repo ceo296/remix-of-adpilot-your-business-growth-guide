@@ -123,6 +123,21 @@ function makeOverlayTransparent(html: string): string {
   return result;
 }
 
+function cleanHeadline(text: string): string {
+  if (!text) return '';
+  let cleaned = cleanText(text);
+  // Remove excessive commas — replace "word, word, word." pattern with cleaner breaks
+  // Strip trailing periods/commas
+  cleaned = cleaned.replace(/[.,]+$/g, '');
+  // Replace multiple commas with line breaks for visual impact
+  // "לדבר, לצחוק, לברך. בפה מלא." → "לדבר לצחוק לברך\nבפה מלא"
+  cleaned = cleaned.replace(/\.\s+/g, '<br>');
+  cleaned = cleaned.replace(/,\s*/g, ' ');
+  // Remove any remaining double spaces
+  cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
+  return cleaned;
+}
+
 function getLayoutHTML(config: TextOverlayConfig, width: number, height: number, imageUrl: string): string {
   if (!config.customTemplateHtml) {
     throw new Error('אין תבנית HTML מותאמת. יש להגדיר תבנית מאסטר ב-Back Office לפני יצירת מודעות.');
@@ -130,7 +145,7 @@ function getLayoutHTML(config: TextOverlayConfig, width: number, height: number,
 
   const cleanedServices = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
   const templateData: TemplateData = {
-    headline: config.headline ? cleanText(config.headline) : '',
+    headline: config.headline ? cleanHeadline(config.headline) : '',
     subheadline: config.subtitle ? cleanText(config.subtitle) : '',
     subtitle: config.subtitle ? cleanText(config.subtitle) : '',
     bodyText: config.bodyText ? cleanText(config.bodyText) : '',
