@@ -96,20 +96,25 @@ For MONOCHROME logos:
 
 - Background is the canvas behind the logo; if white/light use #FFFFFF
 
-FONT RULES:
-- headerFont = the font closest to the MAIN TEXT / wordmark in the logo
-- bodyFont = a complementary readable Hebrew font for body text
-- You MUST choose from this exact list of Hebrew Google Fonts:
-  "Assistant", "Heebo", "Rubik", "Alef", "David Libre", "Frank Ruhl Libre", "Secular One", "Suez One"
-- Match based on weight, serif vs sans-serif, roundness, and overall feel:
-  - Thick/bold sans-serif → "Rubik" or "Secular One"
-  - Elegant serif / traditional → "Frank Ruhl Libre" or "David Libre" or "Suez One"
-  - Clean modern sans-serif → "Assistant" or "Heebo"
-  - Rounded friendly → "Alef" or "Rubik"
-- If the logo has a serif/traditional typeface, pair it: headerFont=serif, bodyFont=sans-serif
-- If the logo has a modern sans-serif, pair: headerFont=that sans, bodyFont=complementary sans
+FONT RULES — CRITICAL DISTINCTION:
+The LOGO font is often decorative/custom and NOT suitable for ad headlines or body text.
+Your job is to recommend fonts for the AD TEXT (headlines, subheadlines, body copy) that COMPLEMENT the logo style — not replicate it.
 
-IMPORTANT: Actually look at the typography style in the image. Do NOT default to "Assistant"/"Heebo" unless the logo actually uses a clean modern sans-serif.`;
+- headerFont = the font for AD HEADLINES and subheadlines (bold, impactful, readable at large sizes)
+- bodyFont = the font for AD BODY TEXT (clean, readable at small sizes)
+- These are NOT the logo font — they are fonts that PAIR WELL with the logo's visual identity.
+
+You MUST choose from this exact list of Hebrew Google Fonts:
+  "Assistant", "Heebo", "Rubik", "Alef", "David Libre", "Frank Ruhl Libre", "Secular One", "Suez One"
+
+Pairing logic based on LOGO STYLE:
+- Logo has thick/bold/geometric feel → headerFont: "Secular One" or "Rubik", bodyFont: "Heebo" or "Assistant"
+- Logo has elegant/serif/traditional feel → headerFont: "Frank Ruhl Libre" or "Suez One", bodyFont: "Assistant" or "Heebo"  
+- Logo has clean/modern/minimalist feel → headerFont: "Heebo" or "Rubik", bodyFont: "Assistant"
+- Logo has rounded/friendly feel → headerFont: "Rubik" or "Alef", bodyFont: "Heebo"
+- Logo has luxury/premium feel → headerFont: "Suez One" or "Frank Ruhl Libre", bodyFont: "David Libre" or "Assistant"
+
+IMPORTANT: Actually analyze the visual weight, style, and personality of the logo. Choose fonts that create a COHESIVE brand feel when used alongside the logo in an ad.`;
 
     console.log("Sending image to AI for color extraction...");
     console.log("Image content type:", isBase64 ? "base64" : "URL");
