@@ -242,7 +242,7 @@ const OnboardingWizard = () => {
     return uploadedPhotos;
   };
 
-  const extractColorsFromLogo = async (imageDataUrl: string): Promise<{ primary: string; secondary: string; background: string } | null> => {
+  const extractColorsFromLogo = async (imageDataUrl: string): Promise<{ primary: string; secondary: string; background: string; headerFont?: string; bodyFont?: string } | null> => {
     try {
 
       const { data, error } = await supabase.functions.invoke('extract-logo-colors', {
@@ -251,21 +251,23 @@ const OnboardingWizard = () => {
 
       if (error) {
         console.error('Error extracting colors:', error);
-        // Check for payment/credits error
         if (error.message?.includes('402') || error.message?.includes('Payment')) {
           toast.info('חילוץ צבעים אוטומטי לא זמין כרגע - תוכל לבחור צבעים ידנית');
         }
         return null;
       }
 
-      // Check for 402 in the response data
       if (data?.error && (data.error.includes('402') || data.error.includes('Payment'))) {
         toast.info('חילוץ צבעים אוטומטי לא זמין כרגע - תוכל לבחור צבעים ידנית');
         return null;
       }
 
       if (data?.colors) {
-        return data.colors;
+        return {
+          ...data.colors,
+          headerFont: data.fonts?.headerFont || undefined,
+          bodyFont: data.fonts?.bodyFont || undefined,
+        };
       }
       return null;
     } catch (error) {
@@ -279,7 +281,7 @@ const OnboardingWizard = () => {
     
     // Upload logo to storage if provided
     let logoUrl: string | null = null;
-    let extractedColors: { primary: string; secondary: string; background: string } | null = null;
+    let extractedColors: { primary: string; secondary: string; background: string; headerFont?: string; bodyFont?: string } | null = null;
     
     if (logo && user) {
       // Extract colors from logo using AI (before uploading)
@@ -288,7 +290,8 @@ const OnboardingWizard = () => {
       toast.dismiss('color-extract');
       
       if (extractedColors) {
-        toast.success('צבעים חולצו בהצלחה מהלוגו!');
+        const fontMsg = extractedColors.headerFont ? ` | פונט: ${extractedColors.headerFont}` : '';
+        toast.success(`צבעים וזהות חזותית חולצו מהלוגו!${fontMsg}`);
       }
       
       // Upload logo to storage
@@ -309,6 +312,9 @@ const OnboardingWizard = () => {
           secondary: extractedColors.secondary,
           background: extractedColors.background,
         } : prev.brand.colors,
+        // Use extracted fonts if available
+        headerFont: extractedColors?.headerFont || prev.brand.headerFont,
+        bodyFont: extractedColors?.bodyFont || prev.brand.bodyFont,
       },
     }));
     

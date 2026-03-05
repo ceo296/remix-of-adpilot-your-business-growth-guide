@@ -64,24 +64,27 @@ serve(async (req) => {
       base64Prefix: typeof imageBase64 === "string" ? imageBase64.slice(0, 32) : null,
     });
 
-    const systemPrompt = `You are a professional brand color analyst. Analyze the provided logo image and extract the dominant BRAND colors.
+    const systemPrompt = `You are a professional brand analyst. Analyze the provided logo image and extract:
+1. The dominant BRAND colors
+2. The closest matching Hebrew Google Font for the logo's typography
 
 Return ONLY a valid JSON object with this exact structure:
 {
   "primary": "#XXXXXX",
   "secondary": "#XXXXXX", 
-  "background": "#XXXXXX"
+  "background": "#XXXXXX",
+  "headerFont": "FontName",
+  "bodyFont": "FontName"
 }
 
-Rules (follow strictly):
+COLOR RULES (follow strictly):
 - Use ONLY 6-digit hex color codes (e.g., #FF5733)
 - No explanation, no markdown, JSON only
 - Analyze ALL visible colors in the logo carefully
 
 For COLORFUL/MULTI-COLOR logos:
-- If the logo has multiple bright colors (pink, blue, green, purple, yellow, etc.), pick the MOST prominent/largest color as primary
+- If the logo has multiple bright colors, pick the MOST prominent/largest color as primary
 - Pick the second most prominent color as secondary
-- Do NOT default to black or red unless those are actually the main colors in the logo
 
 For TEXT-HEAVY logos:
 - If the main wordmark text is a specific color, that should be primary
@@ -93,7 +96,20 @@ For MONOCHROME logos:
 
 - Background is the canvas behind the logo; if white/light use #FFFFFF
 
-IMPORTANT: Actually look at the colors in the image. Do NOT guess or use generic defaults like #E31E24 or #000000 unless you actually see those exact colors prominently in the logo.`;
+FONT RULES:
+- headerFont = the font closest to the MAIN TEXT / wordmark in the logo
+- bodyFont = a complementary readable Hebrew font for body text
+- You MUST choose from this exact list of Hebrew Google Fonts:
+  "Assistant", "Heebo", "Rubik", "Alef", "David Libre", "Frank Ruhl Libre", "Secular One", "Suez One"
+- Match based on weight, serif vs sans-serif, roundness, and overall feel:
+  - Thick/bold sans-serif → "Rubik" or "Secular One"
+  - Elegant serif / traditional → "Frank Ruhl Libre" or "David Libre" or "Suez One"
+  - Clean modern sans-serif → "Assistant" or "Heebo"
+  - Rounded friendly → "Alef" or "Rubik"
+- If the logo has a serif/traditional typeface, pair it: headerFont=serif, bodyFont=sans-serif
+- If the logo has a modern sans-serif, pair: headerFont=that sans, bodyFont=complementary sans
+
+IMPORTANT: Actually look at the typography style in the image. Do NOT default to "Assistant"/"Heebo" unless the logo actually uses a clean modern sans-serif.`;
 
     console.log("Sending image to AI for color extraction...");
     console.log("Image content type:", isBase64 ? "base64" : "URL");
@@ -188,17 +204,25 @@ IMPORTANT: Actually look at the colors in the image. Do NOT guess or use generic
       validationErrors.push(`Invalid secondary: ${colors.secondary}`);
     }
     if (!hexRegex.test(colors.background)) {
-      colors.background = "#FFFFFF"; // Background can default to white
+      colors.background = "#FFFFFF";
     }
+    
+    // Validate fonts against allowed list
+    const allowedFonts = ["Assistant", "Heebo", "Rubik", "Alef", "David Libre", "Frank Ruhl Libre", "Secular One", "Suez One"];
+    const headerFont = allowedFonts.includes(colors.headerFont) ? colors.headerFont : null;
+    const bodyFont = allowedFonts.includes(colors.bodyFont) ? colors.bodyFont : null;
     
     if (validationErrors.length > 0) {
       console.error("Color validation errors:", validationErrors);
     }
 
-    console.log("Returning colors:", colors);
+    console.log("Returning colors and fonts:", { colors, headerFont, bodyFont });
 
     return new Response(
-      JSON.stringify({ colors }),
+      JSON.stringify({ 
+        colors: { primary: colors.primary, secondary: colors.secondary, background: colors.background },
+        fonts: headerFont ? { headerFont, bodyFont: bodyFont || "Heebo" } : null
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
