@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
+import { StudioBriefStep, CampaignBrief } from '@/components/studio/StudioBriefStep';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -77,10 +78,26 @@ const FastTrackWizard = () => {
   // Media Type Selection (for media-only mode)
   const [selectedMediaTypes, setSelectedMediaTypes] = useState<string[]>([]);
   
-  // Campaign Brief
-  const [campaignName, setCampaignName] = useState('');
-  const [campaignOffer, setCampaignOffer] = useState('');
-  const [goal, setGoal] = useState<string | null>(null);
+  // Campaign Brief - using guided StudioBriefStep
+  const [campaignBrief, setCampaignBrief] = useState<CampaignBrief>({
+    title: '',
+    offer: '',
+    goal: null,
+    structure: null,
+    contactSelection: {
+      phone: false, whatsapp: false, email: false, address: false,
+      youtube: false, facebook: false, instagram: false, customText: '',
+      openingHours: false, selectedBranches: [],
+    },
+    colorSelection: { mode: 'brand', primaryColor: null, secondaryColor: null, backgroundColor: null },
+    adGoal: null,
+    showPriceOrBenefit: null,
+    priceOrBenefit: '',
+    isTimeLimited: null,
+    timeLimitText: '',
+    emotionalTone: null,
+    desiredAction: null,
+  });
   
   // Media Selection
   const [budget, setBudget] = useState(0);
@@ -120,8 +137,7 @@ const FastTrackWizard = () => {
   useEffect(() => {
     if (isMediaOnlyMode) {
       setCurrentStep('mediaType');
-      // Set default campaign name for media-only
-      setCampaignName('רכישת מדיה');
+      setCampaignBrief(prev => ({ ...prev, title: 'רכישת מדיה' }));
     }
   }, [isMediaOnlyMode]);
 
@@ -134,12 +150,14 @@ const FastTrackWizard = () => {
   }
 
   const handleProceedToStudio = () => {
-    // Save brief data to session storage and navigate to Creative Studio
+    // Save full guided brief data to session storage and navigate to Creative Studio
     const briefData = {
-      campaignName,
-      campaignOffer,
-      goal,
+      campaignName: campaignBrief.title,
+      campaignOffer: campaignBrief.offer,
+      goal: campaignBrief.goal,
       clientProfileId: activeProfile?.id,
+      // Pass the full guided brief
+      guidedBrief: campaignBrief,
     };
     sessionStorage.setItem('campaignBrief', JSON.stringify(briefData));
     navigate('/studio');
@@ -232,8 +250,8 @@ const FastTrackWizard = () => {
         .insert({
           user_id: user.id,
           client_profile_id: activeProfile.id,
-          name: campaignName || 'רכישת מדיה',
-          goal: isMediaOnlyMode ? 'media_purchase' : goal,
+          name: campaignBrief.title || 'רכישת מדיה',
+          goal: isMediaOnlyMode ? 'media_purchase' : campaignBrief.goal,
           status: 'pending_approval',
           budget,
           start_date: startDate?.toISOString().split('T')[0],
@@ -275,91 +293,41 @@ const FastTrackWizard = () => {
   };
 
   const canProceedBrief = () => {
-    return campaignOffer.trim().length > 0 && goal !== null;
+    const words = campaignBrief.offer.trim().split(/\s+/).filter(w => w.length > 0);
+    return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && !!campaignBrief.desiredAction && words.length >= 12 && !!campaignBrief.structure;
   };
 
   const canProceedMedia = () => {
     return budget > 0 && targetStream && targetGender && (selectedPackage || manualMediaSelection);
   };
 
-  // Render Brief Step
+  // Render Brief Step — uses the guided StudioBriefStep component
   const renderBriefStep = () => (
-    <div className="space-y-10 animate-fade-in">
-      <div className="text-center">
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-6 shadow-lg shadow-primary/30">
-          <Gift className="w-10 h-10 text-primary-foreground" />
-        </div>
-        <h2 className="text-4xl font-bold text-foreground mb-3">מה המסר הפרסומי?</h2>
-        <p className="text-xl text-muted-foreground">בלי זה אי אפשר להתחיל - ספר לנו מה רוצים לפרסם</p>
-      </div>
-
-      {/* Campaign Name */}
-      <div className="space-y-4">
-        <Label htmlFor="campaign-name" className="text-xl font-semibold text-foreground flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md">
-            <Lightbulb className="w-5 h-5 text-white" />
-          </div>
-          שם הקמפיין (לשימוש פנימי)
-        </Label>
-        <Input
-          id="campaign-name"
-          value={campaignName}
-          onChange={(e) => setCampaignName(e.target.value)}
-          placeholder="לדוגמה: מבצע פסח תשפ״ה, השקת קולקציית חורף..."
-          className="text-xl h-14 px-5"
-        />
-      </div>
-
-      {/* Campaign Offer - REQUIRED */}
-      <div className="space-y-4">
-        <Label htmlFor="campaign-offer" className="text-xl font-semibold text-foreground flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md shadow-primary/30">
-            <Gift className="w-5 h-5 text-primary-foreground" />
-          </div>
-          מה ההצעה הפרסומית? *
-        </Label>
-        <Textarea
-          id="campaign-offer"
-          value={campaignOffer}
-          onChange={(e) => setCampaignOffer(e.target.value)}
-          placeholder="תאר בקצרה את המסר המרכזי של הקמפיין. לדוגמה: 30% הנחה על כל מערכות הישיבה, השקת טעמים חדשים לסדרת המאפים..."
-          className="min-h-[140px] text-lg p-5"
-        />
-        <p className="text-base text-muted-foreground">
-          זה יעזור לנו לכוון את הקריאייטיב והמסרים
-        </p>
-      </div>
-
-      {/* Campaign Goal */}
-      <div className="space-y-5">
-        <Label className="text-xl font-semibold text-foreground">מה המטרה של הקמפיין? *</Label>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {CAMPAIGN_GOALS.map((g) => (
-            <div
-              key={g.id}
-              onClick={() => setGoal(g.id)}
-              className={`p-6 rounded-2xl border-2 cursor-pointer transition-all text-center hover:scale-[1.02] ${
-                goal === g.id
-                  ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
-                  : 'border-border hover:border-primary/40 hover:shadow-md'
-              }`}
-            >
-              <div className={`w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-md ${
-                goal === g.id 
-                  ? `bg-gradient-to-br ${g.gradient}` 
-                  : `bg-gradient-to-br ${g.gradient} opacity-60`
-              }`}>
-                <g.icon className="w-7 h-7 text-white" />
-              </div>
-              <p className="text-lg font-bold text-foreground mb-1">{g.label}</p>
-              <p className="text-sm text-muted-foreground">{g.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className="space-y-8 animate-fade-in">
+      <StudioBriefStep
+        value={campaignBrief}
+        onChange={setCampaignBrief}
+        businessName={activeProfile?.business_name}
+        contactInfo={activeProfile ? {
+          contact_phone: activeProfile.contact_phone,
+          contact_whatsapp: activeProfile.contact_whatsapp,
+          contact_email: activeProfile.contact_email,
+          contact_address: activeProfile.contact_address,
+          contact_youtube: activeProfile.contact_youtube,
+          social_facebook: activeProfile.social_facebook,
+          social_instagram: activeProfile.social_instagram,
+          opening_hours: activeProfile.opening_hours,
+          branches: activeProfile.branches,
+        } : undefined}
+        brandColors={activeProfile ? {
+          primary_color: activeProfile.primary_color,
+          secondary_color: activeProfile.secondary_color,
+          background_color: activeProfile.background_color,
+        } : undefined}
+      />
 
       {/* Navigation */}
-      <div className="flex justify-between pt-8">
+      <div className="flex justify-between pt-4">
         <Button variant="ghost" onClick={() => navigate('/dashboard')}>
           <ArrowRight className="w-4 h-4 ml-2" />
           ביטול
