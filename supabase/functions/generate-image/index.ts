@@ -26,7 +26,7 @@ ENVIRONMENT: Upscale, clean, and prestigious Jewish homes or professional settin
 NEGATIVE SPACE: Always ensure 30% of the frame is "clean" (blurred background or empty wall) to allow for professional Hebrew typography to be overlaid later.
 EMOTIONAL CONNECTION: Focus on the "Story" (e.g., a father and son learning, a mother’s calm, the prestige of a product) rather than just "displaying an item."
 
-[NEGATIVE PROMPT - NEVER SHOW] Text inside the image, logos, split-screens, multiple panels, clinical/stock-photo look, low-quality CGI, immodest clothing, non-Haredi religious symbols, distorted limbs, messy backgrounds.
+[NEGATIVE PROMPT - NEVER SHOW] Text inside the image, logos, split-screens, multiple panels, clinical/stock-photo look, low-quality CGI, immodest clothing, distorted limbs, messy backgrounds. CRITICAL: Do NOT include religious/ritual objects (menorah, chanukiah, kiddush cup, seder plate, shofar, lulav, etrog, dreidel, Torah scroll) UNLESS the campaign is explicitly tagged for a specific holiday. A dental/real-estate/food ad must NEVER contain religious symbols.
 `;
 
 // Enhanced style descriptions for better quality
@@ -484,7 +484,10 @@ CRITICAL HOLIDAY RULES — THIS IS A ${holidaySeason.toUpperCase()} AD:
 - If unsure about an element, DO NOT include it.`;
     } else if (!holidaySeason || holidaySeason === 'year_round') {
       holidayRules = `
-HOLIDAY NEUTRALITY: This is NOT a holiday-specific ad. Do NOT include ANY holiday-specific symbols (no menorah, no seder plate, no lulav, no shofar, no megillah). Keep it generic and professional.`;
+HOLIDAY NEUTRALITY — CRITICAL: This is NOT a holiday-specific ad. 
+ABSOLUTELY DO NOT include ANY religious or ritual objects: no menorah/chanukiah, no kiddush cup/goblet, no seder plate, no shofar, no lulav/etrog, no dreidel, no Torah scroll, no tefillin, no megillah.
+These objects are ONLY relevant for holiday-specific campaigns. Including them in a generic ad is a SEVERE professional error — like putting a Christmas tree in a summer ad.
+Focus ONLY on the product/service being advertised. A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.`;
     }
 
     // ═══════════════════════════════════════════
