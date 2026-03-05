@@ -273,6 +273,7 @@ const CreativeStudio = () => {
       youtube: false,
       facebook: false,
       instagram: false,
+      logoOnly: false,
       customText: '',
       openingHours: false,
       selectedBranches: [],
@@ -573,11 +574,13 @@ const CreativeStudio = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 0: {
-        // Validate guided brief: need adGoal, emotionalTone, desiredAction, core message (12+ words), structure
+        // Validate guided brief: need adGoal, emotionalTone, desiredAction, core message (12+ words), structure, and at least one contact option
         const offer = campaignBrief.offer.trim();
         const words = offer.split(/\s+/).filter(w => w.length > 0);
         const hasValidOffer = words.length >= 12 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
-        return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && !!campaignBrief.desiredAction && hasValidOffer && campaignBrief.structure !== null;
+        const cs = campaignBrief.contactSelection;
+        const hasContactSelected = cs.phone || cs.whatsapp || cs.email || cs.address || cs.youtube || cs.facebook || cs.instagram || cs.logoOnly || cs.openingHours || (cs.selectedBranches || []).length > 0;
+        return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && !!campaignBrief.desiredAction && hasValidOffer && campaignBrief.structure !== null && hasContactSelected;
       }
       case 1: return mediaTypes.length > 0;
       case 2: return assetChoice !== null;
@@ -1063,6 +1066,7 @@ const CreativeStudio = () => {
         youtube: false,
         facebook: false,
         instagram: false,
+        logoOnly: false,
         customText: '',
         openingHours: false,
         selectedBranches: [],
@@ -2049,6 +2053,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               social_instagram: clientProfile.social_instagram,
               opening_hours: (clientProfile as any).opening_hours || null,
               branches: (clientProfile as any).branches || null,
+              logo_url: clientProfile.logo_url || null,
             } : undefined}
             brandColors={clientProfile ? {
               primary_color: clientProfile.primary_color,

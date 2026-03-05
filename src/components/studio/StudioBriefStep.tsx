@@ -38,6 +38,8 @@ import {
   Heart,
   Briefcase,
   Globe,
+  Stamp,
+  AlertCircle,
   Brain,
   Store,
   MousePointerClick,
@@ -62,6 +64,7 @@ export type ContactSelection = {
   youtube: boolean;
   facebook: boolean;
   instagram: boolean;
+  logoOnly: boolean;
   customText: string;
   openingHours: boolean;
   selectedBranches: string[];
@@ -102,6 +105,7 @@ export interface ContactInfo {
   social_instagram?: string | null;
   opening_hours?: string | null;
   branches?: string | null;
+  logo_url?: string | null;
 }
 
 export interface BrandColors {
@@ -303,8 +307,21 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
     contactInfo.social_facebook ||
     contactInfo.social_instagram ||
     contactInfo.opening_hours ||
+    contactInfo.logo_url ||
     branchesList.length > 0
   );
+
+  // Check if at least one display option is selected
+  const hasSelectedContact = value.contactSelection.phone || 
+    value.contactSelection.whatsapp || 
+    value.contactSelection.email || 
+    value.contactSelection.address || 
+    value.contactSelection.youtube || 
+    value.contactSelection.facebook || 
+    value.contactSelection.instagram ||
+    value.contactSelection.logoOnly ||
+    value.contactSelection.openingHours ||
+    (value.contactSelection.selectedBranches || []).length > 0;
 
   const hasBrandColors = brandColors && (brandColors.primary_color || brandColors.secondary_color);
 
@@ -819,9 +836,29 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
           <Label className="text-foreground font-medium flex items-center gap-2">
             <LinkIcon className="w-4 h-4 text-primary" />
             מה להציג בקמפיין?
+            <span className="text-xs text-destructive font-normal">(חובה — לפחות אחד)</span>
           </Label>
+          {!hasSelectedContact && value.structure && (
+            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-2 rounded-lg">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>יש לסמן לפחות אפשרות אחת להצגה במודעה</span>
+            </div>
+          )}
           <Card>
             <CardContent className="p-4 space-y-3">
+              {/* Logo Only option - always available */}
+              <div className="flex items-center gap-3">
+                <Checkbox id="contact-logo-only" checked={value.contactSelection.logoOnly} onCheckedChange={() => toggleContact('logoOnly')} />
+                <label htmlFor="contact-logo-only" className="flex items-center gap-2 cursor-pointer text-sm">
+                  <Stamp className="w-4 h-4 text-muted-foreground" />
+                  <span>רק לוגו</span>
+                  {contactInfo?.logo_url ? (
+                    <span className="text-xs text-emerald-500">✅ לוגו קיים</span>
+                  ) : (
+                    <span className="text-xs text-destructive">❌ לא הועלה לוגו</span>
+                  )}
+                </label>
+              </div>
               {contactInfo?.contact_phone && (
                 <div className="flex items-center gap-3">
                   <Checkbox id="contact-phone" checked={value.contactSelection.phone} onCheckedChange={() => toggleContact('phone')} />
