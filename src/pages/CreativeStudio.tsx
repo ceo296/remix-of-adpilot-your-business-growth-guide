@@ -83,6 +83,7 @@ interface ClientProfile {
   body_font: string | null;
   logo_url: string | null;
   past_materials: any[] | null;
+  past_materials_fonts: any[] | null;
   business_photos: any[] | null;
   default_template_id: string | null;
 }
@@ -399,7 +400,7 @@ const CreativeStudio = () => {
 
       const { data: profiles } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, business_photos, default_template_id')
+        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, past_materials_fonts, business_photos, default_template_id')
         .eq('user_id', user.id)
         .eq('is_agency_profile', false)
         .eq('onboarding_completed', true)
@@ -423,6 +424,7 @@ const CreativeStudio = () => {
         setClientProfile({
           ...profile,
           past_materials: Array.isArray(profile.past_materials) ? profile.past_materials : [],
+          past_materials_fonts: Array.isArray(profile.past_materials_fonts) ? profile.past_materials_fonts : [],
           business_photos: Array.isArray(profile.business_photos) ? profile.business_photos : [],
         });
       }
@@ -1176,6 +1178,7 @@ const CreativeStudio = () => {
       fonts: {
         header: clientProfile.header_font,
         body: clientProfile.body_font,
+        fromPastMaterials: clientProfile.past_materials_fonts || [],
       },
       colorMode: colorSelection.mode,
       logoUrl: clientProfile.logo_url,

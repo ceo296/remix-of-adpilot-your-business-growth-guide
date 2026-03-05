@@ -39,12 +39,21 @@ export type WizardDataUpdate = Omit<Partial<WizardData>, 'brand'> & {
   brand?: Omit<Partial<BrandIdentity>, 'colors'> & { colors?: Partial<BrandColors> };
 };
 
+export interface DetectedFonts {
+  headerStyle: string;
+  bodyStyle: string;
+  recommendedHeaderFont: string;
+  recommendedBodyFont: string;
+  confidence: 'high' | 'medium' | 'low';
+}
+
 export interface AdLayoutAnalysis {
-  logoPosition: string; // e.g. "top-right", "top-left", "center-top"
-  gridStructure: string; // e.g. "2-column split", "hero + text block"
-  colorPalette: string[]; // hex colors extracted
-  typography: string; // description of fonts/styles
-  layoutNotes: string; // general observations
+  logoPosition: string;
+  gridStructure: string;
+  colorPalette: string[];
+  typography: string;
+  detectedFonts?: DetectedFonts;
+  layoutNotes: string;
 }
 
 export interface UploadedMaterial {
