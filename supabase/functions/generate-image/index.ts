@@ -26,7 +26,9 @@ ENVIRONMENT: Upscale, clean, and prestigious Jewish homes or professional settin
 NEGATIVE SPACE: Always ensure 30% of the frame is "clean" (blurred background or empty wall) to allow for professional Hebrew typography to be overlaid later.
 EMOTIONAL CONNECTION: Focus on the "Story" (e.g., a father and son learning, a mother’s calm, the prestige of a product) rather than just "displaying an item."
 
-[NEGATIVE PROMPT - NEVER SHOW] Text inside the image, logos, split-screens, multiple panels, clinical/stock-photo look, low-quality CGI, immodest clothing, distorted limbs, messy backgrounds. CRITICAL: Do NOT include religious/ritual objects (menorah, chanukiah, kiddush cup, seder plate, shofar, lulav, etrog, dreidel, Torah scroll) UNLESS the campaign is explicitly tagged for a specific holiday. A dental/real-estate/food ad must NEVER contain religious symbols.
+[NEGATIVE PROMPT - NEVER SHOW] Text inside the image, invented/fabricated logos, split-screens, multiple panels, clinical/stock-photo look, low-quality CGI, immodest clothing, distorted limbs, messy backgrounds. CRITICAL: Do NOT include religious/ritual objects (menorah, chanukiah, kiddush cup, seder plate, shofar, lulav, etrog, dreidel, Torah scroll) UNLESS the campaign is explicitly tagged for a specific holiday. A dental/real-estate/food ad must NEVER contain religious symbols.
+
+[IRON RULE — LOGO] NEVER invent, design, or generate a new logo. Use ONLY the client's actual logo if attached as an image. If no logo image is attached, leave space empty — do NOT create any logo substitute, symbol, monogram, or emblem.
 `;
 
 // Enhanced style descriptions for better quality
@@ -144,10 +146,13 @@ async function generateVisualLayer(
       type: "image_url",
       image_url: { url: logoUrl }
     });
-    messageContent[0].text = `IMPORTANT: One of the attached images is the brand's LOGO. Place this exact logo in the BOTTOM-LEFT corner of the image. Do not modify the logo.\n\n` + messageContent[0].text;
+    messageContent[0].text = `IRON RULE — LOGO: One of the attached images is the client's ACTUAL brand logo. Use this EXACT logo as-is in the BOTTOM-LEFT corner. NEVER modify, recreate, or invent a different logo.\n\n` + messageContent[0].text;
   } else if (isPdfLogo) {
     console.log("Skipping PDF logo - image generation models cannot process PDF files");
-    messageContent[0].text = `IMPORTANT: The brand has a logo but it's in PDF format and cannot be attached. Leave a clear, prominent space in the BOTTOM-LEFT corner for the logo to be added later.\n\n` + messageContent[0].text;
+    messageContent[0].text = `IRON RULE — LOGO: The brand has a logo but it's in PDF format and cannot be attached. Leave a clear, prominent space in the BOTTOM-LEFT corner for the logo to be added later. Do NOT invent or generate any substitute logo.\n\n` + messageContent[0].text;
+  } else {
+    // No logo at all - explicitly tell the model not to invent one
+    messageContent[0].text = `IRON RULE — LOGO: No brand logo was provided. Do NOT invent, create, or generate any logo, symbol, monogram, or emblem. Leave the logo area EMPTY for post-production.\n\n` + messageContent[0].text;
   }
 
   for (const tryModel of models) {
@@ -511,6 +516,7 @@ CRITICAL - NO TEXT RULES:
 - Do NOT include phone numbers, headlines, logos with text, watermarks, or captions
 - The image must be 100% VISUAL — only photography, illustration, colors, shapes, and composition
 - If you see a logo image attached, include it in the BOTTOM-LEFT corner only, do NOT add any text around it
+- IRON RULE — LOGO: NEVER invent, create, design, or generate a new logo. If a brand logo image is attached, use ONLY that exact logo as-is. If NO logo image is attached, do NOT place any logo at all — leave the space empty for post-production. Any invented/fabricated logo is a CRITICAL ERROR.
 
 VISUAL IMPACT — MAKE IT EXTRAORDINARY (CRITICAL):
 - Think CANNES LIONS, D&AD, ONE SHOW award-winning visual concepts
