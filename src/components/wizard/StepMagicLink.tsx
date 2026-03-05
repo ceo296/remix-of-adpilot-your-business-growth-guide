@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { getYourWord, getGreeting } from '@/lib/honorific-utils';
 import { BrandingStudio } from './BrandingStudio';
+import LogoUploadGuidelines from '@/components/shared/LogoUploadGuidelines';
 
 interface UploadedFile {
   name: string;
@@ -61,7 +62,11 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
         toast.loading('ממיר PDF ל-PNG...', { id: 'pdf-convert' });
       }
       
-      const { dataUrl } = await fileToLogoDataUrl(file);
+      const { dataUrl, hadWhiteBackground } = await fileToLogoDataUrl(file);
+      
+      if (hadWhiteBackground) {
+        toast.success('זיהינו רקע לבן בלוגו והסרנו אותו אוטומטית 🎨');
+      }
       
       if (isPdf) {
         toast.success('PDF הומר בהצלחה!', { id: 'pdf-convert' });
@@ -384,6 +389,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
                   העלה לוגו / ספר מותג
                   <span className="text-destructive text-lg">*</span>
                 </label>
+                <LogoUploadGuidelines />
               </div>
               
               <input
