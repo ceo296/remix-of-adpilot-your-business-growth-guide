@@ -487,6 +487,30 @@ const OnboardingWizard = () => {
 
           if (clientError) throw clientError;
         } else {
+          // Check for duplicate business names before creating
+          const normalizeForCompare = (name: string) => 
+            name.trim().replace(/\s+/g, ' ').replace(/["""׳'"]/g, '').toLowerCase();
+          
+          const newNorm = normalizeForCompare(wizardData.brand.name);
+          
+          const { data: allProfiles } = await supabase
+            .from('client_profiles')
+            .select('id, business_name')
+            .eq('user_id', user.id)
+            .eq('is_agency_profile', false);
+          
+          if (allProfiles && allProfiles.length > 0) {
+            const duplicate = allProfiles.find(c => {
+              const existingNorm = normalizeForCompare(c.business_name);
+              return existingNorm === newNorm || existingNorm.includes(newNorm) || newNorm.includes(existingNorm);
+            });
+            if (duplicate) {
+              toast.error(`לקוח עם שם דומה כבר קיים: "${duplicate.business_name}". אם זה לקוח אחר, שנו את השם.`);
+              setIsSaving(false);
+              return;
+            }
+          }
+
           // Create new client profile
           const { error: clientError } = await supabase
             .from('client_profiles')
