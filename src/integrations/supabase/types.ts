@@ -385,6 +385,7 @@ export type Database = {
           agency_owner_id: string | null
           background_color: string | null
           body_font: string | null
+          branches: string | null
           business_name: string
           business_photos: Json | null
           competitor_positions: Json | null
@@ -406,6 +407,7 @@ export type Database = {
           my_position_x: number | null
           my_position_y: number | null
           onboarding_completed: boolean | null
+          opening_hours: string | null
           past_materials: Json | null
           personal_red_lines: string[] | null
           primary_color: string | null
@@ -429,6 +431,7 @@ export type Database = {
           agency_owner_id?: string | null
           background_color?: string | null
           body_font?: string | null
+          branches?: string | null
           business_name: string
           business_photos?: Json | null
           competitor_positions?: Json | null
@@ -450,6 +453,7 @@ export type Database = {
           my_position_x?: number | null
           my_position_y?: number | null
           onboarding_completed?: boolean | null
+          opening_hours?: string | null
           past_materials?: Json | null
           personal_red_lines?: string[] | null
           primary_color?: string | null
@@ -473,6 +477,7 @@ export type Database = {
           agency_owner_id?: string | null
           background_color?: string | null
           body_font?: string | null
+          branches?: string | null
           business_name?: string
           business_photos?: Json | null
           competitor_positions?: Json | null
@@ -494,6 +499,7 @@ export type Database = {
           my_position_x?: number | null
           my_position_y?: number | null
           onboarding_completed?: boolean | null
+          opening_hours?: string | null
           past_materials?: Json | null
           personal_red_lines?: string[] | null
           primary_color?: string | null

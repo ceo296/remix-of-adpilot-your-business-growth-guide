@@ -33,7 +33,9 @@ import {
   History,
   Camera,
   X,
-  ImagePlus
+  ImagePlus,
+  Clock,
+  Building2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +52,8 @@ export type ContactSelection = {
   facebook: boolean;
   instagram: boolean;
   customText: string;
+  openingHours: boolean;
+  selectedBranches: string[];
 };
 
 export type ColorSelection = {
@@ -77,6 +81,8 @@ export interface ContactInfo {
   contact_youtube?: string | null;
   social_facebook?: string | null;
   social_instagram?: string | null;
+  opening_hours?: string | null;
+  branches?: string | null;
 }
 
 export interface BrandColors {
@@ -230,6 +236,25 @@ ${value.goal ? `מטרת הקמפיין: ${value.goal}` : ''}
     }
   };
 
+  const branchesList = useMemo(() => {
+    if (!contactInfo?.branches) return [];
+    return contactInfo.branches.split('\n').map(b => b.trim()).filter(Boolean);
+  }, [contactInfo?.branches]);
+
+  const toggleBranch = (branch: string) => {
+    const current = value.contactSelection.selectedBranches || [];
+    const updated = current.includes(branch)
+      ? current.filter(b => b !== branch)
+      : [...current, branch];
+    onChange({
+      ...value,
+      contactSelection: {
+        ...value.contactSelection,
+        selectedBranches: updated,
+      },
+    });
+  };
+
   const hasAnyContact = contactInfo && (
     contactInfo.contact_phone || 
     contactInfo.contact_whatsapp || 
@@ -237,7 +262,9 @@ ${value.goal ? `מטרת הקמפיין: ${value.goal}` : ''}
     contactInfo.contact_address ||
     contactInfo.contact_youtube ||
     contactInfo.social_facebook ||
-    contactInfo.social_instagram
+    contactInfo.social_instagram ||
+    contactInfo.opening_hours ||
+    branchesList.length > 0
   );
 
   const hasBrandColors = brandColors && (brandColors.primary_color || brandColors.secondary_color);
@@ -776,6 +803,41 @@ ${value.goal ? `מטרת הקמפיין: ${value.goal}` : ''}
                     <span>כתובת:</span>
                     <span className="text-muted-foreground">{contactInfo.contact_address}</span>
                   </label>
+                </div>
+              )}
+              {contactInfo?.opening_hours && (
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="contact-hours"
+                    checked={value.contactSelection.openingHours}
+                    onCheckedChange={() => toggleContact('openingHours')}
+                  />
+                  <label htmlFor="contact-hours" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span>שעות פתיחה:</span>
+                    <span className="text-muted-foreground">{contactInfo.opening_hours}</span>
+                  </label>
+                </div>
+              )}
+              {branchesList.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-border/50">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Building2 className="w-4 h-4 text-primary" />
+                    <span>סניפים להצגה במודעה:</span>
+                  </div>
+                  {branchesList.map((branch, idx) => (
+                    <div key={idx} className="flex items-center gap-3 mr-6">
+                      <Checkbox
+                        id={`branch-${idx}`}
+                        checked={(value.contactSelection.selectedBranches || []).includes(branch)}
+                        onCheckedChange={() => toggleBranch(branch)}
+                      />
+                      <label htmlFor={`branch-${idx}`} className="flex items-center gap-2 cursor-pointer text-sm">
+                        <MapPin className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-muted-foreground">{branch}</span>
+                      </label>
+                    </div>
+                  ))}
                 </div>
               )}
               {contactInfo?.contact_youtube && (

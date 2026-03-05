@@ -273,6 +273,8 @@ const CreativeStudio = () => {
       facebook: false,
       instagram: false,
       customText: '',
+      openingHours: false,
+      selectedBranches: [],
     },
     colorSelection: {
       mode: 'brand',
@@ -931,6 +933,8 @@ const CreativeStudio = () => {
         facebook: false,
         instagram: false,
         customText: '',
+        openingHours: false,
+        selectedBranches: [],
       },
       colorSelection: {
         mode: 'brand',
@@ -1730,6 +1734,8 @@ ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${select
               contact_youtube: clientProfile.contact_youtube,
               social_facebook: clientProfile.social_facebook,
               social_instagram: clientProfile.social_instagram,
+              opening_hours: (clientProfile as any).opening_hours || null,
+              branches: (clientProfile as any).branches || null,
             } : undefined}
             brandColors={clientProfile ? {
               primary_color: clientProfile.primary_color,
