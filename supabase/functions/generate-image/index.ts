@@ -576,13 +576,28 @@ The AI should draw INSPIRATION from the real products/settings shown in these ph
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
 ${campaignContext?.campaignImageUrl ? `
 A SPECIFIC CAMPAIGN IMAGE has been provided by the client. Use this image as the PRIMARY visual reference for the ad composition.` : ''}
-${campaignContext?.goal === 'awareness' ? `
+${campaignContext?.adGoal ? `
+AD GOAL (GUIDED BRIEF): "${campaignContext.adGoal}"
+${campaignContext.adGoal === 'sell' ? '→ This is a SALES ad. Focus on product visibility, pricing emphasis, and urgency. Bold, energetic composition with warm contrasting colors.' : ''}
+${campaignContext.adGoal === 'brand-presence' ? '→ This is a BRANDING ad. Premium, elegant, aspirational composition. Soft diffused lighting. Clean layout with generous white space. No prices.' : ''}
+${campaignContext.adGoal === 'invite-contact' ? '→ This ad invites CONTACT/MEETING. Warm, welcoming, professional composition. Human connection emphasis. Contact details should be prominent.' : ''}
+${campaignContext.adGoal === 'introduce-product' ? '→ This is a PRODUCT LAUNCH ad. Dramatic reveal composition. Theatrical lighting. Focus on ONE key element with sense of mystery and excitement.' : ''}` : ''}
+${campaignContext?.emotionalTone ? `
+EMOTIONAL TONE DIRECTIVE: "${campaignContext.emotionalTone}"
+${campaignContext.emotionalTone === 'luxury' ? '→ Luxurious, elegant feel. Rich textures, gold accents, dramatic lighting. Premium materials and surfaces.' : ''}
+${campaignContext.emotionalTone === 'urgency' ? '→ Urgent, time-sensitive feel. Bold red/orange accents, dynamic angles, high contrast. Energy and motion.' : ''}
+${campaignContext.emotionalTone === 'belonging' ? '→ Warm belonging feel. Soft golden light, intimate compositions, family/community atmosphere.' : ''}
+${campaignContext.emotionalTone === 'professional' ? '→ Professional, trustworthy feel. Clean lines, structured composition, neutral sophisticated palette.' : ''}` : ''}
+${campaignContext?.priceOrBenefit ? `PRICE/BENEFIT TO HIGHLIGHT: "${campaignContext.priceOrBenefit}"` : ''}
+${campaignContext?.isTimeLimited && campaignContext?.timeLimitText ? `TIME LIMIT: "${campaignContext.timeLimitText}" — add visual urgency cues.` : ''}
+${campaignContext?.desiredAction ? `DESIRED CTA: "${campaignContext.desiredAction}" — composition should guide the eye toward this action.` : ''}
+${!campaignContext?.adGoal && campaignContext?.goal === 'awareness' ? `
 GOAL STYLE DIRECTIVE (awareness): Premium, elegant, aspirational composition. Soft diffused lighting. Clean layout with generous white space. Muted sophisticated color palette. No prices or discounts in the visual.` : 
-campaignContext?.goal === 'promotion' ? `
+!campaignContext?.adGoal && campaignContext?.goal === 'promotion' ? `
 GOAL STYLE DIRECTIVE (promotion): Bold, energetic, eye-catching composition. Warm contrasting colors (red, orange, gold accents). Dynamic layout. Clear large text area for prices/offers. Sense of urgency.` :
-campaignContext?.goal === 'launch' ? `
+!campaignContext?.adGoal && campaignContext?.goal === 'launch' ? `
 GOAL STYLE DIRECTIVE (launch): Dramatic, surprising composition. Strong theatrical lighting with deep shadows. Unconventional camera angles. Shallow depth of field focusing on ONE key element. Sense of reveal and mystery.` :
-campaignContext?.goal === 'seasonal' ? `
+!campaignContext?.adGoal && campaignContext?.goal === 'seasonal' ? `
 GOAL STYLE DIRECTIVE (seasonal): Warm, festive, inviting composition. Golden hour warm lighting. Rich colors (gold, burgundy, deep green depending on holiday). Subtle seasonal elements in background. Warm family atmosphere.` : ''}
 
 DESIGN APPROACH (CRITICAL):

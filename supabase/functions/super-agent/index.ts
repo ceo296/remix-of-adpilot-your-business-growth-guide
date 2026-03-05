@@ -230,18 +230,45 @@ serve(async (req) => {
       });
     }
 
-    // Campaign goal → style directives
+    // Campaign goal → style directives (supports both old and new guided brief format)
     const GOAL_STYLE_MAP: Record<string, string> = {
       'awareness': '🎯 מטרה: מודעות למותג — הטון צריך להיות אלגנטי, מרשים ומעורר השראה. הוויזואל צריך להיות premium ו-aspirational. אל תלחץ על מכירה, תלחץ על תחושה. כותרות קצרות וחזקות שמעבירות מסר מותגי.',
       'promotion': '🔥 מטרה: סייל/מבצע — הטון צריך להיות דחוף, ישיר ואקטיבי. המחיר/ההנחה חייבים להיות בולטים. CTA חזק ובהיר. צבעים חמים ובולטים. תחושת "עכשיו או לעולם לא". כותרות שמדגישות את ההצעה.',
       'launch': '🚀 מטרה: השקה — הטון צריך להיות דרמטי, מפתיע ומלהיב. ויזואל שובר מוסכמות עם אלמנט של חידוש. תחושת "משהו חדש ומרגש מגיע". כותרות שמעוררות סקרנות ותשומת לב.',
       'seasonal': '🎉 מטרה: עונתי/חג — הטון צריך להיות חגיגי, חם ומשפחתי. שילוב אלמנטים עונתיים רלוונטיים. תחושת שמחה ושייכות. ויזואל שמשדר אווירת חג ומסורת.',
     };
-    const goalDirective = campaignContext?.goal ? GOAL_STYLE_MAP[campaignContext.goal] || '' : '';
+    
+    // New guided brief ad goal mapping
+    const AD_GOAL_STYLE_MAP: Record<string, string> = {
+      'sell': '🔥 מטרת המודעה: מכירה — הטון ישיר, דחוף ואקטיבי. המחיר/הנחה בולטים. CTA חזק. צבעים חמים. תחושת "עכשיו או לעולם לא".',
+      'brand-presence': '🎯 מטרת המודעה: נוכחות מותגית — אלגנטי, premium, מרשים. הרבה חלל לבן. אל תלחץ על מכירה. כותרות קצרות וחזקות.',
+      'invite-contact': '🤝 מטרת המודעה: הזמנה ליצירת קשר — חם, מזמין, מקצועי. דגש על נגישות ואנושיות. פרטי התקשרות בולטים.',
+      'introduce-product': '🚀 מטרת המודעה: הכרת מוצר חדש — דרמטי, מסקרן, מלהיב. ויזואל של חשיפה. תחושת חידוש והתרגשות.',
+    };
+    
+    const EMOTIONAL_TONE_MAP: Record<string, string> = {
+      'luxury': '✨ טון רגשי: יוקרה — מראה מפואר ואלגנטי. טקסטורות עשירות, אקסנטים זהובים, תאורה דרמטית.',
+      'urgency': '⏰ טון רגשי: דחיפות — אנרגיה גבוהה, ניגודיות חזקה, זוויות דינמיות. תחושת "חייב עכשיו".',
+      'belonging': '❤️ טון רגשי: שייכות — אור זהוב רך, קומפוזיציה אינטימית, אווירה משפחתית וקהילתית.',
+      'professional': '💼 טון רגשי: מקצועיות — קווים נקיים, קומפוזיציה מסודרת, פלטה ניטרלית ומתוחכמת.',
+    };
+    
+    // Determine which directives to use
+    const goalDirective = campaignContext?.adGoal 
+      ? AD_GOAL_STYLE_MAP[campaignContext.adGoal] || ''
+      : campaignContext?.goal ? GOAL_STYLE_MAP[campaignContext.goal] || '' : '';
+    const toneDirective = campaignContext?.emotionalTone ? EMOTIONAL_TONE_MAP[campaignContext.emotionalTone] || '' : '';
+    const priceDirective = campaignContext?.priceOrBenefit ? `💰 מחיר/הטבה להדגשה: "${campaignContext.priceOrBenefit}"` : '';
+    const timeLimitDirective = campaignContext?.isTimeLimited && campaignContext?.timeLimitText ? `⏳ הגבלת זמן: "${campaignContext.timeLimitText}" — יש להוסיף תחושת דחיפות ויזואלית.` : '';
+    const ctaDirective = campaignContext?.desiredAction ? `👉 פעולה רצויה מהצופה: "${campaignContext.desiredAction}"` : '';
 
     // Build context parts for text
     const contextParts = [];
     if (goalDirective) contextParts.push(`\n=== הנחיית סגנון לפי מטרת הקמפיין ===\n${goalDirective}`);
+    if (toneDirective) contextParts.push(toneDirective);
+    if (priceDirective) contextParts.push(priceDirective);
+    if (timeLimitDirective) contextParts.push(timeLimitDirective);
+    if (ctaDirective) contextParts.push(ctaDirective);
     if (clientProfile) {
       // Strip large base64 logo from profile to avoid payload bloat
       const lightProfile = { ...clientProfile };

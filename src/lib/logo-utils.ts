@@ -11,7 +11,7 @@ import { isPdfUrl, pdfToImage } from './pdf-utils';
  */
 export function detectWhiteBackground(
   imageDataUrl: string,
-  threshold = 245
+  threshold = 235
 ): Promise<{ isWhite: boolean; confidence: number }> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -57,7 +57,7 @@ export function detectWhiteBackground(
  */
 export function removeWhiteBackground(
   imageDataUrl: string,
-  threshold = 240
+  threshold = 230
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
