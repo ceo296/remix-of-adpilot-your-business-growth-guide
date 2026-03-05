@@ -84,12 +84,8 @@ function makeOverlayTransparent(html: string): string {
   // it obscures the AI visual. The headline text-shadow provides enough contrast.
   result = result.replace(/<div[^>]*class=["']grad-top["'][^>]*>[\s\S]*?<\/div>/gi, '');
   
-  // Remove ALL logo elements from overlay — the AI visual already contains the logo.
-  // This prevents duplicate logos in the final composite.
-  // Match any div whose class contains "logo" (logo-in-bar, logo-container, etc.)
-  result = result.replace(/<div[^>]*class=["'][^"']*logo[^"']*["'][^>]*>[\s\S]*?<\/div>/gi, '');
-  // Also strip any standalone <img> with "logo" in alt or class
-  result = result.replace(/<img[^>]*(?:alt|class)=["'][^"']*logo[^"']*["'][^>]*\/?>/gi, '');
+   // Keep the logo in the overlay — the AI visual uses a generic placeholder,
+   // so the real client logo must come from the HTML template layer.
   
   // Force ALL backgrounds to transparent in the <style> block
   // This ensures no element creates an opaque band over the AI image
