@@ -228,6 +228,9 @@ serve(async (req) => {
         .join(', ');
       sectorBrainContext += `\n\n=== עונה/חג רלוונטי: ${holidayNames} ===\n`;
       sectorBrainContext += `התמונה צריכה להתאים לאווירה של ${holidayNames}.\n`;
+    } else {
+      sectorBrainContext += `\n\n=== אין חג ספציפי — ניטרליות מוחלטת ===\n`;
+      sectorBrainContext += `אסור בתכלית האיסור לשלב כל סמל דתי או חגיגי (חנוכיה, גביע קידוש, קערת סדר, שופר, לולב, מגילה). המודעה חייבת להתמקד אך ורק במוצר/שירות המפורסם.\n`;
     }
 
     if (fameExamples.length > 0) {
