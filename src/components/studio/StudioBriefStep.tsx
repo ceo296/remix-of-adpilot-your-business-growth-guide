@@ -130,17 +130,17 @@ function mapAdGoalToLegacy(adGoal: AdGoal | null): CampaignGoal | null {
 }
 
 const AD_GOAL_OPTIONS: { id: AdGoal; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
-  { id: 'sell', label: '״תקנו ממני״', description: 'מבצע, הנחה, הצעה מוגבלת', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/30' },
-  { id: 'brand-presence', label: '״תראו אותי״', description: 'חיזוק המותג, יוקרה, סטייל', icon: Eye, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30' },
-  { id: 'invite-contact', label: '״בואו נדבר או ניפגש״', description: 'הזמנה לשיחה / פגישה', icon: PhoneCall, gradient: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/30' },
-  { id: 'introduce-product', label: '״תכירו מוצר חדש״', description: 'השקה או חשיפה של מוצר/שירות', icon: Rocket, gradient: 'from-orange-500 to-amber-600', shadow: 'shadow-orange-500/30' },
+  { id: 'sell', label: 'תקנו ממני', description: 'מבצע, הנחה, הצעה מוגבלת', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/30' },
+  { id: 'brand-presence', label: 'תראו אותי', description: 'חיזוק המותג, יוקרה, סטייל', icon: Eye, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30' },
+  { id: 'invite-contact', label: 'בואו נדבר או ניפגש', description: 'הזמנה לשיחה / פגישה', icon: PhoneCall, gradient: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/30' },
+  { id: 'introduce-product', label: 'תכירו מוצר חדש', description: 'השקה או חשיפה של מוצר/שירות', icon: Rocket, gradient: 'from-orange-500 to-amber-600', shadow: 'shadow-orange-500/30' },
 ];
 
 const EMOTIONAL_TONE_OPTIONS: { id: EmotionalTone; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
-  { id: 'luxury', label: '״וואו, זה נראה יוקרתי״', description: 'מראה מפואר ואלגנטי', icon: Crown, gradient: 'from-amber-500 to-yellow-500', shadow: 'shadow-amber-500/30' },
-  { id: 'urgency', label: '״חייב להספיק לפני שיגמר״', description: 'דחיפות ומבצע מוגבל', icon: Timer, gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30' },
-  { id: 'belonging', label: '״זה המקום בשבילי״', description: 'חיבור אישי ושייכות', icon: Heart, gradient: 'from-pink-500 to-rose-500', shadow: 'shadow-pink-500/30' },
-  { id: 'professional', label: '״עושה עלי רושם מקצועי״', description: 'אמינות ומקצועיות', icon: Briefcase, gradient: 'from-slate-600 to-gray-700', shadow: 'shadow-slate-500/30' },
+  { id: 'luxury', label: 'וואו, זה נראה יוקרתי', description: 'מראה מפואר ואלגנטי', icon: Crown, gradient: 'from-amber-500 to-yellow-500', shadow: 'shadow-amber-500/30' },
+  { id: 'urgency', label: 'חייב להספיק לפני שיגמר', description: 'דחיפות ומבצע מוגבל', icon: Timer, gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30' },
+  { id: 'belonging', label: 'זה המקום בשבילי', description: 'חיבור אישי ושייכות', icon: Heart, gradient: 'from-pink-500 to-rose-500', shadow: 'shadow-pink-500/30' },
+  { id: 'professional', label: 'עושה עלי רושם מקצועי', description: 'אמינות ומקצועיות', icon: Briefcase, gradient: 'from-slate-600 to-gray-700', shadow: 'shadow-slate-500/30' },
 ];
 
 const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
