@@ -1565,6 +1565,20 @@ const CreativeStudio = () => {
       const toneLabels: Record<string, string> = { luxury: '✨ יוקרה', urgency: '⏰ דחיפות', belonging: '🤝 שייכות', professional: '🏢 מקצועיות' };
       const actionLabels: Record<string, string> = { whatsapp_email: '📱 וואטסאפ/מייל', phone: '📞 טלפון', visit: '🏪 ביקור בחנות', website: '🌐 אתר', recall: '🧠 זכירת מותג' };
       
+      // Build contact display selections
+      const contactLabels: string[] = [];
+      const cs = campaignBrief.contactSelection;
+      if (cs.logoOnly) contactLabels.push('🏷️ לוגו');
+      if (cs.phone) contactLabels.push('📞 טלפון');
+      if (cs.whatsapp) contactLabels.push('📱 וואטסאפ');
+      if (cs.email) contactLabels.push('📧 מייל');
+      if (cs.address) contactLabels.push('📍 כתובת');
+      if (cs.openingHours) contactLabels.push('🕐 שעות פתיחה');
+      if (cs.youtube) contactLabels.push('🎬 יוטיוב');
+      if (cs.facebook) contactLabels.push('📘 פייסבוק');
+      if (cs.instagram) contactLabels.push('📸 אינסטגרם');
+      if ((cs.selectedBranches || []).length > 0) contactLabels.push(`🏢 ${cs.selectedBranches.length} סניפים`);
+
       const briefLines = [
         `📌 בשורה מרכזית: "${campaignBrief.offer?.substring(0, 80) || 'לא הוגדר'}${(campaignBrief.offer?.length || 0) > 80 ? '...' : ''}"`,
         `🎯 מטרה: ${goalLabels[campaignBrief.adGoal || ''] || campaignBrief.adGoal || '❌ לא נבחר'}`,
@@ -1572,6 +1586,7 @@ const CreativeStudio = () => {
         `👆 פעולה רצויה: ${actionLabels[campaignBrief.desiredAction || ''] || campaignBrief.desiredAction || '❌ לא נבחר'}`,
         campaignBrief.showPriceOrBenefit && campaignBrief.priceOrBenefit ? `💲 מחיר/הטבה: ${campaignBrief.priceOrBenefit}` : '💲 מחיר/הטבה: לא הוגדר',
         campaignBrief.isTimeLimited ? `⏳ מוגבל בזמן: ${campaignBrief.timeLimitText || 'כן'}` : '⏳ ללא הגבלת זמן',
+        `📋 מה להציג: ${contactLabels.length > 0 ? contactLabels.join(', ') : '❌ לא נבחר'}`,
         `🎨 גישת עיצוב: ${designApproach || 'חופש יצירתי'}`,
         `📐 סוג מדיה: ${mediaTypes.join(', ') || 'לא נבחר'}`,
         `🏷️ כותרת קמפיין: ${campaignBrief.title || 'לא הוגדר'}`,
