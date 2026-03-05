@@ -313,7 +313,9 @@ ENVIRONMENT: Upscale, clean, and prestigious Jewish homes or professional settin
 NEGATIVE SPACE: Always ensure 30% of the frame is "clean" (blurred background or empty wall) to allow for professional Hebrew typography to be overlaid later.
 EMOTIONAL CONNECTION: Focus on the "Story" (e.g., a father and son learning, a mother’s calm, the prestige of a product) rather than just "displaying an item."
 
-[NEGATIVE PROMPT - NEVER SHOW] Text inside the image, logos, split-screens, multiple panels, clinical/stock-photo look, low-quality CGI, immodest clothing, non-Haredi religious symbols, distorted limbs, messy backgrounds.
+[NEGATIVE PROMPT - NEVER SHOW] Text inside the image, invented/fabricated logos, split-screens, multiple panels, clinical/stock-photo look, low-quality CGI, immodest clothing, non-Haredi religious symbols, distorted limbs, messy backgrounds.
+
+[IRON RULE — LOGO] NEVER invent, design, or generate a new logo. Use ONLY the client's actual logo if attached as an image. If no logo is attached, leave space empty — do NOT create any logo substitute, symbol, monogram, or emblem.
 
 הנחיות נוספות ספציפיות:
 - אין להציג תמונות נשים או ילדות כלל (אלא אם התבקש במפורש ויזואלית צנועה ביותר, וגם אז בזהירות רבה)

@@ -478,7 +478,7 @@ serve(async (req) => {
         console.log('Including brand logo in image generation:', brandContext.logoUrl);
         messageContent.unshift({
           type: 'text',
-          text: `IMPORTANT: The following image is the brand logo. You MUST incorporate this exact logo prominently in the generated design. Place it in a visible position (top-right corner or header area). Do not recreate or modify the logo - use it as-is.`
+          text: `IRON RULE — LOGO: The following image is the client's ACTUAL brand logo. You MUST use this EXACT logo as-is in the design. Place it in a visible position (top-right corner or header area). NEVER modify, recreate, redesign, or invent a different logo. If for any reason this logo cannot be placed, leave the space EMPTY — do NOT generate a substitute logo, symbol, monogram, or emblem. Any invented logo is a CRITICAL ERROR.`
         });
         messageContent.push({
           type: 'image_url',
