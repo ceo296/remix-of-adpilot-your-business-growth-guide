@@ -69,10 +69,39 @@ export const useAgencyClients = () => {
       throw new Error('Only agencies can add clients');
     }
 
+    // Check for duplicate or similar business names
+    const normalizedName = clientData.business_name.trim().replace(/\s+/g, ' ');
+    const { data: existingClients } = await supabase
+      .from('client_profiles')
+      .select('id, business_name')
+      .eq('agency_owner_id', user.id)
+      .eq('is_agency_profile', false);
+
+    if (existingClients && existingClients.length > 0) {
+      const normalizeForCompare = (name: string) => 
+        name.trim().replace(/\s+/g, ' ').replace(/["""׳'"]/g, '').toLowerCase();
+      
+      const newNorm = normalizeForCompare(normalizedName);
+      
+      const duplicate = existingClients.find(c => {
+        const existingNorm = normalizeForCompare(c.business_name);
+        // Exact match
+        if (existingNorm === newNorm) return true;
+        // One contains the other (e.g. "ד"ר שיפר" vs "מרפאת ד"ר שיפר")
+        if (existingNorm.includes(newNorm) || newNorm.includes(existingNorm)) return true;
+        return false;
+      });
+
+      if (duplicate) {
+        throw new Error(`לקוח עם שם דומה כבר קיים: "${duplicate.business_name}". אם זה לקוח אחר, שנה את השם כדי להבדיל ביניהם.`);
+      }
+    }
+
     const { data: newClient, error } = await supabase
       .from('client_profiles')
       .insert({
         ...clientData,
+        business_name: normalizedName,
         user_id: user.id,
         agency_owner_id: user.id,
         is_agency_profile: false,
