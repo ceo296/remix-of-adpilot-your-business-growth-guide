@@ -872,20 +872,21 @@ const CreativeStudio = () => {
               const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
               finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
                 headline: textMeta.headline,
-                subtitle: textMeta.subtitle,
-                bodyText: textMeta.bodyText,
+                subtitle: '', // IRON RULE: never render subtitle on overlay
+                bodyText: '', // IRON RULE: never render bodyText on overlay
                 ctaText: textMeta.ctaText,
                 businessName: textMeta.businessName,
-                phone: textMeta.phone,
-                email: textMeta.email || clientProfile?.contact_email || undefined,
-                whatsapp: clientProfile?.contact_whatsapp || undefined,
-                address: textMeta.address || clientProfile?.contact_address || undefined,
+                // Only pass contact fields that the user selected in the brief
+                phone: campaignBrief.contactSelection.phone ? (textMeta.phone || clientProfile?.contact_phone || undefined) : undefined,
+                email: campaignBrief.contactSelection.email ? (textMeta.email || clientProfile?.contact_email || undefined) : undefined,
+                whatsapp: campaignBrief.contactSelection.whatsapp ? (clientProfile?.contact_whatsapp || undefined) : undefined,
+                address: campaignBrief.contactSelection.address ? (textMeta.address || clientProfile?.contact_address || undefined) : undefined,
                 primaryColor: overlayPrimary,
                 secondaryColor: overlaySecondary,
                 backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
                 layoutStyle: 'custom',
                 customTemplateHtml: activeCustomTemplate?.html_template,
-                logoUrl: overlayLogo,
+                logoUrl: campaignBrief.contactSelection.logoOnly || campaignBrief.contactSelection.phone || campaignBrief.contactSelection.whatsapp || campaignBrief.contactSelection.email || campaignBrief.contactSelection.address ? overlayLogo : undefined,
                 servicesList: textMeta.servicesList,
                 promoText: textMeta.promoText,
                 promoValue: textMeta.promoValue,
@@ -966,14 +967,14 @@ const CreativeStudio = () => {
                   const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
                   retryFinalUrl = await applyHtmlTextOverlay(retryData.data.imageUrl, {
                     headline: retryTextMeta.headline,
-                    subtitle: retryTextMeta.subtitle,
-                    bodyText: retryTextMeta.bodyText,
+                    subtitle: '', // IRON RULE: never render subtitle on overlay
+                    bodyText: '', // IRON RULE: never render bodyText on overlay
                     ctaText: retryTextMeta.ctaText,
                     businessName: retryTextMeta.businessName,
-                    phone: retryTextMeta.phone,
-                    email: retryTextMeta.email || clientProfile?.contact_email || undefined,
-                    whatsapp: clientProfile?.contact_whatsapp || undefined,
-                    address: retryTextMeta.address || clientProfile?.contact_address || undefined,
+                    phone: campaignBrief.contactSelection.phone ? (retryTextMeta.phone || clientProfile?.contact_phone || undefined) : undefined,
+                    email: campaignBrief.contactSelection.email ? (retryTextMeta.email || clientProfile?.contact_email || undefined) : undefined,
+                    whatsapp: campaignBrief.contactSelection.whatsapp ? (clientProfile?.contact_whatsapp || undefined) : undefined,
+                    address: campaignBrief.contactSelection.address ? (retryTextMeta.address || clientProfile?.contact_address || undefined) : undefined,
                     primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color || undefined,
                     secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined,
                     backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
@@ -1451,14 +1452,14 @@ const CreativeStudio = () => {
           // Always use the master template
           finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
             headline: concept.headline || textMeta.headline,
-            subtitle: textMeta.subtitle,
-            bodyText: concept.copy || textMeta.bodyText,
+            subtitle: '', // IRON RULE: never render subtitle on overlay
+            bodyText: '', // IRON RULE: never render bodyText on overlay  
             ctaText: textMeta.ctaText,
             businessName: textMeta.businessName,
-            phone: textMeta.phone,
-            email: textMeta.email || clientProfile?.contact_email || undefined,
-            whatsapp: clientProfile?.contact_whatsapp || undefined,
-            address: textMeta.address || clientProfile?.contact_address || undefined,
+            phone: campaignBrief.contactSelection.phone ? (textMeta.phone || clientProfile?.contact_phone || undefined) : undefined,
+            email: campaignBrief.contactSelection.email ? (textMeta.email || clientProfile?.contact_email || undefined) : undefined,
+            whatsapp: campaignBrief.contactSelection.whatsapp ? (clientProfile?.contact_whatsapp || undefined) : undefined,
+            address: campaignBrief.contactSelection.address ? (textMeta.address || clientProfile?.contact_address || undefined) : undefined,
             primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color || undefined,
             secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined,
             backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
