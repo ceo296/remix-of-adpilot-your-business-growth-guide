@@ -250,8 +250,10 @@ export const DEFAULT_TEMPLATE = `<style>
       <div class="brand-info">
         {{#if business_name}}<div class="biz-name">{{business_name}}</div>{{/if}}
         {{#if services}}<div class="services-line">{{#each services}}{{this}}{{#unless @last}} | {{/unless}}{{/each}}</div>{{/if}}
-        {{#if branches}}<div class="addr-row">{{#each branches}}<span class="addr-item">{{this}}</span>{{#unless @last}}<span class="addr-sep">|</span>{{/unless}}{{/each}}</div>{{/if}}
-        {{#unless branches}}{{#if address_list}}<div class="addr-row">{{#each address_list}}<span class="addr-item">{{this}}</span>{{/each}}</div>{{/if}}{{/unless}}
+        {{#if email}}<div class="services-line">✉ {{email}}</div>{{/if}}
+        {{#if opening_hours}}<div class="services-line">🕐 {{opening_hours}}</div>{{/if}}
+        {{#if branches}}<div class="addr-row">{{#each branches}}<span class="addr-item">📍 {{this}}</span>{{#unless @last}}<span class="addr-sep">|</span>{{/unless}}{{/each}}</div>{{/if}}
+        {{#unless branches}}{{#if address_list}}<div class="addr-row">{{#each address_list}}<span class="addr-item">📍 {{this}}</span>{{/each}}</div>{{/if}}{{/unless}}
       </div>
       {{#if logo_url}}<div class="logo-in-bar"><img src="{{logo_url}}" alt="logo"></div>{{/if}}
     </div>
