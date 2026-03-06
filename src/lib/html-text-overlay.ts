@@ -107,17 +107,16 @@ function makeOverlayTransparent(html: string): string {
     }
   );
   
-  // Make the contact-bar fully transparent — no strip, just floating text on the image.
+  // Keep the contact-bar with a semi-transparent dark background for readability
+  // Don't strip it completely — the text needs contrast against the image
   result = result.replace(
     /\.contact-bar\s*\{([^}]*)\}/,
     (match, body) => {
       let newBody = body;
-      // Strip ALL background and backdrop-filter declarations
-      newBody = newBody.replace(/background\s*:[^;]*/gi, 'background: transparent');
-      newBody = newBody.replace(/backdrop-filter\s*:[^;]*/gi, 'backdrop-filter: none');
-      newBody = newBody.replace(/-webkit-backdrop-filter\s*:[^;]*/gi, '-webkit-backdrop-filter: none');
-      newBody = newBody.replace(/border[^;]*/gi, 'border: none');
-      newBody = newBody.replace(/box-shadow\s*:[^;]*/gi, 'box-shadow: none');
+      // Replace solid background with a semi-transparent dark one for readability
+      newBody = newBody.replace(/background\s*:[^;]*/gi, 'background: rgba(0,0,0,0.75)');
+      newBody = newBody.replace(/backdrop-filter\s*:[^;]*/gi, 'backdrop-filter: blur(4px)');
+      newBody = newBody.replace(/-webkit-backdrop-filter\s*:[^;]*/gi, '-webkit-backdrop-filter: blur(4px)');
       return `.contact-bar {${newBody}}`;
     }
   );
