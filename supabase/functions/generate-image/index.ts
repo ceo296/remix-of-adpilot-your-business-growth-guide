@@ -136,24 +136,13 @@ async function generateVisualLayer(
     messageContent[0].text = `The client has provided ${photosToInclude.length} REAL business/product photos (attached). Draw inspiration from these actual products/settings to create authentic visuals.\n\n` + messageContent[0].text;
   }
 
-  // Include logo as visual input (skip PDFs - image models can't process them)
-  const logoUrl = brandContext?.logoUrl;
+  // IRON RULE: NEVER send logo to AI image generator
+  // The logo is ALWAYS handled by the programmatic HTML overlay (Layer 2)
+  // Sending it to the AI causes: duplicate logos, bad placement, invented logos, white boxes
   const isPdfLogo = typeof logoUrl === 'string' && (logoUrl.startsWith('data:application/pdf') || logoUrl.toLowerCase().endsWith('.pdf'));
   
-  if (logoUrl && !isPdfLogo) {
-    console.log("Including brand logo in visual layer (image format)");
-    messageContent.push({
-      type: "image_url",
-      image_url: { url: logoUrl }
-    });
-    messageContent[0].text = `IRON RULE — LOGO: One of the attached images is the client's ACTUAL brand logo. Use this EXACT logo as-is in the BOTTOM-LEFT corner. NEVER modify, recreate, or invent a different logo.\n\n` + messageContent[0].text;
-  } else if (isPdfLogo) {
-    console.log("Skipping PDF logo - image generation models cannot process PDF files");
-    messageContent[0].text = `IRON RULE — LOGO: The brand has a logo but it's in PDF format and cannot be attached. Leave a clear, prominent space in the BOTTOM-LEFT corner for the logo to be added later. Do NOT invent or generate any substitute logo.\n\n` + messageContent[0].text;
-  } else {
-    // No logo at all - explicitly tell the model not to invent one
-    messageContent[0].text = `IRON RULE — LOGO: No brand logo was provided. Do NOT invent, create, or generate any logo, symbol, monogram, or emblem. Leave the logo area EMPTY for post-production.\n\n` + messageContent[0].text;
-  }
+  // NEVER attach logo to AI — explicitly tell it to leave space empty
+  messageContent[0].text = `IRON RULE — LOGO: Do NOT include ANY logo, emblem, symbol, monogram, or brand mark in the image. The brand logo will be added in post-production as a separate layer. Leave the BOTTOM-LEFT corner completely clean and empty. ANY attempt to generate, recreate, or place a logo is a CRITICAL ERROR that ruins the ad.\n\n` + messageContent[0].text;
 
   for (const tryModel of models) {
     console.log("[Layer 1 - Visual] Trying model:", tryModel);
@@ -489,10 +478,26 @@ CRITICAL HOLIDAY RULES — THIS IS A ${holidaySeason.toUpperCase()} AD:
 - If unsure about an element, DO NOT include it.`;
     } else if (!holidaySeason || holidaySeason === 'year_round') {
       holidayRules = `
-HOLIDAY NEUTRALITY — CRITICAL: This is NOT a holiday-specific ad. 
-ABSOLUTELY DO NOT include ANY religious or ritual objects: no menorah/chanukiah, no kiddush cup/goblet, no seder plate, no shofar, no lulav/etrog, no dreidel, no Torah scroll, no tefillin, no megillah.
-These objects are ONLY relevant for holiday-specific campaigns. Including them in a generic ad is a SEVERE professional error — like putting a Christmas tree in a summer ad.
-Focus ONLY on the product/service being advertised. A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.`;
+HOLIDAY NEUTRALITY — THIS IS THE MOST CRITICAL RULE:
+This is NOT a holiday-specific ad. It is a regular commercial advertisement.
+
+ABSOLUTELY FORBIDDEN — ANY of these objects will RUIN the ad and make it unusable:
+❌ Menorah / Chanukiah (candelabrum)
+❌ Kiddush cup / wine goblet  
+❌ Seder plate / matzah
+❌ Shofar (ram's horn)
+❌ Lulav / Etrog / Four species
+❌ Dreidel / Sevivon
+❌ Torah scroll / open book of Torah
+❌ Tefillin / Tallit
+❌ Megillah scroll
+❌ Religious candles (Shabbat/Hanukkah)
+❌ Hamantaschen / Mishloach manot
+
+These objects are ONLY relevant for holiday-specific campaigns. Including them in a ${topicCategory || 'commercial'} ad is like putting a Christmas tree in a summer ad — a CATASTROPHIC professional error.
+
+The ad is for: ${topicCategory || 'a business/service'}. Show ONLY imagery relevant to that specific product/service.
+A dental ad = dental imagery. A real estate ad = architecture. A food ad = food. NOTHING religious unless holiday-tagged.`;
     }
 
     // ═══════════════════════════════════════════
@@ -508,15 +513,16 @@ Focus ONLY on the product/service being advertised. A dental ad = dental imagery
       aspectInstruction = 'IMAGE ORIENTATION: Generate a SQUARE image (1:1 ratio).';
     }
 
-    const visualOnlyPrompt = `Generate a VISUALLY STUNNING, AWARD-WINNING advertisement IMAGE with ABSOLUTELY ZERO TEXT.
+    const visualOnlyPrompt = `Generate a VISUALLY STUNNING, AWARD-WINNING advertisement IMAGE with ABSOLUTELY ZERO TEXT AND ZERO LOGOS.
 
-CRITICAL - NO TEXT RULES:
+CRITICAL - NO TEXT, NO LOGOS:
 - Do NOT render ANY letters, words, numbers, characters, or symbols in ANY language
 - Do NOT write Hebrew, English, Arabic, or any other script
-- Do NOT include phone numbers, headlines, logos with text, watermarks, or captions
+- Do NOT include phone numbers, headlines, watermarks, or captions
+- Do NOT include ANY logo, emblem, brand mark, symbol, monogram, or seal — real or invented
+- The brand logo and all text will be added in POST-PRODUCTION as a separate programmatic layer
 - The image must be 100% VISUAL — only photography, illustration, colors, shapes, and composition
-- If you see a logo image attached, include it in the BOTTOM-LEFT corner only, do NOT add any text around it
-- IRON RULE — LOGO: NEVER invent, create, design, or generate a new logo. If a brand logo image is attached, use ONLY that exact logo as-is. If NO logo image is attached, do NOT place any logo at all — leave the space empty for post-production. Any invented/fabricated logo is a CRITICAL ERROR.
+- ANY text or logo in the generated image is a CRITICAL ERROR
 
 VISUAL IMPACT — MAKE IT EXTRAORDINARY (CRITICAL):
 - Think CANNES LIONS, D&AD, ONE SHOW award-winning visual concepts
@@ -756,9 +762,9 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       servicesList = brandContext.xFactors.slice(0, 5);
     }
     
-    // Auto-extract promo info from the offer brief or guided brief
+    // Auto-extract promo info: prioritize guided brief fields over auto-extraction
     let promoText = campaignContext?.promoText || '';
-    let promoValue = campaignContext?.promoValue || campaignContext?.priceOrBenefit || '';
+    let promoValue = campaignContext?.priceOrBenefit || campaignContext?.promoValue || '';
     
     // Auto-extract bullet items (services, prices, advantages) from the brief
     const bulletItems: { icon: string; text: string; highlight?: boolean }[] = [];
