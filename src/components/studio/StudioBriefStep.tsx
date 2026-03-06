@@ -133,26 +133,26 @@ function mapAdGoalToLegacy(adGoal: AdGoal | null): CampaignGoal | null {
   }
 }
 
-const AD_GOAL_OPTIONS: { id: AdGoal; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
-  { id: 'sell', label: 'תקנו ממני', description: 'מבצע, הנחה, הצעה מוגבלת', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/30' },
-  { id: 'brand-presence', label: 'תראו אותי', description: 'חיזוק המותג, יוקרה, סטייל', icon: Eye, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30' },
-  { id: 'invite-contact', label: 'בואו נדבר או ניפגש', description: 'הזמנה לשיחה / פגישה', icon: PhoneCall, gradient: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/30' },
-  { id: 'introduce-product', label: 'תכירו מוצר חדש', description: 'השקה או חשיפה של מוצר/שירות', icon: Rocket, gradient: 'from-orange-500 to-amber-600', shadow: 'shadow-orange-500/30' },
+const AD_GOAL_OPTIONS: { id: AdGoal; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string; tint: string; borderTint: string }[] = [
+  { id: 'sell', label: 'תקנו ממני', description: 'מבצע, הנחה, הצעה מוגבלת', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/30', tint: 'bg-emerald-500/8', borderTint: 'border-emerald-500/30 hover:border-emerald-400/60' },
+  { id: 'brand-presence', label: 'תראו אותי', description: 'חיזוק המותג, יוקרה, סטייל', icon: Eye, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30', tint: 'bg-violet-500/8', borderTint: 'border-violet-500/30 hover:border-violet-400/60' },
+  { id: 'invite-contact', label: 'בואו נדבר או ניפגש', description: 'הזמנה לשיחה / פגישה', icon: PhoneCall, gradient: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/30', tint: 'bg-blue-500/8', borderTint: 'border-blue-500/30 hover:border-blue-400/60' },
+  { id: 'introduce-product', label: 'תכירו מוצר חדש', description: 'השקה או חשיפה של מוצר/שירות', icon: Rocket, gradient: 'from-orange-500 to-amber-600', shadow: 'shadow-orange-500/30', tint: 'bg-orange-500/8', borderTint: 'border-orange-500/30 hover:border-orange-400/60' },
 ];
 
-const EMOTIONAL_TONE_OPTIONS: { id: EmotionalTone; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
-  { id: 'luxury', label: 'וואו, זה נראה יוקרתי', description: 'מראה מפואר ואלגנטי', icon: Crown, gradient: 'from-amber-500 to-yellow-500', shadow: 'shadow-amber-500/30' },
-  { id: 'urgency', label: 'חייב להספיק לפני שיגמר', description: 'דחיפות ומבצע מוגבל', icon: Timer, gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30' },
-  { id: 'belonging', label: 'זה המקום בשבילי', description: 'חיבור אישי ושייכות', icon: Heart, gradient: 'from-pink-500 to-rose-500', shadow: 'shadow-pink-500/30' },
-  { id: 'professional', label: 'עושה עלי רושם מקצועי', description: 'אמינות ומקצועיות', icon: Briefcase, gradient: 'from-slate-600 to-gray-700', shadow: 'shadow-slate-500/30' },
+const EMOTIONAL_TONE_OPTIONS: { id: EmotionalTone; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string; tint: string; borderTint: string }[] = [
+  { id: 'luxury', label: 'וואו, זה נראה יוקרתי', description: 'מראה מפואר ואלגנטי', icon: Crown, gradient: 'from-amber-500 to-yellow-500', shadow: 'shadow-amber-500/30', tint: 'bg-amber-500/8', borderTint: 'border-amber-500/30 hover:border-amber-400/60' },
+  { id: 'urgency', label: 'חייב להספיק לפני שיגמר', description: 'דחיפות ומבצע מוגבל', icon: Timer, gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30', tint: 'bg-red-500/8', borderTint: 'border-red-500/30 hover:border-red-400/60' },
+  { id: 'belonging', label: 'זה המקום בשבילי', description: 'חיבור אישי ושייכות', icon: Heart, gradient: 'from-pink-500 to-rose-500', shadow: 'shadow-pink-500/30', tint: 'bg-pink-500/8', borderTint: 'border-pink-500/30 hover:border-pink-400/60' },
+  { id: 'professional', label: 'עושה עלי רושם מקצועי', description: 'אמינות ומקצועיות', icon: Briefcase, gradient: 'from-slate-500 to-gray-600', shadow: 'shadow-slate-500/30', tint: 'bg-slate-500/8', borderTint: 'border-slate-500/30 hover:border-slate-400/60' },
 ];
 
-const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.ElementType; gradient: string; shadow: string }[] = [
-  { id: 'whatsapp-email', label: 'שליחת מייל / וואטסאפ', icon: MessageCircle, gradient: 'from-green-500 to-emerald-600', shadow: 'shadow-green-500/30' },
-  { id: 'phone-call', label: 'שיחה טלפונית', icon: Phone, gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/30' },
-  { id: 'visit-store', label: 'הגעה למקום / חנות', icon: Store, gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/30' },
-  { id: 'visit-website', label: 'כניסה לאתר', icon: Globe, gradient: 'from-cyan-500 to-teal-600', shadow: 'shadow-cyan-500/30' },
-  { id: 'remember-me', label: 'יזכרו אותי', icon: Brain, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30' },
+const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.ElementType; gradient: string; shadow: string; tint: string; borderTint: string }[] = [
+  { id: 'whatsapp-email', label: 'שליחת מייל / וואטסאפ', icon: MessageCircle, gradient: 'from-green-500 to-emerald-600', shadow: 'shadow-green-500/30', tint: 'bg-green-500/8', borderTint: 'border-green-500/30 hover:border-green-400/60' },
+  { id: 'phone-call', label: 'שיחה טלפונית', icon: Phone, gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/30', tint: 'bg-blue-500/8', borderTint: 'border-blue-500/30 hover:border-blue-400/60' },
+  { id: 'visit-store', label: 'הגעה למקום / חנות', icon: Store, gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/30', tint: 'bg-amber-500/8', borderTint: 'border-amber-500/30 hover:border-amber-400/60' },
+  { id: 'visit-website', label: 'כניסה לאתר', icon: Globe, gradient: 'from-cyan-500 to-teal-600', shadow: 'shadow-cyan-500/30', tint: 'bg-cyan-500/8', borderTint: 'border-cyan-500/30 hover:border-cyan-400/60' },
+  { id: 'remember-me', label: 'יזכרו אותי', icon: Brain, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30', tint: 'bg-violet-500/8', borderTint: 'border-violet-500/30 hover:border-violet-400/60' },
 ];
 
 export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors }: StudioBriefStepProps) => {
@@ -368,9 +368,10 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                 key={option.id}
                 className={cn(
                   'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center hover:scale-[1.02]',
+                  option.tint,
                   isSelected
-                    ? 'border-primary bg-primary/10 shadow-lg'
-                    : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                    ? 'border-primary bg-primary/10 shadow-lg ring-1 ring-primary/30'
+                    : option.borderTint + ' hover:shadow-md'
                 )}
                 onClick={() => updateBrief({ 
                   adGoal: option.id, 
@@ -381,7 +382,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                 <div className={cn(
                   'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 shadow-lg transition-all bg-gradient-to-br',
                   option.gradient, option.shadow,
-                  isSelected ? 'scale-110' : 'opacity-70'
+                    isSelected ? 'scale-110' : ''
                 )}>
                   <option.icon className="w-7 h-7 text-white" />
                 </div>
@@ -515,16 +516,17 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                   key={option.id}
                   className={cn(
                     'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center hover:scale-[1.02]',
+                    option.tint,
                     isSelected
-                      ? 'border-primary bg-primary/10 shadow-lg'
-                      : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                      ? 'border-primary bg-primary/10 shadow-lg ring-1 ring-primary/30'
+                      : option.borderTint + ' hover:shadow-md'
                   )}
                   onClick={() => updateBrief({ emotionalTone: option.id })}
                 >
                   <div className={cn(
                     'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 shadow-lg transition-all bg-gradient-to-br',
                     option.gradient, option.shadow,
-                    isSelected ? 'scale-110' : 'opacity-70'
+                    isSelected ? 'scale-110' : ''
                   )}>
                     <option.icon className="w-7 h-7 text-white" />
                   </div>
@@ -559,16 +561,17 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                   key={option.id}
                   className={cn(
                     'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 text-center hover:scale-[1.02]',
+                    option.tint,
                     isSelected
-                      ? 'border-primary bg-primary/10 shadow-lg'
-                      : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                      ? 'border-primary bg-primary/10 shadow-lg ring-1 ring-primary/30'
+                      : option.borderTint + ' hover:shadow-md'
                   )}
                   onClick={() => updateBrief({ desiredAction: option.id })}
                 >
                   <div className={cn(
                     'w-11 h-11 mx-auto rounded-xl flex items-center justify-center mb-2 shadow-md transition-all bg-gradient-to-br',
                     option.gradient, option.shadow,
-                    isSelected ? 'scale-110' : 'opacity-60'
+                    isSelected ? 'scale-110' : ''
                   )}>
                     <option.icon className="w-5 h-5 text-white" />
                   </div>
