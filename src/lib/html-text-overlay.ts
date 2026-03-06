@@ -290,7 +290,16 @@ export async function applyHtmlTextOverlay(
       const tag = el.tagName.toLowerCase();
       return tag !== 'link' && tag !== 'style' && tag !== 'script';
     });
-    if (contentEl) renderTarget = contentEl;
+    if (contentEl) {
+      // CRITICAL FIX: Set explicit pixel dimensions on the .ad element.
+      // toPng clones the element in isolation, so `height:100%` resolves to 0
+      // without a parent context. This caused position:absolute;bottom:0 elements
+      // (contact bar, logo) to collapse and disappear from the rendered overlay.
+      contentEl.style.width = `${width}px`;
+      contentEl.style.height = `${height}px`;
+      contentEl.style.position = 'relative';
+      renderTarget = contentEl;
+    }
 
     // Render the overlay as a transparent PNG
     const overlayDataUrl = await toPng(renderTarget, {
