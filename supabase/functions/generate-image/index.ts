@@ -779,6 +779,11 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       promoText = campaignContext.timeLimitText;
     }
     
+    // If there's a price/benefit but no promoText, use it as promo badge text
+    if (!promoText && promoValue) {
+      promoText = promoValue;
+    }
+    
     // Auto-extract bullet items (services, prices, advantages) from the brief
     const bulletItems: { icon: string; text: string; highlight?: boolean }[] = [];
     
