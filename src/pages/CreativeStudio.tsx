@@ -24,7 +24,7 @@ import { StudioAutopilot, CreativeConcept, HolidaySeason, HOLIDAY_LABELS } from 
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
 import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/studio/StudioBriefStep';
 import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaTypeStep';
-import { StudioDesignApproachStep, DesignApproach } from '@/components/studio/StudioDesignApproachStep';
+import { StudioDesignApproachStep, DesignApproach, PastMaterialReference } from '@/components/studio/StudioDesignApproachStep';
 import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
@@ -298,6 +298,7 @@ const CreativeStudio = () => {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [style, setStyle] = useState<StyleChoice | null>(null);
   const [designApproach, setDesignApproach] = useState<DesignApproach | null>(null);
+  const [designReference, setDesignReference] = useState<PastMaterialReference | null>(null);
   const [copyChoice, setCopyChoice] = useState<CopyChoice | null>(null);
   const [userCopyText, setUserCopyText] = useState('');
   const [visualPrompt, setVisualPrompt] = useState('');
@@ -785,6 +786,7 @@ const CreativeStudio = () => {
         pastMaterialsAnalysis,
         layoutInstructions: buildLayoutInstructions(pastMaterialsAnalysis),
         designApproach: designApproach || null,
+        designReference: designReference ? { url: designReference.url, adAnalysis: designReference.adAnalysis } : null,
         // Contact info for the edge function to use in textMeta
         contactPhone: clientProfile.contact_phone || '',
         contactEmail: clientProfile.contact_email || '',
@@ -2110,6 +2112,9 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             value={designApproach}
             onChange={setDesignApproach}
             hasPastMaterials={!!clientProfile?.past_materials?.some((m: any) => m.adAnalysis)}
+            pastMaterials={clientProfile?.past_materials || []}
+            selectedReference={designReference}
+            onSelectReference={setDesignReference}
           />
         );
       case 6:
