@@ -2006,6 +2006,13 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         goal: campaignBrief.goal,
         structure: campaignBrief.structure,
         holidaySeason: selectedHoliday || null,
+        campaignImageUrl: campaignBrief.campaignImage || null,
+        adGoal: campaignBrief.adGoal,
+        emotionalTone: campaignBrief.emotionalTone,
+        desiredAction: campaignBrief.desiredAction,
+        priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
+        isTimeLimited: campaignBrief.isTimeLimited,
+        timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
       };
       
       for (let i = 0; i < 4; i++) {

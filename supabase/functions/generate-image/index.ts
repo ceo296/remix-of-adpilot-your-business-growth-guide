@@ -276,21 +276,20 @@ function normalizePromptText(value: string): string {
 }
 
 function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicCategory?: string): string {
+  // Priority: explicit textPrompt > offer from brief
   const source = normalizePromptText(rawHeadline || campaignContext?.offer || '');
   if (!source) return '';
 
-  // If the AI already generated a creative headline (short, punchy, no promo words) — use it as-is
-  const normalized = source.replace(/[.!?]+$/g, '');
-  const isPromoSpeak = /(?:\d{1,3}%|מבצע|הנחה|חייגו|קבלו|עכשיו|לפרטים|התקשרו)/.test(normalized);
-  const isDescriptive = /(?:טיפולי|שירותי|מרפאת|חנות|מוצרי|מכירת)\s/.test(normalized) && normalized.length > 30;
-  const isShortEnough = normalized.length <= 45;
-
-  // If it's a creative headline (short, not promotional, not just a service description) — use it
-  if (isShortEnough && !isPromoSpeak && !isDescriptive) return normalized;
-
-  // Headline is too literal/descriptive — return empty to let the overlay use the concept.headline instead
-  // The frontend prioritizes concept.headline over this fallback anyway
-  return normalized.slice(0, 45).trim();
+  // Clean up: strip trailing punctuation, limit to 50 chars max
+  let cleaned = source.replace(/[.!?،,]+$/g, '').trim();
+  
+  // If over 50 chars, try to find a natural break point
+  if (cleaned.length > 50) {
+    const breakIdx = cleaned.lastIndexOf(' ', 50);
+    cleaned = breakIdx > 20 ? cleaned.slice(0, breakIdx).trim() : cleaned.slice(0, 50).trim();
+  }
+  
+  return cleaned;
 }
 
 function buildSecondaryLines(rawSource: string, businessName: string): { subtitle: string; bodyText: string } {
@@ -740,7 +739,16 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     const headline = buildCreativeHeadline(rawHeadline, campaignContext, topicCategory);
     const secondaryLines = buildSecondaryLines(campaignContext?.offer || textPrompt || '', businessName);
     const bodyText = secondaryLines.bodyText;
-    const ctaText = '';
+    
+    // Map desiredAction from guided brief → Hebrew CTA text
+    const CTA_MAP: Record<string, string> = {
+      'whatsapp-email': 'שלחו הודעה עכשיו',
+      'phone-call': 'חייגו עכשיו',
+      'visit-store': 'בואו לבקר',
+      'visit-website': 'לפרטים נוספים',
+      'remember-me': '',
+    };
+    const ctaText = campaignContext?.desiredAction ? (CTA_MAP[campaignContext.desiredAction] || '') : '';
     
     // Keep top short headline + two sub-lines under the visual
     const subtitle = secondaryLines.subtitle;
@@ -765,6 +773,11 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     // Auto-extract promo info: prioritize guided brief fields over auto-extraction
     let promoText = campaignContext?.promoText || '';
     let promoValue = campaignContext?.priceOrBenefit || campaignContext?.promoValue || '';
+    
+    // If there's a time limit, use it as promo text
+    if (!promoText && campaignContext?.isTimeLimited && campaignContext?.timeLimitText) {
+      promoText = campaignContext.timeLimitText;
+    }
     
     // Auto-extract bullet items (services, prices, advantages) from the brief
     const bulletItems: { icon: string; text: string; highlight?: boolean }[] = [];
