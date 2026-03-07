@@ -613,7 +613,7 @@ const CreativeStudio = () => {
       const missing: string[] = [];
       if (!campaignBrief.adGoal) missing.push('מטרת המודעה');
       if (!campaignBrief.emotionalTone) missing.push('טון רגשי');
-      if (!campaignBrief.desiredAction) missing.push('פעולה רצויה');
+      if (campaignBrief.desiredActions.length === 0) missing.push('פעולה רצויה');
       const offer = campaignBrief.offer.trim();
       const words = offer.split(/\s+/).filter(w => w.length > 0);
       if (!offer) {
