@@ -136,26 +136,26 @@ function mapAdGoalToLegacy(adGoal: AdGoal | null): CampaignGoal | null {
   }
 }
 
-const AD_GOAL_OPTIONS: { id: AdGoal; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string; tint: string; borderTint: string; selectedBg: string; selectedBorder: string; selectedRing: string }[] = [
-  { id: 'sell', label: 'תקנו ממני', description: 'מבצע, הנחה, הצעה מוגבלת', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/30', tint: 'bg-emerald-500/8', borderTint: 'border-emerald-500/30 hover:border-emerald-400/60', selectedBg: 'bg-emerald-500/15', selectedBorder: 'border-emerald-400', selectedRing: 'ring-emerald-400/40' },
-  { id: 'brand-presence', label: 'תראו אותי', description: 'חיזוק המותג, יוקרה, סטייל', icon: Eye, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30', tint: 'bg-violet-500/8', borderTint: 'border-violet-500/30 hover:border-violet-400/60', selectedBg: 'bg-violet-500/15', selectedBorder: 'border-violet-400', selectedRing: 'ring-violet-400/40' },
-  { id: 'invite-contact', label: 'בואו נדבר או ניפגש', description: 'הזמנה לשיחה / פגישה', icon: PhoneCall, gradient: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/30', tint: 'bg-blue-500/8', borderTint: 'border-blue-500/30 hover:border-blue-400/60', selectedBg: 'bg-blue-500/15', selectedBorder: 'border-blue-400', selectedRing: 'ring-blue-400/40' },
-  { id: 'introduce-product', label: 'תכירו מוצר חדש', description: 'השקה או חשיפה של מוצר/שירות', icon: Rocket, gradient: 'from-orange-500 to-amber-600', shadow: 'shadow-orange-500/30', tint: 'bg-orange-500/8', borderTint: 'border-orange-500/30 hover:border-orange-400/60', selectedBg: 'bg-orange-500/15', selectedBorder: 'border-orange-400', selectedRing: 'ring-orange-400/40' },
+const AD_GOAL_OPTIONS: { id: AdGoal; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string; selectedBg: string; selectedBorder: string; selectedRing: string; selectedShadow: string }[] = [
+  { id: 'sell', label: 'תקנו ממני', description: 'מבצע, הנחה, הצעה מוגבלת', icon: ShoppingCart, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/30', selectedBg: 'bg-emerald-500/20', selectedBorder: 'border-emerald-400', selectedRing: 'ring-emerald-400/50', selectedShadow: 'shadow-emerald-500/40' },
+  { id: 'brand-presence', label: 'תראו אותי', description: 'חיזוק המותג, יוקרה, סטייל', icon: Eye, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30', selectedBg: 'bg-violet-500/20', selectedBorder: 'border-violet-400', selectedRing: 'ring-violet-400/50', selectedShadow: 'shadow-violet-500/40' },
+  { id: 'invite-contact', label: 'בואו נדבר או ניפגש', description: 'הזמנה לשיחה / פגישה', icon: PhoneCall, gradient: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/30', selectedBg: 'bg-blue-500/20', selectedBorder: 'border-blue-400', selectedRing: 'ring-blue-400/50', selectedShadow: 'shadow-blue-500/40' },
+  { id: 'introduce-product', label: 'תכירו מוצר חדש', description: 'השקה או חשיפה של מוצר/שירות', icon: Rocket, gradient: 'from-orange-500 to-amber-600', shadow: 'shadow-orange-500/30', selectedBg: 'bg-orange-500/20', selectedBorder: 'border-orange-400', selectedRing: 'ring-orange-400/50', selectedShadow: 'shadow-orange-500/40' },
 ];
 
-const EMOTIONAL_TONE_OPTIONS: { id: EmotionalTone; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string; tint: string; borderTint: string; selectedBg: string; selectedBorder: string; selectedRing: string }[] = [
-  { id: 'luxury', label: 'וואו, זה נראה יוקרתי', description: 'מראה מפואר ואלגנטי', icon: Crown, gradient: 'from-amber-500 to-yellow-500', shadow: 'shadow-amber-500/30', tint: 'bg-amber-500/8', borderTint: 'border-amber-500/30 hover:border-amber-400/60', selectedBg: 'bg-amber-500/15', selectedBorder: 'border-amber-400', selectedRing: 'ring-amber-400/40' },
-  { id: 'urgency', label: 'חייב להספיק לפני שיגמר', description: 'דחיפות ומבצע מוגבל', icon: Timer, gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30', tint: 'bg-red-500/8', borderTint: 'border-red-500/30 hover:border-red-400/60', selectedBg: 'bg-red-500/15', selectedBorder: 'border-red-400', selectedRing: 'ring-red-400/40' },
-  { id: 'belonging', label: 'זה המקום בשבילי', description: 'חיבור אישי ושייכות', icon: Heart, gradient: 'from-pink-500 to-rose-500', shadow: 'shadow-pink-500/30', tint: 'bg-pink-500/8', borderTint: 'border-pink-500/30 hover:border-pink-400/60', selectedBg: 'bg-pink-500/15', selectedBorder: 'border-pink-400', selectedRing: 'ring-pink-400/40' },
-  { id: 'professional', label: 'עושה עלי רושם מקצועי', description: 'אמינות ומקצועיות', icon: Briefcase, gradient: 'from-slate-500 to-gray-600', shadow: 'shadow-slate-500/30', tint: 'bg-slate-500/8', borderTint: 'border-slate-500/30 hover:border-slate-400/60', selectedBg: 'bg-slate-400/15', selectedBorder: 'border-slate-400', selectedRing: 'ring-slate-400/40' },
+const EMOTIONAL_TONE_OPTIONS: { id: EmotionalTone; label: string; description: string; icon: React.ElementType; gradient: string; shadow: string; selectedBg: string; selectedBorder: string; selectedRing: string; selectedShadow: string }[] = [
+  { id: 'luxury', label: 'וואו, זה נראה יוקרתי', description: 'מראה מפואר ואלגנטי', icon: Crown, gradient: 'from-amber-500 to-yellow-500', shadow: 'shadow-amber-500/30', selectedBg: 'bg-amber-500/20', selectedBorder: 'border-amber-400', selectedRing: 'ring-amber-400/50', selectedShadow: 'shadow-amber-500/40' },
+  { id: 'urgency', label: 'חייב להספיק לפני שיגמר', description: 'דחיפות ומבצע מוגבל', icon: Timer, gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30', selectedBg: 'bg-red-500/20', selectedBorder: 'border-red-400', selectedRing: 'ring-red-400/50', selectedShadow: 'shadow-red-500/40' },
+  { id: 'belonging', label: 'זה המקום בשבילי', description: 'חיבור אישי ושייכות', icon: Heart, gradient: 'from-pink-500 to-rose-500', shadow: 'shadow-pink-500/30', selectedBg: 'bg-pink-500/20', selectedBorder: 'border-pink-400', selectedRing: 'ring-pink-400/50', selectedShadow: 'shadow-pink-500/40' },
+  { id: 'professional', label: 'עושה עלי רושם מקצועי', description: 'אמינות ומקצועיות', icon: Briefcase, gradient: 'from-slate-500 to-gray-600', shadow: 'shadow-slate-500/30', selectedBg: 'bg-slate-400/20', selectedBorder: 'border-slate-400', selectedRing: 'ring-slate-400/50', selectedShadow: 'shadow-slate-500/40' },
 ];
 
-const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.ElementType; gradient: string; shadow: string; tint: string; borderTint: string; selectedBg: string; selectedBorder: string; selectedRing: string }[] = [
-  { id: 'whatsapp-email', label: 'שליחת מייל / וואטסאפ', icon: MessageCircle, gradient: 'from-green-500 to-emerald-600', shadow: 'shadow-green-500/30', tint: 'bg-green-500/8', borderTint: 'border-green-500/30 hover:border-green-400/60', selectedBg: 'bg-green-500/15', selectedBorder: 'border-green-400', selectedRing: 'ring-green-400/40' },
-  { id: 'phone-call', label: 'שיחה טלפונית', icon: Phone, gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/30', tint: 'bg-blue-500/8', borderTint: 'border-blue-500/30 hover:border-blue-400/60', selectedBg: 'bg-blue-500/15', selectedBorder: 'border-blue-400', selectedRing: 'ring-blue-400/40' },
-  { id: 'visit-store', label: 'הגעה למקום / חנות', icon: Store, gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/30', tint: 'bg-amber-500/8', borderTint: 'border-amber-500/30 hover:border-amber-400/60', selectedBg: 'bg-amber-500/15', selectedBorder: 'border-amber-400', selectedRing: 'ring-amber-400/40' },
-  { id: 'visit-website', label: 'כניסה לאתר', icon: Globe, gradient: 'from-cyan-500 to-teal-600', shadow: 'shadow-cyan-500/30', tint: 'bg-cyan-500/8', borderTint: 'border-cyan-500/30 hover:border-cyan-400/60', selectedBg: 'bg-cyan-500/15', selectedBorder: 'border-cyan-400', selectedRing: 'ring-cyan-400/40' },
-  { id: 'remember-me', label: 'יזכרו אותי', icon: Brain, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30', tint: 'bg-violet-500/8', borderTint: 'border-violet-500/30 hover:border-violet-400/60', selectedBg: 'bg-violet-500/15', selectedBorder: 'border-violet-400', selectedRing: 'ring-violet-400/40' },
+const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.ElementType; gradient: string; shadow: string; selectedBg: string; selectedBorder: string; selectedRing: string; selectedShadow: string }[] = [
+  { id: 'whatsapp-email', label: 'שליחת מייל / וואטסאפ', icon: MessageCircle, gradient: 'from-green-500 to-emerald-600', shadow: 'shadow-green-500/30', selectedBg: 'bg-green-500/20', selectedBorder: 'border-green-400', selectedRing: 'ring-green-400/50', selectedShadow: 'shadow-green-500/40' },
+  { id: 'phone-call', label: 'שיחה טלפונית', icon: Phone, gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/30', selectedBg: 'bg-blue-500/20', selectedBorder: 'border-blue-400', selectedRing: 'ring-blue-400/50', selectedShadow: 'shadow-blue-500/40' },
+  { id: 'visit-store', label: 'הגעה למקום / חנות', icon: Store, gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/30', selectedBg: 'bg-amber-500/20', selectedBorder: 'border-amber-400', selectedRing: 'ring-amber-400/50', selectedShadow: 'shadow-amber-500/40' },
+  { id: 'visit-website', label: 'כניסה לאתר', icon: Globe, gradient: 'from-cyan-500 to-teal-600', shadow: 'shadow-cyan-500/30', selectedBg: 'bg-cyan-500/20', selectedBorder: 'border-cyan-400', selectedRing: 'ring-cyan-400/50', selectedShadow: 'shadow-cyan-500/40' },
+  { id: 'remember-me', label: 'יזכרו אותי', icon: Brain, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30', selectedBg: 'bg-violet-500/20', selectedBorder: 'border-violet-400', selectedRing: 'ring-violet-400/50', selectedShadow: 'shadow-violet-500/40' },
 ];
 
 export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors }: StudioBriefStepProps) => {
@@ -372,8 +372,8 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                 className={cn(
                   'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
                   isSelected
-                    ? `${option.selectedBorder} ${option.selectedBg} shadow-xl ring-2 ${option.selectedRing} scale-[1.03]`
-                    : `${option.tint} ${option.borderTint} hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100`
+                    ? `${option.selectedBorder} ${option.selectedBg} shadow-2xl ring-2 ${option.selectedRing} scale-[1.04]`
+                    : 'bg-muted/30 border-border/40 hover:border-border hover:shadow-md hover:scale-[1.01] opacity-50 hover:opacity-75'
                 )}
                 onClick={() => updateBrief({ 
                   adGoal: option.id, 
@@ -558,14 +558,14 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             {EMOTIONAL_TONE_OPTIONS.map((option) => {
               const isSelected = value.emotionalTone === option.id;
               return (
-                <div
-                  key={option.id}
-                  className={cn(
-                    'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
-                    isSelected
-                      ? `${option.selectedBorder} ${option.selectedBg} shadow-xl ring-2 ${option.selectedRing} scale-[1.03]`
-                      : `${option.tint} ${option.borderTint} hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100`
-                  )}
+                  <div
+                    key={option.id}
+                    className={cn(
+                      'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
+                      isSelected
+                        ? `${option.selectedBorder} ${option.selectedBg} shadow-2xl ring-2 ${option.selectedRing} scale-[1.04]`
+                        : 'bg-muted/30 border-border/40 hover:border-border hover:shadow-md hover:scale-[1.01] opacity-50 hover:opacity-75'
+                    )}
                   onClick={() => updateBrief({ emotionalTone: option.id })}
                 >
                   <div className={cn(
@@ -603,14 +603,14 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             {DESIRED_ACTION_OPTIONS.map((option) => {
               const isSelected = (value.desiredActions || []).includes(option.id);
               return (
-                <div
-                  key={option.id}
-                  className={cn(
-                    'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 text-center',
-                    isSelected
-                      ? `${option.selectedBorder} ${option.selectedBg} shadow-xl ring-2 ${option.selectedRing} scale-[1.03]`
-                      : `${option.tint} ${option.borderTint} hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100`
-                  )}
+                  <div
+                    key={option.id}
+                    className={cn(
+                      'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 text-center',
+                      isSelected
+                        ? `${option.selectedBorder} ${option.selectedBg} shadow-2xl ring-2 ${option.selectedRing} scale-[1.04]`
+                        : 'bg-muted/30 border-border/40 hover:border-border hover:shadow-md hover:scale-[1.01] opacity-50 hover:opacity-75'
+                    )}
                   onClick={() => {
                     const current = value.desiredActions || [];
                     const updated = current.includes(option.id)
