@@ -748,10 +748,31 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       'visit-website': 'לפרטים נוספים',
       'remember-me': '',
     };
-    const ctaText = campaignContext?.desiredAction ? (CTA_MAP[campaignContext.desiredAction] || '') : '';
+    // Support multi-select desiredActions (array) — use first action for CTA
+    const primaryAction = Array.isArray(campaignContext?.desiredActions) 
+      ? campaignContext.desiredActions[0] 
+      : campaignContext?.desiredAction;
+    const ctaText = primaryAction ? (CTA_MAP[primaryAction] || '') : '';
     
-    // Keep top short headline + two sub-lines under the visual
-    const subtitle = secondaryLines.subtitle;
+    // Build subtitle from guided brief fields — NOT from offer text (which is already the headline source)
+    // Priority: priceOrBenefit > timeLimitText > winning feature > offer-based extraction
+    let subtitle = '';
+    if (campaignContext?.priceOrBenefit) {
+      subtitle = campaignContext.priceOrBenefit.slice(0, 56);
+    } else if (campaignContext?.isTimeLimited && campaignContext?.timeLimitText) {
+      subtitle = campaignContext.timeLimitText.slice(0, 56);
+    } else if (brandContext?.winningFeature) {
+      subtitle = brandContext.winningFeature.slice(0, 56);
+    } else if (brandContext?.primaryXFactor) {
+      subtitle = brandContext.primaryXFactor.slice(0, 56);
+    } else {
+      // Fallback: use secondary lines extraction only if it differs from headline
+      const extracted = secondaryLines.subtitle;
+      if (extracted && extracted !== headline && !headline.includes(extracted)) {
+        subtitle = extracted;
+      }
+    }
+    console.log('[TextMeta] subtitle:', subtitle, '| headline:', headline, '| ctaText:', ctaText);
     
     // Extract services list from campaign context, offer text, or x-factors
     let servicesList: string[] = campaignContext?.services || [];
