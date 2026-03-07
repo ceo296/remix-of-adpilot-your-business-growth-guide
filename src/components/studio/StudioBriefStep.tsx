@@ -558,25 +558,24 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                 <div
                   key={option.id}
                   className={cn(
-                    'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 text-center hover:scale-[1.02]',
-                    option.tint,
+                    'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 text-center',
                     isSelected
-                      ? 'border-primary bg-primary/10 shadow-lg ring-1 ring-primary/30'
-                      : option.borderTint + ' hover:shadow-md'
+                      ? `${option.selectedBorder} ${option.selectedBg} shadow-xl ring-2 ${option.selectedRing} scale-[1.03]`
+                      : `${option.tint} ${option.borderTint} hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100`
                   )}
                   onClick={() => updateBrief({ desiredAction: option.id })}
                 >
                   <div className={cn(
-                    'w-11 h-11 mx-auto rounded-xl flex items-center justify-center mb-2 shadow-md transition-all bg-gradient-to-br',
-                    option.gradient, option.shadow,
-                    isSelected ? 'scale-110' : ''
+                    'w-11 h-11 mx-auto rounded-xl flex items-center justify-center mb-2 transition-all duration-300 bg-gradient-to-br',
+                    option.gradient,
+                    isSelected ? `shadow-xl ${option.shadow} scale-110` : `shadow-md ${option.shadow}`
                   )}>
                     <option.icon className="w-5 h-5 text-white" />
                   </div>
-                  <p className="font-medium text-sm text-foreground">{option.label}</p>
+                  <p className={cn('font-medium text-sm text-foreground', isSelected && 'font-bold')}>{option.label}</p>
                   {isSelected && (
-                    <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="w-3 h-3 text-primary-foreground" />
+                    <div className={cn('absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br', option.gradient)}>
+                      <Check className="w-3 h-3 text-white" />
                     </div>
                   )}
                 </div>
