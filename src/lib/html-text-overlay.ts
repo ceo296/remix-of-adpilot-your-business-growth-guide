@@ -113,10 +113,8 @@ function makeOverlayTransparent(html: string): string {
     /\.contact-bar\s*\{([^}]*)\}/,
     (match, body) => {
       let newBody = body;
-      // Replace solid background with a semi-transparent dark one for readability
-      newBody = newBody.replace(/background\s*:[^;]*/gi, 'background: rgba(0,0,0,0.75)');
-      newBody = newBody.replace(/backdrop-filter\s*:[^;]*/gi, 'backdrop-filter: blur(4px)');
-      newBody = newBody.replace(/-webkit-backdrop-filter\s*:[^;]*/gi, '-webkit-backdrop-filter: blur(4px)');
+      // Replace any background with a solid semi-transparent dark one for readability
+      newBody = newBody.replace(/background\s*:[^;]*/gi, 'background: rgba(0,0,0,0.82)');
       return `.contact-bar {${newBody}}`;
     }
   );
@@ -274,14 +272,20 @@ export async function applyHtmlTextOverlay(
     // Wait for any remaining images (logo, kashrut) to load
     const images = container.querySelectorAll('img');
     await Promise.all(Array.from(images).map(img => {
-      if (img.complete) return Promise.resolve();
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
       return new Promise<void>((resolve) => {
-        img.onload = () => resolve();
-        img.onerror = () => resolve();
+        img.onload = () => {
+          console.log(`[Overlay] ✅ Image loaded: ${img.alt || 'unknown'}, ${img.naturalWidth}x${img.naturalHeight}`);
+          resolve();
+        };
+        img.onerror = () => {
+          console.error(`[Overlay] ❌ Image FAILED to load: ${img.alt || 'unknown'}, src length: ${img.src?.length || 0}`);
+          resolve();
+        };
       });
     }));
 
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 300));
 
     // Find the content element (skip <style> tags)
     let renderTarget: HTMLElement = container;
