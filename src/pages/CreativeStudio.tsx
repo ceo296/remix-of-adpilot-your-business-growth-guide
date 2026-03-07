@@ -969,7 +969,7 @@ const CreativeStudio = () => {
                   const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
                   retryFinalUrl = await applyHtmlTextOverlay(retryData.data.imageUrl, {
                     headline: retryTextMeta.headline,
-                    subtitle: '', // IRON RULE: never render subtitle on overlay
+                    subtitle: retryTextMeta.subtitle || '', // Sub-strip: USP or key benefit
                     bodyText: '', // IRON RULE: never render bodyText on overlay
                     ctaText: retryTextMeta.ctaText,
                     businessName: retryTextMeta.businessName,
