@@ -246,6 +246,7 @@ export const DEFAULT_TEMPLATE = `<style>
       {{#if ctaText}}<div class="cta-btn">{{ctaText}}</div>{{/if}}
     </div>
     <div class="contact-left">
+      {{#if logo_url}}<div class="logo-in-bar"><img src="{{logo_url}}" alt="logo"></div>{{/if}}
       {{#if kashrut_logo}}<div class="kashrut-in-bar"><img src="{{kashrut_logo}}" alt="kashrut"></div>{{/if}}
       <div class="brand-info">
         {{#if business_name}}<div class="biz-name">{{business_name}}</div>{{/if}}
@@ -255,7 +256,6 @@ export const DEFAULT_TEMPLATE = `<style>
         {{#if branches}}<div class="addr-row">{{#each branches}}<span class="addr-item">📍 {{this}}</span>{{#unless @last}}<span class="addr-sep">|</span>{{/unless}}{{/each}}</div>{{/if}}
         {{#unless branches}}{{#if address_list}}<div class="addr-row">{{#each address_list}}<span class="addr-item">📍 {{this}}</span>{{/each}}</div>{{/if}}{{/unless}}
       </div>
-      {{#if logo_url}}<div class="logo-in-bar"><img src="{{logo_url}}" alt="logo"></div>{{/if}}
     </div>
   </div>
 </div>`;
