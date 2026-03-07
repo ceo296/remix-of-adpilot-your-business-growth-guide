@@ -558,14 +558,14 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             {EMOTIONAL_TONE_OPTIONS.map((option) => {
               const isSelected = value.emotionalTone === option.id;
               return (
-                <div
-                  key={option.id}
-                  className={cn(
-                    'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
-                    isSelected
-                      ? `${option.selectedBorder} ${option.selectedBg} shadow-xl ring-2 ${option.selectedRing} scale-[1.03]`
-                      : `${option.tint} ${option.borderTint} hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100`
-                  )}
+                  <div
+                    key={option.id}
+                    className={cn(
+                      'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
+                      isSelected
+                        ? `${option.selectedBorder} ${option.selectedBg} shadow-2xl ring-2 ${option.selectedRing} scale-[1.04]`
+                        : 'bg-muted/30 border-border/40 hover:border-border hover:shadow-md hover:scale-[1.01] opacity-50 hover:opacity-75'
+                    )}
                   onClick={() => updateBrief({ emotionalTone: option.id })}
                 >
                   <div className={cn(
