@@ -131,7 +131,7 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
   };
 
   return (
-    <div className={cn("fixed bottom-6 left-6 z-50", className)}>
+    <div className={cn("fixed bottom-24 left-6 z-50", className)}>
       {isOpen ? (
         <Card className="w-96 h-[500px] flex flex-col shadow-2xl border-primary/20">
           {/* Header */}
