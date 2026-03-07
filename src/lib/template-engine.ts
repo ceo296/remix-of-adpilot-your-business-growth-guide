@@ -221,7 +221,7 @@ export const DEFAULT_TEMPLATE = `<style>
   .phone-num { color:#fff; font-weight:900; font-size:32px; letter-spacing:-0.5px; direction:ltr; text-align:left; }
   .cta-btn { display:inline-block; background:{{brand_primary_color}}; color:#fff; font-weight:800; font-size:14px; padding:10px 22px; border-radius:4px; box-shadow:0 3px 12px rgba(0,0,0,0.3); }
   .contact-left { display:flex; align-items:center; gap:12px; }
-  .logo-in-bar img { height:55px; filter:drop-shadow(0 3px 10px rgba(0,0,0,0.9)); object-fit:contain; max-width:120px; }
+  .logo-in-bar img { height:80px; filter:drop-shadow(0 3px 10px rgba(0,0,0,0.9)); object-fit:contain; max-width:160px; }
   .brand-info { display:flex; flex-direction:column; gap:2px; }
   .biz-name { color:#fff; font-weight:800; font-size:16px; }
   .services-line { color:rgba(255,255,255,0.7); font-size:11px; }
