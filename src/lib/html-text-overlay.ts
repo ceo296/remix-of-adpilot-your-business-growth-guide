@@ -212,8 +212,9 @@ export async function applyHtmlTextOverlay(
       .select('html_template')
       .eq('is_active', true)
       .eq('is_global', true)
+      .order('updated_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
     if (data?.html_template) {
       config = { ...config, customTemplateHtml: data.html_template };
       console.log('[Overlay] Using global DB template');
