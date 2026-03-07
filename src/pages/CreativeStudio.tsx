@@ -221,6 +221,7 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
   'finance': ['ביטוח', 'פיננסי', 'הלוואה', 'השקעה', 'בנק'],
   'judaica': ['ספרי קודש', 'תשמישי קדושה', 'יודאיקה', 'מזוזה', 'תפילין'],
   'toys': ['צעצוע', 'משחק', 'בובה'],
+  'branding': ['מיתוג', 'לוגו', 'זהות מותגית', 'שפה עיצובית', 'brand'],
 };
 
 function detectTopicCategory(text: string): string | null {
