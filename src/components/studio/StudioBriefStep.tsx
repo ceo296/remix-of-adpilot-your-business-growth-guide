@@ -405,44 +405,66 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             <span className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">2</span>
             האם נרצה להציג מחיר או הטבה ספציפית במודעה?
           </Label>
-          <div className="grid grid-cols-2 gap-3">
-            <Card
+          <div className="grid grid-cols-2 gap-4">
+            <div
               className={cn(
-                'cursor-pointer transition-all duration-200 border-2',
+                'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
                 value.showPriceOrBenefit === false
-                  ? 'border-primary bg-primary/5 shadow-md'
-                  : 'border-border hover:border-primary/30'
+                  ? 'border-slate-400 bg-slate-400/15 shadow-xl ring-2 ring-slate-400/40 scale-[1.03]'
+                  : 'bg-slate-500/8 border-slate-500/30 hover:border-slate-400/60 hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100'
               )}
               onClick={() => updateBrief({ showPriceOrBenefit: false, priceOrBenefit: '', isTimeLimited: null, timeLimitText: '' })}
             >
-              <CardContent className="p-4 text-center">
-                <p className="font-bold text-sm">לא</p>
-                <p className="text-xs text-muted-foreground mt-1">בלי מחיר או הטבה</p>
-              </CardContent>
-            </Card>
-            <Card
+              <div className={cn(
+                'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 transition-all duration-300 bg-gradient-to-br from-slate-500 to-gray-600',
+                value.showPriceOrBenefit === false ? 'shadow-xl shadow-slate-500/30 scale-110' : 'shadow-lg shadow-slate-500/30'
+              )}>
+                <X className="w-7 h-7 text-white" />
+              </div>
+              <p className={cn('font-bold text-foreground mb-1', value.showPriceOrBenefit === false && 'text-lg')}>לא</p>
+              <p className="text-xs text-muted-foreground">בלי מחיר או הטבה</p>
+              {value.showPriceOrBenefit === false && (
+                <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br from-slate-500 to-gray-600">
+                  <Check className="w-4 h-4 text-white" />
+                </div>
+              )}
+            </div>
+            <div
               className={cn(
-                'cursor-pointer transition-all duration-200 border-2',
+                'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
                 value.showPriceOrBenefit === true
-                  ? 'border-primary bg-primary/5 shadow-md'
-                  : 'border-border hover:border-primary/30'
+                  ? 'border-amber-400 bg-amber-500/15 shadow-xl ring-2 ring-amber-400/40 scale-[1.03]'
+                  : 'bg-amber-500/8 border-amber-500/30 hover:border-amber-400/60 hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100'
               )}
               onClick={() => updateBrief({ showPriceOrBenefit: true })}
             >
-              <CardContent className="p-4 text-center">
-                <p className="font-bold text-sm">כן</p>
-                <p className="text-xs text-muted-foreground mt-1">יש מחיר או הטבה</p>
-              </CardContent>
-            </Card>
+              <div className={cn(
+                'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 transition-all duration-300 bg-gradient-to-br from-amber-500 to-orange-600',
+                value.showPriceOrBenefit === true ? 'shadow-xl shadow-amber-500/30 scale-110' : 'shadow-lg shadow-amber-500/30'
+              )}>
+                <Sparkles className="w-7 h-7 text-white" />
+              </div>
+              <p className={cn('font-bold text-foreground mb-1', value.showPriceOrBenefit === true && 'text-lg')}>כן</p>
+              <p className="text-xs text-muted-foreground">יש מחיר או הטבה</p>
+              {value.showPriceOrBenefit === true && (
+                <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br from-amber-500 to-orange-600">
+                  <Check className="w-4 h-4 text-white" />
+                </div>
+              )}
+            </div>
           </div>
           
           {value.showPriceOrBenefit === true && (
-            <div className="animate-fade-in">
+            <div className="animate-fade-in p-4 rounded-xl border-2 border-amber-400/50 bg-amber-500/10">
+              <Label className="text-amber-300 font-semibold text-sm mb-2 block flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                מה ההטבה או המחיר?
+              </Label>
               <Input
                 value={value.priceOrBenefit}
                 onChange={(e) => updateBrief({ priceOrBenefit: e.target.value })}
-                placeholder="מה ההטבה או המחיר? (למשל: 30% הנחה, מתנה בקנייה מעל ₪200)"
-                className="text-base"
+                placeholder="למשל: 30% הנחה, מתנה בקנייה מעל ₪200"
+                className="text-base bg-background/50 border-amber-500/30 focus:border-amber-400 text-lg"
               />
             </div>
           )}
@@ -456,42 +478,64 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             <span className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">3</span>
             האם ההצעה מוגבלת בזמן?
           </Label>
-          <div className="grid grid-cols-2 gap-3">
-            <Card
+          <div className="grid grid-cols-2 gap-4">
+            <div
               className={cn(
-                'cursor-pointer transition-all duration-200 border-2',
+                'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
                 value.isTimeLimited === false
-                  ? 'border-primary bg-primary/5 shadow-md'
-                  : 'border-border hover:border-primary/30'
+                  ? 'border-emerald-400 bg-emerald-500/15 shadow-xl ring-2 ring-emerald-400/40 scale-[1.03]'
+                  : 'bg-emerald-500/8 border-emerald-500/30 hover:border-emerald-400/60 hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100'
               )}
               onClick={() => updateBrief({ isTimeLimited: false, timeLimitText: '' })}
             >
-              <CardContent className="p-4 text-center">
-                <p className="font-bold text-sm">ללא הגבלה</p>
-              </CardContent>
-            </Card>
-            <Card
+              <div className={cn(
+                'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 transition-all duration-300 bg-gradient-to-br from-emerald-500 to-teal-600',
+                value.isTimeLimited === false ? 'shadow-xl shadow-emerald-500/30 scale-110' : 'shadow-lg shadow-emerald-500/30'
+              )}>
+                <Check className="w-7 h-7 text-white" />
+              </div>
+              <p className={cn('font-bold text-foreground', value.isTimeLimited === false && 'text-lg')}>ללא הגבלה</p>
+              {value.isTimeLimited === false && (
+                <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br from-emerald-500 to-teal-600">
+                  <Check className="w-4 h-4 text-white" />
+                </div>
+              )}
+            </div>
+            <div
               className={cn(
-                'cursor-pointer transition-all duration-200 border-2',
+                'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
                 value.isTimeLimited === true
-                  ? 'border-primary bg-primary/5 shadow-md'
-                  : 'border-border hover:border-primary/30'
+                  ? 'border-red-400 bg-red-500/15 shadow-xl ring-2 ring-red-400/40 scale-[1.03]'
+                  : 'bg-red-500/8 border-red-500/30 hover:border-red-400/60 hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100'
               )}
               onClick={() => updateBrief({ isTimeLimited: true })}
             >
-              <CardContent className="p-4 text-center">
-                <p className="font-bold text-sm">מוגבל בזמן</p>
-              </CardContent>
-            </Card>
+              <div className={cn(
+                'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 transition-all duration-300 bg-gradient-to-br from-red-500 to-rose-600',
+                value.isTimeLimited === true ? 'shadow-xl shadow-red-500/30 scale-110' : 'shadow-lg shadow-red-500/30'
+              )}>
+                <Timer className="w-7 h-7 text-white" />
+              </div>
+              <p className={cn('font-bold text-foreground', value.isTimeLimited === true && 'text-lg')}>מוגבל בזמן</p>
+              {value.isTimeLimited === true && (
+                <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br from-red-500 to-rose-600">
+                  <Check className="w-4 h-4 text-white" />
+                </div>
+              )}
+            </div>
           </div>
           
           {value.isTimeLimited === true && (
-            <div className="animate-fade-in">
+            <div className="animate-fade-in p-4 rounded-xl border-2 border-red-400/50 bg-red-500/10">
+              <Label className="text-red-300 font-semibold text-sm mb-2 block flex items-center gap-2">
+                <Timer className="w-4 h-4" />
+                עד מתי המבצע?
+              </Label>
               <Input
                 value={value.timeLimitText}
                 onChange={(e) => updateBrief({ timeLimitText: e.target.value })}
-                placeholder="עד מתי המבצע? (למשל: עד סוף השבוע / גמר המלאי)"
-                className="text-base"
+                placeholder="למשל: עד סוף השבוע / גמר המלאי"
+                className="text-base bg-background/50 border-red-500/30 focus:border-red-400 text-lg"
               />
             </div>
           )}
