@@ -1455,7 +1455,7 @@ const CreativeStudio = () => {
           // Always use the master template
           finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
             headline: concept.headline || textMeta.headline,
-            subtitle: '', // IRON RULE: never render subtitle on overlay
+            subtitle: textMeta.subtitle || '', // Sub-strip: USP or key benefit
             bodyText: '', // IRON RULE: never render bodyText on overlay  
             ctaText: textMeta.ctaText,
             businessName: textMeta.businessName,
