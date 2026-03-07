@@ -94,7 +94,8 @@ export interface CampaignBrief {
   isTimeLimited: boolean | null;
   timeLimitText: string;
   emotionalTone: EmotionalTone | null;
-  desiredAction: DesiredAction | null;
+  desiredAction: DesiredAction | null; // Legacy compat — derived from desiredActions[0]
+  desiredActions: DesiredAction[];
 }
 
 export interface ContactInfo {
