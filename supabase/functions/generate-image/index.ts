@@ -755,22 +755,27 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     const ctaText = primaryAction ? (CTA_MAP[primaryAction] || '') : '';
     
     // Build subtitle from guided brief fields — NOT from offer text (which is already the headline source)
-    // Priority: priceOrBenefit > timeLimitText > winning feature > offer-based extraction
+    // Priority: priceOrBenefit > timeLimitText > offer core sentence > winning feature
     let subtitle = '';
     if (campaignContext?.priceOrBenefit) {
       subtitle = campaignContext.priceOrBenefit.slice(0, 56);
     } else if (campaignContext?.isTimeLimited && campaignContext?.timeLimitText) {
       subtitle = campaignContext.timeLimitText.slice(0, 56);
-    } else if (brandContext?.winningFeature) {
-      subtitle = brandContext.winningFeature.slice(0, 56);
-    } else if (brandContext?.primaryXFactor) {
-      subtitle = brandContext.primaryXFactor.slice(0, 56);
-    } else {
-      // Fallback: use secondary lines extraction only if it differs from headline
-      const extracted = secondaryLines.subtitle;
-      if (extracted && extracted !== headline && !headline.includes(extracted)) {
-        subtitle = extracted;
+    } else if (campaignContext?.offer) {
+      // Extract a meaningful subtitle from the offer brief text
+      // Take the first sentence that differs from headline and describes the service
+      const offerText = campaignContext.offer;
+      const sentences = offerText.split(/[.!?\n]+/).map((s: string) => s.trim()).filter((s: string) => s.length > 8 && s.length < 60);
+      const subtitleCandidate = sentences.find((s: string) => !headline.includes(s) && s !== headline);
+      if (subtitleCandidate) {
+        subtitle = subtitleCandidate.slice(0, 56);
       }
+    }
+    
+    if (!subtitle && brandContext?.winningFeature) {
+      subtitle = brandContext.winningFeature.slice(0, 56);
+    } else if (!subtitle && brandContext?.primaryXFactor) {
+      subtitle = brandContext.primaryXFactor.slice(0, 56);
     }
     console.log('[TextMeta] subtitle:', subtitle, '| headline:', headline, '| ctaText:', ctaText);
     

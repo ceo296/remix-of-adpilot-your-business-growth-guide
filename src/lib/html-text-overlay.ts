@@ -97,8 +97,7 @@ function makeOverlayTransparent(html: string): string {
    // Keep the logo in the overlay — the AI visual uses a generic placeholder,
    // so the real client logo must come from the HTML template layer.
   
-  // Force ALL backgrounds to transparent in the <style> block
-  // This ensures no element creates an opaque band over the AI image
+  // Force the .ad container background to transparent
   result = result.replace(
     /\.ad\s*\{([^}]*)\}/,
     (match, body) => {
@@ -113,12 +112,16 @@ function makeOverlayTransparent(html: string): string {
     '$1'
   );
   
+  // Normalize contact-bar opacity — ensure it's semi-transparent, not opaque
+  // Replace any rgba(0,0,0,0.7+) with rgba(0,0,0,0.55) for readability without blackout
+  result = result.replace(
+    /(\.contact-bar\s*\{[^}]*?)background:\s*rgba\(0\s*,\s*0\s*,\s*0\s*,\s*0\.[7-9]\d*\)/gi,
+    '$1background:rgba(0,0,0,0.55)'
+  );
+  
   // Replace any remaining clamp() values with their middle/fallback value
   // clamp() fails in html-to-image isolated rendering
   result = result.replace(/clamp\(\s*[\d.]+px\s*,\s*[\d.]+[a-z]+\s*,\s*([\d.]+px)\s*\)/gi, '$1');
-  
-  // Keep the contact-bar as-is from the template — don't override its background.
-  // The template already defines the correct semi-transparent background and blur.
   
   return result;
 }
