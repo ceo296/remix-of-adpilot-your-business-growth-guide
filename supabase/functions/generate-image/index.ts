@@ -280,13 +280,13 @@ function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicC
   const source = normalizePromptText(rawHeadline || campaignContext?.offer || '');
   if (!source) return '';
 
-  // Clean up: strip trailing punctuation, limit to 50 chars max
+  // Clean up: strip trailing punctuation, limit to 40 chars max (punchy headline)
   let cleaned = source.replace(/[.!?،,]+$/g, '').trim();
   
-  // If over 50 chars, try to find a natural break point
-  if (cleaned.length > 50) {
-    const breakIdx = cleaned.lastIndexOf(' ', 50);
-    cleaned = breakIdx > 20 ? cleaned.slice(0, breakIdx).trim() : cleaned.slice(0, 50).trim();
+  // If over 40 chars, try to find a natural break point
+  if (cleaned.length > 40) {
+    const breakIdx = cleaned.lastIndexOf(' ', 40);
+    cleaned = breakIdx > 15 ? cleaned.slice(0, breakIdx).trim() : cleaned.slice(0, 40).trim();
   }
   
   return cleaned;
