@@ -400,7 +400,8 @@ const CreativeStudio = () => {
             isTimeLimited: gb.isTimeLimited ?? null,
             timeLimitText: gb.timeLimitText || '',
             emotionalTone: gb.emotionalTone || null,
-            desiredAction: gb.desiredAction || null,
+            desiredAction: gb.desiredActions?.[0] || gb.desiredAction || null,
+            desiredActions: gb.desiredActions || (gb.desiredAction ? [gb.desiredAction] : []),
             contactSelection: gb.contactSelection || prev.contactSelection,
             colorSelection: gb.colorSelection || prev.colorSelection,
           }));
