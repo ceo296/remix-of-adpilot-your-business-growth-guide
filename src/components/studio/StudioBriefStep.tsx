@@ -55,6 +55,8 @@ export type ColorMode = 'brand' | 'swapped' | 'continue-past';
 export type AdGoal = 'brand-presence' | 'sell' | 'introduce-product' | 'invite-contact';
 export type EmotionalTone = 'luxury' | 'urgency' | 'belonging' | 'professional';
 export type DesiredAction = 'whatsapp-email' | 'phone-call' | 'visit-store' | 'visit-website' | 'remember-me';
+/** @deprecated Use desiredActions array instead */
+export type DesiredActionLegacy = DesiredAction;
 
 export type ContactSelection = {
   phone: boolean;
