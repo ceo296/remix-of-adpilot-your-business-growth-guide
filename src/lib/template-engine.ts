@@ -215,14 +215,15 @@ export const DEFAULT_TEMPLATE = `<style>
   .sub-strip { display:inline-block; color:#fff; font-weight:600; font-size:24px; line-height:1.2; text-shadow:0 2px 12px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,0.95); word-break:keep-all; overflow-wrap:normal; white-space:normal; margin-top:4px; opacity:0.92; }
   .promo-bar { position:absolute; bottom:110px; width:100%; z-index:9; display:flex; justify-content:center; align-items:center; padding:0 40px; }
   .promo-strip { display:inline-block; background:{{brand_primary_color}}; color:#fff; font-weight:800; font-size:22px; padding:10px 28px; border-radius:6px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.4); letter-spacing:0.5px; }
-  .contact-bar { position:absolute; bottom:0; width:100%; z-index:10; background:rgba(0,0,0,0.55); backdrop-filter:blur(8px); padding:16px 40px 14px; display:flex; justify-content:space-between; align-items:center; }
+  .contact-fade { position:absolute; bottom:80px; width:100%; height:60px; background:linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 100%); z-index:9; pointer-events:none; }
+  .contact-bar { position:absolute; bottom:0; width:100%; height:80px; z-index:10; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); padding:12px 40px; display:flex; justify-content:space-between; align-items:center; border:none; outline:none; }
   .contact-right { display:flex; align-items:center; gap:14px; }
   .phone-block { display:flex; flex-direction:column; align-items:flex-end; }
   .phone-label { color:{{brand_primary_color}}; font-size:11px; font-weight:700; }
   .phone-num { color:#fff; font-weight:900; font-size:32px; letter-spacing:-0.5px; direction:ltr; text-align:left; }
   .cta-btn { display:inline-block; background:{{brand_primary_color}}; color:#fff; font-weight:800; font-size:14px; padding:10px 22px; border-radius:4px; box-shadow:0 3px 12px rgba(0,0,0,0.3); }
   .contact-left { display:flex; align-items:center; gap:12px; }
-  .logo-in-bar img { height:80px; filter:drop-shadow(0 3px 10px rgba(0,0,0,0.9)); object-fit:contain; max-width:160px; }
+  .logo-in-bar img { height:60px; filter:drop-shadow(0 3px 10px rgba(0,0,0,0.9)); object-fit:contain; max-width:140px; }
   .brand-info { display:flex; flex-direction:column; gap:2px; }
   .biz-name { color:#fff; font-weight:800; font-size:16px; }
   .services-line { color:rgba(255,255,255,0.7); font-size:11px; }
@@ -239,6 +240,7 @@ export const DEFAULT_TEMPLATE = `<style>
     {{#if subheadline}}<div class="sub-strip">{{subheadline}}</div>{{/if}}
   </div>
   {{#if promo_text}}<div class="promo-bar"><div class="promo-strip">{{promo_text}}</div></div>{{/if}}
+  <div class="contact-fade"></div>
   <div class="contact-bar">
     <div class="contact-right">
       <div class="phone-block">
