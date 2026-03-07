@@ -86,6 +86,7 @@ const TOPIC_LABELS: Record<TopicCategory, string> = {
   toys: 'צעצועים ומשחקים',
   furniture: 'ריהוט ועיצוב הבית',
   jewelry: 'תכשיטים ושעונים',
+  branding: 'מיתוג',
   other: 'אחר',
 };
 

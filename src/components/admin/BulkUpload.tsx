@@ -43,6 +43,8 @@ const FOLDER_TO_TOPIC: Record<string, string> = {
   'ספרי קודש': 'judaica',
   'תכשיטים': 'jewelry',
   'שעונים': 'jewelry',
+  'מיתוג': 'branding',
+  'branding': 'branding',
 };
 
 // Auto-map folder names to media types
