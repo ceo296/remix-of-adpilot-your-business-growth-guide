@@ -272,14 +272,20 @@ export async function applyHtmlTextOverlay(
     // Wait for any remaining images (logo, kashrut) to load
     const images = container.querySelectorAll('img');
     await Promise.all(Array.from(images).map(img => {
-      if (img.complete) return Promise.resolve();
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
       return new Promise<void>((resolve) => {
-        img.onload = () => resolve();
-        img.onerror = () => resolve();
+        img.onload = () => {
+          console.log(`[Overlay] ✅ Image loaded: ${img.alt || 'unknown'}, ${img.naturalWidth}x${img.naturalHeight}`);
+          resolve();
+        };
+        img.onerror = () => {
+          console.error(`[Overlay] ❌ Image FAILED to load: ${img.alt || 'unknown'}, src length: ${img.src?.length || 0}`);
+          resolve();
+        };
       });
     }));
 
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 300));
 
     // Find the content element (skip <style> tags)
     let renderTarget: HTMLElement = container;
