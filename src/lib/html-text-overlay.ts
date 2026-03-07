@@ -107,6 +107,16 @@ function makeOverlayTransparent(html: string): string {
     }
   );
   
+  // Remove border-top from contact-bar to prevent visible "grid line" artifact
+  result = result.replace(
+    /(\.contact-bar\s*\{[^}]*?)border-top:[^;]*;?/gi,
+    '$1'
+  );
+  
+  // Replace any remaining clamp() values with their middle/fallback value
+  // clamp() fails in html-to-image isolated rendering
+  result = result.replace(/clamp\(\s*[\d.]+px\s*,\s*[\d.]+[a-z]+\s*,\s*([\d.]+px)\s*\)/gi, '$1');
+  
   // Keep the contact-bar as-is from the template — don't override its background.
   // The template already defines the correct semi-transparent background and blur.
   
