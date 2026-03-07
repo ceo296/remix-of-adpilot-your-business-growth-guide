@@ -872,7 +872,7 @@ const CreativeStudio = () => {
               const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
               finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
                 headline: textMeta.headline,
-                subtitle: '', // IRON RULE: never render subtitle on overlay
+                subtitle: textMeta.subtitle || '', // Sub-strip: doctor name, USP, or launch context
                 bodyText: '', // IRON RULE: never render bodyText on overlay
                 ctaText: textMeta.ctaText,
                 businessName: textMeta.businessName,

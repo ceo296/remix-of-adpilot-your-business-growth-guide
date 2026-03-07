@@ -136,8 +136,8 @@ function getLayoutHTML(config: TextOverlayConfig, width: number, height: number,
   const cleanedServices = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
   const templateData: TemplateData = {
     headline: config.headline ? cleanHeadline(config.headline) : '',
-    subheadline: '', // IRON RULE: subheadline/subtitle is NOT rendered on the visual overlay — headline only
-    subtitle: '', // IRON RULE: subtitle is NOT rendered on the visual overlay
+    subheadline: config.subtitle || '', // Sub-strip: key USP or doctor name from brief
+    subtitle: config.subtitle || '', // Alias for subheadline
     bodyText: '', // IRON RULE: bodyText is NEVER rendered on the visual overlay
     ctaText: config.ctaText ? cleanText(config.ctaText) : '',
     businessName: config.businessName ? cleanText(config.businessName) : '',
