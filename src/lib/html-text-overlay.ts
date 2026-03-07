@@ -113,10 +113,8 @@ function makeOverlayTransparent(html: string): string {
     /\.contact-bar\s*\{([^}]*)\}/,
     (match, body) => {
       let newBody = body;
-      // Replace solid background with a semi-transparent dark one for readability
-      newBody = newBody.replace(/background\s*:[^;]*/gi, 'background: rgba(0,0,0,0.75)');
-      newBody = newBody.replace(/backdrop-filter\s*:[^;]*/gi, 'backdrop-filter: blur(4px)');
-      newBody = newBody.replace(/-webkit-backdrop-filter\s*:[^;]*/gi, '-webkit-backdrop-filter: blur(4px)');
+      // Replace any background with a solid semi-transparent dark one for readability
+      newBody = newBody.replace(/background\s*:[^;]*/gi, 'background: rgba(0,0,0,0.82)');
       return `.contact-bar {${newBody}}`;
     }
   );
