@@ -514,26 +514,25 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                 <div
                   key={option.id}
                   className={cn(
-                    'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center hover:scale-[1.02]',
-                    option.tint,
+                    'relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center',
                     isSelected
-                      ? 'border-primary bg-primary/10 shadow-lg ring-1 ring-primary/30'
-                      : option.borderTint + ' hover:shadow-md'
+                      ? `${option.selectedBorder} ${option.selectedBg} shadow-xl ring-2 ${option.selectedRing} scale-[1.03]`
+                      : `${option.tint} ${option.borderTint} hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100`
                   )}
                   onClick={() => updateBrief({ emotionalTone: option.id })}
                 >
                   <div className={cn(
-                    'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 shadow-lg transition-all bg-gradient-to-br',
-                    option.gradient, option.shadow,
-                    isSelected ? 'scale-110' : ''
+                    'w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 transition-all duration-300 bg-gradient-to-br',
+                    option.gradient,
+                    isSelected ? `shadow-xl ${option.shadow} scale-110` : `shadow-lg ${option.shadow}`
                   )}>
                     <option.icon className="w-7 h-7 text-white" />
                   </div>
-                  <p className="font-bold text-sm text-foreground">{option.label}</p>
+                  <p className={cn('font-bold text-sm text-foreground', isSelected && 'text-base')}>{option.label}</p>
                   <p className="text-xs text-muted-foreground mt-1">{option.description}</p>
                   {isSelected && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="w-4 h-4 text-primary-foreground" />
+                    <div className={cn('absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br', option.gradient)}>
+                      <Check className="w-4 h-4 text-white" />
                     </div>
                   )}
                 </div>
