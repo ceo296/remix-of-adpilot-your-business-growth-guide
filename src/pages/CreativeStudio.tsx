@@ -291,6 +291,7 @@ const CreativeStudio = () => {
     timeLimitText: '',
     emotionalTone: null,
     desiredAction: null,
+    desiredActions: [],
   });
   const [mediaTypes, setMediaTypes] = useState<MediaType[]>([]);
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
