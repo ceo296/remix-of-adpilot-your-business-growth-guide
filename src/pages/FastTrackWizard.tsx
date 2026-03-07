@@ -97,6 +97,7 @@ const FastTrackWizard = () => {
     timeLimitText: '',
     emotionalTone: null,
     desiredAction: null,
+    desiredActions: [],
   });
   
   // Media Selection

@@ -1088,6 +1088,7 @@ const CreativeStudio = () => {
       timeLimitText: '',
       emotionalTone: null,
       desiredAction: null,
+      desiredActions: [],
     });
     setMediaTypes([]);
     setAssetChoice(null);
