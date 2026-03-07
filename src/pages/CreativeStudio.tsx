@@ -582,7 +582,7 @@ const CreativeStudio = () => {
         const hasValidOffer = words.length >= 12 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
         const cs = campaignBrief.contactSelection;
         const hasContactSelected = cs.phone || cs.whatsapp || cs.email || cs.address || cs.youtube || cs.facebook || cs.instagram || cs.logoOnly || cs.openingHours || (cs.selectedBranches || []).length > 0;
-        return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && !!campaignBrief.desiredAction && hasValidOffer && campaignBrief.structure !== null && hasContactSelected;
+        return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer && campaignBrief.structure !== null && hasContactSelected;
       }
       case 1: return mediaTypes.length > 0;
       case 2: return assetChoice !== null;
