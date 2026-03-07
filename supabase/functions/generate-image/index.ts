@@ -280,13 +280,13 @@ function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicC
   const source = normalizePromptText(rawHeadline || campaignContext?.offer || '');
   if (!source) return '';
 
-  // Clean up: strip trailing punctuation, limit to 50 chars max
+  // Clean up: strip trailing punctuation, limit to 40 chars max (punchy headline)
   let cleaned = source.replace(/[.!?،,]+$/g, '').trim();
   
-  // If over 50 chars, try to find a natural break point
-  if (cleaned.length > 50) {
-    const breakIdx = cleaned.lastIndexOf(' ', 50);
-    cleaned = breakIdx > 20 ? cleaned.slice(0, breakIdx).trim() : cleaned.slice(0, 50).trim();
+  // If over 40 chars, try to find a natural break point
+  if (cleaned.length > 40) {
+    const breakIdx = cleaned.lastIndexOf(' ', 40);
+    cleaned = breakIdx > 15 ? cleaned.slice(0, breakIdx).trim() : cleaned.slice(0, 40).trim();
   }
   
   return cleaned;
@@ -727,7 +727,6 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
         if (!phone && analysis.extractedPhone) phone = analysis.extractedPhone;
         if (!email && analysis.extractedEmail) email = analysis.extractedEmail;
         if (!address && analysis.extractedAddress) address = analysis.extractedAddress;
-        // Also check for contact info in layout notes
         if (analysis.contactInfo) {
           if (!phone && analysis.contactInfo.phone) phone = analysis.contactInfo.phone;
           if (!email && analysis.contactInfo.email) email = analysis.contactInfo.email;
@@ -736,9 +735,54 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       }
     }
     
-    const headline = buildCreativeHeadline(rawHeadline, campaignContext, topicCategory);
+    // === HEADLINE: Generate a creative, punchy marketing headline via AI ===
+    let headline = '';
+    const offerText = campaignContext?.offer || textPrompt || '';
+    
+    if (offerText && LOVABLE_API_KEY) {
+      try {
+        console.log('[Headline AI] Generating creative headline from offer:', offerText.slice(0, 100));
+        const headlineResponse = await fetch('https://api.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash-lite',
+            max_completion_tokens: 40,
+            messages: [
+              {
+                role: 'system',
+                content: 'אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד. ללא גרשיים, ללא סימני פיסוק. תחזיר רק את הכותרת עצמה.'
+              },
+              {
+                role: 'user',
+                content: `בריף: ${offerText.slice(0, 300)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}`
+              }
+            ],
+          }),
+        });
+        if (headlineResponse.ok) {
+          const headlineData = await headlineResponse.json();
+          const aiHeadline = headlineData.choices?.[0]?.message?.content?.trim();
+          if (aiHeadline && aiHeadline.length > 2 && aiHeadline.length <= 40) {
+            headline = aiHeadline.replace(/["""''`.!?]/g, '').trim();
+            console.log('[Headline AI] Generated:', headline);
+          }
+        }
+      } catch (headlineError) {
+        console.error('[Headline AI] Error:', headlineError);
+      }
+    }
+    
+    // Fallback: use buildCreativeHeadline if AI failed
+    if (!headline) {
+      headline = buildCreativeHeadline(rawHeadline, campaignContext, topicCategory);
+    }
+    
     const secondaryLines = buildSecondaryLines(campaignContext?.offer || textPrompt || '', businessName);
-    const bodyText = secondaryLines.bodyText;
+    const bodyText = ''; // IRON RULE: bodyText never rendered
     
     // Map desiredAction from guided brief → Hebrew CTA text
     const CTA_MAP: Record<string, string> = {
@@ -748,21 +792,15 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       'visit-website': 'לפרטים נוספים',
       'remember-me': '',
     };
-    // Support multi-select desiredActions (array) — use first action for CTA
     const primaryAction = Array.isArray(campaignContext?.desiredActions) 
       ? campaignContext.desiredActions[0] 
       : campaignContext?.desiredAction;
     const ctaText = primaryAction ? (CTA_MAP[primaryAction] || '') : '';
     
-    // Build subtitle: structured fields first, then AI-generated from offer text
-    // Priority: priceOrBenefit > timeLimitText > AI-generated from offer > winning feature
+    // === SUBTITLE: descriptive text about the business/service (smaller, under headline) ===
+    // Use AI to generate a short descriptive subtitle from the brief
     let subtitle = '';
-    if (campaignContext?.priceOrBenefit) {
-      subtitle = campaignContext.priceOrBenefit.slice(0, 56);
-    } else if (campaignContext?.isTimeLimited && campaignContext?.timeLimitText) {
-      subtitle = campaignContext.timeLimitText.slice(0, 56);
-    } else if (campaignContext?.offer && LOVABLE_API_KEY) {
-      // Use AI to generate a short, ad-worthy subtitle from the brief
+    if (campaignContext?.offer && LOVABLE_API_KEY) {
       try {
         console.log('[Subtitle AI] Generating subtitle from offer:', campaignContext.offer.slice(0, 100));
         const subtitleResponse = await fetch('https://api.lovable.dev/v1/chat/completions', {
@@ -777,11 +815,11 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
             messages: [
               {
                 role: 'system',
-                content: 'אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה קצרה (עד 8 מילים) למודעה, על בסיס הבריף שתקבל. הכותרת צריכה להיות סלוגן שיווקי קצר שמתאר את הערך או השירות. ללא גרשיים, ללא סימני פיסוק מיוחדים. תחזיר רק את הכותרת עצמה, בלי שום הסבר.'
+                content: 'אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה תיאורית קצרה (עד 8 מילים) למודעה. הכותרת צריכה לתאר את השירות או ההזמנה בצורה ישירה ומקצועית. למשל: "מזמינה אתכם לחוויית טיפול" או "מומחים לטיפולי פנים מתקדמים". ללא גרשיים, ללא סימני פיסוק. תחזיר רק את הכותרת עצמה.'
               },
               {
                 role: 'user',
-                content: `בריף הקמפיין: ${campaignContext.offer.slice(0, 300)}\nשם העסק: ${brandContext?.businessName || ''}\nמטרת המודעה: ${campaignContext?.adGoal || campaignContext?.goal || ''}`
+                content: `בריף: ${campaignContext.offer.slice(0, 300)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}`
               }
             ],
           }),
@@ -799,13 +837,13 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       }
     }
     
-    // Final fallbacks if AI didn't produce a subtitle
+    // Fallback subtitles
     if (!subtitle && brandContext?.winningFeature) {
       subtitle = brandContext.winningFeature.slice(0, 56);
     } else if (!subtitle && brandContext?.primaryXFactor) {
       subtitle = brandContext.primaryXFactor.slice(0, 56);
     }
-    console.log('[TextMeta] subtitle:', subtitle, '| headline:', headline, '| ctaText:', ctaText);
+    console.log('[TextMeta] headline:', headline, '| subtitle:', subtitle, '| ctaText:', ctaText);
     
     // Extract services list from campaign context, offer text, or x-factors
     let servicesList: string[] = campaignContext?.services || [];

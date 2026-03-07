@@ -210,10 +210,11 @@ export const DEFAULT_TEMPLATE = `<style>
   .ad { position:relative; width:100%; height:100%; overflow:hidden; direction:rtl; font-family: {{brand_font_family}}, "Assistant", sans-serif; word-break:keep-all; overflow-wrap:break-word; }
   .bg-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
   .grad-top { position:absolute; top:0; width:100%; height:45%; background:linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 55%, transparent 100%); z-index:1; }
-  .top-zone { position:absolute; top:0; right:0; left:0; padding:40px 48px 0; z-index:5; text-align:right; max-width:75%; margin-right:0; margin-left:auto; }
-  .headline { color:#fff; font-weight:900; font-size:80px; line-height:0.9; text-shadow:0 4px 24px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.95); margin-bottom:16px; letter-spacing:-2px; word-break:keep-all; overflow-wrap:normal; }
-  .sub-strip { display:inline-block; background:rgba(0,0,0,0.35); color:#fff; font-weight:700; font-size:22px; padding:6px 16px; border-radius:4px; text-shadow:0 2px 8px rgba(0,0,0,0.8); word-break:keep-all; overflow-wrap:normal; white-space:normal; margin-top:8px; }
-  .promo-badge { position:absolute; top:40px; left:40px; width:100px; height:100px; background:{{brand_primary_color}}; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; text-align:center; font-weight:900; font-size:18px; line-height:1.15; border:3px solid rgba(255,255,255,0.5); box-shadow:0 4px 20px rgba(0,0,0,0.4); transform:rotate(-8deg); z-index:8; }
+  .top-zone { position:absolute; top:0; right:0; left:0; padding:40px 48px 0; z-index:5; text-align:right; max-width:80%; margin-right:0; margin-left:auto; }
+  .headline { color:#fff; font-weight:900; font-size:72px; line-height:0.9; text-shadow:0 4px 24px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.95); margin-bottom:12px; letter-spacing:-2px; word-break:keep-all; overflow-wrap:normal; }
+  .sub-strip { display:inline-block; color:#fff; font-weight:600; font-size:24px; line-height:1.2; text-shadow:0 2px 12px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,0.95); word-break:keep-all; overflow-wrap:normal; white-space:normal; margin-top:4px; opacity:0.92; }
+  .promo-bar { position:absolute; bottom:110px; width:100%; z-index:9; display:flex; justify-content:center; align-items:center; padding:0 40px; }
+  .promo-strip { display:inline-block; background:{{brand_primary_color}}; color:#fff; font-weight:800; font-size:22px; padding:10px 28px; border-radius:6px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.4); letter-spacing:0.5px; }
   .contact-bar { position:absolute; bottom:0; width:100%; z-index:10; background:rgba(0,0,0,0.55); backdrop-filter:blur(8px); padding:16px 40px 14px; display:flex; justify-content:space-between; align-items:center; }
   .contact-right { display:flex; align-items:center; gap:14px; }
   .phone-block { display:flex; flex-direction:column; align-items:flex-end; }
@@ -233,11 +234,11 @@ export const DEFAULT_TEMPLATE = `<style>
 <div class="ad">
   <img src="{{image_url}}" class="bg-img" alt="bg">
   <div class="grad-top"></div>
-  {{#if promo_text}}<div class="promo-badge">{{promo_text}}</div>{{/if}}
   <div class="top-zone">
     {{#if headline}}<h1 class="headline">{{headline}}</h1>{{/if}}
     {{#if subheadline}}<div class="sub-strip">{{subheadline}}</div>{{/if}}
   </div>
+  {{#if promo_text}}<div class="promo-bar"><div class="promo-strip">{{promo_text}}</div></div>{{/if}}
   <div class="contact-bar">
     <div class="contact-right">
       <div class="phone-block">
