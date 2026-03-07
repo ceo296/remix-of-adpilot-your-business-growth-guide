@@ -214,7 +214,7 @@ export const DEFAULT_TEMPLATE = `<style>
   .headline { color:#fff; font-weight:900; font-size:80px; line-height:0.9; text-shadow:0 4px 24px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.95); margin-bottom:16px; letter-spacing:-2px; word-break:keep-all; overflow-wrap:normal; }
   .sub-strip { display:inline-block; background:rgba(0,0,0,0.35); color:#fff; font-weight:700; font-size:22px; padding:6px 16px; border-radius:4px; text-shadow:0 2px 8px rgba(0,0,0,0.8); word-break:keep-all; overflow-wrap:normal; white-space:normal; margin-top:8px; }
   .promo-badge { position:absolute; top:40px; left:40px; width:100px; height:100px; background:{{brand_primary_color}}; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; text-align:center; font-weight:900; font-size:18px; line-height:1.15; border:3px solid rgba(255,255,255,0.5); box-shadow:0 4px 20px rgba(0,0,0,0.4); transform:rotate(-8deg); z-index:8; }
-  .contact-bar { position:absolute; bottom:0; width:100%; z-index:10; background:rgba(0,0,0,0.82); backdrop-filter:blur(4px); padding:16px 40px 14px; display:flex; justify-content:space-between; align-items:center; }
+  .contact-bar { position:absolute; bottom:0; width:100%; z-index:10; background:rgba(0,0,0,0.55); backdrop-filter:blur(8px); padding:16px 40px 14px; display:flex; justify-content:space-between; align-items:center; }
   .contact-right { display:flex; align-items:center; gap:14px; }
   .phone-block { display:flex; flex-direction:column; align-items:flex-end; }
   .phone-label { color:{{brand_primary_color}}; font-size:11px; font-weight:700; }
