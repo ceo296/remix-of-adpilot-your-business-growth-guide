@@ -97,6 +97,7 @@ const FastTrackWizard = () => {
     timeLimitText: '',
     emotionalTone: null,
     desiredAction: null,
+    desiredActions: [],
   });
   
   // Media Selection
@@ -296,7 +297,7 @@ const FastTrackWizard = () => {
     const words = campaignBrief.offer.trim().split(/\s+/).filter(w => w.length > 0);
     const cs = campaignBrief.contactSelection;
     const hasContactSelected = cs.phone || cs.whatsapp || cs.email || cs.address || cs.youtube || cs.facebook || cs.instagram || cs.logoOnly || cs.openingHours || (cs.selectedBranches || []).length > 0;
-    return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && !!campaignBrief.desiredAction && words.length >= 12 && !!campaignBrief.structure && hasContactSelected;
+    return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && words.length >= 12 && !!campaignBrief.structure && hasContactSelected;
   };
 
   const canProceedMedia = () => {

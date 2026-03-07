@@ -291,6 +291,7 @@ const CreativeStudio = () => {
     timeLimitText: '',
     emotionalTone: null,
     desiredAction: null,
+    desiredActions: [],
   });
   const [mediaTypes, setMediaTypes] = useState<MediaType[]>([]);
   const [assetChoice, setAssetChoice] = useState<AssetChoice | null>(null);
@@ -399,7 +400,8 @@ const CreativeStudio = () => {
             isTimeLimited: gb.isTimeLimited ?? null,
             timeLimitText: gb.timeLimitText || '',
             emotionalTone: gb.emotionalTone || null,
-            desiredAction: gb.desiredAction || null,
+            desiredAction: gb.desiredActions?.[0] || gb.desiredAction || null,
+            desiredActions: gb.desiredActions || (gb.desiredAction ? [gb.desiredAction] : []),
             contactSelection: gb.contactSelection || prev.contactSelection,
             colorSelection: gb.colorSelection || prev.colorSelection,
           }));
@@ -581,7 +583,7 @@ const CreativeStudio = () => {
         const hasValidOffer = words.length >= 12 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
         const cs = campaignBrief.contactSelection;
         const hasContactSelected = cs.phone || cs.whatsapp || cs.email || cs.address || cs.youtube || cs.facebook || cs.instagram || cs.logoOnly || cs.openingHours || (cs.selectedBranches || []).length > 0;
-        return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && !!campaignBrief.desiredAction && hasValidOffer && campaignBrief.structure !== null && hasContactSelected;
+        return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer && campaignBrief.structure !== null && hasContactSelected;
       }
       case 1: return mediaTypes.length > 0;
       case 2: return assetChoice !== null;
@@ -612,7 +614,7 @@ const CreativeStudio = () => {
       const missing: string[] = [];
       if (!campaignBrief.adGoal) missing.push('מטרת המודעה');
       if (!campaignBrief.emotionalTone) missing.push('טון רגשי');
-      if (!campaignBrief.desiredAction) missing.push('פעולה רצויה');
+      if (campaignBrief.desiredActions.length === 0) missing.push('פעולה רצויה');
       const offer = campaignBrief.offer.trim();
       const words = offer.split(/\s+/).filter(w => w.length > 0);
       if (!offer) {
@@ -1087,6 +1089,7 @@ const CreativeStudio = () => {
       timeLimitText: '',
       emotionalTone: null,
       desiredAction: null,
+      desiredActions: [],
     });
     setMediaTypes([]);
     setAssetChoice(null);
@@ -1586,7 +1589,7 @@ const CreativeStudio = () => {
         `📌 בשורה מרכזית: "${campaignBrief.offer?.substring(0, 80) || 'לא הוגדר'}${(campaignBrief.offer?.length || 0) > 80 ? '...' : ''}"`,
         `🎯 מטרה: ${goalLabels[campaignBrief.adGoal || ''] || campaignBrief.adGoal || '❌ לא נבחר'}`,
         `🎭 טון רגשי: ${toneLabels[campaignBrief.emotionalTone || ''] || campaignBrief.emotionalTone || '❌ לא נבחר'}`,
-        `👆 פעולה רצויה: ${actionLabels[campaignBrief.desiredAction || ''] || campaignBrief.desiredAction || '❌ לא נבחר'}`,
+        `👆 פעולה רצויה: ${campaignBrief.desiredActions.length > 0 ? campaignBrief.desiredActions.map(a => actionLabels[a] || a).join(', ') : '❌ לא נבחר'}`,
         campaignBrief.showPriceOrBenefit && campaignBrief.priceOrBenefit ? `💲 מחיר/הטבה: ${campaignBrief.priceOrBenefit}` : '💲 מחיר/הטבה: לא הוגדר',
         campaignBrief.isTimeLimited ? `⏳ מוגבל בזמן: ${campaignBrief.timeLimitText || 'כן'}` : '⏳ ללא הגבלת זמן',
         `📋 מה להציג: ${contactLabels.length > 0 ? contactLabels.join(', ') : '❌ לא נבחר'}`,
@@ -1637,7 +1640,7 @@ ${campaignBrief.title ? `שם הקמפיין: ${campaignBrief.title}` : ''}
 ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${selectedHoliday}` : ''}
 ${campaignBrief.adGoal ? `מטרת המודעה: ${campaignBrief.adGoal}` : ''}
 ${campaignBrief.emotionalTone ? `טון רגשי: ${campaignBrief.emotionalTone}` : ''}
-${campaignBrief.desiredAction ? `פעולה רצויה מהלקוח: ${campaignBrief.desiredAction}` : ''}
+${campaignBrief.desiredActions.length > 0 ? `פעולה רצויה מהלקוח: ${campaignBrief.desiredActions.join(', ')}` : ''}
 ${campaignBrief.showPriceOrBenefit && campaignBrief.priceOrBenefit ? `מחיר/הטבה: ${campaignBrief.priceOrBenefit}` : ''}
 ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בזמן: ${campaignBrief.timeLimitText}` : ''}
 נוכחות מותג: ${(profile as any).brand_presence || 'לא הוגדר'}

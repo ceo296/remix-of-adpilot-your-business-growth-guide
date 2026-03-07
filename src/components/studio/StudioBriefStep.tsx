@@ -55,6 +55,8 @@ export type ColorMode = 'brand' | 'swapped' | 'continue-past';
 export type AdGoal = 'brand-presence' | 'sell' | 'introduce-product' | 'invite-contact';
 export type EmotionalTone = 'luxury' | 'urgency' | 'belonging' | 'professional';
 export type DesiredAction = 'whatsapp-email' | 'phone-call' | 'visit-store' | 'visit-website' | 'remember-me';
+/** @deprecated Use desiredActions array instead */
+export type DesiredActionLegacy = DesiredAction;
 
 export type ContactSelection = {
   phone: boolean;
@@ -92,7 +94,8 @@ export interface CampaignBrief {
   isTimeLimited: boolean | null;
   timeLimitText: string;
   emotionalTone: EmotionalTone | null;
-  desiredAction: DesiredAction | null;
+  desiredAction: DesiredAction | null; // Legacy compat — derived from desiredActions[0]
+  desiredActions: DesiredAction[];
 }
 
 export interface ContactInfo {
@@ -586,7 +589,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
         </div>
       )}
 
-      {/* ── Question 5: Desired Action ── */}
+      {/* ── Question 5: Desired Action (MULTI-SELECT) ── */}
       {value.emotionalTone && (
         <div className="space-y-4 animate-fade-in">
           <Label className="text-foreground font-semibold text-base flex items-center gap-2">
@@ -595,9 +598,10 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             </span>
             מה הפעולה שהכי חשוב שיבצעו?
           </Label>
+          <p className="text-xs text-muted-foreground -mt-2">אפשר לבחור כמה אפשרויות ✓</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {DESIRED_ACTION_OPTIONS.map((option) => {
-              const isSelected = value.desiredAction === option.id;
+              const isSelected = (value.desiredActions || []).includes(option.id);
               return (
                 <div
                   key={option.id}
@@ -607,7 +611,16 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                       ? `${option.selectedBorder} ${option.selectedBg} shadow-xl ring-2 ${option.selectedRing} scale-[1.03]`
                       : `${option.tint} ${option.borderTint} hover:shadow-md hover:scale-[1.02] opacity-80 hover:opacity-100`
                   )}
-                  onClick={() => updateBrief({ desiredAction: option.id })}
+                  onClick={() => {
+                    const current = value.desiredActions || [];
+                    const updated = current.includes(option.id)
+                      ? current.filter(a => a !== option.id)
+                      : [...current, option.id];
+                    updateBrief({ 
+                      desiredActions: updated,
+                      desiredAction: updated[0] || null, // Legacy compat
+                    });
+                  }}
                 >
                   <div className={cn(
                     'w-11 h-11 mx-auto rounded-xl flex items-center justify-center mb-2 transition-all duration-300 bg-gradient-to-br',
@@ -630,7 +643,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
       )}
 
       {/* ── Question 6: Core Message (always visible, required) ── */}
-      {value.desiredAction && (
+      {(value.desiredActions || []).length > 0 && (
         <div className="space-y-3 animate-fade-in">
           <Label htmlFor="campaign-offer" className="text-foreground font-semibold text-base flex items-center gap-2">
             <span className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">
