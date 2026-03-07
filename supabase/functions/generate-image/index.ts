@@ -754,16 +754,55 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
       : campaignContext?.desiredAction;
     const ctaText = primaryAction ? (CTA_MAP[primaryAction] || '') : '';
     
-    // Build subtitle ONLY from structured brief fields — never extract raw sentences from offer text
-    // Priority: priceOrBenefit > timeLimitText > winning feature > primary x-factor
+    // Build subtitle: structured fields first, then AI-generated from offer text
+    // Priority: priceOrBenefit > timeLimitText > AI-generated from offer > winning feature
     let subtitle = '';
     if (campaignContext?.priceOrBenefit) {
       subtitle = campaignContext.priceOrBenefit.slice(0, 56);
     } else if (campaignContext?.isTimeLimited && campaignContext?.timeLimitText) {
       subtitle = campaignContext.timeLimitText.slice(0, 56);
-    } else if (brandContext?.winningFeature) {
+    } else if (campaignContext?.offer && LOVABLE_API_KEY) {
+      // Use AI to generate a short, ad-worthy subtitle from the brief
+      try {
+        console.log('[Subtitle AI] Generating subtitle from offer:', campaignContext.offer.slice(0, 100));
+        const subtitleResponse = await fetch('https://api.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash-lite',
+            max_completion_tokens: 60,
+            messages: [
+              {
+                role: 'system',
+                content: 'אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה קצרה (עד 8 מילים) למודעה, על בסיס הבריף שתקבל. הכותרת צריכה להיות סלוגן שיווקי קצר שמתאר את הערך או השירות. ללא גרשיים, ללא סימני פיסוק מיוחדים. תחזיר רק את הכותרת עצמה, בלי שום הסבר.'
+              },
+              {
+                role: 'user',
+                content: `בריף הקמפיין: ${campaignContext.offer.slice(0, 300)}\nשם העסק: ${brandContext?.businessName || ''}\nמטרת המודעה: ${campaignContext?.adGoal || campaignContext?.goal || ''}`
+              }
+            ],
+          }),
+        });
+        if (subtitleResponse.ok) {
+          const subtitleData = await subtitleResponse.json();
+          const aiSubtitle = subtitleData.choices?.[0]?.message?.content?.trim();
+          if (aiSubtitle && aiSubtitle.length > 3 && aiSubtitle.length <= 56) {
+            subtitle = aiSubtitle.replace(/["""''`]/g, '').slice(0, 56);
+            console.log('[Subtitle AI] Generated:', subtitle);
+          }
+        }
+      } catch (subtitleError) {
+        console.error('[Subtitle AI] Error:', subtitleError);
+      }
+    }
+    
+    // Final fallbacks if AI didn't produce a subtitle
+    if (!subtitle && brandContext?.winningFeature) {
       subtitle = brandContext.winningFeature.slice(0, 56);
-    } else if (brandContext?.primaryXFactor) {
+    } else if (!subtitle && brandContext?.primaryXFactor) {
       subtitle = brandContext.primaryXFactor.slice(0, 56);
     }
     console.log('[TextMeta] subtitle:', subtitle, '| headline:', headline, '| ctaText:', ctaText);
