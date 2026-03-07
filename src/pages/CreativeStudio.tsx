@@ -2015,6 +2015,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         adGoal: campaignBrief.adGoal,
         emotionalTone: campaignBrief.emotionalTone,
         desiredAction: campaignBrief.desiredAction,
+        desiredActions: (campaignBrief as any).desiredActions || (campaignBrief.desiredAction ? [campaignBrief.desiredAction] : []),
         priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
         isTimeLimited: campaignBrief.isTimeLimited,
         timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
