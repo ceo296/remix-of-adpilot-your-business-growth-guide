@@ -107,17 +107,8 @@ function makeOverlayTransparent(html: string): string {
     }
   );
   
-  // Keep the contact-bar with a semi-transparent dark background for readability
-  // Don't strip it completely — the text needs contrast against the image
-  result = result.replace(
-    /\.contact-bar\s*\{([^}]*)\}/,
-    (match, body) => {
-      let newBody = body;
-      // Replace any background with a solid semi-transparent dark one for readability
-      newBody = newBody.replace(/background\s*:[^;]*/gi, 'background: rgba(0,0,0,0.82)');
-      return `.contact-bar {${newBody}}`;
-    }
-  );
+  // Keep the contact-bar as-is from the template — don't override its background.
+  // The template already defines the correct semi-transparent background and blur.
   
   return result;
 }
