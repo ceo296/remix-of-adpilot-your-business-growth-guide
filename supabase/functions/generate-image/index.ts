@@ -742,7 +742,7 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     if (offerText && LOVABLE_API_KEY) {
       try {
         console.log('[Headline AI] Generating creative headline from offer:', offerText.slice(0, 100));
-        const headlineResponse = await fetch('https://api.lovable.dev/v1/chat/completions', {
+        const headlineResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${LOVABLE_API_KEY}`,
