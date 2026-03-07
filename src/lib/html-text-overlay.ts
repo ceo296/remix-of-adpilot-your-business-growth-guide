@@ -107,17 +107,8 @@ function makeOverlayTransparent(html: string): string {
     }
   );
   
-  // Keep the contact-bar with a semi-transparent dark background for readability
-  // Don't strip it completely — the text needs contrast against the image
-  result = result.replace(
-    /\.contact-bar\s*\{([^}]*)\}/,
-    (match, body) => {
-      let newBody = body;
-      // Replace any background with a solid semi-transparent dark one for readability
-      newBody = newBody.replace(/background\s*:[^;]*/gi, 'background: rgba(0,0,0,0.82)');
-      return `.contact-bar {${newBody}}`;
-    }
-  );
+  // Keep the contact-bar as-is from the template — don't override its background.
+  // The template already defines the correct semi-transparent background and blur.
   
   return result;
 }
@@ -145,8 +136,8 @@ function getLayoutHTML(config: TextOverlayConfig, width: number, height: number,
   const cleanedServices = config.servicesList?.map(s => cleanText(s)).filter(Boolean) || [];
   const templateData: TemplateData = {
     headline: config.headline ? cleanHeadline(config.headline) : '',
-    subheadline: '', // IRON RULE: subheadline/subtitle is NOT rendered on the visual overlay — headline only
-    subtitle: '', // IRON RULE: subtitle is NOT rendered on the visual overlay
+    subheadline: config.subtitle || '', // Sub-strip: key USP or doctor name from brief
+    subtitle: config.subtitle || '', // Alias for subheadline
     bodyText: '', // IRON RULE: bodyText is NEVER rendered on the visual overlay
     ctaText: config.ctaText ? cleanText(config.ctaText) : '',
     businessName: config.businessName ? cleanText(config.businessName) : '',
