@@ -1639,7 +1639,7 @@ ${campaignBrief.title ? `שם הקמפיין: ${campaignBrief.title}` : ''}
 ${selectedHoliday && selectedHoliday !== 'year_round' ? `חג/עונה: ${selectedHoliday}` : ''}
 ${campaignBrief.adGoal ? `מטרת המודעה: ${campaignBrief.adGoal}` : ''}
 ${campaignBrief.emotionalTone ? `טון רגשי: ${campaignBrief.emotionalTone}` : ''}
-${campaignBrief.desiredAction ? `פעולה רצויה מהלקוח: ${campaignBrief.desiredAction}` : ''}
+${campaignBrief.desiredActions.length > 0 ? `פעולה רצויה מהלקוח: ${campaignBrief.desiredActions.join(', ')}` : ''}
 ${campaignBrief.showPriceOrBenefit && campaignBrief.priceOrBenefit ? `מחיר/הטבה: ${campaignBrief.priceOrBenefit}` : ''}
 ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בזמן: ${campaignBrief.timeLimitText}` : ''}
 נוכחות מותג: ${(profile as any).brand_presence || 'לא הוגדר'}
