@@ -1588,7 +1588,7 @@ const CreativeStudio = () => {
         `📌 בשורה מרכזית: "${campaignBrief.offer?.substring(0, 80) || 'לא הוגדר'}${(campaignBrief.offer?.length || 0) > 80 ? '...' : ''}"`,
         `🎯 מטרה: ${goalLabels[campaignBrief.adGoal || ''] || campaignBrief.adGoal || '❌ לא נבחר'}`,
         `🎭 טון רגשי: ${toneLabels[campaignBrief.emotionalTone || ''] || campaignBrief.emotionalTone || '❌ לא נבחר'}`,
-        `👆 פעולה רצויה: ${actionLabels[campaignBrief.desiredAction || ''] || campaignBrief.desiredAction || '❌ לא נבחר'}`,
+        `👆 פעולה רצויה: ${campaignBrief.desiredActions.length > 0 ? campaignBrief.desiredActions.map(a => actionLabels[a] || a).join(', ') : '❌ לא נבחר'}`,
         campaignBrief.showPriceOrBenefit && campaignBrief.priceOrBenefit ? `💲 מחיר/הטבה: ${campaignBrief.priceOrBenefit}` : '💲 מחיר/הטבה: לא הוגדר',
         campaignBrief.isTimeLimited ? `⏳ מוגבל בזמן: ${campaignBrief.timeLimitText || 'כן'}` : '⏳ ללא הגבלת זמן',
         `📋 מה להציג: ${contactLabels.length > 0 ? contactLabels.join(', ') : '❌ לא נבחר'}`,
