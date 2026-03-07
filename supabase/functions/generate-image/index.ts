@@ -803,7 +803,7 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     if (campaignContext?.offer && LOVABLE_API_KEY) {
       try {
         console.log('[Subtitle AI] Generating subtitle from offer:', campaignContext.offer.slice(0, 100));
-        const subtitleResponse = await fetch('https://api.lovable.dev/v1/chat/completions', {
+        const subtitleResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${LOVABLE_API_KEY}`,
