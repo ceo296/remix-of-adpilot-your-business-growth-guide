@@ -478,6 +478,82 @@ const FastTrackWizard = () => {
     </div>
   );
 
+  // Map FastTrack media types to Studio MediaType for BudgetAudienceStep filtering
+  const getMappedMediaTypes = (): import('@/components/studio/StudioMediaTypeStep').MediaType[] => {
+    const map: Record<string, import('@/components/studio/StudioMediaTypeStep').MediaType> = {
+      newspapers: 'ad',
+      radio: 'radio' as any,  // not a Studio type but handled by category mapping
+      signage: 'billboard',
+      digital: 'banner',
+      email: 'social' as any,
+      whatsapp: 'social' as any,
+    };
+    return selectedMediaTypes.map(t => map[t]).filter(Boolean);
+  };
+
+  // Build the category filter considering scope (national/local/both)
+  const getFilteredMediaTypes = (): import('@/components/studio/StudioMediaTypeStep').MediaType[] => {
+    return getMappedMediaTypes();
+  };
+
+  // Render Media Scope Step (ארצי/מקומי/גם וגם)
+  const SCOPE_OPTIONS = [
+    { id: 'national' as MediaScope, label: 'ארצי', description: 'עיתונות ארצית, שילוט ארצי', icon: '🌍' },
+    { id: 'local' as MediaScope, label: 'מקומי', description: 'עיתונות מקומית, שילוט עירוני', icon: '📍' },
+    { id: 'both' as MediaScope, label: 'גם וגם', description: 'שילוב ארצי ומקומי לחשיפה מקסימלית', icon: '🔗' },
+  ];
+
+  const renderMediaScopeStep = () => (
+    <div className="space-y-10 animate-fade-in">
+      <div className="text-center">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center mb-6 shadow-lg shadow-primary/30">
+          <MapPin className="w-10 h-10 text-primary-foreground" />
+        </div>
+        <h2 className="text-3xl font-bold text-foreground mb-3">ארצי או מקומי?</h2>
+        <p className="text-lg text-muted-foreground">
+          {selectedMediaTypes.includes('newspapers') && selectedMediaTypes.includes('signage')
+            ? 'בחר את סוג העיתונות והשילוט שמתאים לך'
+            : selectedMediaTypes.includes('newspapers')
+              ? 'בחר את סוג העיתונות שמתאים לך'
+              : 'בחר את סוג השילוט שמתאים לך'}
+        </p>
+      </div>
+
+      <div className="grid gap-4 max-w-lg mx-auto">
+        {SCOPE_OPTIONS.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => setMediaScope(option.id)}
+            className={`p-6 rounded-2xl border-2 transition-all text-center hover:scale-[1.02] ${
+              mediaScope === option.id
+                ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
+                : 'border-border hover:border-primary/40 hover:shadow-md'
+            }`}
+          >
+            <span className="text-3xl block mb-2">{option.icon}</span>
+            <p className="text-xl font-bold text-foreground mb-1">{option.label}</p>
+            <p className="text-sm text-muted-foreground">{option.description}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Navigation */}
+      <div className="flex justify-between pt-8">
+        <Button variant="ghost" onClick={handleBackFromScope}>
+          <ArrowRight className="w-4 h-4 ml-2" />
+          חזרה
+        </Button>
+        
+        <Button onClick={handleProceedFromScope} disabled={!mediaScope} variant="gradient">
+          <Check className="w-4 h-4 ml-2" />
+          המשך
+          <ArrowLeft className="w-4 h-4 mr-2" />
+        </Button>
+      </div>
+    </div>
+  );
+
   // Render Media Step
   const renderMediaStep = () => (
     <div className="space-y-6 animate-fade-in">
@@ -513,6 +589,8 @@ const FastTrackWizard = () => {
         onPackageSelect={setSelectedPackage}
         onManualMediaSelect={setManualMediaSelection}
         manualMediaSelection={manualMediaSelection}
+        selectedMediaTypes={getFilteredMediaTypes()}
+        mediaScope={mediaScope || undefined}
       />
 
       {/* Navigation */}
