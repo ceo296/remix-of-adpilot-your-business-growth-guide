@@ -1,48 +1,20 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
-  ArrowRight,
-  Plus,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  BookOpen,
-  Image as ImageIcon,
-  Sparkles,
-  Copy,
-  Package,
-  Grid3X3
+  ArrowRight, Plus, Trash2, ChevronLeft, ChevronRight, Download,
+  Package, Image as ImageIcon
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
-
-// ── Types ──
-interface CatalogProduct {
-  id: string;
-  name: string;
-  description?: string;
-  price?: string;
-  imageUrl?: string;
-  badge?: string;
-}
-
-interface CatalogPage {
-  id: string;
-  type: 'cover' | 'toc' | 'products' | 'full-image' | 'text' | 'contact';
-  title: string;
-  subtitle?: string;
-  body?: string;
-  products?: CatalogProduct[];
-}
+import { CatalogPageRenderer } from '@/components/catalog/CatalogPageRenderer';
+import type { CatalogPage, CatalogProduct } from '@/types/catalog';
 
 const PAGE_TYPES: { type: CatalogPage['type']; label: string }[] = [
   { type: 'cover', label: 'שער' },
@@ -54,171 +26,19 @@ const PAGE_TYPES: { type: CatalogPage['type']; label: string }[] = [
 ];
 
 const DEFAULT_PAGES: CatalogPage[] = [
-  { id: '1', type: 'cover', title: 'קטלוג מוצרים', subtitle: '2025' },
-  { id: '2', type: 'products', title: 'המוצרים שלנו', products: [
-    { id: 'p1', name: 'מוצר ראשון', description: 'תיאור קצר של המוצר', price: '₪99' },
-    { id: 'p2', name: 'מוצר שני', description: 'תיאור קצר של המוצר', price: '₪149' },
-    { id: 'p3', name: 'מוצר שלישי', description: 'תיאור קצר של המוצר', price: '₪199' },
-    { id: 'p4', name: 'מוצר רביעי', description: 'תיאור קצר של המוצר', price: '₪249' },
-    { id: 'p5', name: 'מוצר חמישי', description: 'תיאור קצר של המוצר', price: '₪299' },
-    { id: 'p6', name: 'מוצר שישי', description: 'תיאור קצר של המוצר', price: '₪349' },
+  { id: '1', type: 'cover', title: 'קטלוג מוצרים', subtitle: 'קולקציית 2025' },
+  { id: '2', type: 'products', title: 'הקולקציה שלנו', products: [
+    { id: 'p1', name: 'פריט פרימיום', description: 'עיצוב אלגנטי ומקורי בעבודת יד', price: '₪299', badge: 'חדש' },
+    { id: 'p2', name: 'פריט קלאסי', description: 'איכות גבוהה עם גימור מושלם', price: '₪449' },
+    { id: 'p3', name: 'פריט יוקרה', description: 'קולקציה מוגבלת למעצבים', price: '₪699', badge: 'מבצע' },
+    { id: 'p4', name: 'פריט סטנדרט', description: 'הבחירה המושלמת לכל יום', price: '₪199' },
+    { id: 'p5', name: 'פריט מיוחד', description: 'מהדורה מוגבלת בעיצוב ייחודי', price: '₪549', badge: 'חם' },
+    { id: 'p6', name: 'פריט בסיסי', description: 'איכות מעולה במחיר נגיש', price: '₪149' },
   ]},
-  { id: '3', type: 'text', title: 'אודותינו', body: 'כאן תוכלו לספר על העסק, הערכים והחזון שלכם.' },
-  { id: '4', type: 'contact', title: 'צור קשר' },
+  { id: '3', type: 'text', title: 'הסיפור שלנו', body: 'אנחנו מאמינים שכל מוצר מספר סיפור. מאז 2010 אנחנו יוצרים חוויות ייחודיות שמשלבות עיצוב, איכות וחדשנות. הצוות שלנו עובד עם החומרים הטובים ביותר כדי להביא לכם מוצרים שמעוררים השראה ומשנים את חוויית היומיום.' },
+  { id: '4', type: 'contact', title: 'בואו נדבר' },
 ];
 
-// ── Page Renderer (A4 portrait: 794x1123 at 96dpi) ──
-const CatalogPageRenderer = ({
-  page,
-  brandColor = '#E34870',
-  businessName = 'שם העסק',
-  logoUrl,
-  phone,
-  email,
-  address,
-  scale = 1,
-}: {
-  page: CatalogPage;
-  brandColor?: string;
-  businessName?: string;
-  logoUrl?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  scale?: number;
-}) => {
-  const W = 794;
-  const H = 1123;
-  const baseStyle: React.CSSProperties = {
-    width: W,
-    height: H,
-    transform: `scale(${scale})`,
-    transformOrigin: 'top right',
-    direction: 'rtl',
-    fontFamily: '"Assistant", "Heebo", sans-serif',
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    background: '#fff',
-  };
-
-  switch (page.type) {
-    case 'cover':
-      return (
-        <div style={{ ...baseStyle, background: `linear-gradient(160deg, ${brandColor} 0%, #1a1a2e 100%)`, overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 80%, rgba(255,255,255,0.06) 0%, transparent 60%)' }} />
-          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: 60, textAlign: 'center' }}>
-            {logoUrl && <img src={logoUrl} alt="logo" style={{ height: 80, marginBottom: 40, objectFit: 'contain', filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.3))' }} />}
-            <h1 style={{ fontSize: 52, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.2 }}>{page.title}</h1>
-            {page.subtitle && <p style={{ fontSize: 24, color: 'rgba(255,255,255,0.7)', marginTop: 16 }}>{page.subtitle}</p>}
-            <div style={{ width: 60, height: 3, backgroundColor: 'rgba(255,255,255,0.3)', marginTop: 30 }} />
-            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', marginTop: 20 }}>{businessName}</p>
-          </div>
-        </div>
-      );
-
-    case 'products':
-      return (
-        <div style={baseStyle}>
-          {/* Header strip */}
-          <div style={{ height: 4, backgroundColor: brandColor }} />
-          <div style={{ padding: '30px 40px 20px' }}>
-            <h2 style={{ fontSize: 28, fontWeight: 800, color: '#222', marginBottom: 8 }}>{page.title}</h2>
-            <div style={{ width: 40, height: 3, backgroundColor: brandColor, marginBottom: 24 }} />
-          </div>
-          {/* Product grid */}
-          <div style={{ padding: '0 40px 40px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-            {(page.products || []).map(product => (
-              <div key={product.id} style={{ border: '1px solid #eee', borderRadius: 8, overflow: 'hidden' }}>
-                <div style={{ height: 120, backgroundColor: '#f8f8f8', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                  {product.imageUrl ? (
-                    <img src={product.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <Package style={{ width: 32, height: 32, color: '#ddd' }} />
-                  )}
-                  {product.badge && (
-                    <div style={{ position: 'absolute', top: 6, right: 6, backgroundColor: brandColor, color: '#fff', fontSize: 9, padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
-                      {product.badge}
-                    </div>
-                  )}
-                </div>
-                <div style={{ padding: 10 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#222' }}>{product.name}</div>
-                  {product.description && <div style={{ fontSize: 10, color: '#888', marginTop: 3 }}>{product.description}</div>}
-                  {product.price && <div style={{ fontSize: 16, fontWeight: 800, color: brandColor, marginTop: 6 }}>{product.price}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Footer */}
-          <div style={{ position: 'absolute', bottom: 20, width: '100%', textAlign: 'center', fontSize: 10, color: '#ccc' }}>{businessName}</div>
-        </div>
-      );
-
-    case 'text':
-      return (
-        <div style={baseStyle}>
-          <div style={{ height: 4, backgroundColor: brandColor }} />
-          <div style={{ padding: '50px 50px' }}>
-            <h2 style={{ fontSize: 32, fontWeight: 800, color: '#222', marginBottom: 20 }}>{page.title}</h2>
-            <div style={{ width: 40, height: 3, backgroundColor: brandColor, marginBottom: 30 }} />
-            <p style={{ fontSize: 16, lineHeight: 2, color: '#555' }}>{page.body}</p>
-          </div>
-          <div style={{ position: 'absolute', bottom: 20, width: '100%', textAlign: 'center', fontSize: 10, color: '#ccc' }}>{businessName}</div>
-        </div>
-      );
-
-    case 'contact':
-      return (
-        <div style={{ ...baseStyle, background: `linear-gradient(160deg, #1a1a2e, ${brandColor}50)` }}>
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: 50, textAlign: 'center' }}>
-            <h2 style={{ fontSize: 36, fontWeight: 900, color: '#fff', marginBottom: 30 }}>{page.title}</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {phone && <div style={{ fontSize: 20, color: '#fff', direction: 'ltr' }}>📞 {phone}</div>}
-              {email && <div style={{ fontSize: 20, color: '#fff' }}>✉️ {email}</div>}
-              {address && <div style={{ fontSize: 20, color: '#fff' }}>📍 {address}</div>}
-            </div>
-            {logoUrl && <img src={logoUrl} alt="logo" style={{ height: 60, marginTop: 50, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.4 }} />}
-          </div>
-        </div>
-      );
-
-    case 'full-image':
-      return (
-        <div style={{ ...baseStyle, background: '#111' }}>
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ImageIcon style={{ width: 60, height: 60, color: '#333' }} />
-          </div>
-          <div style={{ position: 'absolute', bottom: 0, width: '100%', padding: '30px 40px', background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }}>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>{page.title}</h2>
-          </div>
-        </div>
-      );
-
-    case 'toc':
-      return (
-        <div style={baseStyle}>
-          <div style={{ height: 4, backgroundColor: brandColor }} />
-          <div style={{ padding: '50px 50px' }}>
-            <h2 style={{ fontSize: 32, fontWeight: 800, color: '#222', marginBottom: 30 }}>תוכן עניינים</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['מוצרים', 'אודותינו', 'צור קשר'].map((item, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dotted #ddd', paddingBottom: 8 }}>
-                  <span style={{ fontSize: 16, color: '#444' }}>{item}</span>
-                  <span style={{ fontSize: 14, color: '#999' }}>{i + 2}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-
-    default:
-      return <div style={{ ...baseStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>עמוד ריק</div>;
-  }
-};
-
-// ── Main Component ──
 const CatalogStudio = () => {
   const navigate = useNavigate();
   const { profile } = useClientProfile();
@@ -227,11 +47,12 @@ const CatalogStudio = () => {
   const [isExporting, setIsExporting] = useState(false);
 
   const brandColor = profile?.primary_color || '#E34870';
+  const secondaryColor = profile?.secondary_color || '#1a1a2e';
   const businessName = profile?.business_name || 'שם העסק';
   const logoUrl = profile?.logo_url || undefined;
-  const phone = profile?.contact_phone || '';
-  const email = profile?.contact_email || '';
-  const address = profile?.contact_address || '';
+  const phone = profile?.contact_phone || '050-1234567';
+  const email = profile?.contact_email || 'info@business.co.il';
+  const address = profile?.contact_address || 'רחוב הרצל 1, תל אביב';
 
   const currentPage = pages[activePage];
 
@@ -274,7 +95,6 @@ const CatalogStudio = () => {
     updatePage(activePage, { products: newProducts });
   };
 
-  // Export to PDF
   const exportPDF = async () => {
     setIsExporting(true);
     try {
@@ -284,7 +104,6 @@ const CatalogStudio = () => {
 
       for (let i = 0; i < pages.length; i++) {
         if (i > 0) pdf.addPage([W, H], 'portrait');
-
         const container = document.createElement('div');
         container.style.cssText = `position:fixed;top:-9999px;left:-9999px;width:${W}px;height:${H}px;overflow:hidden;`;
         document.body.appendChild(container);
@@ -300,6 +119,7 @@ const CatalogStudio = () => {
           <CatalogPageRenderer
             page={pages[i]}
             brandColor={brandColor}
+            secondaryColor={secondaryColor}
             businessName={businessName}
             logoUrl={logoUrl}
             phone={phone}
@@ -309,7 +129,7 @@ const CatalogStudio = () => {
           />
         );
 
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 600));
         const dataUrl = await htmlToImage.toPng(root, { width: W, height: H, quality: 0.95 });
         pdf.addImage(dataUrl, 'PNG', 0, 0, W, H);
         reactRoot.unmount();
@@ -328,7 +148,6 @@ const CatalogStudio = () => {
   return (
     <div className="min-h-screen bg-background">
       <TopNavbar />
-
       <div className="flex h-[calc(100vh-64px)]">
         {/* Sidebar - Page thumbnails */}
         <div className="w-44 bg-card border-l border-border overflow-y-auto p-3 space-y-2">
@@ -344,6 +163,7 @@ const CatalogStudio = () => {
                 <CatalogPageRenderer
                   page={page}
                   brandColor={brandColor}
+                  secondaryColor={secondaryColor}
                   businessName={businessName}
                   logoUrl={logoUrl}
                   phone={phone}
@@ -382,7 +202,6 @@ const CatalogStudio = () => {
 
         {/* Main Canvas */}
         <div className="flex-1 flex flex-col">
-          {/* Toolbar */}
           <div className="h-12 bg-card border-b border-border flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={() => navigate('/internal-studio')}>
@@ -391,32 +210,31 @@ const CatalogStudio = () => {
               </Button>
               <Badge variant="secondary" className="text-xs">עמוד {activePage + 1}/{pages.length}</Badge>
             </div>
-            <Button variant="gradient" size="sm" onClick={exportPDF} disabled={isExporting}>
+            <Button size="sm" onClick={exportPDF} disabled={isExporting} className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground">
               <Download className="w-4 h-4 ml-1" />
               {isExporting ? 'מייצא...' : 'ייצא PDF'}
             </Button>
           </div>
 
-          {/* Page Preview */}
           <div className="flex-1 bg-muted/30 flex items-center justify-center p-8 overflow-hidden">
             <div
               className="relative shadow-2xl rounded-lg overflow-hidden bg-white"
-              style={{ width: 'min(50%, 397px)', aspectRatio: '794/1123' }}
+              style={{ width: 'min(55%, 420px)', aspectRatio: '794/1123' }}
             >
               <CatalogPageRenderer
                 page={currentPage}
                 brandColor={brandColor}
+                secondaryColor={secondaryColor}
                 businessName={businessName}
                 logoUrl={logoUrl}
                 phone={phone}
                 email={email}
                 address={address}
-                scale={0.5}
+                scale={0.53}
               />
             </div>
           </div>
 
-          {/* Nav */}
           <div className="flex items-center justify-center gap-4 py-2 bg-card border-t border-border">
             <Button variant="ghost" size="sm" disabled={activePage === 0} onClick={() => setActivePage(p => p - 1)}>
               <ChevronRight className="w-4 h-4" />
@@ -439,8 +257,7 @@ const CatalogStudio = () => {
               <Input
                 value={currentPage.title}
                 onChange={e => updatePage(activePage, { title: e.target.value })}
-                className="text-sm"
-                dir="rtl"
+                className="text-sm" dir="rtl"
               />
             </div>
 
@@ -450,8 +267,7 @@ const CatalogStudio = () => {
                 <Input
                   value={currentPage.subtitle || ''}
                   onChange={e => updatePage(activePage, { subtitle: e.target.value })}
-                  className="text-sm"
-                  dir="rtl"
+                  className="text-sm" dir="rtl"
                 />
               </div>
             )}
@@ -462,8 +278,7 @@ const CatalogStudio = () => {
                 <Textarea
                   value={currentPage.body || ''}
                   onChange={e => updatePage(activePage, { body: e.target.value })}
-                  className="text-sm min-h-[120px]"
-                  dir="rtl"
+                  className="text-sm min-h-[120px]" dir="rtl"
                 />
               </div>
             )}
@@ -485,9 +300,7 @@ const CatalogStudio = () => {
                           <Input
                             value={product.name}
                             onChange={e => updateProduct(product.id, { name: e.target.value })}
-                            placeholder="שם מוצר"
-                            className="text-xs h-7"
-                            dir="rtl"
+                            placeholder="שם מוצר" className="text-xs h-7" dir="rtl"
                           />
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => removeProduct(product.id)}>
                             <Trash2 className="w-3 h-3" />
@@ -496,24 +309,18 @@ const CatalogStudio = () => {
                         <Input
                           value={product.description || ''}
                           onChange={e => updateProduct(product.id, { description: e.target.value })}
-                          placeholder="תיאור"
-                          className="text-xs h-7"
-                          dir="rtl"
+                          placeholder="תיאור" className="text-xs h-7" dir="rtl"
                         />
                         <div className="flex gap-1">
                           <Input
                             value={product.price || ''}
                             onChange={e => updateProduct(product.id, { price: e.target.value })}
-                            placeholder="מחיר"
-                            className="text-xs h-7 w-20"
-                            dir="rtl"
+                            placeholder="מחיר" className="text-xs h-7 w-20" dir="rtl"
                           />
                           <Input
                             value={product.badge || ''}
                             onChange={e => updateProduct(product.id, { badge: e.target.value })}
-                            placeholder="תגית (מבצע)"
-                            className="text-xs h-7"
-                            dir="rtl"
+                            placeholder="תגית (מבצע)" className="text-xs h-7" dir="rtl"
                           />
                         </div>
                       </div>
