@@ -293,6 +293,27 @@ const InternalStudio = () => {
               ))}
             </div>
 
+            {/* Double-sided toggle for business cards */}
+            {selectedCategory === 'business-cards' && (
+              <div className="mb-6 max-w-2xl mx-auto">
+                <Card>
+                  <CardContent className="p-4 flex items-center justify-between" dir="rtl">
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground">סוג הדפסה</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {isDoubleSided ? 'דו-צדדי — חזית + גב' : 'חד-צדדי — חזית בלבד'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs ${!isDoubleSided ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>חד-צדדי</span>
+                      <Switch checked={isDoubleSided} onCheckedChange={setIsDoubleSided} />
+                      <span className={`text-xs ${isDoubleSided ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>דו-צדדי</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Contact Fields Picker */}
             {needsContactPicker && selectedTemplate && (
               <Card className="mb-8 max-w-2xl mx-auto">
