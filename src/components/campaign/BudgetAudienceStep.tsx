@@ -139,8 +139,23 @@ export const BudgetAudienceStep = ({
     const hasAll = selectedMediaTypes.length === 0 || selectedMediaTypes.includes('all');
     if (!hasAll) {
       for (const mt of selectedMediaTypes) {
-        const cats = MEDIA_TYPE_TO_CATEGORIES[mt];
-        if (cats) allowedCategories.push(...cats);
+        let cats = MEDIA_TYPE_TO_CATEGORIES[mt];
+        if (cats) {
+          // Apply scope filtering for print and outdoor categories
+          if (mediaScope && mediaScope !== 'both') {
+            cats = cats.filter(c => {
+              if (mediaScope === 'national') {
+                // Exclude local categories
+                return !['local_print'].includes(c);
+              } else if (mediaScope === 'local') {
+                // Exclude national categories
+                return !['daily_press', 'national_print', 'weekend_news', 'outdoor'].includes(c);
+              }
+              return true;
+            });
+          }
+          allowedCategories.push(...cats);
+        }
       }
     }
 
