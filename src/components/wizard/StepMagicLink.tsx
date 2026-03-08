@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
-import { WizardData, WizardDataUpdate, UploadedMaterial } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, UploadedMaterial, ContactAssets } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft, Wand2, Upload, FileText, X, Image, Link as LinkIcon, Palette, Type, Star, Eye, CheckCircle2 } from 'lucide-react';
+import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft, Wand2, Upload, FileText, X, Image, Link as LinkIcon, Palette, Type, Star, Eye, CheckCircle2, Pencil, Phone, Mail, MapPin, MessageCircle, Youtube, Facebook, Instagram, Linkedin, Music2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
