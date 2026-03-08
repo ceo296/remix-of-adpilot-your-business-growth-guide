@@ -160,7 +160,8 @@ const InternalStudio = () => {
   const handleContinue = () => {
     if (selectedTemplate && selectedCategory) {
       const contactParams = needsContactPicker ? `&contactFields=${selectedContactFields.join(',')}` : '';
-      navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}${contactParams}`);
+      const sidesParam = selectedCategory === 'business-cards' ? `&sides=${isDoubleSided ? 2 : 1}` : '';
+      navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}${contactParams}${sidesParam}`);
     }
   };
 
