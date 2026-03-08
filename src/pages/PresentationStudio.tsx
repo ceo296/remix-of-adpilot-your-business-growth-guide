@@ -28,6 +28,9 @@ interface SlideData {
   bullets?: string[];
   stats?: { value: string; label: string }[];
   steps?: { number: string; title: string; desc: string }[];
+  image_prompt?: string;
+  imageUrl?: string;
+  imageLoading?: boolean;
 }
 
 const SLIDE_LABELS: Record<string, string> = {
