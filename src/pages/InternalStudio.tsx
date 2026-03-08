@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
+import { TemplatePreview } from '@/components/internal/TemplatePreview';
 
 interface TemplateCategory {
   id: string;
