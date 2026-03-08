@@ -289,6 +289,42 @@ const InternalStudio = () => {
               ))}
             </div>
 
+            {/* Contact Fields Picker */}
+            {needsContactPicker && selectedTemplate && (
+              <Card className="mb-8 max-w-2xl mx-auto">
+                <CardContent className="p-6" dir="rtl">
+                  <h3 className="text-base font-bold text-foreground mb-1">אילו פרטים יופיעו?</h3>
+                  <p className="text-sm text-muted-foreground mb-4">בחר אילו פרטי קשר יוצגו על {selectedCategory === 'business-cards' ? 'כרטיס הביקור' : 'נייר המכתבים'}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {CONTACT_FIELD_OPTIONS.map((field) => {
+                      const isSelected = selectedContactFields.includes(field.id);
+                      const fieldMap: Record<string, string> = { phone: 'contact_phone', email: 'contact_email', address: 'contact_address', whatsapp: 'contact_whatsapp', website: 'website_url', opening_hours: 'opening_hours' };
+                      const profileValue = profile?.[fieldMap[field.id] as keyof typeof profile];
+                      return (
+                        <div
+                          key={field.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                            isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
+                          }`}
+                          onClick={() => toggleContactField(field.id)}
+                        >
+                          <Checkbox checked={isSelected} onCheckedChange={() => toggleContactField(field.id)} className="pointer-events-none" />
+                          <field.icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-sm font-medium cursor-pointer">{field.label}</Label>
+                            {profileValue && <p className="text-[10px] text-muted-foreground truncate">{String(profileValue)}</p>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {selectedContactFields.length === 0 && (
+                    <p className="text-xs text-destructive mt-2">יש לבחור לפחות פרט קשר אחד</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Continue Button */}
             <div className="flex justify-center">
               <Button
