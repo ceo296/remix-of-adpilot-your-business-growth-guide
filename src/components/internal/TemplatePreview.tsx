@@ -8,6 +8,7 @@ interface TemplatePreviewProps {
   primaryColor?: string;
   secondaryColor?: string;
   businessName?: string;
+  doubleSided?: boolean;
 }
 
 /** Realistic business card front/back previews */
