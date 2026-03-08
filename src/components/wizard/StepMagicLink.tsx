@@ -168,6 +168,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
             seniority: predictions.seniority || '',
             coreOffering: predictions.coreOffering || '',
             audience: predictions.audience || '',
+            services: Array.isArray(predictions.services) ? predictions.services : [],
             confirmed: false,
           },
         });
