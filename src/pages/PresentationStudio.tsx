@@ -608,7 +608,7 @@ const PresentationStudio = () => {
               </div>
             )}
 
-            {(currentSlide.type === 'about' || currentSlide.type === 'content' || currentSlide.type === 'contact' || currentSlide.type === 'testimonial' || currentSlide.type === 'cta') && (
+            {(currentSlide.type === 'about' || currentSlide.type === 'contact' || currentSlide.type === 'testimonial' || currentSlide.type === 'cta') && (
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">תוכן</label>
                 <Textarea value={currentSlide.body || ''} onChange={e => updateSlide(activeSlide, { body: e.target.value })} className="text-sm min-h-[120px]" dir="rtl" />
