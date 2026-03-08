@@ -28,6 +28,7 @@ interface TemplateCategory {
   icon: React.ElementType;
   templates: Template[];
   comingSoon?: boolean;
+  directRoute?: string;
 }
 
 interface Template {
