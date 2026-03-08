@@ -129,7 +129,7 @@ export const BudgetAudienceStep = ({
     if (budget > 0 && targetStream && targetGender) {
       generatePackages();
     }
-  }, [budget, targetStream, targetGender, targetCity, selectedMediaTypes]);
+  }, [budget, targetStream, targetGender, targetCity, selectedMediaTypes, mediaScope]);
 
   const generatePackages = async () => {
     setIsLoadingPackages(true);
