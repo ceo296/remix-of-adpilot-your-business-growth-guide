@@ -56,7 +56,7 @@ export const TemplatePreview = ({ templateId, primaryColor = '#E34870', business
           <div className="w-5 h-5 rounded-sm border" style={{ borderColor: color, opacity: 0.6 }} />
           <div>
             <div className="text-[8px] font-bold text-white">{businessName}</div>
-            <div className="text-[5px] mt-0.5" style={{ color }}}>מותג יוקרתי</div>
+            <div className="text-[5px] mt-0.5" style={{ color }}>מותג יוקרתי</div>
           </div>
         </div>
       </div>

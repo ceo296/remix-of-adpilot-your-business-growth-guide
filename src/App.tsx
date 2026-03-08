@@ -48,6 +48,8 @@ const App = () => (
             <Route path="/media-portal" element={<MediaPortal />} />
             <Route path="/adkop" element={<AdkopWizard />} />
             <Route path="/media-export" element={<MediaExport />} />
+            <Route path="/presentation-studio" element={<PresentationStudio />} />
+            <Route path="/catalog-studio" element={<CatalogStudio />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </HashRouter>
