@@ -128,9 +128,27 @@ const InternalStudio = () => {
   const { user } = useAuth();
   const { profile } = useClientProfile();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [selectedContactFields, setSelectedContactFields] = useState<string[]>(['phone', 'email', 'address']);
 
   const currentCategory = TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory);
+  const needsContactPicker = selectedCategory === 'business-cards' || selectedCategory === 'letterhead';
+
+  const CONTACT_FIELD_OPTIONS = [
+    { id: 'phone', label: 'טלפון', icon: Phone },
+    { id: 'email', label: 'אימייל', icon: AtSign },
+    { id: 'address', label: 'כתובת', icon: MapPin },
+    { id: 'whatsapp', label: 'וואטסאפ', icon: MessageCircle },
+    { id: 'website', label: 'אתר אינטרנט', icon: Globe },
+    { id: 'opening_hours', label: 'שעות פתיחה', icon: Clock },
+  ];
+
+  const toggleContactField = (fieldId: string) => {
+    setSelectedContactFields(prev =>
+      prev.includes(fieldId)
+        ? prev.filter(f => f !== fieldId)
+        : [...prev, fieldId]
+    );
+  };
 
   const handleSelectTemplate = (templateId: string) => {
     setSelectedTemplate(templateId);
@@ -138,8 +156,8 @@ const InternalStudio = () => {
 
   const handleContinue = () => {
     if (selectedTemplate && selectedCategory) {
-      // Navigate to studio with template context
-      navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}`);
+      const contactParams = needsContactPicker ? `&contactFields=${selectedContactFields.join(',')}` : '';
+      navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}${contactParams}`);
     }
   };
 
