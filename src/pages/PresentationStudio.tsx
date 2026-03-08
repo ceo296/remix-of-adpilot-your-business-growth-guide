@@ -772,17 +772,70 @@ const THEMES: { id: PresentationTheme; label: string; desc: string; icon: React.
   { id: 'creative', label: 'יצירתי', desc: 'נועז, צבעוני, סוחף', icon: <Zap className="w-6 h-6" /> },
 ];
 
+// ── Build brief from profile ──
+const buildBriefFromProfile = (profile: any): string => {
+  const parts: string[] = [];
+  
+  if (profile.business_name) parts.push(`שם העסק: ${profile.business_name}.`);
+  
+  if (profile.services?.length > 0) {
+    parts.push(`השירותים העיקריים שלנו: ${profile.services.join(', ')}.`);
+  }
+  if (profile.x_factors?.length > 0) {
+    parts.push(`היתרונות שלנו: ${profile.x_factors.join(', ')}.`);
+  }
+  if (profile.primary_x_factor) {
+    parts.push(`היתרון המרכזי: ${profile.primary_x_factor}.`);
+  }
+  if (profile.winning_feature) {
+    parts.push(`מה מייחד אותנו: ${profile.winning_feature}.`);
+  }
+  if (profile.target_audience) {
+    parts.push(`קהל היעד שלנו: ${profile.target_audience}.`);
+  }
+  if (profile.quality_signatures && Array.isArray(profile.quality_signatures) && profile.quality_signatures.length > 0) {
+    const sigs = profile.quality_signatures.map((s: any) => typeof s === 'string' ? s : s?.type || '').filter(Boolean);
+    if (sigs.length > 0) parts.push(`הישגים ונכסי אמון: ${sigs.join(', ')}.`);
+  }
+  if (profile.successful_campaigns?.length > 0) {
+    parts.push(`קמפיינים מוצלחים: ${profile.successful_campaigns.join(', ')}.`);
+  }
+  if (profile.competitors?.length > 0) {
+    parts.push(`מתחרים: ${profile.competitors.join(', ')}.`);
+  }
+  if (profile.brand_presence) {
+    parts.push(`נוכחות מותג: ${profile.brand_presence}.`);
+  }
+  if (profile.contact_phone || profile.contact_email || profile.website_url) {
+    const contact: string[] = [];
+    if (profile.contact_phone) contact.push(`טלפון: ${profile.contact_phone}`);
+    if (profile.contact_email) contact.push(`אימייל: ${profile.contact_email}`);
+    if (profile.website_url) contact.push(`אתר: ${profile.website_url}`);
+    parts.push(`פרטי קשר: ${contact.join(', ')}.`);
+  }
+  
+  if (parts.length === 0) return '';
+  return `מצגת תדמית מקצועית לעסק.\n${parts.join('\n')}`;
+};
+
 // ── Brief Screen ──
 const BriefScreen = ({
-  onGenerate, businessName, isLoading,
+  onGenerate, businessName, isLoading, profile,
 }: {
   onGenerate: (brief: string, count: number, theme: PresentationTheme) => void;
   businessName: string;
   isLoading: boolean;
+  profile: any;
 }) => {
   const [brief, setBrief] = useState('');
   const [slideCount, setSlideCount] = useState(7);
   const [theme, setTheme] = useState<PresentationTheme>('corporate');
+  const [useProfile, setUseProfile] = useState(false);
+
+  const profileBrief = profile ? buildBriefFromProfile(profile) : '';
+  const hasProfileData = profileBrief.length > 30;
+  
+  const effectiveBrief = useProfile ? (profileBrief + (brief ? `\n\nהערות נוספות: ${brief}` : '')) : brief;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-8">
