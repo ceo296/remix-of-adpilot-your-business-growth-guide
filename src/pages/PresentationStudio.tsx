@@ -827,15 +827,17 @@ const BriefScreen = ({
   isLoading: boolean;
   profile: any;
 }) => {
-  const [brief, setBrief] = useState('');
-  const [slideCount, setSlideCount] = useState(7);
-  const [theme, setTheme] = useState<PresentationTheme>('corporate');
-  const [useProfile, setUseProfile] = useState(false);
-
   const profileBrief = profile ? buildBriefFromProfile(profile) : '';
   const hasProfileData = profileBrief.length > 30;
   
-  const effectiveBrief = useProfile ? (profileBrief + (brief ? `\n\nהערות נוספות: ${brief}` : '')) : brief;
+  const [brief, setBrief] = useState(hasProfileData ? '' : '');
+  const [slideCount, setSlideCount] = useState(7);
+  const [theme, setTheme] = useState<PresentationTheme>('corporate');
+
+  // Always use profile data when available, user just adds notes
+  const effectiveBrief = hasProfileData
+    ? (profileBrief + (brief ? `\n\nדגשים נוספים: ${brief}` : ''))
+    : brief;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-8">
@@ -845,11 +847,16 @@ const BriefScreen = ({
             <Sparkles className="w-8 h-8 text-primary" />
           </div>
           <h1 className="text-3xl font-black text-foreground">יצירת מצגת עם AI</h1>
-          <p className="text-muted-foreground text-lg">ספר לנו על העסק שלך ואנחנו ניצור מצגת מקצועית תוך שניות</p>
+          <p className="text-muted-foreground text-lg">
+            {hasProfileData
+              ? 'המערכת כבר מכירה את העסק שלך — בחר סגנון ולחץ צור!'
+              : 'ספר לנו על העסק שלך ואנחנו ניצור מצגת מקצועית תוך שניות'}
+          </p>
         </div>
 
         <Card className="border-2">
           <CardContent className="p-6 space-y-5">
+            {/* Theme selector - visual cards */}
             <div>
               <label className="text-sm font-bold text-foreground mb-3 block">בחר סגנון עיצוב</label>
               <div className="grid grid-cols-3 gap-3">
@@ -875,55 +882,36 @@ const BriefScreen = ({
               </div>
             </div>
 
-            {/* Use Profile Toggle */}
+            {/* Profile data notice */}
             {hasProfileData && (
-              <div
-                onClick={() => setUseProfile(!useProfile)}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  useProfile
-                    ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
-                    : 'border-border hover:border-primary/30 bg-card'
-                }`}
-              >
-                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                  useProfile ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground'
-                }`}>
-                  {useProfile && <span className="text-xs font-bold">✓</span>}
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-3">
+                <Building2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-foreground">המצגת תיבנה מתיק הלקוח שלך</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">שירותים, יתרונות, קהל יעד ופרטי קשר — הכל כבר במערכת ✓</p>
                 </div>
-                <div className="flex-1">
-                  <div className="font-bold text-sm text-foreground">בנה מצגת מתיק הלקוח שלי</div>
-                  <div className="text-xs text-muted-foreground">נשתמש בשירותים, יתרונות וקהל היעד שכבר הגדרת</div>
-                </div>
-                <Building2 className={`w-5 h-5 ${useProfile ? 'text-primary' : 'text-muted-foreground'}`} />
               </div>
             )}
 
-            {/* Profile preview when toggled */}
-            {useProfile && hasProfileData && (
-              <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                <p className="text-xs font-semibold text-muted-foreground mb-1">הנתונים שישמשו לבניית המצגת:</p>
-                <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed max-h-32 overflow-y-auto">{profileBrief}</p>
-              </div>
-            )}
-
+            {/* Brief input */}
             <div>
               <label className="text-sm font-bold text-foreground mb-2 block">
-                {useProfile ? 'הערות נוספות (אופציונלי)' : 'על מה המצגת? *'}
+                {hasProfileData ? 'רוצה להוסיף דגש? (אופציונלי)' : 'על מה המצגת? *'}
               </label>
               <Textarea
                 value={brief}
                 onChange={e => setBrief(e.target.value)}
-                placeholder={useProfile
-                  ? 'הוסף הערות או דגשים נוספים שלא מופיעים בתיק...'
-                  : `לדוגמה: מצגת תדמית ל${businessName}. אנחנו מתמחים ב... היתרונות שלנו הם... קהל היעד שלנו...`
+                placeholder={hasProfileData
+                  ? 'למשל: "תדגיש את השירות החדש שלנו" או "המצגת היא לפגישה עם משקיעים"...'
+                  : `ספר בכמה מילים מה העסק שלך עושה, מה היתרונות ולמי המצגת מיועדת...`
                 }
-                rows={useProfile ? 3 : 5}
+                rows={hasProfileData ? 2 : 4}
                 className="text-base"
                 dir="rtl"
               />
-              {!useProfile && <p className="text-xs text-muted-foreground mt-1">ככל שתתאר יותר, התוצאה תהיה מדויקת יותר</p>}
             </div>
 
+            {/* Slide count */}
             <div>
               <label className="text-sm font-bold text-foreground mb-2 block">מספר שקופיות</label>
               <div className="flex gap-2">
@@ -936,14 +924,14 @@ const BriefScreen = ({
             </div>
 
             <Button
-              className="w-full h-12 text-base gap-2"
+              className="w-full h-14 text-lg gap-2 font-bold"
               onClick={() => onGenerate(effectiveBrief, slideCount, theme)}
-              disabled={(!useProfile && !brief.trim()) || isLoading}
+              disabled={(!hasProfileData && !brief.trim()) || isLoading}
             >
               {isLoading ? (
                 <><Loader2 className="w-5 h-5 animate-spin" />יוצר את המצגת...</>
               ) : (
-                <><Wand2 className="w-5 h-5" />צור מצגת</>
+                <><Wand2 className="w-5 h-5" />צור מצגת ✨</>
               )}
             </Button>
           </CardContent>

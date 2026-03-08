@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowRight, Plus, Trash2, ChevronLeft, ChevronRight, Download,
-  Package, Image as ImageIcon, Sparkles, Loader2
+  Package, Sparkles, Loader2, Wand2, ImageIcon
 } from 'lucide-react';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
@@ -26,41 +26,302 @@ const PAGE_TYPES: { type: CatalogPage['type']; label: string }[] = [
   { type: 'contact', label: 'צור קשר' },
 ];
 
-const DEFAULT_PAGES: CatalogPage[] = [
-  { id: '1', type: 'cover', title: 'קטלוג מוצרים', subtitle: 'קולקציית 2025' },
-  { id: '2', type: 'products', title: 'הקולקציה שלנו', products: [
-    { id: 'p1', name: 'פריט פרימיום', description: 'עיצוב אלגנטי ומקורי בעבודת יד', price: '₪299', badge: 'חדש' },
-    { id: 'p2', name: 'פריט קלאסי', description: 'איכות גבוהה עם גימור מושלם', price: '₪449' },
-    { id: 'p3', name: 'פריט יוקרה', description: 'קולקציה מוגבלת למעצבים', price: '₪699', badge: 'מבצע' },
-    { id: 'p4', name: 'פריט סטנדרט', description: 'הבחירה המושלמת לכל יום', price: '₪199' },
-    { id: 'p5', name: 'פריט מיוחד', description: 'מהדורה מוגבלת בעיצוב ייחודי', price: '₪549', badge: 'חם' },
-    { id: 'p6', name: 'פריט בסיסי', description: 'איכות מעולה במחיר נגיש', price: '₪149' },
-  ]},
-  { id: '3', type: 'text', title: 'הסיפור שלנו', body: 'אנחנו מאמינים שכל מוצר מספר סיפור. מאז 2010 אנחנו יוצרים חוויות ייחודיות שמשלבות עיצוב, איכות וחדשנות. הצוות שלנו עובד עם החומרים הטובים ביותר כדי להביא לכם מוצרים שמעוררים השראה ומשנים את חוויית היומיום.' },
-  { id: '4', type: 'contact', title: 'בואו נדבר' },
-];
+// ── Simple Wizard Entry Screen ──
+interface ProductEntry {
+  id: string;
+  name: string;
+  price: string;
+}
 
+const CatalogWizard = ({
+  onGenerate, businessName, isLoading,
+}: {
+  onGenerate: (products: ProductEntry[], catalogTitle: string) => void;
+  businessName: string;
+  isLoading: boolean;
+}) => {
+  const [catalogTitle, setCatalogTitle] = useState(`קטלוג ${businessName}`);
+  const [products, setProducts] = useState<ProductEntry[]>([
+    { id: '1', name: '', price: '' },
+    { id: '2', name: '', price: '' },
+    { id: '3', name: '', price: '' },
+  ]);
+
+  const addRow = () => {
+    setProducts(prev => [...prev, { id: Date.now().toString(), name: '', price: '' }]);
+  };
+
+  const updateRow = (id: string, field: 'name' | 'price', value: string) => {
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const removeRow = (id: string) => {
+    if (products.length <= 1) return;
+    setProducts(prev => prev.filter(p => p.id !== id));
+  };
+
+  const filledProducts = products.filter(p => p.name.trim());
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-8">
+      <div className="max-w-2xl w-full space-y-8" dir="rtl">
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Package className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="text-3xl font-black text-foreground">יצירת קטלוג מוצרים</h1>
+          <p className="text-muted-foreground text-lg">
+            כתוב שמות מוצרים ומחירים — AI ייצור את התמונות ויבנה קטלוג מקצועי
+          </p>
+        </div>
+
+        <Card className="border-2">
+          <CardContent className="p-6 space-y-5">
+            {/* Catalog title */}
+            <div>
+              <label className="text-sm font-bold text-foreground mb-2 block">שם הקטלוג</label>
+              <Input
+                value={catalogTitle}
+                onChange={e => setCatalogTitle(e.target.value)}
+                placeholder="למשל: קטלוג אביב 2025"
+                className="text-base" dir="rtl"
+              />
+            </div>
+
+            {/* Product list */}
+            <div>
+              <label className="text-sm font-bold text-foreground mb-3 block">
+                מוצרים ({filledProducts.length} הוזנו)
+              </label>
+              <div className="space-y-2 max-h-[350px] overflow-y-auto">
+                {products.map((p, idx) => (
+                  <div key={p.id} className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground w-5 text-center flex-shrink-0">{idx + 1}</span>
+                    <Input
+                      value={p.name}
+                      onChange={e => updateRow(p.id, 'name', e.target.value)}
+                      placeholder="שם המוצר"
+                      className="text-sm flex-1" dir="rtl"
+                    />
+                    <Input
+                      value={p.price}
+                      onChange={e => updateRow(p.id, 'price', e.target.value)}
+                      placeholder="מחיר"
+                      className="text-sm w-24" dir="rtl"
+                    />
+                    <Button
+                      variant="ghost" size="sm"
+                      className="h-9 w-9 p-0 text-muted-foreground hover:text-destructive flex-shrink-0"
+                      onClick={() => removeRow(p.id)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" size="sm" onClick={addRow} className="mt-2 w-full gap-1">
+                <Plus className="w-3.5 h-3.5" />
+                הוסף מוצר
+              </Button>
+            </div>
+
+            {/* Info notice */}
+            <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-3">
+              <ImageIcon className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-foreground">AI ייצור תמונה לכל מוצר</p>
+                <p className="text-xs text-muted-foreground mt-0.5">המערכת תייצר תמונת מוצר מקצועית לכל פריט שהזנת — אין צורך לצלם!</p>
+              </div>
+            </div>
+
+            <Button
+              className="w-full h-14 text-lg gap-2 font-bold"
+              onClick={() => onGenerate(filledProducts, catalogTitle)}
+              disabled={filledProducts.length === 0 || isLoading}
+            >
+              {isLoading ? (
+                <><Loader2 className="w-5 h-5 animate-spin" />יוצר קטלוג ותמונות...</>
+              ) : (
+                <><Wand2 className="w-5 h-5" />צור קטלוג ✨</>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// ── Main Component ──
 const CatalogStudio = () => {
   const navigate = useNavigate();
   const { profile } = useClientProfile();
-  const [pages, setPages] = useState<CatalogPage[]>(DEFAULT_PAGES);
+  const [pages, setPages] = useState<CatalogPage[] | null>(null);
   const [activePage, setActivePage] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
-  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [imagesGenerating, setImagesGenerating] = useState(0);
 
   const brandColor = profile?.primary_color || '#E34870';
   const secondaryColor = profile?.secondary_color || '#1a1a2e';
   const businessName = profile?.business_name || 'שם העסק';
   const logoUrl = profile?.logo_url || undefined;
-  const phone = profile?.contact_phone || '050-1234567';
-  const email = profile?.contact_email || 'info@business.co.il';
-  const address = profile?.contact_address || 'רחוב הרצל 1, תל אביב';
+  const phone = profile?.contact_phone || '';
+  const email = profile?.contact_email || '';
+  const address = profile?.contact_address || '';
+
+  // Generate product image via AI
+  const generateProductImage = useCallback(async (
+    pageIndex: number, productId: string, productName: string
+  ) => {
+    try {
+      setImagesGenerating(prev => prev + 1);
+      const { data, error } = await supabase.functions.invoke('generate-product-image', {
+        body: {
+          productName,
+          businessType: profile?.x_factors?.[0] || profile?.primary_x_factor || businessName,
+          brandColor,
+        },
+      });
+      if (error || data?.error) {
+        console.warn(`Product image failed for "${productName}":`, error || data?.error);
+        return;
+      }
+      if (data?.imageUrl) {
+        setPages(prev => {
+          if (!prev) return prev;
+          return prev.map((page, pi) => {
+            if (pi !== pageIndex || page.type !== 'products') return page;
+            return {
+              ...page,
+              products: page.products?.map(p =>
+                p.id === productId ? { ...p, imageUrl: data.imageUrl } : p
+              ),
+            };
+          });
+        });
+      }
+    } catch (err) {
+      console.warn(`Product image gen error:`, err);
+    } finally {
+      setImagesGenerating(prev => prev - 1);
+    }
+  }, [brandColor, businessName, profile]);
+
+  const handleGenerate = async (products: ProductEntry[], catalogTitle: string) => {
+    setIsGenerating(true);
+    try {
+      // Build catalog pages from products
+      const productsPerPage = 6;
+      const productPages: CatalogPage[] = [];
+
+      for (let i = 0; i < products.length; i += productsPerPage) {
+        const chunk = products.slice(i, i + productsPerPage);
+        productPages.push({
+          id: `products-${i}`,
+          type: 'products',
+          title: i === 0 ? 'המוצרים שלנו' : `המוצרים שלנו (המשך)`,
+          products: chunk.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: p.price ? `₪${p.price.replace(/[₪\s]/g, '')}` : undefined,
+            description: '',
+          })),
+        });
+      }
+
+      // Also try to generate descriptions via AI
+      try {
+        const { data: aiData } = await supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'catalog',
+            profileData: {
+              businessName,
+              phone, email, address,
+              website: profile?.website_url,
+              xFactors: profile?.x_factors,
+              targetAudience: profile?.target_audience,
+              winningFeature: profile?.winning_feature,
+            },
+            extraContext: {
+              productNames: products.map(p => p.name),
+              productCount: products.length,
+            },
+          },
+        });
+        // Merge AI descriptions if available
+        if (aiData?.result?.products) {
+          const aiProducts = aiData.result.products;
+          productPages.forEach(page => {
+            page.products?.forEach(product => {
+              const aiMatch = aiProducts.find((ap: any) =>
+                ap.name?.includes(product.name) || product.name?.includes(ap.name)
+              );
+              if (aiMatch?.description) {
+                product.description = aiMatch.description;
+              }
+              if (aiMatch?.badge) {
+                product.badge = aiMatch.badge;
+              }
+            });
+          });
+        }
+      } catch (aiErr) {
+        console.warn('AI descriptions failed, using basic catalog:', aiErr);
+      }
+
+      const allPages: CatalogPage[] = [
+        { id: 'cover', type: 'cover', title: catalogTitle, subtitle: `${businessName}` },
+        ...productPages,
+        { id: 'contact', type: 'contact', title: 'בואו נדבר' },
+      ];
+
+      setPages(allPages);
+      setActivePage(0);
+      toast.success(`הקטלוג נוצר עם ${products.length} מוצרים! מייצר תמונות...`);
+
+      // Generate images for all products (staggered, 2 at a time)
+      const allProducts: { pageIndex: number; productId: string; name: string }[] = [];
+      allPages.forEach((page, pageIdx) => {
+        if (page.type === 'products') {
+          page.products?.forEach(p => {
+            allProducts.push({ pageIndex: pageIdx, productId: p.id, name: p.name });
+          });
+        }
+      });
+
+      const batchSize = 2;
+      for (let b = 0; b < allProducts.length; b += batchSize) {
+        const batch = allProducts.slice(b, b + batchSize);
+        await Promise.allSettled(
+          batch.map(item => generateProductImage(item.pageIndex, item.productId, item.name))
+        );
+      }
+
+      toast.success('כל התמונות נוצרו! ✨');
+    } catch (err) {
+      console.error(err);
+      toast.error('שגיאה ביצירת הקטלוג. נסה שוב.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // ── Wizard screen ──
+  if (!pages) {
+    return (
+      <>
+        <TopNavbar />
+        <CatalogWizard onGenerate={handleGenerate} businessName={businessName} isLoading={isGenerating} />
+      </>
+    );
+  }
 
   const currentPage = pages[activePage];
 
-  const updatePage = useCallback((index: number, updates: Partial<CatalogPage>) => {
-    setPages(prev => prev.map((p, i) => i === index ? { ...p, ...updates } : p));
-  }, []);
+  const updatePage = (index: number, updates: Partial<CatalogPage>) => {
+    setPages(prev => prev!.map((p, i) => i === index ? { ...p, ...updates } : p));
+  };
 
   const addPage = (type: CatalogPage['type']) => {
     const newPage: CatalogPage = {
@@ -77,7 +338,7 @@ const CatalogStudio = () => {
 
   const deletePage = (index: number) => {
     if (pages.length <= 1) return;
-    setPages(prev => prev.filter((_, i) => i !== index));
+    setPages(prev => prev!.filter((_, i) => i !== index));
     setActivePage(Math.min(activePage, pages.length - 2));
   };
 
@@ -131,7 +392,7 @@ const CatalogStudio = () => {
           />
         );
 
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 800));
         const dataUrl = await htmlToImage.toPng(root, { width: W, height: H, quality: 0.95 });
         pdf.addImage(dataUrl, 'PNG', 0, 0, W, H);
         reactRoot.unmount();
@@ -206,13 +467,19 @@ const CatalogStudio = () => {
         <div className="flex-1 flex flex-col">
           <div className="h-12 bg-card border-b border-border flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/internal-studio')}>
+              <Button variant="ghost" size="sm" onClick={() => setPages(null)}>
                 <ArrowRight className="w-4 h-4 ml-1" />
-                חזרה
+                קטלוג חדש
               </Button>
               <Badge variant="secondary" className="text-xs">עמוד {activePage + 1}/{pages.length}</Badge>
+              {imagesGenerating > 0 && (
+                <Badge variant="outline" className="text-xs gap-1 animate-pulse">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  מייצר {imagesGenerating} תמונות...
+                </Badge>
+              )}
             </div>
-            <Button size="sm" onClick={exportPDF} disabled={isExporting} className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground">
+            <Button size="sm" onClick={exportPDF} disabled={isExporting || imagesGenerating > 0} className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground">
               <Download className="w-4 h-4 ml-1" />
               {isExporting ? 'מייצא...' : 'ייצא PDF'}
             </Button>
@@ -298,6 +565,12 @@ const CatalogStudio = () => {
                   {(currentPage.products || []).map(product => (
                     <Card key={product.id} className="p-2">
                       <div className="space-y-1.5">
+                        {/* Product image thumbnail */}
+                        {product.imageUrl && (
+                          <div className="h-16 rounded-md overflow-hidden bg-muted">
+                            <img src={product.imageUrl} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        )}
                         <div className="flex gap-1">
                           <Input
                             value={product.name}
@@ -325,6 +598,15 @@ const CatalogStudio = () => {
                             placeholder="תגית (מבצע)" className="text-xs h-7" dir="rtl"
                           />
                         </div>
+                        {/* Regenerate image button */}
+                        <Button
+                          variant="ghost" size="sm"
+                          className="w-full h-6 text-[10px] gap-1"
+                          onClick={() => generateProductImage(activePage, product.id, product.name)}
+                        >
+                          <Sparkles className="w-3 h-3" />
+                          {product.imageUrl ? 'חדש תמונה' : 'צור תמונה'}
+                        </Button>
                       </div>
                     </Card>
                   ))}
@@ -332,57 +614,6 @@ const CatalogStudio = () => {
               </div>
             )}
           </div>
-
-          <Button 
-            className="w-full gap-2 mt-4" 
-            variant="outline"
-            disabled={isAiLoading}
-            onClick={async () => {
-              setIsAiLoading(true);
-              try {
-                const { data, error } = await supabase.functions.invoke('generate-internal-material', {
-                  body: {
-                    type: 'catalog',
-                    profileData: {
-                      businessName: profile?.business_name,
-                      phone: profile?.contact_phone,
-                      email: profile?.contact_email,
-                      address: profile?.contact_address,
-                      website: profile?.website_url,
-                      xFactors: profile?.x_factors,
-                      targetAudience: profile?.target_audience,
-                      winningFeature: profile?.winning_feature,
-                    },
-                    extraContext: {
-                      productCount: 6,
-                    },
-                  },
-                });
-                if (error) throw error;
-                const result = data?.result;
-                if (result) {
-                  const newPages: CatalogPage[] = [
-                    { id: '1', type: 'cover', title: result.coverTitle || 'קטלוג מוצרים', subtitle: result.coverSubtitle || '' },
-                    { id: '2', type: 'products', title: 'המוצרים שלנו', products: (result.products || []).map((p: any, i: number) => ({
-                      id: `ai-${i}`, name: p.name, description: p.description, price: p.price, badge: p.badge || undefined,
-                    }))},
-                    ...(result.storyText ? [{ id: '3', type: 'text' as const, title: 'הסיפור שלנו', body: result.storyText }] : []),
-                    { id: '4', type: 'contact', title: 'בואו נדבר' },
-                  ];
-                  setPages(newPages);
-                  setActivePage(0);
-                  toast.success('✨ הקטלוג נוצר בהצלחה!');
-                }
-              } catch (err: any) {
-                toast.error(err.message || 'שגיאה ביצירת קטלוג');
-              } finally {
-                setIsAiLoading(false);
-              }
-            }}
-          >
-            {isAiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            {isAiLoading ? 'AI יוצר...' : '✨ צור קטלוג עם AI'}
-          </Button>
         </div>
       </div>
     </div>
