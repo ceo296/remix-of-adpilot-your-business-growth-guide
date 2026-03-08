@@ -296,53 +296,87 @@ const BusinessCardStudio = () => {
 
   const renderBack = () => {
     const style = template.replace('bc-', '');
-    const isDark = style === 'premium';
-    const isBold = style === 'bold';
-    const bgColor = isDark ? secColor : isBold ? '#fff' : color;
-    const fgColor = isBold ? color : '#fff';
+    const isDark = style === 'premium' || style === 'bold';
+    const font = profile?.header_font || 'Heebo, sans-serif';
+
+    // Back uses the brand color as main background (inverted from front)
+    const bgMain = (style === 'premium') ? secColor : color;
+    const bgGrad = adjustColor(bgMain, -25);
+    const textMain = '#fff';
+    const textSub = 'rgba(255,255,255,0.8)';
+    const accentLine = 'rgba(255,255,255,0.15)';
+
+    const backContactLine = (icon: string, value: string) => (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-start' }}>
+        <span style={{ fontSize: '13px', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
+        <span style={{ fontSize: '13px', color: textSub, fontWeight: 500 }}>{value}</span>
+      </div>
+    );
 
     return (
       <div
         ref={backRef}
         style={{
-          width: '900px', height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: profile?.header_font || 'Heebo, sans-serif', borderRadius: '0px', overflow: 'hidden',
-          background: isBold ? '#fff' : `linear-gradient(160deg, ${bgColor} 0%, ${adjustColor(bgColor, -20)} 100%)`,
-          position: 'relative',
+          width: '900px', height: '500px', direction: 'rtl', fontFamily: font,
+          position: 'relative', overflow: 'hidden', borderRadius: '0px',
+          background: `linear-gradient(160deg, ${bgMain} 0%, ${bgGrad} 100%)`,
         }}
       >
-        {/* Decorative elements */}
-        {isDark && (
-          <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 30% 70%, ${color}25 0%, transparent 60%)` }} />
-        )}
+        {/* Radial glow */}
+        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 70% 30%, rgba(255,255,255,0.08) 0%, transparent 60%)` }} />
 
         {/* Geometric circles */}
-        <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '200px', height: '200px', borderRadius: '50%', border: `2px solid ${isBold ? `${color}15` : 'rgba(255,255,255,0.08)'}` }} />
-        <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: isBold ? `${color}06` : 'rgba(255,255,255,0.04)' }} />
+        <div style={{ position: 'absolute', top: '-60px', left: '-60px', width: '220px', height: '220px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.06)' }} />
+        <div style={{ position: 'absolute', bottom: '-50px', right: '-50px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
 
         {/* Pattern overlay */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: isBold ? dotPattern : dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '20px 20px', opacity: isBold ? 1 : 0.15 }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '20px 20px', opacity: 0.12 }} />
 
-        {/* Accent lines */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: isBold ? color : 'rgba(255,255,255,0.15)' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: isBold ? color : 'rgba(255,255,255,0.15)' }} />
+        {/* Accent bars */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: accentLine }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: accentLine }} />
 
-        <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-          {logoUrl ? (
-            <div style={{ width: '120px', height: '120px', margin: '0 auto', borderRadius: '16px', background: isBold ? `${color}08` : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-              <img src={logoUrl} alt="logo" style={{ 
-                maxHeight: '88px', maxWidth: '88px', objectFit: 'contain',
-                filter: isBold ? 'none' : 'brightness(0) invert(1) drop-shadow(0 4px 12px rgba(0,0,0,0.3))',
-              }} />
+        {/* Modern style: side accent strip */}
+        {style === 'modern' && (
+          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '8px', background: `linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 100%)` }} />
+        )}
+
+        {/* Content layout: logo+name top, contact bottom */}
+        <div style={{ position: 'relative', zIndex: 1, padding: '48px 56px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          
+          {/* Top: Logo + Business Name */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'flex-start' }}>
+            {logoUrl ? (
+              <div style={{ width: '72px', height: '72px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', flexShrink: 0 }}>
+                <img src={logoUrl} alt="logo" style={{ maxHeight: '52px', maxWidth: '52px', objectFit: 'contain', filter: 'brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
+              </div>
+            ) : (
+              <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: '28px', fontWeight: 900, color: textMain }}>{cardData.businessName.charAt(0)}</span>
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: textMain, lineHeight: 1.2 }}>
+                {cardData.businessName}
+              </div>
+              {cardData.personName && (
+                <div style={{ fontSize: '14px', fontWeight: 500, color: textSub, marginTop: '4px' }}>
+                  {cardData.personName} • {cardData.title}
+                </div>
+              )}
             </div>
-          ) : (
-            <div style={{ width: '100px', height: '100px', margin: '0 auto', borderRadius: '16px', background: isBold ? `${color}10` : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '48px', fontWeight: 900, color: fgColor }}>{cardData.businessName.charAt(0)}</span>
-            </div>
-          )}
-          <div style={{ width: '40px', height: '2px', margin: '16px auto', background: isBold ? color : 'rgba(255,255,255,0.3)' }} />
-          <div style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '3px', color: isBold ? '#333' : 'rgba(255,255,255,0.85)' }}>
-            {cardData.businessName}
+          </div>
+
+          {/* Divider */}
+          <div style={{ width: '60px', height: '2px', background: 'rgba(255,255,255,0.2)', marginTop: '12px' }} />
+
+          {/* Bottom: Contact details */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {activeContactFields.includes('phone') && cardData.phone && backContactLine('📞', cardData.phone)}
+            {activeContactFields.includes('email') && cardData.email && backContactLine('✉', cardData.email)}
+            {activeContactFields.includes('address') && cardData.address && backContactLine('📍', cardData.address)}
+            {activeContactFields.includes('whatsapp') && cardData.whatsapp && backContactLine('💬', cardData.whatsapp)}
+            {activeContactFields.includes('website') && cardData.website && backContactLine('🌐', cardData.website)}
           </div>
         </div>
       </div>
