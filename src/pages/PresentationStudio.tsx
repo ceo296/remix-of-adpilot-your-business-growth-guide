@@ -750,7 +750,7 @@ const SlideRenderer = ({
       );
     }
 
-    default:
+    default: {
       return (
         <div style={{ ...base, background: '#fff' }}>
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc', fontSize: 32 }}>
@@ -759,7 +759,10 @@ const SlideRenderer = ({
           {footer}
         </div>
       );
+    }
   }
+
+  // Note: imageLoading shimmer is handled outside SlideRenderer
 };
 
 // ── Theme Selector ──
