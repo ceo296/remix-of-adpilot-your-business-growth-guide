@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { 
   ArrowRight, 
   CreditCard, 
@@ -55,12 +56,12 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     description: 'כרטיסים מקצועיים שמשאירים רושם',
     icon: CreditCard,
     templates: [
-      { id: 'bc-classic', name: 'קלאסי דו-צדדי', description: 'עיצוב נקי ומקצועי · דו-צדדי', aspectRatio: '3.5:2', popular: true },
-      { id: 'bc-modern', name: 'מודרני דו-צדדי', description: 'קווים חדים וצבעים נועזים · דו-צדדי', aspectRatio: '3.5:2' },
-      { id: 'bc-minimal', name: 'מינימליסטי', description: 'פחות זה יותר · חד-צדדי', aspectRatio: '3.5:2' },
-      { id: 'bc-premium', name: 'פרימיום דו-צדדי', description: 'עיצוב יוקרתי · דו-צדדי', aspectRatio: '3.5:2' },
-      { id: 'bc-bold', name: 'בולד דו-צדדי', description: 'צבעוני ובולט · דו-צדדי', aspectRatio: '3.5:2' },
-      { id: 'bc-elegant', name: 'אלגנטי', description: 'עדין ומעודן · חד-צדדי', aspectRatio: '3.5:2' },
+      { id: 'bc-classic', name: 'קלאסי', description: 'עיצוב נקי ומקצועי', aspectRatio: '3.5:2', popular: true },
+      { id: 'bc-modern', name: 'מודרני', description: 'קווים חדים וצבעים נועזים', aspectRatio: '3.5:2' },
+      { id: 'bc-minimal', name: 'מינימליסטי', description: 'פחות זה יותר', aspectRatio: '3.5:2' },
+      { id: 'bc-premium', name: 'פרימיום', description: 'עיצוב יוקרתי עם אלמנטים מיוחדים', aspectRatio: '3.5:2' },
+      { id: 'bc-bold', name: 'בולד', description: 'צבעוני ובולט', aspectRatio: '3.5:2' },
+      { id: 'bc-elegant', name: 'אלגנטי', description: 'עדין ומעודן', aspectRatio: '3.5:2' },
     ]
   },
   {
@@ -130,6 +131,7 @@ const InternalStudio = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [selectedContactFields, setSelectedContactFields] = useState<string[]>(['phone', 'email', 'address']);
+  const [isDoubleSided, setIsDoubleSided] = useState(true);
 
   const currentCategory = TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory);
   const needsContactPicker = selectedCategory === 'business-cards' || selectedCategory === 'letterhead';
@@ -158,7 +160,8 @@ const InternalStudio = () => {
   const handleContinue = () => {
     if (selectedTemplate && selectedCategory) {
       const contactParams = needsContactPicker ? `&contactFields=${selectedContactFields.join(',')}` : '';
-      navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}${contactParams}`);
+      const sidesParam = selectedCategory === 'business-cards' ? `&sides=${isDoubleSided ? 2 : 1}` : '';
+      navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}${contactParams}${sidesParam}`);
     }
   };
 
@@ -269,6 +272,7 @@ const InternalStudio = () => {
                         templateId={template.id}
                         primaryColor={profile?.primary_color || '#E34870'}
                         businessName={profile?.business_name || 'שם העסק'}
+                        doubleSided={selectedCategory === 'business-cards' ? isDoubleSided : undefined}
                       />
                       {template.popular && (
                         <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs">
@@ -288,6 +292,27 @@ const InternalStudio = () => {
                 </Card>
               ))}
             </div>
+
+            {/* Double-sided toggle for business cards */}
+            {selectedCategory === 'business-cards' && (
+              <div className="mb-6 max-w-2xl mx-auto">
+                <Card>
+                  <CardContent className="p-4 flex items-center justify-between" dir="rtl">
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground">סוג הדפסה</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {isDoubleSided ? 'דו-צדדי — חזית + גב' : 'חד-צדדי — חזית בלבד'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs ${!isDoubleSided ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>חד-צדדי</span>
+                      <Switch checked={isDoubleSided} onCheckedChange={setIsDoubleSided} />
+                      <span className={`text-xs ${isDoubleSided ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>דו-צדדי</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Contact Fields Picker */}
             {needsContactPicker && selectedTemplate && (
