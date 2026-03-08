@@ -160,8 +160,14 @@ const InternalStudio = () => {
   const handleContinue = () => {
     if (selectedTemplate && selectedCategory) {
       const contactParams = needsContactPicker ? `&contactFields=${selectedContactFields.join(',')}` : '';
-      const sidesParam = selectedCategory === 'business-cards' ? `&sides=${isDoubleSided ? 2 : 1}` : '';
-      navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}${contactParams}${sidesParam}`);
+      if (selectedCategory === 'business-cards') {
+        const sidesParam = `&sides=${isDoubleSided ? 2 : 1}`;
+        navigate(`/business-card-studio?template=${selectedTemplate}${contactParams}${sidesParam}`);
+      } else if (selectedCategory === 'letterhead') {
+        navigate(`/letterhead-studio?template=${selectedTemplate}${contactParams}`);
+      } else {
+        navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}${contactParams}`);
+      }
     }
   };
 
