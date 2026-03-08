@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowRight, Plus, Trash2, ChevronLeft, ChevronRight, Download,
-  Package, Image as ImageIcon
+  Package, Image as ImageIcon, Sparkles, Loader2
 } from 'lucide-react';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import { CatalogPageRenderer } from '@/components/catalog/CatalogPageRenderer';
 import type { CatalogPage, CatalogProduct } from '@/types/catalog';
+import { supabase } from '@/integrations/supabase/client';
 
 const PAGE_TYPES: { type: CatalogPage['type']; label: string }[] = [
   { type: 'cover', label: 'שער' },
