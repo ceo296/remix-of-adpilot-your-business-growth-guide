@@ -9,51 +9,62 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { brief, businessName, industry, slideCount = 7 } = await req.json();
+    const { brief, businessName, industry, slideCount = 7, theme = 'corporate', profileData } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
-    const systemPrompt = `אתה מעצב מצגות מקצועי ברמה של Gamma / Beautiful.ai.
-תפקידך ליצור תוכן מצגת מושלם בעברית על בסיס בריף קצר.
+    // Build context from profile data
+    const profileContext = profileData ? `
+פרטי העסק הידועים (חובה להשתמש בנתונים אלה בלבד - אסור להמציא פרטים):
+- שם העסק: ${profileData.businessName || businessName}
+- טלפון: ${profileData.phone || 'לא ידוע'}
+- אימייל: ${profileData.email || 'לא ידוע'}
+- כתובת: ${profileData.address || 'לא ידוע'}
+- אתר: ${profileData.website || 'לא ידוע'}
+- שירותים/תחומים: ${profileData.xFactors?.join(', ') || 'לא ידוע'}
+- קהל יעד: ${profileData.targetAudience || 'לא ידוע'}
+- יתרון מרכזי: ${profileData.winningFeature || 'לא ידוע'}
+` : '';
 
-הנחיות:
-- כתוב כותרות קצרות ועוצמתיות (3-6 מילים)
-- תוכן תמציתי וממוקד - לא יותר מ-3 שורות בגוף טקסט
-- bullets קצרים ומדויקים (3-5 מילים לכל אחד)
-- שפה שיווקית מקצועית ומשכנעת
-- התאם את הטון לתעשייה של העסק
-- הקפד על היררכיה ברורה: כותרת > כותרת משנה > תוכן
+    const themeInstructions: Record<string, string> = {
+      minimal: `סגנון מינימלי: כותרות קצרות וחדות, הרבה חלל לבן, ללא עודף מידע. כל שקופית מתמקדת ברעיון אחד בלבד. השתמש בניסוח מאופק ואלגנטי.`,
+      corporate: `סגנון תאגידי-מקצועי: מידע מקיף אך מסודר, נתונים ומספרים, שפה עסקית רצינית. הדגש ניסיון, מומחיות ותוצאות מוכחות.`,
+      creative: `סגנון יצירתי ונועז: כותרות פרובוקטיביות ומפתיעות, שפה שיווקית חזקה, ניסוחים לא שגרתיים. השתמש בשאלות רטוריות ומשפטי תועלת חזקים.`,
+    };
+
+    const systemPrompt = `אתה מעצב מצגות מקצועי ברמה של Gamma / Beautiful.ai / Canva.
+תפקידך ליצור תוכן מצגת מושלם בעברית על בסיס הבריף ופרטי העסק.
+
+${themeInstructions[theme] || themeInstructions.corporate}
+
+הנחיות קריטיות:
+- חובה להיצמד לפרטים שקיבלת על העסק. אסור להמציא שמות, מספרי טלפון, כתובות או נתונים שלא סופקו.
+- אם אין לך מידע על משהו - אל תכתוב אותו. עדיף פחות תוכן מאשר תוכן שגוי.
+- כותרות: 3-6 מילים, עוצמתיות ומדויקות
+- גוף טקסט: עד 3 שורות תמציתיות
+- bullets: 3-5 מילים לכל פריט
+- נתונים (stats): השתמש רק בנתונים שסופקו בבריף. אם אין - אל תמציא מספרים.
+- שפה שיווקית מקצועית המותאמת לתעשייה
+${profileContext}
 
 החזר JSON בפורמט הבא בלבד (ללא markdown, ללא הסברים):
-{
-  "slides": [
-    {
-      "type": "cover|about|services|value_prop|stats|process|testimonial|team|cta|contact",
-      "title": "כותרת",
-      "subtitle": "כותרת משנה (אופציונלי)",
-      "body": "גוף טקסט (אופציונלי)",
-      "bullets": ["נקודה 1", "נקודה 2"] (אופציונלי),
-      "stats": [{"value": "500+", "label": "לקוחות"}] (אופציונלי, עד 4),
-      "steps": [{"number": "01", "title": "כותרת", "desc": "תיאור קצר"}] (אופציונלי, עד 4)
-    }
-  ]
-}
 
 סוגי שקופיות אפשריים:
 - cover: שער עם כותרת + כותרת משנה
 - about: אודות עם body text
 - services: שירותים עם bullets (4-6 פריטים)
 - value_prop: הצעת ערך עם bullets (3-4 יתרונות)
-- stats: נתונים/מספרים עם stats array (3-4 מספרים)
+- stats: נתונים/מספרים עם stats array (3-4 מספרים) - רק אם יש נתונים אמיתיים!
 - process: תהליך עבודה עם steps array (3-4 שלבים)
-- testimonial: המלצה עם body (ציטוט) + subtitle (שם הממליץ)
+- testimonial: המלצה עם body (ציטוט) + subtitle (שם הממליץ) - רק אם סופק בבריף
 - cta: קריאה לפעולה עם title + body
 - contact: צור קשר
 
-צור בדיוק ${slideCount} שקופיות. 
+צור בדיוק ${slideCount} שקופיות.
 השקופית הראשונה חייבת להיות cover והאחרונה contact.
-ודא מגוון סוגי שקופיות - אל תחזור על אותו סוג.`;
+ודא מגוון סוגי שקופיות - אל תחזור על אותו סוג.
+אם אין מספיק מידע לשקופית stats או testimonial - החלף בסוג אחר.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -65,7 +76,7 @@ serve(async (req) => {
         model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\n\nבריף:\n${brief}` },
+          { role: 'user', content: `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\nבריף:\n${brief}` },
         ],
         tools: [{
           type: "function",
@@ -120,7 +131,6 @@ serve(async (req) => {
 
     const data = await response.json();
     
-    // Extract from tool call
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     let slides;
     if (toolCall?.function?.arguments) {
@@ -129,7 +139,6 @@ serve(async (req) => {
         : toolCall.function.arguments;
       slides = parsed.slides;
     } else {
-      // Fallback: try to parse content
       const content = data.choices?.[0]?.message?.content || '';
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
