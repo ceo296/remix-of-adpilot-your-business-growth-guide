@@ -284,6 +284,18 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
 
         const predictions = aiResult?.predictions || {};
         
+        // Extract contact info from predictions
+        const contactUpdates: Partial<ContactAssets> = {};
+        if (predictions.phone) contactUpdates.contact_phone = predictions.phone;
+        if (predictions.email) contactUpdates.contact_email = predictions.email;
+        if (predictions.address) contactUpdates.contact_address = predictions.address;
+        if (predictions.whatsapp) contactUpdates.contact_whatsapp = predictions.whatsapp;
+        if (predictions.facebook) contactUpdates.social_facebook = predictions.facebook;
+        if (predictions.instagram) contactUpdates.social_instagram = predictions.instagram;
+        if (predictions.youtube) contactUpdates.contact_youtube = predictions.youtube;
+        if (predictions.linkedin) contactUpdates.social_linkedin = predictions.linkedin;
+        if (predictions.tiktok) contactUpdates.social_tiktok = predictions.tiktok;
+
         updateData({
           websiteUrl: url,
           isScanning: false,
@@ -296,6 +308,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
             services: Array.isArray(predictions.services) ? predictions.services : [],
             confirmed: false,
           },
+          contactAssets: { ...data.contactAssets, website_url: targetUrl, ...contactUpdates },
           scrapedBranding: branding ? {
             primaryColor: branding.colors?.primary,
             secondaryColor: branding.colors?.secondary,
