@@ -78,7 +78,7 @@ const FastTrackWizard = () => {
   
   // Media Type Selection (for media-only mode)
   const [selectedMediaTypes, setSelectedMediaTypes] = useState<string[]>([]);
-  
+  const [mediaScope, setMediaScope] = useState<MediaScope | null>(null);
   // Campaign Brief - using guided StudioBriefStep
   const [campaignBrief, setCampaignBrief] = useState<CampaignBrief>({
     title: '',
