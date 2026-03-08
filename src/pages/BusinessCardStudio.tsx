@@ -288,10 +288,16 @@ const BusinessCardStudio = () => {
             </Button>
             <h1 className="text-xl font-bold text-foreground">עיצוב כרטיס ביקור</h1>
           </div>
-          <Button onClick={handleExport} className="gap-2">
-            <Download className="w-4 h-4" />
-            ייצוא PNG
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExport} className="gap-2">
+              <Download className="w-4 h-4" />
+              PNG
+            </Button>
+            <Button onClick={handleExportPdf} disabled={isExporting} className="gap-2">
+              <FileText className="w-4 h-4" />
+              {isExporting ? 'מייצא...' : 'PDF לדפוס'}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" dir="rtl">
