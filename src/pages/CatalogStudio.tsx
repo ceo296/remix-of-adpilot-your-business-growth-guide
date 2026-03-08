@@ -332,6 +332,57 @@ const CatalogStudio = () => {
               </div>
             )}
           </div>
+
+          <Button 
+            className="w-full gap-2 mt-4" 
+            variant="outline"
+            disabled={isAiLoading}
+            onClick={async () => {
+              setIsAiLoading(true);
+              try {
+                const { data, error } = await supabase.functions.invoke('generate-internal-material', {
+                  body: {
+                    type: 'catalog',
+                    profileData: {
+                      businessName: profile?.business_name,
+                      phone: profile?.contact_phone,
+                      email: profile?.contact_email,
+                      address: profile?.contact_address,
+                      website: profile?.website_url,
+                      xFactors: profile?.x_factors,
+                      targetAudience: profile?.target_audience,
+                      winningFeature: profile?.winning_feature,
+                    },
+                    extraContext: {
+                      productCount: 6,
+                    },
+                  },
+                });
+                if (error) throw error;
+                const result = data?.result;
+                if (result) {
+                  const newPages: CatalogPage[] = [
+                    { id: '1', type: 'cover', title: result.coverTitle || 'קטלוג מוצרים', subtitle: result.coverSubtitle || '' },
+                    { id: '2', type: 'products', title: 'המוצרים שלנו', products: (result.products || []).map((p: any, i: number) => ({
+                      id: `ai-${i}`, name: p.name, description: p.description, price: p.price, badge: p.badge || undefined,
+                    }))},
+                    ...(result.storyText ? [{ id: '3', type: 'text' as const, title: 'הסיפור שלנו', body: result.storyText }] : []),
+                    { id: '4', type: 'contact', title: 'בואו נדבר' },
+                  ];
+                  setPages(newPages);
+                  setActivePage(0);
+                  toast.success('✨ הקטלוג נוצר בהצלחה!');
+                }
+              } catch (err: any) {
+                toast.error(err.message || 'שגיאה ביצירת קטלוג');
+              } finally {
+                setIsAiLoading(false);
+              }
+            }}
+          >
+            {isAiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {isAiLoading ? 'AI יוצר...' : '✨ צור קטלוג עם AI'}
+          </Button>
         </div>
       </div>
     </div>
