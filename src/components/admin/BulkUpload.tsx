@@ -102,6 +102,7 @@ const TOPIC_LABELS: Record<string, string> = {
   toys: 'צעצועים',
   furniture: 'ריהוט',
   jewelry: 'תכשיטים',
+  wigs: 'פאות',
   other: 'אחר',
 };
 
