@@ -83,7 +83,80 @@ const BusinessCardStudio = () => {
     }
   }, [isDoubleSided]);
 
-  const contactLine = (icon: string, value: string) => (
+  const handleExportPdf = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      // Card dimensions in mm
+      const [cardW, cardH] = cardSizeParam === '85x55' ? [85, 55] : [90, 50];
+      const bleed = 3; // 3mm bleed on each side
+      const cropLen = 5; // 5mm crop mark length
+      const margin = 15; // margin from page edge
+      const totalW = cardW + bleed * 2;
+      const totalH = cardH + bleed * 2;
+
+      // Page size: enough for card + bleed + crop marks + margin
+      const pageW = totalW + margin * 2;
+      const pageH = totalH + margin * 2;
+
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [pageW, pageH] });
+
+      const drawCropMarks = (x: number, y: number, w: number, h: number) => {
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.1);
+        // Top-left
+        doc.line(x, y - cropLen, x, y); doc.line(x - cropLen, y, x, y);
+        // Top-right
+        doc.line(x + w, y - cropLen, x + w, y); doc.line(x + w, y, x + w + cropLen, y);
+        // Bottom-left
+        doc.line(x, y + h, x, y + h + cropLen); doc.line(x - cropLen, y + h, x, y + h);
+        // Bottom-right
+        doc.line(x + w, y + h, x + w, y + h + cropLen); doc.line(x + w, y + h, x + w + cropLen, y + h);
+      };
+
+      const addCardPage = async (ref: React.RefObject<HTMLDivElement | null>, label: string) => {
+        if (!ref.current) return;
+        const png = await toPng(ref.current, { pixelRatio: 6, width: 900, height: 500 });
+        
+        const x = margin;
+        const y = margin;
+
+        // Draw bleed area indicator (light gray border)
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.05);
+        doc.rect(x, y, totalW, totalH);
+
+        // Place image covering bleed area
+        doc.addImage(png, 'PNG', x, y, totalW, totalH);
+
+        // Crop marks at the trim line (inside bleed)
+        const trimX = x + bleed;
+        const trimY = y + bleed;
+        drawCropMarks(trimX, trimY, cardW, cardH);
+
+        // Label
+        doc.setFontSize(6);
+        doc.setTextColor(150);
+        doc.text(`${label} | ${cardW}×${cardH}mm | bleed ${bleed}mm`, pageW / 2, pageH - 3, { align: 'center' });
+      };
+
+      // Front page
+      await addCardPage(frontRef, 'חזית');
+
+      // Back page
+      if (isDoubleSided && backRef.current) {
+        doc.addPage([pageW, pageH], 'landscape');
+        await addCardPage(backRef, 'גב');
+      }
+
+      doc.save(`business-card-print-${Date.now()}.pdf`);
+      toast.success('PDF מוכן לדפוס יוצא בהצלחה!');
+    } catch (err) {
+      console.error(err);
+      toast.error('שגיאה בייצוא PDF');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [isDoubleSided, cardSizeParam]);
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
       <span style={{ fontSize: '13px', color: '#666' }}>{value}</span>
       <span style={{ fontSize: '12px', opacity: 0.5 }}>{icon}</span>
