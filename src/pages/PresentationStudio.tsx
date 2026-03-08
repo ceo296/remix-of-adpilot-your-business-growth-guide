@@ -821,6 +821,16 @@ const PresentationStudio = () => {
         xFactors: profile.x_factors,
         targetAudience: profile.target_audience,
         winningFeature: profile.winning_feature,
+        primaryXFactor: profile.primary_x_factor,
+        qualitySignatures: profile.quality_signatures as string[] | undefined,
+        successfulCampaigns: profile.successful_campaigns,
+        facebook: profile.social_facebook,
+        instagram: profile.social_instagram,
+        linkedin: profile.social_linkedin,
+        tiktok: profile.social_tiktok,
+        youtube: profile.contact_youtube,
+        openingHours: profile.opening_hours,
+        branches: profile.branches,
       } : undefined;
 
       const { data, error } = await supabase.functions.invoke('generate-presentation', {
