@@ -43,6 +43,8 @@ interface MediaPackage {
   recommended?: boolean;
 }
 
+type MediaScope = 'national' | 'local' | 'both';
+
 interface BudgetAudienceStepProps {
   budget: number;
   onBudgetChange: (value: number) => void;
@@ -61,15 +63,16 @@ interface BudgetAudienceStepProps {
   onManualMediaSelect?: (selection: any) => void;
   manualMediaSelection?: any;
   selectedMediaTypes?: MediaType[];
+  mediaScope?: MediaScope;
 }
 
 // Map studio MediaType to DB category names
-const MEDIA_TYPE_TO_CATEGORIES: Record<MediaType, string[]> = {
+const MEDIA_TYPE_TO_CATEGORIES: Record<string, string[]> = {
   ad: ['daily_press', 'national_print', 'weekend_news', 'local_print', 'magazines', 'women_magazines'],
   radio: ['radio'],
   banner: ['digital'],
   billboard: ['outdoor', 'street'],
-  social: ['digital'],
+  social: ['digital', 'email_marketing', 'whatsapp'],
   all: [], // empty = no filter
 };
 
@@ -115,6 +118,7 @@ export const BudgetAudienceStep = ({
   onManualMediaSelect,
   manualMediaSelection,
   selectedMediaTypes = [],
+  mediaScope,
 }: BudgetAudienceStepProps) => {
   const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [isLoadingPackages, setIsLoadingPackages] = useState(false);
@@ -125,7 +129,7 @@ export const BudgetAudienceStep = ({
     if (budget > 0 && targetStream && targetGender) {
       generatePackages();
     }
-  }, [budget, targetStream, targetGender, targetCity, selectedMediaTypes]);
+  }, [budget, targetStream, targetGender, targetCity, selectedMediaTypes, mediaScope]);
 
   const generatePackages = async () => {
     setIsLoadingPackages(true);
@@ -135,8 +139,23 @@ export const BudgetAudienceStep = ({
     const hasAll = selectedMediaTypes.length === 0 || selectedMediaTypes.includes('all');
     if (!hasAll) {
       for (const mt of selectedMediaTypes) {
-        const cats = MEDIA_TYPE_TO_CATEGORIES[mt];
-        if (cats) allowedCategories.push(...cats);
+        let cats = MEDIA_TYPE_TO_CATEGORIES[mt];
+        if (cats) {
+          // Apply scope filtering for print and outdoor categories
+          if (mediaScope && mediaScope !== 'both') {
+            cats = cats.filter(c => {
+              if (mediaScope === 'national') {
+                // Exclude local categories
+                return !['local_print'].includes(c);
+              } else if (mediaScope === 'local') {
+                // Exclude national categories
+                return !['daily_press', 'national_print', 'weekend_news', 'outdoor'].includes(c);
+              }
+              return true;
+            });
+          }
+          allowedCategories.push(...cats);
+        }
       }
     }
 
