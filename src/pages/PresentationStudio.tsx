@@ -772,17 +772,70 @@ const THEMES: { id: PresentationTheme; label: string; desc: string; icon: React.
   { id: 'creative', label: 'יצירתי', desc: 'נועז, צבעוני, סוחף', icon: <Zap className="w-6 h-6" /> },
 ];
 
+// ── Build brief from profile ──
+const buildBriefFromProfile = (profile: any): string => {
+  const parts: string[] = [];
+  
+  if (profile.business_name) parts.push(`שם העסק: ${profile.business_name}.`);
+  
+  if (profile.services?.length > 0) {
+    parts.push(`השירותים העיקריים שלנו: ${profile.services.join(', ')}.`);
+  }
+  if (profile.x_factors?.length > 0) {
+    parts.push(`היתרונות שלנו: ${profile.x_factors.join(', ')}.`);
+  }
+  if (profile.primary_x_factor) {
+    parts.push(`היתרון המרכזי: ${profile.primary_x_factor}.`);
+  }
+  if (profile.winning_feature) {
+    parts.push(`מה מייחד אותנו: ${profile.winning_feature}.`);
+  }
+  if (profile.target_audience) {
+    parts.push(`קהל היעד שלנו: ${profile.target_audience}.`);
+  }
+  if (profile.quality_signatures && Array.isArray(profile.quality_signatures) && profile.quality_signatures.length > 0) {
+    const sigs = profile.quality_signatures.map((s: any) => typeof s === 'string' ? s : s?.type || '').filter(Boolean);
+    if (sigs.length > 0) parts.push(`הישגים ונכסי אמון: ${sigs.join(', ')}.`);
+  }
+  if (profile.successful_campaigns?.length > 0) {
+    parts.push(`קמפיינים מוצלחים: ${profile.successful_campaigns.join(', ')}.`);
+  }
+  if (profile.competitors?.length > 0) {
+    parts.push(`מתחרים: ${profile.competitors.join(', ')}.`);
+  }
+  if (profile.brand_presence) {
+    parts.push(`נוכחות מותג: ${profile.brand_presence}.`);
+  }
+  if (profile.contact_phone || profile.contact_email || profile.website_url) {
+    const contact: string[] = [];
+    if (profile.contact_phone) contact.push(`טלפון: ${profile.contact_phone}`);
+    if (profile.contact_email) contact.push(`אימייל: ${profile.contact_email}`);
+    if (profile.website_url) contact.push(`אתר: ${profile.website_url}`);
+    parts.push(`פרטי קשר: ${contact.join(', ')}.`);
+  }
+  
+  if (parts.length === 0) return '';
+  return `מצגת תדמית מקצועית לעסק.\n${parts.join('\n')}`;
+};
+
 // ── Brief Screen ──
 const BriefScreen = ({
-  onGenerate, businessName, isLoading,
+  onGenerate, businessName, isLoading, profile,
 }: {
   onGenerate: (brief: string, count: number, theme: PresentationTheme) => void;
   businessName: string;
   isLoading: boolean;
+  profile: any;
 }) => {
   const [brief, setBrief] = useState('');
   const [slideCount, setSlideCount] = useState(7);
   const [theme, setTheme] = useState<PresentationTheme>('corporate');
+  const [useProfile, setUseProfile] = useState(false);
+
+  const profileBrief = profile ? buildBriefFromProfile(profile) : '';
+  const hasProfileData = profileBrief.length > 30;
+  
+  const effectiveBrief = useProfile ? (profileBrief + (brief ? `\n\nהערות נוספות: ${brief}` : '')) : brief;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-8">
@@ -822,17 +875,53 @@ const BriefScreen = ({
               </div>
             </div>
 
+            {/* Use Profile Toggle */}
+            {hasProfileData && (
+              <div
+                onClick={() => setUseProfile(!useProfile)}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  useProfile
+                    ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                    : 'border-border hover:border-primary/30 bg-card'
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                  useProfile ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground'
+                }`}>
+                  {useProfile && <span className="text-xs font-bold">✓</span>}
+                </div>
+                <div className="flex-1">
+                  <div className="font-bold text-sm text-foreground">בנה מצגת מתיק הלקוח שלי</div>
+                  <div className="text-xs text-muted-foreground">נשתמש בשירותים, יתרונות וקהל היעד שכבר הגדרת</div>
+                </div>
+                <Building2 className={`w-5 h-5 ${useProfile ? 'text-primary' : 'text-muted-foreground'}`} />
+              </div>
+            )}
+
+            {/* Profile preview when toggled */}
+            {useProfile && hasProfileData && (
+              <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">הנתונים שישמשו לבניית המצגת:</p>
+                <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed max-h-32 overflow-y-auto">{profileBrief}</p>
+              </div>
+            )}
+
             <div>
-              <label className="text-sm font-bold text-foreground mb-2 block">על מה המצגת? *</label>
+              <label className="text-sm font-bold text-foreground mb-2 block">
+                {useProfile ? 'הערות נוספות (אופציונלי)' : 'על מה המצגת? *'}
+              </label>
               <Textarea
                 value={brief}
                 onChange={e => setBrief(e.target.value)}
-                placeholder={`לדוגמה: מצגת תדמית ל${businessName}. אנחנו מתמחים ב... היתרונות שלנו הם... קהל היעד שלנו...`}
-                rows={5}
+                placeholder={useProfile
+                  ? 'הוסף הערות או דגשים נוספים שלא מופיעים בתיק...'
+                  : `לדוגמה: מצגת תדמית ל${businessName}. אנחנו מתמחים ב... היתרונות שלנו הם... קהל היעד שלנו...`
+                }
+                rows={useProfile ? 3 : 5}
                 className="text-base"
                 dir="rtl"
               />
-              <p className="text-xs text-muted-foreground mt-1">ככל שתתאר יותר, התוצאה תהיה מדויקת יותר</p>
+              {!useProfile && <p className="text-xs text-muted-foreground mt-1">ככל שתתאר יותר, התוצאה תהיה מדויקת יותר</p>}
             </div>
 
             <div>
@@ -848,8 +937,8 @@ const BriefScreen = ({
 
             <Button
               className="w-full h-12 text-base gap-2"
-              onClick={() => onGenerate(brief, slideCount, theme)}
-              disabled={!brief.trim() || isLoading}
+              onClick={() => onGenerate(effectiveBrief, slideCount, theme)}
+              disabled={(!useProfile && !brief.trim()) || isLoading}
             >
               {isLoading ? (
                 <><Loader2 className="w-5 h-5 animate-spin" />יוצר את המצגת...</>
@@ -940,6 +1029,7 @@ const PresentationStudio = () => {
         youtube: profile.contact_youtube,
         openingHours: profile.opening_hours,
         branches: profile.branches,
+        services: profile.services,
         industry: '',
       } : undefined;
 
@@ -976,7 +1066,7 @@ const PresentationStudio = () => {
     return (
       <>
         <TopNavbar />
-        <BriefScreen onGenerate={handleGenerate} businessName={businessName} isLoading={isGenerating} />
+        <BriefScreen onGenerate={handleGenerate} businessName={businessName} isLoading={isGenerating} profile={profile} />
       </>
     );
   }
