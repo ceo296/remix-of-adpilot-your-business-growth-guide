@@ -893,6 +893,27 @@ const PresentationStudio = () => {
     return [];
   })();
 
+  // Generate AI image for a single slide
+  const generateSlideImage = useCallback(async (slideIndex: number, imagePrompt: string, slidesRef: SlideData[]) => {
+    try {
+      setImagesGenerating(prev => prev + 1);
+      const { data, error } = await supabase.functions.invoke('generate-slide-image', {
+        body: { prompt: imagePrompt, brandColor },
+      });
+      if (error || data?.error) {
+        console.warn(`Image generation failed for slide ${slideIndex}:`, error || data?.error);
+        return;
+      }
+      if (data?.imageUrl) {
+        setSlides(prev => prev?.map((s, i) => i === slideIndex ? { ...s, imageUrl: data.imageUrl, imageLoading: false } : s) || null);
+      }
+    } catch (err) {
+      console.warn(`Image gen error slide ${slideIndex}:`, err);
+    } finally {
+      setImagesGenerating(prev => prev - 1);
+    }
+  }, [brandColor]);
+
   const handleGenerate = async (brief: string, slideCount: number, theme: PresentationTheme) => {
     setIsGenerating(true);
     setCurrentTheme(theme);
@@ -916,6 +937,7 @@ const PresentationStudio = () => {
         youtube: profile.contact_youtube,
         openingHours: profile.opening_hours,
         branches: profile.branches,
+        industry: '',
       } : undefined;
 
       const { data, error } = await supabase.functions.invoke('generate-presentation', {
@@ -926,12 +948,19 @@ const PresentationStudio = () => {
       if (data?.error) { toast.error(data.error); return; }
 
       const generatedSlides: SlideData[] = (data.slides || []).map((s: any, i: number) => ({
-        ...s, id: `${Date.now()}-${i}`,
+        ...s, id: `${Date.now()}-${i}`, imageLoading: !!s.image_prompt,
       }));
 
       setSlides(generatedSlides);
       setActiveSlide(0);
-      toast.success(`נוצרו ${generatedSlides.length} שקופיות בסגנון ${THEMES.find(t => t.id === theme)?.label}!`);
+      toast.success(`נוצרו ${generatedSlides.length} שקופיות! מייצר תמונות AI...`);
+
+      // Fire off image generation for all slides in parallel
+      generatedSlides.forEach((slide, i) => {
+        if (slide.image_prompt) {
+          generateSlideImage(i, slide.image_prompt, generatedSlides);
+        }
+      });
     } catch (err) {
       console.error(err);
       toast.error('שגיאה ביצירת המצגת. נסה שוב.');
