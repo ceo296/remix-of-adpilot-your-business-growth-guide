@@ -43,6 +43,8 @@ interface MediaPackage {
   recommended?: boolean;
 }
 
+type MediaScope = 'national' | 'local' | 'both';
+
 interface BudgetAudienceStepProps {
   budget: number;
   onBudgetChange: (value: number) => void;
@@ -61,6 +63,7 @@ interface BudgetAudienceStepProps {
   onManualMediaSelect?: (selection: any) => void;
   manualMediaSelection?: any;
   selectedMediaTypes?: MediaType[];
+  mediaScope?: MediaScope;
 }
 
 // Map studio MediaType to DB category names
