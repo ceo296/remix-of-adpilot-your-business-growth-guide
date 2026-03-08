@@ -726,6 +726,7 @@ const FastTrackWizard = () => {
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         {currentStep === 'brief' && renderBriefStep()}
         {currentStep === 'mediaType' && renderMediaTypeStep()}
+        {currentStep === 'mediaScope' && renderMediaScopeStep()}
         {currentStep === 'media' && renderMediaStep()}
         {currentStep === 'quote' && renderQuoteStep()}
       </main>
