@@ -19,6 +19,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import MediaPortal from "./pages/MediaPortal";
 import AdkopWizard from "./pages/AdkopWizard";
 import MediaExport from "./pages/MediaExport";
+import PresentationStudio from "./pages/PresentationStudio";
+import CatalogStudio from "./pages/CatalogStudio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +48,8 @@ const App = () => (
             <Route path="/media-portal" element={<MediaPortal />} />
             <Route path="/adkop" element={<AdkopWizard />} />
             <Route path="/media-export" element={<MediaExport />} />
+            <Route path="/presentation-studio" element={<PresentationStudio />} />
+            <Route path="/catalog-studio" element={<CatalogStudio />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </HashRouter>

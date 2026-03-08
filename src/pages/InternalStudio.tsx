@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
+import { TemplatePreview } from '@/components/internal/TemplatePreview';
 
 interface TemplateCategory {
   id: string;
@@ -27,6 +28,7 @@ interface TemplateCategory {
   icon: React.ElementType;
   templates: Template[];
   comingSoon?: boolean;
+  directRoute?: string;
 }
 
 interface Template {
@@ -93,10 +95,11 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     id: 'presentations',
     name: 'Presentations',
     nameHe: 'מצגות',
-    description: 'מצגות מקצועיות ומרשימות',
+    description: 'מצגות מקצועיות ממותגות',
     icon: Presentation,
-    comingSoon: true,
-    templates: []
+    comingSoon: false,
+    templates: [],
+    directRoute: '/presentation-studio',
   },
   {
     id: 'catalogs',
@@ -104,8 +107,9 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     nameHe: 'קטלוגים',
     description: 'קטלוגי מוצרים ושירותים',
     icon: BookOpen,
-    comingSoon: true,
-    templates: []
+    comingSoon: false,
+    templates: [],
+    directRoute: '/catalog-studio',
   },
 ];
 
@@ -179,7 +183,11 @@ const InternalStudio = () => {
                 className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 ${
                   category.comingSoon ? 'opacity-60' : ''
                 }`}
-                onClick={() => !category.comingSoon && setSelectedCategory(category.id)}
+                onClick={() => {
+                  if (category.comingSoon) return;
+                  if (category.directRoute) { navigate(category.directRoute); return; }
+                  setSelectedCategory(category.id);
+                }}
               >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
@@ -227,9 +235,12 @@ const InternalStudio = () => {
                 >
                   <CardContent className="p-4">
                     {/* Template Preview Placeholder */}
-                    <div className="aspect-[3/4] bg-muted rounded-lg mb-3 flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10" />
-                      <currentCategory.icon className="w-12 h-12 text-muted-foreground/30" />
+                    <div className="aspect-[3/4] rounded-lg mb-3 relative overflow-hidden border border-border">
+                      <TemplatePreview
+                        templateId={template.id}
+                        primaryColor={profile?.primary_color || '#E34870'}
+                        businessName={profile?.business_name || 'שם העסק'}
+                      />
                       {template.popular && (
                         <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs">
                           פופולרי
