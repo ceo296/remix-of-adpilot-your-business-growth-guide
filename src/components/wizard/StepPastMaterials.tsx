@@ -551,7 +551,7 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
                     <Upload className="w-5 h-5 ml-2" />
                     בעצם יש לי משהו
                   </Button>
-                  <Button variant="outline" size="lg" onClick={onNext}>
+                  <Button variant="outline" size="lg" onClick={handleNext}>
                     מעולה, תבנו לי חדש
                     <ArrowLeft className="w-5 h-5 mr-2" />
                   </Button>
