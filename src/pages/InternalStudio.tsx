@@ -235,9 +235,12 @@ const InternalStudio = () => {
                 >
                   <CardContent className="p-4">
                     {/* Template Preview Placeholder */}
-                    <div className="aspect-[3/4] bg-muted rounded-lg mb-3 flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10" />
-                      <currentCategory.icon className="w-12 h-12 text-muted-foreground/30" />
+                    <div className="aspect-[3/4] rounded-lg mb-3 relative overflow-hidden border border-border">
+                      <TemplatePreview
+                        templateId={template.id}
+                        primaryColor={profile?.primary_color || '#E34870'}
+                        businessName={profile?.business_name || 'שם העסק'}
+                      />
                       {template.popular && (
                         <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs">
                           פופולרי
