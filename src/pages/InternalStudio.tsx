@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { 
   ArrowRight, 
   CreditCard, 
@@ -13,7 +15,13 @@ import {
   BookOpen,
   Sparkles,
   ChevronLeft,
-  Check
+  Check,
+  Phone,
+  AtSign,
+  MapPin,
+  MessageCircle,
+  Globe,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
