@@ -390,6 +390,41 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
   // ═══ Snapshot / Summary View ═══
   if (showSnapshot) {
     const insights = data.websiteInsights;
+    const contact = data.contactAssets;
+
+    const EditableField = ({ label, field, value }: { label: string; field: string; value: string }) => (
+      <div className="space-y-1">
+        <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+        {editingField === field ? (
+          <div className="flex gap-2">
+            <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} className="h-8 text-sm" dir="rtl" autoFocus />
+            <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => saveEdit(field)}>✓</Button>
+            <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => setEditingField(null)}>✕</Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 group">
+            <p className="text-sm font-medium text-foreground flex-1">{value}</p>
+            <button onClick={() => startEdit(field, value)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted">
+              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+
+    const CONTACT_FIELDS_CONFIG = [
+      { key: 'contact_phone' as keyof ContactAssets, label: 'טלפון', icon: Phone, placeholder: '03-1234567', type: 'tel' },
+      { key: 'contact_whatsapp' as keyof ContactAssets, label: 'וואטסאפ', icon: MessageCircle, placeholder: '050-1234567', type: 'tel' },
+      { key: 'contact_email' as keyof ContactAssets, label: 'מייל', icon: Mail, placeholder: 'info@business.com', type: 'email' },
+      { key: 'contact_address' as keyof ContactAssets, label: 'כתובת', icon: MapPin, placeholder: 'רחוב הדוגמה 10, בני ברק', type: 'text' },
+      { key: 'website_url' as keyof ContactAssets, label: 'אתר', icon: Globe, placeholder: 'www.example.co.il', type: 'url' },
+      { key: 'social_facebook' as keyof ContactAssets, label: 'פייסבוק', icon: Facebook, placeholder: 'facebook.com/page', type: 'text' },
+      { key: 'social_instagram' as keyof ContactAssets, label: 'אינסטגרם', icon: Instagram, placeholder: '@username', type: 'text' },
+      { key: 'contact_youtube' as keyof ContactAssets, label: 'יוטיוב', icon: Youtube, placeholder: 'youtube.com/@channel', type: 'text' },
+      { key: 'social_tiktok' as keyof ContactAssets, label: 'טיקטוק', icon: Music2, placeholder: '@username', type: 'text' },
+      { key: 'social_linkedin' as keyof ContactAssets, label: 'לינקדאין', icon: Linkedin, placeholder: 'linkedin.com/company/...', type: 'text' },
+    ];
+
     return (
       <div className="space-y-10 animate-fade-in">
         <div className="text-center space-y-4">
@@ -400,7 +435,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
             תמונת מצב - {data.brand.name || 'העסק שלכם'}
           </h2>
           <p className="text-lg text-muted-foreground max-w-lg mx-auto">
-            הנה מה שאספנו עד כה. הכל מדויק? מעולה, ממשיכים!
+            הנה מה שאספנו עד כה. בדקו שהכל מדויק, השלימו פרטים חסרים וממשיכים!
           </p>
         </div>
 
@@ -447,14 +482,6 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
                       </div>
                     </div>
                   )}
-                  {data.brand.colors.background && data.brand.colors.background !== '#FFFFFF' && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg border-2 border-border shadow-sm" style={{ backgroundColor: data.brand.colors.background }} />
-                      <div>
-                        <p className="text-xs text-muted-foreground">רקע</p>
-                      </div>
-                    </div>
-                  )}
                   {!hasColors && (
                     <p className="text-sm text-muted-foreground">לא זוהו צבעים עדיין</p>
                   )}
@@ -484,31 +511,16 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
               </h3>
 
               {insights?.industry && (
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-muted-foreground">תחום</span>
-                  <p className="text-sm font-medium text-foreground">{insights.industry}</p>
-                </div>
+                <EditableField label="תחום" field="industry" value={insights.industry} />
               )}
-
               {insights?.coreOffering && (
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-muted-foreground">מה מציעים</span>
-                  <p className="text-sm font-medium text-foreground">{insights.coreOffering}</p>
-                </div>
+                <EditableField label="מה מציעים" field="coreOffering" value={insights.coreOffering} />
               )}
-
               {insights?.audience && (
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-muted-foreground">קהל יעד</span>
-                  <p className="text-sm font-medium text-foreground">{insights.audience}</p>
-                </div>
+                <EditableField label="קהל יעד" field="audience" value={insights.audience} />
               )}
-
               {insights?.seniority && (
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-muted-foreground">ותק</span>
-                  <p className="text-sm font-medium text-foreground">{insights.seniority}</p>
-                </div>
+                <EditableField label="ותק" field="seniority" value={insights.seniority} />
               )}
 
               {insights?.services && insights.services.length > 0 && (
@@ -522,7 +534,6 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
                 </div>
               )}
 
-              {/* Uploaded Materials count */}
               {hasMaterials && (
                 <div className="space-y-1 pt-2 border-t border-border/50">
                   <span className="text-xs font-semibold text-muted-foreground">חומרי פרסום</span>
@@ -536,6 +547,37 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
             </CardContent>
           </Card>
         </div>
+
+        {/* Contact Info Card */}
+        <Card className="max-w-3xl mx-auto border-2 border-primary/20 shadow-lg">
+          <CardContent className="p-6 space-y-5">
+            <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
+              <Phone className="w-5 h-5 text-primary" />
+              פרטי יצירת קשר
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              השלימו או תקנו — הפרטים ישמשו בקמפיינים הבאים שלכם
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {CONTACT_FIELDS_CONFIG.map(({ key, label, icon: Icon, placeholder, type }) => (
+                <div key={key} className="space-y-1.5">
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Icon className="w-3.5 h-3.5" />
+                    {label}
+                  </label>
+                  <Input
+                    type={type}
+                    value={contact[key] || ''}
+                    onChange={(e) => updateContact(key, e.target.value)}
+                    placeholder={placeholder}
+                    className="h-9 text-sm text-left"
+                    dir="ltr"
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Materials Preview */}
         {hasMaterials && (

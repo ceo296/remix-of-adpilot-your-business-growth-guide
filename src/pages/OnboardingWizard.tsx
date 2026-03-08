@@ -9,7 +9,7 @@ import StepSelectClient from '@/components/wizard/StepSelectClient';
 import StepMagicLink from '@/components/wizard/StepMagicLink';
 import StepWebsiteInsights from '@/components/wizard/StepWebsiteInsights';
 import StepStrategicMRI from '@/components/wizard/StepStrategicMRI';
-import StepContactAssets from '@/components/wizard/StepContactAssets';
+// StepContactAssets removed - contact info is now collected in the snapshot view
 import StepPastMaterials from '@/components/wizard/StepPastMaterials';
 import StepBrandPassport from '@/components/wizard/StepBrandPassport';
 import { Rocket, Loader2 } from 'lucide-react';
