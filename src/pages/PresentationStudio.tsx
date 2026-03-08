@@ -1088,7 +1088,7 @@ const PresentationStudio = () => {
               </div>
             )}
 
-            {currentSlide.type === 'process' && (
+            {(currentSlide.type === 'process' || currentSlide.type === 'methodology') && (
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">שלבים</label>
                 {(currentSlide.steps || []).map((s, i) => (
