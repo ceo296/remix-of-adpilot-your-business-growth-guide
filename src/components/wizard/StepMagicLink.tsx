@@ -331,8 +331,6 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
   };
 
   // ═══ Editable snapshot fields ═══
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
 
   const startEdit = (field: string, value: string) => {
     setEditingField(field);
