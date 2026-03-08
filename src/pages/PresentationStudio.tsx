@@ -1048,12 +1048,18 @@ const PresentationStudio = () => {
       setActiveSlide(0);
       toast.success(`נוצרו ${generatedSlides.length} שקופיות! מייצר תמונות AI...`);
 
-      // Fire off image generation for all slides in parallel
-      generatedSlides.forEach((slide, i) => {
-        if (slide.image_prompt) {
-          generateSlideImage(i, slide.image_prompt, generatedSlides);
-        }
-      });
+      // Fire off image generation with staggered batches (2 at a time to avoid rate limits)
+      const slidesWithPrompts = generatedSlides
+        .map((slide, i) => ({ index: i, prompt: slide.image_prompt }))
+        .filter(s => s.prompt);
+      
+      const batchSize = 2;
+      for (let b = 0; b < slidesWithPrompts.length; b += batchSize) {
+        const batch = slidesWithPrompts.slice(b, b + batchSize);
+        await Promise.allSettled(
+          batch.map(s => generateSlideImage(s.index, s.prompt!, generatedSlides))
+        );
+      }
     } catch (err) {
       console.error(err);
       toast.error('שגיאה ביצירת המצגת. נסה שוב.');
