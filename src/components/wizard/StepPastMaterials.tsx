@@ -603,10 +603,13 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
 
       {/* ═══════════════ Navigation ═══════════════ */}
       <div className="flex flex-col items-center gap-4 max-w-3xl mx-auto pt-6">
-        <Button variant="gradient" size="xl" onClick={onNext} className="w-full max-w-md h-16 text-xl font-bold">
+        <Button variant="gradient" size="xl" onClick={handleNext} className="w-full max-w-md h-16 text-xl font-bold">
           קדימה, ממשיכים
           <ArrowLeft className="w-6 h-6 mr-2" />
         </Button>
+        {validationError && (
+          <p className="text-sm text-destructive font-medium">{validationError}</p>
+        )}
         <Button variant="outline" size="lg" onClick={onPrev} className="text-base">
           <ArrowRight className="w-5 h-5 ml-2" />
           חזרה
