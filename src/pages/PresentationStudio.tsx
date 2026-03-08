@@ -1144,6 +1144,14 @@ const PresentationStudio = () => {
           <div className="flex-1 bg-muted/30 flex items-center justify-center p-8 overflow-hidden">
             <div className="relative shadow-2xl rounded-lg overflow-hidden" style={{ width: 'min(100%, 960px)', aspectRatio: '16/9' }}>
               <SlideRenderer slide={currentSlide} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={0.5} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={activeSlide} address={address} />
+              {currentSlide.imageLoading && !currentSlide.imageUrl && (
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-20">
+                  <div className="bg-black/60 backdrop-blur-sm rounded-xl px-6 py-3 flex items-center gap-3">
+                    <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    <span className="text-white text-sm font-medium">מייצר תמונה...</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
