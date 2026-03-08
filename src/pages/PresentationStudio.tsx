@@ -201,7 +201,8 @@ const SlideRenderer = ({
   const dark = adjustColor(brandColor, -40);
   const light = adjustColor(brandColor, 60);
   const tc = getThemeConfig(theme, brandColor, secColor);
-  const photo = getPhotoForSlide(businessPhotos, slideIndex);
+  // Prefer AI-generated image, fallback to business photos
+  const photo = slide.imageUrl || getPhotoForSlide(businessPhotos, slideIndex);
   const brandIsLight = isLightColor(brandColor);
 
   const base: React.CSSProperties = {
