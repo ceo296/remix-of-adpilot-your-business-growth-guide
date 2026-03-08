@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.generate-product-image]
 verify_jwt = false
+
+[functions.generate-branding]
+verify_jwt = false

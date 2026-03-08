@@ -535,7 +535,8 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
         {/* Branding Studio Modal */}
         <BrandingStudio 
           isOpen={showBrandingStudio} 
-          onClose={() => setShowBrandingStudio(false)} 
+          onClose={() => setShowBrandingStudio(false)}
+          businessName={data.brand.name}
         />
       </>
     );
