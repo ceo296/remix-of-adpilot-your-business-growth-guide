@@ -94,10 +94,11 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     id: 'presentations',
     name: 'Presentations',
     nameHe: 'מצגות',
-    description: 'מצגות מקצועיות ומרשימות',
+    description: 'מצגות מקצועיות ממותגות',
     icon: Presentation,
-    comingSoon: true,
-    templates: []
+    comingSoon: false,
+    templates: [],
+    directRoute: '/presentation-studio',
   },
   {
     id: 'catalogs',
@@ -105,8 +106,9 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     nameHe: 'קטלוגים',
     description: 'קטלוגי מוצרים ושירותים',
     icon: BookOpen,
-    comingSoon: true,
-    templates: []
+    comingSoon: false,
+    templates: [],
+    directRoute: '/catalog-studio',
   },
 ];
 
