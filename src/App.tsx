@@ -22,6 +22,7 @@ import MediaExport from "./pages/MediaExport";
 import PresentationStudio from "./pages/PresentationStudio";
 import CatalogStudio from "./pages/CatalogStudio";
 import BusinessCardStudio from "./pages/BusinessCardStudio";
+import LetterheadStudio from "./pages/LetterheadStudio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
