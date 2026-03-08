@@ -1,0 +1,191 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const { businessName, essence, differentiator, persona, audience, vision, designPreferences } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    // Step 1: Generate brand strategy (colors, fonts, tagline, brand voice)
+    console.log("Step 1: Generating brand strategy...");
+    const strategyPrompt = `You are a world-class branding expert specializing in the Israeli Haredi market. 
+Create a complete brand identity based on this brief:
+
+Business Name: ${businessName || "Not specified"}
+Core Expertise: ${essence}
+Differentiator: ${differentiator}
+Brand Persona: ${persona}
+Target Audience: ${audience}
+Vision: ${vision}
+Design Preferences: ${designPreferences}
+
+Return a JSON object with this EXACT structure (no markdown, no backticks, just pure JSON):
+{
+  "tagline": "A powerful Hebrew tagline for the brand (3-6 words)",
+  "tagline_english": "English translation of the tagline",
+  "brand_voice": "2-3 sentences describing the brand's communication style in Hebrew",
+  "colors": {
+    "primary": "#HEX - the main brand color",
+    "secondary": "#HEX - complementary accent color",
+    "accent": "#HEX - highlight/CTA color",
+    "background": "#HEX - light background tone",
+    "dark": "#HEX - dark variant for contrast"
+  },
+  "fonts": {
+    "header": "Best Hebrew Google Font for headers (from: Assistant, Heebo, Rubik, Alef, David Libre, Frank Ruhl Libre, Secular One, Suez One)",
+    "body": "Best Hebrew Google Font for body text",
+    "header_reasoning": "Why this font fits the brand",
+    "body_reasoning": "Why this font fits the brand"
+  },
+  "logo_concept": "Detailed description of the ideal logo concept - shapes, symbols, style (minimalist/bold/elegant), what it should communicate",
+  "brand_essence_summary": "A compelling 2-sentence Hebrew summary of the entire brand identity",
+  "mockup_scenes": [
+    "Description of mockup scene 1 (e.g., business card on marble surface)",
+    "Description of mockup scene 2 (e.g., storefront signage)",
+    "Description of mockup scene 3 (e.g., letterhead and envelope)"
+  ]
+}`;
+
+    const strategyResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: strategyPrompt }],
+      }),
+    });
+
+    if (!strategyResponse.ok) {
+      const status = strategyResponse.status;
+      if (status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (status === 402) return new Response(JSON.stringify({ error: "Payment required" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      throw new Error(`Strategy generation failed: ${status}`);
+    }
+
+    const strategyData = await strategyResponse.json();
+    let strategyText = strategyData.choices?.[0]?.message?.content || "";
+    
+    // Clean JSON from markdown
+    strategyText = strategyText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    
+    let strategy;
+    try {
+      strategy = JSON.parse(strategyText);
+    } catch (e) {
+      console.error("Failed to parse strategy JSON:", strategyText);
+      throw new Error("Failed to parse brand strategy");
+    }
+
+    console.log("Strategy generated:", strategy.tagline);
+
+    // Step 2: Generate logo image
+    console.log("Step 2: Generating logo...");
+    const logoPrompt = `Create a professional, modern logo for a business called "${businessName || 'Brand'}".
+Logo concept: ${strategy.logo_concept}
+Color palette: Primary ${strategy.colors.primary}, Secondary ${strategy.colors.secondary}, Accent ${strategy.colors.accent}
+Style: Clean, professional, suitable for the Israeli market. The logo should work on both light and dark backgrounds.
+IMPORTANT: Create ONLY the logo mark/icon - NO text, NO letters, NO words in the logo. Pure graphic symbol/icon only.
+The logo should be on a clean white background, centered, with generous padding around it.`;
+
+    const logoResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-image",
+        messages: [{ role: "user", content: logoPrompt }],
+        modalities: ["image", "text"],
+      }),
+    });
+
+    if (!logoResponse.ok) {
+      console.error("Logo generation failed:", logoResponse.status);
+    }
+
+    const logoData = await logoResponse.json();
+    const logoBase64 = logoData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+    console.log("Logo generated:", !!logoBase64);
+
+    // Step 3: Generate mockup images (2 mockups in parallel)
+    console.log("Step 3: Generating mockups...");
+    const mockupScenes = strategy.mockup_scenes || [
+      "Professional business card on a marble surface",
+      "Store signage on a modern building facade",
+      "Branded letterhead and envelope set"
+    ];
+
+    const mockupPromises = mockupScenes.slice(0, 3).map(async (scene: string, idx: number) => {
+      try {
+        const mockupPrompt = `Create a photorealistic mockup visualization for a brand called "${businessName || 'Brand'}".
+Scene: ${scene}
+Brand colors: Primary ${strategy.colors.primary}, Secondary ${strategy.colors.secondary}
+Style: High-end, professional product photography. Elegant lighting, shallow depth of field.
+The mockup should show the brand's visual identity (colors, patterns) applied to the physical item.
+NO text or letters in the image - just show the colors and design patterns applied to the object.`;
+
+        const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [{ role: "user", content: mockupPrompt }],
+            modalities: ["image", "text"],
+          }),
+        });
+
+        if (!resp.ok) {
+          console.error(`Mockup ${idx} failed:`, resp.status);
+          return null;
+        }
+        const d = await resp.json();
+        return d.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+      } catch (e) {
+        console.error(`Mockup ${idx} error:`, e);
+        return null;
+      }
+    });
+
+    // Process mockups sequentially (1 at a time to avoid rate limits)
+    const mockupImages: (string | null)[] = [];
+    for (const promise of mockupPromises) {
+      const result = await promise;
+      mockupImages.push(result);
+      // Small delay between requests
+      await new Promise(r => setTimeout(r, 1000));
+    }
+
+    console.log("Mockups generated:", mockupImages.filter(Boolean).length);
+
+    // Return complete branding package
+    return new Response(JSON.stringify({
+      success: true,
+      strategy,
+      logo: logoBase64,
+      mockups: mockupImages.filter(Boolean),
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
+  } catch (e) {
+    console.error("Branding generation error:", e);
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
