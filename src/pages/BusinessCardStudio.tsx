@@ -38,6 +38,7 @@ const BusinessCardStudio = () => {
   const activeContactFields = contactFieldsParam.split(',');
   const [isDoubleSided, setIsDoubleSided] = useState(sidesParam === '2');
   const [viewingSide, setViewingSide] = useState<'front' | 'back'>('front');
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   const color = profile?.primary_color || '#E34870';
