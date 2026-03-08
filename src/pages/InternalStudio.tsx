@@ -183,7 +183,11 @@ const InternalStudio = () => {
                 className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 ${
                   category.comingSoon ? 'opacity-60' : ''
                 }`}
-                onClick={() => !category.comingSoon && setSelectedCategory(category.id)}
+                onClick={() => {
+                  if (category.comingSoon) return;
+                  if (category.directRoute) { navigate(category.directRoute); return; }
+                  setSelectedCategory(category.id);
+                }}
               >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
