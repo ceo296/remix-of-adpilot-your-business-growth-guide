@@ -19,15 +19,14 @@ import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 
-const TOTAL_STEPS_REGULAR = 8;
-const TOTAL_STEPS_AGENCY = 9; // Extra step for client selection
+const TOTAL_STEPS_REGULAR = 7;
+const TOTAL_STEPS_AGENCY = 8;
 
 const stepTitlesRegular = [
   'ברוכים הבאים',
   'בחירת מסלול',
   'הלינק הקסום',
   'מה למדנו עליכם',
-  'פרטי יצירת קשר',
   'ה-MRI האסטרטגי',
   'חומרי עבר',
   'דרכון המותג',
@@ -39,7 +38,6 @@ const stepTitlesAgency = [
   'בחירת מסלול',
   'הלינק הקסום',
   'מה למדנו עליכם',
-  'פרטי יצירת קשר',
   'ה-MRI האסטרטגי',
   'חומרי עבר',
   'דרכון המותג',
