@@ -28,6 +28,9 @@ interface SlideData {
   bullets?: string[];
   stats?: { value: string; label: string }[];
   steps?: { number: string; title: string; desc: string }[];
+  image_prompt?: string;
+  imageUrl?: string;
+  imageLoading?: boolean;
 }
 
 const SLIDE_LABELS: Record<string, string> = {
@@ -198,7 +201,8 @@ const SlideRenderer = ({
   const dark = adjustColor(brandColor, -40);
   const light = adjustColor(brandColor, 60);
   const tc = getThemeConfig(theme, brandColor, secColor);
-  const photo = getPhotoForSlide(businessPhotos, slideIndex);
+  // Prefer AI-generated image, fallback to business photos
+  const photo = slide.imageUrl || getPhotoForSlide(businessPhotos, slideIndex);
   const brandIsLight = isLightColor(brandColor);
 
   const base: React.CSSProperties = {
@@ -746,7 +750,7 @@ const SlideRenderer = ({
       );
     }
 
-    default:
+    default: {
       return (
         <div style={{ ...base, background: '#fff' }}>
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc', fontSize: 32 }}>
@@ -755,7 +759,10 @@ const SlideRenderer = ({
           {footer}
         </div>
       );
+    }
   }
+
+  // Note: imageLoading shimmer is handled outside SlideRenderer
 };
 
 // ── Theme Selector ──
@@ -868,6 +875,7 @@ const PresentationStudio = () => {
   const [isPresenting, setIsPresenting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<PresentationTheme>('corporate');
+  const [imagesGenerating, setImagesGenerating] = useState(0);
 
   const brandColor = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#1a1a2e';
@@ -887,6 +895,27 @@ const PresentationStudio = () => {
     }
     return [];
   })();
+
+  // Generate AI image for a single slide
+  const generateSlideImage = useCallback(async (slideIndex: number, imagePrompt: string, slidesRef: SlideData[]) => {
+    try {
+      setImagesGenerating(prev => prev + 1);
+      const { data, error } = await supabase.functions.invoke('generate-slide-image', {
+        body: { prompt: imagePrompt, brandColor },
+      });
+      if (error || data?.error) {
+        console.warn(`Image generation failed for slide ${slideIndex}:`, error || data?.error);
+        return;
+      }
+      if (data?.imageUrl) {
+        setSlides(prev => prev?.map((s, i) => i === slideIndex ? { ...s, imageUrl: data.imageUrl, imageLoading: false } : s) || null);
+      }
+    } catch (err) {
+      console.warn(`Image gen error slide ${slideIndex}:`, err);
+    } finally {
+      setImagesGenerating(prev => prev - 1);
+    }
+  }, [brandColor]);
 
   const handleGenerate = async (brief: string, slideCount: number, theme: PresentationTheme) => {
     setIsGenerating(true);
@@ -911,6 +940,7 @@ const PresentationStudio = () => {
         youtube: profile.contact_youtube,
         openingHours: profile.opening_hours,
         branches: profile.branches,
+        industry: '',
       } : undefined;
 
       const { data, error } = await supabase.functions.invoke('generate-presentation', {
@@ -921,12 +951,19 @@ const PresentationStudio = () => {
       if (data?.error) { toast.error(data.error); return; }
 
       const generatedSlides: SlideData[] = (data.slides || []).map((s: any, i: number) => ({
-        ...s, id: `${Date.now()}-${i}`,
+        ...s, id: `${Date.now()}-${i}`, imageLoading: !!s.image_prompt,
       }));
 
       setSlides(generatedSlides);
       setActiveSlide(0);
-      toast.success(`נוצרו ${generatedSlides.length} שקופיות בסגנון ${THEMES.find(t => t.id === theme)?.label}!`);
+      toast.success(`נוצרו ${generatedSlides.length} שקופיות! מייצר תמונות AI...`);
+
+      // Fire off image generation for all slides in parallel
+      generatedSlides.forEach((slide, i) => {
+        if (slide.image_prompt) {
+          generateSlideImage(i, slide.image_prompt, generatedSlides);
+        }
+      });
     } catch (err) {
       console.error(err);
       toast.error('שגיאה ביצירת המצגת. נסה שוב.');
@@ -1084,6 +1121,12 @@ const PresentationStudio = () => {
               {businessPhotos.length > 0 && (
                 <Badge variant="outline" className="text-xs">📷 {businessPhotos.length} תמונות</Badge>
               )}
+              {imagesGenerating > 0 && (
+                <Badge variant="secondary" className="text-xs gap-1 animate-pulse">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  מייצר {imagesGenerating} תמונות...
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => { setSlides(null); setActiveSlide(0); }} className="gap-1">
@@ -1101,6 +1144,14 @@ const PresentationStudio = () => {
           <div className="flex-1 bg-muted/30 flex items-center justify-center p-8 overflow-hidden">
             <div className="relative shadow-2xl rounded-lg overflow-hidden" style={{ width: 'min(100%, 960px)', aspectRatio: '16/9' }}>
               <SlideRenderer slide={currentSlide} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={0.5} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={activeSlide} address={address} />
+              {currentSlide.imageLoading && !currentSlide.imageUrl && (
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-20">
+                  <div className="bg-black/60 backdrop-blur-sm rounded-xl px-6 py-3 flex items-center gap-3">
+                    <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    <span className="text-white text-sm font-medium">מייצר תמונה...</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

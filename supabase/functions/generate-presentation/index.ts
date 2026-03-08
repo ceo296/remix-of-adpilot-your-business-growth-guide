@@ -85,6 +85,19 @@ ${dynamicLogic}
 - bullets: 3-6 מילים לכל פריט
 - נתונים (stats): רק אם סופקו בבריף. אם אין - אל תמציא.
 - שפה שיווקית מקצועית ופרימיום
+
+CRITICAL - image_prompt (חובה לכל שקופית!):
+- כתוב פרומפט מפורט באנגלית ליצירת תמונת רקע מקצועית.
+- התאם את התמונה לנושא השקופית ולתעשייה של העסק (${profileData?.industry || 'כללי'}).
+- תאר סצנה, תאורה, קומפוזיציה, מצב רוח, צבעים.
+- Cover: תמונה דרמטית שמייצגת את המותג
+- About: סצנת עבודה או צוות מקצועי
+- Services: ויזואל שמייצג את השירותים הספציפיים
+- Vision: תמונה מעוררת השראה
+- CTA/Contact: תמונה חמה ומזמינה
+- אל תכתוב "presentation" או "slide" - רק את הסצנה עצמה.
+- חובה: NO TEXT, NO LETTERS in image.
+
 ${profileContext}
 
 צור בדיוק ${slideCount} שקופיות (או פחות אם אין מספיק מידע).`;
@@ -121,8 +134,9 @@ ${profileContext}
                       bullets: { type: "array", items: { type: "string" } },
                       stats: { type: "array", items: { type: "object", properties: { value: { type: "string" }, label: { type: "string" } }, required: ["value", "label"] } },
                       steps: { type: "array", items: { type: "object", properties: { number: { type: "string" }, title: { type: "string" }, desc: { type: "string" } }, required: ["number", "title", "desc"] } },
+                      image_prompt: { type: "string", description: "A detailed English prompt to generate a professional, relevant background image for this slide using AI image generation. Describe the visual scene, mood, colors, and composition. Must be photorealistic and business-appropriate. Example: 'Modern bright office space with glass walls, warm golden sunlight, soft bokeh, professional atmosphere'" },
                     },
-                    required: ["type", "title"],
+                    required: ["type", "title", "image_prompt"],
                     additionalProperties: false
                   }
                 }
