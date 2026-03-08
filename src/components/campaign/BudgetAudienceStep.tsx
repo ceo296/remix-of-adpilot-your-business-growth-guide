@@ -67,12 +67,12 @@ interface BudgetAudienceStepProps {
 }
 
 // Map studio MediaType to DB category names
-const MEDIA_TYPE_TO_CATEGORIES: Record<MediaType, string[]> = {
+const MEDIA_TYPE_TO_CATEGORIES: Record<string, string[]> = {
   ad: ['daily_press', 'national_print', 'weekend_news', 'local_print', 'magazines', 'women_magazines'],
   radio: ['radio'],
   banner: ['digital'],
   billboard: ['outdoor', 'street'],
-  social: ['digital'],
+  social: ['digital', 'email_marketing', 'whatsapp'],
   all: [], // empty = no filter
 };
 
