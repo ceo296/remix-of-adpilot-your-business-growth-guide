@@ -51,39 +51,115 @@ const hexToRgba = (hex: string, alpha: number) => {
   return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 };
 
+// Check if a color is "light" (would need dark text on top)
+const isLightColor = (hex: string): boolean => {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6;
+};
+
+// ── Logo Footer ── (shown on every slide)
+const LogoFooter = ({ logoUrl, businessName, brandColor, phone, theme }: {
+  logoUrl?: string; businessName: string; brandColor: string; phone?: string; theme: PresentationTheme;
+}) => {
+  const isDark = theme !== 'minimal';
+  return (
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0, height: 70,
+      background: isDark
+        ? 'linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 100%)'
+        : `linear-gradient(0deg, ${hexToRgba(brandColor, 0.08)} 0%, transparent 100%)`,
+      display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+      padding: '0 60px 16px', zIndex: 10,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        {logoUrl && (
+          <img src={logoUrl} alt="logo" style={{
+            height: 36, objectFit: 'contain',
+            filter: isDark ? 'brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0,0,0,0.5))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))',
+          }} />
+        )}
+        <span style={{
+          fontSize: 16, fontWeight: 700, letterSpacing: 1,
+          color: isDark ? 'rgba(255,255,255,0.7)' : '#888',
+        }}>{businessName}</span>
+      </div>
+      {phone && (
+        <span style={{
+          fontSize: 15, fontWeight: 500, direction: 'ltr',
+          color: isDark ? 'rgba(255,255,255,0.5)' : '#aaa',
+        }}>{phone}</span>
+      )}
+    </div>
+  );
+};
+
+// ── Photo background helper ──
+const PhotoBg = ({ url, opacity = 0.2, position = 'right', width = '50%' }: {
+  url: string; opacity?: number; position?: 'right' | 'left' | 'full'; width?: string;
+}) => {
+  if (position === 'full') {
+    return (
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+        opacity,
+      }} />
+    );
+  }
+  return (
+    <div style={{
+      position: 'absolute', top: 0, bottom: 0,
+      [position === 'right' ? 'right' : 'left']: 0,
+      width,
+      backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: position === 'right'
+          ? 'linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 50%, transparent 100%)'
+          : 'linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+      }} />
+    </div>
+  );
+};
+
+// Dark photo background with overlay
+const DarkPhotoBg = ({ url, opacity = 0.25 }: { url: string; opacity?: number }) => (
+  <>
+    <div style={{
+      position: 'absolute', inset: 0,
+      backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+    }} />
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: `linear-gradient(135deg, rgba(0,0,0,${1 - opacity}) 0%, rgba(0,0,0,${1 - opacity + 0.1}) 100%)`,
+    }} />
+  </>
+);
+
 // ── Theme configs ──
 const getThemeConfig = (theme: PresentationTheme, brandColor: string, secColor: string) => {
   const dark = adjustColor(brandColor, -40);
   const light = adjustColor(brandColor, 60);
-  
+
   switch (theme) {
     case 'minimal':
       return {
-        coverBg: '#fff',
-        coverText: '#111',
-        coverAccent: brandColor,
-        slideBg: '#fff',
-        slideText: '#222',
-        slideSubtext: '#888',
-        accentBg: `${brandColor}08`,
-        cardBg: '#f8f9fa',
-        cardBorder: '#eee',
-        darkSlideBg: '#fafafa',
-        darkSlideText: '#111',
-        dots: 'none',
-        diag: 'none',
+        coverBg: '#fff', coverText: '#111', coverAccent: brandColor,
+        slideBg: '#fff', slideText: '#222', slideSubtext: '#666',
+        accentBg: `${brandColor}08`, cardBg: '#f8f9fa', cardBorder: '#eee',
+        darkSlideBg: '#fafafa', darkSlideText: '#111',
+        dots: 'none', diag: 'none',
       };
     case 'creative':
       return {
         coverBg: `linear-gradient(135deg, ${brandColor} 0%, #ff6b6b 30%, #ffd93d 60%, ${adjustColor(brandColor, 40)} 100%)`,
-        coverText: '#fff',
-        coverAccent: '#fff',
-        slideBg: '#fff',
-        slideText: '#111',
-        slideSubtext: '#666',
+        coverText: '#fff', coverAccent: '#fff',
+        slideBg: '#fff', slideText: '#111', slideSubtext: '#555',
         accentBg: `linear-gradient(135deg, ${hexToRgba(brandColor, 0.06)}, ${hexToRgba('#ff6b6b', 0.04)})`,
-        cardBg: '#fff',
-        cardBorder: `${brandColor}20`,
+        cardBg: '#fff', cardBorder: `${brandColor}20`,
         darkSlideBg: `linear-gradient(160deg, #1a1a2e 0%, ${dark} 50%, ${brandColor}90 100%)`,
         darkSlideText: '#fff',
         dots: `url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='2' fill='white' opacity='0.08'/%3E%3C/svg%3E")`,
@@ -92,14 +168,9 @@ const getThemeConfig = (theme: PresentationTheme, brandColor: string, secColor: 
     default: // corporate
       return {
         coverBg: `linear-gradient(135deg, ${brandColor} 0%, ${dark} 60%, #0d0d1a 100%)`,
-        coverText: '#fff',
-        coverAccent: 'rgba(255,255,255,0.3)',
-        slideBg: '#fff',
-        slideText: '#111',
-        slideSubtext: '#555',
-        accentBg: `${brandColor}06`,
-        cardBg: '#fff',
-        cardBorder: '#eee',
+        coverText: '#fff', coverAccent: 'rgba(255,255,255,0.3)',
+        slideBg: '#fff', slideText: '#111', slideSubtext: '#555',
+        accentBg: `${brandColor}06`, cardBg: '#fff', cardBorder: '#eee',
         darkSlideBg: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 100%)`,
         darkSlideText: '#fff',
         dots: `url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='1.5' fill='white' opacity='0.06'/%3E%3C/svg%3E")`,
@@ -108,18 +179,27 @@ const getThemeConfig = (theme: PresentationTheme, brandColor: string, secColor: 
   }
 };
 
+// ── Pick a photo for a given slide index ──
+const getPhotoForSlide = (photos: string[], slideIndex: number): string | undefined => {
+  if (!photos || photos.length === 0) return undefined;
+  return photos[slideIndex % photos.length];
+};
+
 // ── Slide Renderer ──
 const SlideRenderer = ({
   slide, brandColor = '#E34870', secColor = '#1a1a2e', businessName = 'שם העסק',
   logoUrl, phone, email, scale = 1, font = 'Heebo', theme = 'corporate' as PresentationTheme,
+  businessPhotos = [], slideIndex = 0, address,
 }: {
   slide: SlideData; brandColor?: string; secColor?: string; businessName?: string;
   logoUrl?: string; phone?: string; email?: string; scale?: number; font?: string;
-  theme?: PresentationTheme;
+  theme?: PresentationTheme; businessPhotos?: string[]; slideIndex?: number; address?: string;
 }) => {
   const dark = adjustColor(brandColor, -40);
   const light = adjustColor(brandColor, 60);
   const tc = getThemeConfig(theme, brandColor, secColor);
+  const photo = getPhotoForSlide(businessPhotos, slideIndex);
+  const brandIsLight = isLightColor(brandColor);
 
   const base: React.CSSProperties = {
     width: 1920, height: 1080, transform: `scale(${scale})`, transformOrigin: 'top right',
@@ -127,123 +207,119 @@ const SlideRenderer = ({
     position: 'absolute', top: 0, right: 0, overflow: 'hidden',
   };
 
+  const footer = <LogoFooter logoUrl={logoUrl} businessName={businessName} brandColor={brandColor} phone={phone} theme={slide.type === 'cover' || slide.type === 'cta' || slide.type === 'contact' || slide.type === 'vision' || slide.type === 'value_prop' || slide.type === 'target_audience' ? (theme === 'minimal' ? 'minimal' : 'corporate') : theme} />;
+
+  // Ensure readable text: always dark text on light bg, white text on dark bg
+  const safeText = (bg: 'dark' | 'light') => bg === 'dark' ? '#ffffff' : '#111111';
+  const safeSubtext = (bg: 'dark' | 'light') => bg === 'dark' ? 'rgba(255,255,255,0.8)' : '#555555';
+  const safeMuted = (bg: 'dark' | 'light') => bg === 'dark' ? 'rgba(255,255,255,0.55)' : '#999999';
+  const textShadow = (bg: 'dark' | 'light') => bg === 'dark' ? '0 2px 20px rgba(0,0,0,0.5)' : 'none';
+
   switch (slide.type) {
-    case 'cover':
-      if (theme === 'minimal') {
-        return (
-          <div style={{ ...base, background: '#fff' }}>
-            {/* Minimal: clean, elegant, lots of whitespace */}
-            <div style={{ position: 'absolute', right: 0, top: 0, width: 8, height: '100%', background: brandColor }} />
-            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 200px' }}>
-              {logoUrl && (
-                <img src={logoUrl} alt="logo" style={{ height: 60, objectFit: 'contain', marginBottom: 60, alignSelf: 'flex-start' }} />
-              )}
-              <h1 style={{ fontSize: 96, fontWeight: 900, color: '#111', margin: 0, lineHeight: 1.05, letterSpacing: '-2px' }}>
-                {slide.title}
-              </h1>
-              {slide.subtitle && (
-                <p style={{ fontSize: 32, color: '#999', marginTop: 24, fontWeight: 300 }}>{slide.subtitle}</p>
-              )}
-              <div style={{ width: 80, height: 4, background: brandColor, marginTop: 50, borderRadius: 2 }} />
-              <p style={{ fontSize: 18, color: '#bbb', marginTop: 24, letterSpacing: 2 }}>{businessName}</p>
-            </div>
-          </div>
-        );
-      }
-      if (theme === 'creative') {
-        return (
-          <div style={{ ...base, background: tc.coverBg as string }}>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />
-            {/* Organic shapes */}
-            <div style={{ position: 'absolute', top: -200, left: -200, width: 600, height: 600, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-            <div style={{ position: 'absolute', bottom: -150, right: -150, width: 500, height: 500, borderRadius: '40%', background: 'rgba(255,255,255,0.05)', transform: 'rotate(45deg)' }} />
-            <div style={{ position: 'absolute', top: '20%', right: '10%', width: 200, height: 200, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.1)' }} />
-            <svg style={{ position: 'absolute', bottom: 0, width: '100%', height: 200 }} viewBox="0 0 1920 200" preserveAspectRatio="none">
-              <path d="M0,200 L0,120 Q480,40 960,100 Q1440,160 1920,60 L1920,200Z" fill="rgba(0,0,0,0.12)" />
-            </svg>
-            <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '100px 160px' }}>
-              {logoUrl && (
-                <div style={{ width: 120, height: 120, borderRadius: 30, background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, marginBottom: 50, boxShadow: '0 12px 50px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                  <img src={logoUrl} alt="logo" style={{ maxHeight: 80, maxWidth: 80, objectFit: 'contain', filter: 'brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,0.3))' }} />
-                </div>
-              )}
-              <h1 style={{ fontSize: 108, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.05, textShadow: '0 6px 40px rgba(0,0,0,0.3)', letterSpacing: '-1px' }}>
-                {slide.title}
-              </h1>
-              {slide.subtitle && <p style={{ fontSize: 36, color: 'rgba(255,255,255,0.85)', marginTop: 30, fontWeight: 400 }}>{slide.subtitle}</p>}
-              <div style={{ display: 'flex', gap: 8, marginTop: 50 }}>
-                {[0,1,2].map(i => <div key={i} style={{ width: i === 1 ? 40 : 12, height: 4, borderRadius: 2, background: i === 1 ? '#fff' : 'rgba(255,255,255,0.4)' }} />)}
-              </div>
-            </div>
-          </div>
-        );
-      }
-      // corporate
+    case 'cover': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
-        <div style={{ ...base, background: tc.coverBg as string }}>
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />
-          <div style={{ position: 'absolute', top: -150, left: -150, width: 500, height: 500, borderRadius: '50%', background: `radial-gradient(circle, ${brandColor}30 0%, transparent 70%)` }} />
-          <div style={{ position: 'absolute', bottom: -100, right: -100, width: 400, height: 400, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.05)' }} />
-          <svg style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: 200 }} viewBox="0 0 1920 200" preserveAspectRatio="none">
-            <path d="M0 200 L0 80 Q480 0 960 80 Q1440 160 1920 80 L1920 200Z" fill="rgba(0,0,0,0.15)" />
-          </svg>
-          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '100px 160px', textAlign: 'center' }}>
-            {logoUrl && (
-              <div style={{ width: 140, height: 140, borderRadius: 24, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, marginBottom: 50, boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
-                <img src={logoUrl} alt="logo" style={{ maxHeight: 100, maxWidth: 100, objectFit: 'contain', filter: 'brightness(0) invert(1) drop-shadow(0 4px 12px rgba(0,0,0,0.3))' }} />
+        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : (tc.coverBg as string) }}>
+          {/* Background photo */}
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.3} />}
+          {photo && theme === 'minimal' && <PhotoBg url={photo} position="left" width="45%" />}
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
+          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 8, height: '100%', background: brandColor }} />}
+
+          {/* Decorative shapes */}
+          {theme === 'corporate' && (
+            <>
+              <div style={{ position: 'absolute', top: -150, left: -150, width: 500, height: 500, borderRadius: '50%', background: `radial-gradient(circle, ${brandColor}30 0%, transparent 70%)` }} />
+              <svg style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: 200 }} viewBox="0 0 1920 200" preserveAspectRatio="none">
+                <path d="M0 200 L0 80 Q480 0 960 80 Q1440 160 1920 80 L1920 200Z" fill="rgba(0,0,0,0.15)" />
+              </svg>
+            </>
+          )}
+          {theme === 'creative' && (
+            <>
+              <div style={{ position: 'absolute', top: -200, left: -200, width: 600, height: 600, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+              <div style={{ position: 'absolute', bottom: -150, right: -150, width: 500, height: 500, borderRadius: '40%', background: 'rgba(255,255,255,0.05)', transform: 'rotate(45deg)' }} />
+            </>
+          )}
+
+          <div style={{
+            position: 'relative', height: '100%', display: 'flex', flexDirection: 'column',
+            justifyContent: 'center',
+            padding: theme === 'minimal' ? '120px 200px' : '100px 160px',
+            alignItems: theme === 'minimal' ? 'flex-start' : 'center',
+            textAlign: theme === 'minimal' ? 'right' : 'center',
+            maxWidth: photo && theme === 'minimal' ? '60%' : undefined,
+          }}>
+            {logoUrl && theme !== 'minimal' && (
+              <div style={{
+                width: 130, height: 130, borderRadius: 24,
+                background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: 20, marginBottom: 50,
+                boxShadow: '0 8px 40px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.15)',
+              }}>
+                <img src={logoUrl} alt="logo" style={{
+                  maxHeight: 90, maxWidth: 90, objectFit: 'contain',
+                  filter: 'brightness(0) invert(1) drop-shadow(0 4px 12px rgba(0,0,0,0.3))',
+                }} />
               </div>
             )}
-            <h1 style={{ fontSize: 108, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.05, textShadow: '0 4px 40px rgba(0,0,0,0.3)', letterSpacing: '-1px' }}>{slide.title}</h1>
-            {slide.subtitle && <p style={{ fontSize: 38, color: 'rgba(255,255,255,0.75)', marginTop: 30, fontWeight: 400, maxWidth: 1200 }}>{slide.subtitle}</p>}
-            <div style={{ width: 80, height: 4, background: 'rgba(255,255,255,0.3)', borderRadius: 2, marginTop: 40 }} />
+            {logoUrl && theme === 'minimal' && (
+              <img src={logoUrl} alt="logo" style={{ height: 60, objectFit: 'contain', marginBottom: 60, alignSelf: 'flex-start' }} />
+            )}
+            <h1 style={{
+              fontSize: theme === 'minimal' ? 96 : 100, fontWeight: 900,
+              color: safeText(bg), margin: 0, lineHeight: 1.05, letterSpacing: '-2px',
+              textShadow: textShadow(bg),
+            }}>
+              {slide.title}
+            </h1>
+            {slide.subtitle && (
+              <p style={{
+                fontSize: theme === 'minimal' ? 32 : 36,
+                color: safeSubtext(bg), marginTop: 24, fontWeight: 400,
+                textShadow: textShadow(bg), maxWidth: 1200,
+              }}>{slide.subtitle}</p>
+            )}
+            <div style={{ width: 80, height: 4, background: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.3)', marginTop: 50, borderRadius: 2 }} />
           </div>
+          {footer}
         </div>
       );
+    }
 
-    case 'about':
-      if (theme === 'minimal') {
-        return (
-          <div style={{ ...base, background: '#fff' }}>
-            <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />
-            <div style={{ padding: '140px 200px' }}>
-              <div style={{ fontSize: 16, color: brandColor, fontWeight: 700, letterSpacing: 4, marginBottom: 20 }}>אודות</div>
-              <h2 style={{ fontSize: 64, fontWeight: 900, color: '#111', marginBottom: 50, lineHeight: 1.1 }}>{slide.title}</h2>
-              <p style={{ fontSize: 30, lineHeight: 2, color: '#666', maxWidth: 1200 }}>{slide.body}</p>
-            </div>
-            <div style={{ position: 'absolute', bottom: 50, left: 80, fontSize: 16, color: '#ddd' }}>{businessName}</div>
-          </div>
-        );
-      }
+    case 'about': {
+      const bg: 'dark' | 'light' = 'light';
       return (
-        <div style={{ ...base, background: tc.slideBg }}>
-          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 80, background: `linear-gradient(180deg, ${brandColor} 0%, ${dark} 100%)` }}>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '20px 20px' }} />
-          </div>
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 80, height: 6, background: `linear-gradient(90deg, transparent, ${brandColor}40)` }} />
-          {theme === 'creative' && <div style={{ position: 'absolute', top: -100, left: -100, width: 300, height: 300, borderRadius: '50%', background: hexToRgba(brandColor, 0.04) }} />}
-          <div style={{ padding: '120px 180px 120px 140px' }}>
+        <div style={{ ...base, background: '#fff' }}>
+          {/* Split layout: text right, photo left */}
+          {photo && <PhotoBg url={photo} position="left" width="42%" />}
+          {theme !== 'minimal' && (
+            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 80, background: `linear-gradient(180deg, ${brandColor} 0%, ${dark} 100%)` }}>
+              <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '20px 20px' }} />
+            </div>
+          )}
+          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
+          <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo ? '60%' : '100%', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 50 }}>
               <div style={{ width: 60, height: 6, background: brandColor, borderRadius: 3 }} />
               <span style={{ fontSize: 22, fontWeight: 600, color: brandColor, letterSpacing: 3 }}>אודות</span>
             </div>
-            <h2 style={{ fontSize: 72, fontWeight: 900, color: tc.slideText, marginBottom: 40, lineHeight: 1.1 }}>{slide.title}</h2>
-            <p style={{ fontSize: 34, lineHeight: 1.9, color: tc.slideSubtext, maxWidth: 1400 }}>{slide.body}</p>
+            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1 }}>{slide.title}</h2>
+            <p style={{ fontSize: 30, lineHeight: 2, color: safeSubtext(bg), maxWidth: 1200 }}>{slide.body}</p>
           </div>
-          <div style={{ position: 'absolute', bottom: 50, left: 80, fontSize: 18, color: '#ccc', fontWeight: 500 }}>{businessName}</div>
+          {footer}
         </div>
       );
+    }
 
     case 'services':
       return (
-        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : '#fafafa' }}>
+        <div style={{ ...base, background: '#fafafa' }}>
+          {/* Subtle photo accent */}
+          {photo && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {theme !== 'minimal' && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 8, background: `linear-gradient(90deg, ${brandColor}, ${dark})` }} />}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
-          {theme === 'creative' && (
-            <>
-              <div style={{ position: 'absolute', top: -80, left: -80, width: 300, height: 300, borderRadius: '50%', background: hexToRgba(brandColor, 0.06) }} />
-              <div style={{ position: 'absolute', bottom: -60, right: -60, width: 200, height: 200, borderRadius: '40%', background: hexToRgba(brandColor, 0.04), transform: 'rotate(30deg)' }} />
-            </>
-          )}
           <div style={{ padding: '90px 140px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
               <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
@@ -254,95 +330,97 @@ const SlideRenderer = ({
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: 24,
-                  padding: theme === 'minimal' ? '28px 0' : '30px 36px',
-                  borderRadius: theme === 'minimal' ? 0 : 20,
-                  background: theme === 'minimal' ? 'transparent' : '#fff',
-                  boxShadow: theme === 'minimal' ? 'none' : '0 2px 20px rgba(0,0,0,0.04)',
-                  border: theme === 'minimal' ? 'none' : '1px solid #eee',
-                  borderBottom: theme === 'minimal' ? '1px solid #eee' : undefined,
+                  padding: '30px 36px', borderRadius: 20,
+                  background: '#fff', boxShadow: '0 2px 20px rgba(0,0,0,0.05)',
+                  border: '1px solid #eee',
                 }}>
                   <div style={{
-                    width: 56, height: 56, borderRadius: theme === 'creative' ? 20 : 16,
-                    background: theme === 'creative'
-                      ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)`
-                      : `linear-gradient(135deg, ${brandColor}, ${dark})`,
+                    width: 56, height: 56, borderRadius: 16,
+                    background: `linear-gradient(135deg, ${brandColor}, ${dark})`,
                     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 24, fontWeight: 800, flexShrink: 0,
                     boxShadow: `0 4px 15px ${brandColor}30`,
                   }}>
                     {String(i + 1).padStart(2, '0')}
                   </div>
-                  <span style={{ fontSize: 28, color: '#333', fontWeight: 600 }}>{b}</span>
+                  <span style={{ fontSize: 28, color: '#222', fontWeight: 600 }}>{b}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ position: 'absolute', bottom: 40, left: 60, fontSize: 18, color: '#ccc' }}>{businessName}</div>
+          {footer}
         </div>
       );
 
-    case 'value_prop':
+    case 'value_prop': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
         <div style={{
           ...base,
           background: theme === 'minimal' ? '#fff' : (tc.darkSlideBg as string),
         }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
-          {theme === 'creative' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.diag, backgroundSize: '60px 60px' }} />}
-          {theme === 'creative' && <div style={{ position: 'absolute', bottom: -120, right: -120, width: 400, height: 400, borderRadius: '50%', background: hexToRgba(brandColor, 0.15) }} />}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
           <div style={{ position: 'relative', padding: '100px 150px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={{ width: 50, height: 4, background: theme === 'minimal' ? brandColor : light, borderRadius: 2 }} />
-              <span style={{ fontSize: 20, fontWeight: 500, color: theme === 'minimal' ? brandColor : light, letterSpacing: 2 }}>למה אנחנו</span>
+              <div style={{ width: 50, height: 4, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 2 }} />
+              <span style={{ fontSize: 20, fontWeight: 500, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.8)', letterSpacing: 2 }}>למה אנחנו</span>
             </div>
             <h2 style={{
-              fontSize: 68, fontWeight: 900,
-              color: theme === 'minimal' ? '#111' : '#fff',
-              marginBottom: 60, lineHeight: 1.1,
+              fontSize: 68, fontWeight: 900, color: safeText(bg),
+              marginBottom: 60, lineHeight: 1.1, textShadow: textShadow(bg),
             }}>{slide.title}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'flex-start', gap: 20, padding: 32, borderRadius: 20,
-                  background: theme === 'minimal' ? '#f8f9fa' : 'rgba(255,255,255,0.04)',
-                  border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.08)',
+                  background: theme === 'minimal' ? '#f8f9fa' : 'rgba(255,255,255,0.06)',
+                  border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.1)',
+                  backdropFilter: theme !== 'minimal' ? 'blur(8px)' : undefined,
                 }}>
                   <div style={{
-                    width: 14, height: 14, borderRadius: '50%', background: brandColor,
+                    width: 14, height: 14, borderRadius: '50%', background: theme === 'minimal' ? brandColor : '#fff',
                     flexShrink: 0, marginTop: 10,
-                    boxShadow: theme === 'minimal' ? 'none' : `0 0 15px ${brandColor}60`,
+                    boxShadow: theme === 'minimal' ? 'none' : '0 0 15px rgba(255,255,255,0.3)',
                   }} />
                   <span style={{
                     fontSize: 28, fontWeight: 500, lineHeight: 1.5,
-                    color: theme === 'minimal' ? '#333' : 'rgba(255,255,255,0.85)',
+                    color: safeSubtext(bg),
                   }}>{b}</span>
                 </div>
               ))}
             </div>
           </div>
+          {footer}
         </div>
       );
+    }
 
     case 'stats':
       return (
         <div style={{ ...base, background: '#fff' }}>
+          {/* Photo in the header band */}
           <div style={{
             position: 'absolute', top: 0, right: 0, left: 0, height: 350,
-            background: theme === 'creative'
-              ? `linear-gradient(135deg, ${brandColor} 0%, #ff6b6b 50%, #ffd93d 100%)`
-              : `linear-gradient(135deg, ${brandColor} 0%, ${dark} 100%)`,
+            overflow: 'hidden',
           }}>
-            {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
+            {photo ? (
+              <>
+                <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${photo})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${hexToRgba(brandColor, 0.85)} 0%, ${hexToRgba(dark, 0.9)} 100%)` }} />
+              </>
+            ) : (
+              <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${brandColor} 0%, ${dark} 100%)` }} />
+            )}
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />
           </div>
-          {theme !== 'minimal' && (
-            <svg style={{ position: 'absolute', top: 340, left: 0, width: '100%' }} viewBox="0 0 1920 60" preserveAspectRatio="none">
-              <path d="M0 0 L1920 0 L1920 30 Q960 65 0 30Z" fill={theme === 'creative' ? '#ffd93d' : dark} />
-            </svg>
-          )}
+          <svg style={{ position: 'absolute', top: 340, left: 0, width: '100%' }} viewBox="0 0 1920 60" preserveAspectRatio="none">
+            <path d="M0 0 L1920 0 L1920 30 Q960 65 0 30Z" fill={dark} />
+          </svg>
           <div style={{ position: 'relative', padding: '80px 140px' }}>
-            <h2 style={{ fontSize: 60, fontWeight: 900, color: theme === 'minimal' ? '#111' : '#fff', marginBottom: 10 }}>{slide.title}</h2>
-            {slide.subtitle && <p style={{ fontSize: 26, color: theme === 'minimal' ? '#888' : 'rgba(255,255,255,0.7)', marginBottom: 60 }}>{slide.subtitle}</p>}
+            <h2 style={{ fontSize: 60, fontWeight: 900, color: '#fff', marginBottom: 10, textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>{slide.title}</h2>
+            {slide.subtitle && <p style={{ fontSize: 26, color: 'rgba(255,255,255,0.8)', marginBottom: 60, textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>{slide.subtitle}</p>}
           </div>
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 50, padding: '0 140px', marginTop: 40 }}>
             {(slide.stats || []).map((s, i) => (
@@ -353,24 +431,28 @@ const SlideRenderer = ({
               }}>
                 <div style={{
                   fontSize: 72, fontWeight: 900, lineHeight: 1, marginBottom: 12,
-                  color: theme === 'creative' ? (i % 2 === 0 ? brandColor : '#ff6b6b') : brandColor,
+                  color: brandColor,
                 }}>{s.value}</div>
-                <div style={{ fontSize: 22, color: '#888', fontWeight: 500 }}>{s.label}</div>
+                <div style={{ fontSize: 22, color: '#666', fontWeight: 500 }}>{s.label}</div>
               </div>
             ))}
           </div>
+          {footer}
         </div>
       );
 
     case 'process':
+    case 'methodology':
       return (
-        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : '#fafafa' }}>
-          {theme !== 'minimal' && <div style={{ position: 'absolute', top: 0, right: 0, width: 6, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${dark})` }} />}
-          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
-          <div style={{ padding: '100px 150px 100px 120px' }}>
+        <div style={{ ...base, background: '#fafafa' }}>
+          {photo && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
+          <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${dark})` }} />
+          <div style={{ padding: '100px 150px 100px 120px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
               <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>תהליך העבודה</span>
+              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>
+                {slide.type === 'methodology' ? 'איך אנחנו עובדים' : 'תהליך העבודה'}
+              </span>
             </div>
             <h2 style={{ fontSize: 60, fontWeight: 900, color: '#111', marginBottom: 70 }}>{slide.title}</h2>
             <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
@@ -381,9 +463,7 @@ const SlideRenderer = ({
                   )}
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: theme === 'creative'
-                      ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)`
-                      : `linear-gradient(135deg, ${brandColor}, ${dark})`,
+                    background: `linear-gradient(135deg, ${brandColor}, ${dark})`,
                     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 28, fontWeight: 900, margin: '0 auto 24px',
                     boxShadow: `0 6px 25px ${brandColor}30`,
@@ -391,30 +471,33 @@ const SlideRenderer = ({
                     {s.number}
                   </div>
                   <h3 style={{ fontSize: 28, fontWeight: 800, color: '#222', marginBottom: 12 }}>{s.title}</h3>
-                  <p style={{ fontSize: 20, color: '#777', lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
+                  <p style={{ fontSize: 20, color: '#666', lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
                 </div>
               ))}
             </div>
           </div>
+          {footer}
         </div>
       );
 
-    case 'testimonial':
+    case 'testimonial': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
         <div style={{
           ...base,
           background: theme === 'minimal' ? '#fff' : (tc.darkSlideBg as string),
         }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.15} />}
           {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
           <div style={{
             position: 'absolute', top: 80, right: 120, fontSize: 300, fontWeight: 900, lineHeight: 1,
-            color: theme === 'minimal' ? hexToRgba(brandColor, 0.06) : hexToRgba(brandColor, 0.12),
+            color: theme === 'minimal' ? hexToRgba(brandColor, 0.06) : hexToRgba(brandColor, 0.15),
           }}>״</div>
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
           <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '100px 180px', maxWidth: 1400 }}>
             <p style={{
               fontSize: 42, lineHeight: 1.7, fontWeight: 500, fontStyle: 'italic', marginBottom: 50,
-              color: theme === 'minimal' ? '#333' : 'rgba(255,255,255,0.9)',
+              color: safeText(bg), textShadow: textShadow(bg),
             }}>
               {slide.body}
             </p>
@@ -423,18 +506,21 @@ const SlideRenderer = ({
               <span style={{ fontSize: 24, color: brandColor, fontWeight: 700 }}>{slide.subtitle}</span>
             </div>
           </div>
+          {footer}
         </div>
       );
+    }
 
-    case 'cta':
+    case 'cta': {
       return (
         <div style={{
           ...base,
-          background: theme === 'creative'
-            ? `linear-gradient(135deg, ${brandColor} 0%, #ff6b6b 40%, #ffd93d 100%)`
-            : theme === 'minimal' ? '#fff'
-            : `linear-gradient(135deg, ${brandColor} 0%, ${dark} 100%)`,
+          background: theme === 'minimal' ? '#fff'
+            : theme === 'creative'
+              ? `linear-gradient(135deg, ${brandColor} 0%, #ff6b6b 40%, #ffd93d 100%)`
+              : `linear-gradient(135deg, ${brandColor} 0%, ${dark} 100%)`,
         }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.25} />}
           {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
           {theme !== 'minimal' && (
             <>
@@ -450,161 +536,149 @@ const SlideRenderer = ({
             <h2 style={{
               fontSize: 80, fontWeight: 900, lineHeight: 1.1, marginBottom: 30,
               color: theme === 'minimal' ? '#111' : '#fff',
-              textShadow: theme === 'minimal' ? 'none' : '0 4px 30px rgba(0,0,0,0.2)',
+              textShadow: theme === 'minimal' ? 'none' : '0 4px 30px rgba(0,0,0,0.3)',
             }}>{slide.title}</h2>
             {slide.body && <p style={{
               fontSize: 32, maxWidth: 1000, lineHeight: 1.6,
-              color: theme === 'minimal' ? '#666' : 'rgba(255,255,255,0.8)',
+              color: theme === 'minimal' ? '#555' : 'rgba(255,255,255,0.85)',
+              textShadow: theme === 'minimal' ? 'none' : '0 2px 10px rgba(0,0,0,0.2)',
             }}>{slide.body}</p>}
             <div style={{
               marginTop: 50, padding: '20px 60px', borderRadius: 16,
-              background: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.15)',
+              background: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.2)',
               backdropFilter: theme === 'minimal' ? undefined : 'blur(8px)',
-              border: theme === 'minimal' ? 'none' : '2px solid rgba(255,255,255,0.2)',
+              border: theme === 'minimal' ? 'none' : '2px solid rgba(255,255,255,0.3)',
             }}>
-              <span style={{ fontSize: 28, fontWeight: 700, color: '#fff' }}>צרו קשר עוד היום</span>
+              <span style={{ fontSize: 28, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.2)' }}>צרו קשר עוד היום</span>
             </div>
           </div>
+          {footer}
         </div>
       );
+    }
 
-    case 'contact':
+    case 'contact': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
         <div style={{
           ...base,
           background: theme === 'minimal' ? '#fff' : (tc.darkSlideBg as string),
         }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
-          {theme !== 'minimal' && <div style={{ position: 'absolute', top: -120, right: -120, width: 400, height: 400, borderRadius: '50%', background: hexToRgba(brandColor, 0.08) }} />}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
           <div style={{
             position: 'relative', height: '100%', display: 'flex', flexDirection: 'column',
             justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 100,
           }}>
+            {logoUrl && (
+              <div style={{
+                width: 120, height: 120, borderRadius: 24,
+                background: theme === 'minimal' ? '#f5f5f5' : 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, marginBottom: 40,
+                border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.1)',
+              }}>
+                <img src={logoUrl} alt="logo" style={{
+                  maxHeight: 80, maxWidth: 80, objectFit: 'contain',
+                  filter: theme === 'minimal' ? 'none' : 'brightness(0) invert(1)',
+                }} />
+              </div>
+            )}
             <h2 style={{
               fontSize: 80, fontWeight: 900, marginBottom: 20,
-              color: theme === 'minimal' ? '#111' : '#fff',
+              color: safeText(bg), textShadow: textShadow(bg),
             }}>{slide.title}</h2>
             {slide.body && <p style={{
-              fontSize: 28, marginBottom: 60,
-              color: theme === 'minimal' ? '#888' : 'rgba(255,255,255,0.6)',
+              fontSize: 28, marginBottom: 50,
+              color: safeSubtext(bg), textShadow: textShadow(bg),
             }}>{slide.body}</p>}
-            <div style={{ display: 'flex', gap: 80, marginBottom: 60 }}>
+            <div style={{ display: 'flex', gap: 80, marginBottom: 40 }}>
               {phone && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: theme === 'minimal' ? hexToRgba(brandColor, 0.1) : hexToRgba(brandColor, 0.2),
+                    background: hexToRgba(brandColor, theme === 'minimal' ? 0.1 : 0.25),
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 16px', fontSize: 30,
                   }}>📞</div>
                   <div style={{ fontSize: 18, color: brandColor, marginBottom: 8, fontWeight: 600 }}>טלפון</div>
-                  <div style={{
-                    fontSize: 32, fontWeight: 700, direction: 'ltr',
-                    color: theme === 'minimal' ? '#222' : '#fff',
-                  }}>{phone}</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, direction: 'ltr', color: safeText(bg), textShadow: textShadow(bg) }}>{phone}</div>
                 </div>
               )}
               {email && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: theme === 'minimal' ? hexToRgba(brandColor, 0.1) : hexToRgba(brandColor, 0.2),
+                    background: hexToRgba(brandColor, theme === 'minimal' ? 0.1 : 0.25),
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 16px', fontSize: 30,
                   }}>✉️</div>
                   <div style={{ fontSize: 18, color: brandColor, marginBottom: 8, fontWeight: 600 }}>אימייל</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: safeText(bg), textShadow: textShadow(bg) }}>{email}</div>
+                </div>
+              )}
+              {address && (
+                <div style={{ textAlign: 'center' }}>
                   <div style={{
-                    fontSize: 32, fontWeight: 700,
-                    color: theme === 'minimal' ? '#222' : '#fff',
-                  }}>{email}</div>
+                    width: 70, height: 70, borderRadius: 20,
+                    background: hexToRgba(brandColor, theme === 'minimal' ? 0.1 : 0.25),
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 16px', fontSize: 30,
+                  }}>📍</div>
+                  <div style={{ fontSize: 18, color: brandColor, marginBottom: 8, fontWeight: 600 }}>כתובת</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: safeText(bg), textShadow: textShadow(bg) }}>{address}</div>
                 </div>
               )}
             </div>
-            {logoUrl && (
-              <div style={{
-                width: 100, height: 100, borderRadius: 20,
-                background: theme === 'minimal' ? '#f5f5f5' : 'rgba(255,255,255,0.06)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-              }}>
-                <img src={logoUrl} alt="logo" style={{
-                  maxHeight: 68, maxWidth: 68, objectFit: 'contain',
-                  filter: theme === 'minimal' ? 'none' : 'brightness(0) invert(1)',
-                  opacity: theme === 'minimal' ? 1 : 0.5,
-                }} />
-              </div>
-            )}
           </div>
+          {footer}
         </div>
       );
+    }
 
-    case 'vision':
+    case 'vision': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
         <div style={{ ...base, background: theme === 'minimal' ? '#fff' : (tc.darkSlideBg as string) }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
-          {theme === 'creative' && <div style={{ position: 'absolute', top: -150, left: -150, width: 500, height: 500, borderRadius: '50%', background: hexToRgba(brandColor, 0.1) }} />}
           <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 180px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30 }}>
-              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : light, borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : light, letterSpacing: 3 }}>חזון וערכים</span>
+              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.8)', letterSpacing: 3 }}>חזון וערכים</span>
             </div>
-            <h2 style={{ fontSize: 72, fontWeight: 900, color: theme === 'minimal' ? '#111' : '#fff', marginBottom: 40, lineHeight: 1.1 }}>{slide.title}</h2>
-            {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: theme === 'minimal' ? '#666' : 'rgba(255,255,255,0.75)', maxWidth: 1300 }}>{slide.body}</p>}
+            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: safeSubtext(bg), maxWidth: 1300, textShadow: textShadow(bg) }}>{slide.body}</p>}
             {slide.bullets && (
               <div style={{ display: 'flex', gap: 40, marginTop: 50 }}>
                 {slide.bullets.map((b, i) => (
-                  <div key={i} style={{ flex: 1, padding: '30px 28px', borderRadius: 20, background: theme === 'minimal' ? '#f8f9fa' : 'rgba(255,255,255,0.06)', border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+                  <div key={i} style={{
+                    flex: 1, padding: '30px 28px', borderRadius: 20,
+                    background: theme === 'minimal' ? '#f8f9fa' : 'rgba(255,255,255,0.08)',
+                    border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.1)',
+                    backdropFilter: theme !== 'minimal' ? 'blur(6px)' : undefined,
+                    textAlign: 'center',
+                  }}>
                     <div style={{ fontSize: 36, marginBottom: 12 }}>{['🎯', '💡', '🏆', '⭐'][i % 4]}</div>
-                    <span style={{ fontSize: 24, fontWeight: 600, color: theme === 'minimal' ? '#333' : 'rgba(255,255,255,0.9)' }}>{b}</span>
+                    <span style={{ fontSize: 24, fontWeight: 600, color: safeSubtext(bg) }}>{b}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
-          <div style={{ position: 'absolute', bottom: 50, left: 80, fontSize: 18, color: theme === 'minimal' ? '#ddd' : 'rgba(255,255,255,0.3)' }}>{businessName}</div>
+          {footer}
         </div>
       );
-
-    case 'methodology':
-      return (
-        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : '#fafafa' }}>
-          {theme !== 'minimal' && <div style={{ position: 'absolute', top: 0, right: 0, width: 6, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${dark})` }} />}
-          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
-          <div style={{ padding: '100px 150px 100px 120px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>איך אנחנו עובדים</span>
-            </div>
-            <h2 style={{ fontSize: 60, fontWeight: 900, color: '#111', marginBottom: 70 }}>{slide.title}</h2>
-            <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
-              {(slide.steps || []).map((s, i) => (
-                <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
-                  {i < (slide.steps?.length || 0) - 1 && (
-                    <div style={{ position: 'absolute', top: 35, left: -20, width: 40, height: 3, background: `${brandColor}30` }} />
-                  )}
-                  <div style={{
-                    width: 70, height: 70, borderRadius: 20,
-                    background: theme === 'creative' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : `linear-gradient(135deg, ${brandColor}, ${dark})`,
-                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 28, fontWeight: 900, margin: '0 auto 24px',
-                    boxShadow: `0 6px 25px ${brandColor}30`,
-                  }}>{s.number}</div>
-                  <h3 style={{ fontSize: 28, fontWeight: 800, color: '#222', marginBottom: 12 }}>{s.title}</h3>
-                  <p style={{ fontSize: 20, color: '#777', lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
+    }
 
     case 'social_proof':
       return (
-        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : '#fafafa' }}>
+        <div style={{ ...base, background: '#fafafa' }}>
+          {photo && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {theme !== 'minimal' && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 8, background: `linear-gradient(90deg, ${brandColor}, ${dark})` }} />}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
-          {theme === 'creative' && <div style={{ position: 'absolute', bottom: -100, right: -100, width: 350, height: 350, borderRadius: '50%', background: hexToRgba(brandColor, 0.05) }} />}
           <div style={{ padding: '90px 140px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
               <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
@@ -615,67 +689,62 @@ const SlideRenderer = ({
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: 20,
-                  padding: theme === 'minimal' ? '24px 0' : '28px 32px',
-                  borderRadius: theme === 'minimal' ? 0 : 20,
-                  background: theme === 'minimal' ? 'transparent' : '#fff',
-                  boxShadow: theme === 'minimal' ? 'none' : '0 2px 20px rgba(0,0,0,0.04)',
-                  border: theme === 'minimal' ? 'none' : '1px solid #eee',
-                  borderBottom: theme === 'minimal' ? '1px solid #eee' : undefined,
+                  padding: '28px 32px', borderRadius: 20,
+                  background: '#fff', boxShadow: '0 2px 20px rgba(0,0,0,0.04)',
+                  border: '1px solid #eee',
                 }}>
                   <div style={{
                     width: 48, height: 48, borderRadius: 14,
-                    background: theme === 'creative' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : hexToRgba(brandColor, 0.1),
-                    color: theme === 'creative' ? '#fff' : brandColor,
+                    background: hexToRgba(brandColor, 0.1),
+                    color: brandColor,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 22, fontWeight: 800, flexShrink: 0,
                   }}>✓</div>
-                  <span style={{ fontSize: 24, color: '#333', fontWeight: 600 }}>{b}</span>
+                  <span style={{ fontSize: 24, color: '#222', fontWeight: 600 }}>{b}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ position: 'absolute', bottom: 40, left: 60, fontSize: 18, color: '#ccc' }}>{businessName}</div>
+          {footer}
         </div>
       );
 
-    case 'target_audience':
+    case 'target_audience': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
         <div style={{ ...base, background: theme === 'minimal' ? '#fff' : (tc.darkSlideBg as string) }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
-          {theme === 'creative' && (
-            <>
-              <div style={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
-              <div style={{ position: 'absolute', bottom: -80, left: -80, width: 300, height: 300, borderRadius: '40%', background: 'rgba(255,255,255,0.03)', transform: 'rotate(30deg)' }} />
-            </>
-          )}
           <div style={{ position: 'relative', padding: '100px 160px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30 }}>
-              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : light, borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : light, letterSpacing: 3 }}>למי השירות מתאים</span>
+              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.8)', letterSpacing: 3 }}>למי השירות מתאים</span>
             </div>
-            <h2 style={{ fontSize: 68, fontWeight: 900, color: theme === 'minimal' ? '#111' : '#fff', marginBottom: 50, lineHeight: 1.1 }}>{slide.title}</h2>
-            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: theme === 'minimal' ? '#888' : 'rgba(255,255,255,0.6)', marginBottom: 40, maxWidth: 1000 }}>{slide.body}</p>}
+            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 50, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1000, textShadow: textShadow(bg) }}>{slide.body}</p>}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: 20, padding: 28, borderRadius: 20,
-                  background: theme === 'minimal' ? '#f8f9fa' : 'rgba(255,255,255,0.06)',
-                  border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.08)',
+                  background: theme === 'minimal' ? '#f8f9fa' : 'rgba(255,255,255,0.08)',
+                  border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.1)',
+                  backdropFilter: theme !== 'minimal' ? 'blur(6px)' : undefined,
                 }}>
                   <div style={{
                     width: 50, height: 50, borderRadius: 16,
-                    background: theme === 'creative' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : hexToRgba(brandColor, theme === 'minimal' ? 0.1 : 0.2),
+                    background: hexToRgba(brandColor, theme === 'minimal' ? 0.1 : 0.25),
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0,
                   }}>👤</div>
-                  <span style={{ fontSize: 26, fontWeight: 600, color: theme === 'minimal' ? '#333' : 'rgba(255,255,255,0.9)' }}>{b}</span>
+                  <span style={{ fontSize: 26, fontWeight: 600, color: safeSubtext(bg) }}>{b}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ position: 'absolute', bottom: 50, left: 80, fontSize: 18, color: theme === 'minimal' ? '#ddd' : 'rgba(255,255,255,0.3)' }}>{businessName}</div>
+          {footer}
         </div>
       );
+    }
 
     default:
       return (
@@ -683,6 +752,7 @@ const SlideRenderer = ({
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc', fontSize: 32 }}>
             שקופית ריקה
           </div>
+          {footer}
         </div>
       );
   }
@@ -720,7 +790,6 @@ const BriefScreen = ({
 
         <Card className="border-2">
           <CardContent className="p-6 space-y-5">
-            {/* Theme selector */}
             <div>
               <label className="text-sm font-bold text-foreground mb-3 block">בחר סגנון עיצוב</label>
               <div className="grid grid-cols-3 gap-3">
@@ -806,7 +875,18 @@ const PresentationStudio = () => {
   const logoUrl = profile?.logo_url || undefined;
   const phone = profile?.contact_phone || '';
   const email = profile?.contact_email || '';
+  const address = profile?.contact_address || '';
   const font = profile?.header_font || 'Heebo';
+
+  // Extract business photos URLs
+  const businessPhotos: string[] = (() => {
+    if (!profile?.business_photos) return [];
+    const photos = profile.business_photos as any;
+    if (Array.isArray(photos)) {
+      return photos.map((p: any) => typeof p === 'string' ? p : p?.url || p?.image_url || '').filter(Boolean);
+    }
+    return [];
+  })();
 
   const handleGenerate = async (brief: string, slideCount: number, theme: PresentationTheme) => {
     setIsGenerating(true);
@@ -913,9 +993,9 @@ const PresentationStudio = () => {
         const { createRoot } = await import('react-dom/client');
         const reactRoot = createRoot(root);
         reactRoot.render(
-          <SlideRenderer slide={slides[i]} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={1} font={font} theme={currentTheme} />
+          <SlideRenderer slide={slides[i]} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={1} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={i} address={address} />
         );
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 800));
         const dataUrl = await htmlToImage.toPng(root, { width: 1920, height: 1080, quality: 0.95 });
         pdf.addImage(dataUrl, 'PNG', 0, 0, 1920, 1080);
         reactRoot.unmount();
@@ -944,7 +1024,7 @@ const PresentationStudio = () => {
         autoFocus
       >
         <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
-          <SlideRenderer slide={slides[activeSlide]} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={Math.min(window.innerWidth / 1920, window.innerHeight / 1080)} font={font} theme={currentTheme} />
+          <SlideRenderer slide={slides[activeSlide]} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={Math.min(window.innerWidth / 1920, window.innerHeight / 1080)} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={activeSlide} address={address} />
         </div>
         <button className="absolute top-4 left-4 text-white/50 hover:text-white text-sm z-50" onClick={(e) => { e.stopPropagation(); setIsPresenting(false); }}>
           ESC לצאת
@@ -969,7 +1049,7 @@ const PresentationStudio = () => {
               onClick={() => setActiveSlide(i)}
             >
               <div className="aspect-video relative overflow-hidden bg-muted">
-                <SlideRenderer slide={slide} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={0.09} font={font} theme={currentTheme} />
+                <SlideRenderer slide={slide} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={0.09} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={i} address={address} />
               </div>
               <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[10px] px-1.5 py-0.5 flex items-center justify-between">
                 <span>{i + 1}</span>
@@ -1001,6 +1081,9 @@ const PresentationStudio = () => {
               </Button>
               <Badge variant="secondary" className="text-xs">{activeSlide + 1}/{slides.length}</Badge>
               <Badge variant="outline" className="text-xs">{THEMES.find(t => t.id === currentTheme)?.label}</Badge>
+              {businessPhotos.length > 0 && (
+                <Badge variant="outline" className="text-xs">📷 {businessPhotos.length} תמונות</Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => { setSlides(null); setActiveSlide(0); }} className="gap-1">
@@ -1017,7 +1100,7 @@ const PresentationStudio = () => {
 
           <div className="flex-1 bg-muted/30 flex items-center justify-center p-8 overflow-hidden">
             <div className="relative shadow-2xl rounded-lg overflow-hidden" style={{ width: 'min(100%, 960px)', aspectRatio: '16/9' }}>
-              <SlideRenderer slide={currentSlide} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={0.5} font={font} theme={currentTheme} />
+              <SlideRenderer slide={currentSlide} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={0.5} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={activeSlide} address={address} />
             </div>
           </div>
 
@@ -1062,13 +1145,20 @@ const PresentationStudio = () => {
                 <label className="text-xs text-muted-foreground mb-1 block">פריטים</label>
                 {(currentSlide.bullets || []).map((b, i) => (
                   <div key={i} className="flex gap-1 mb-1">
-                    <Input value={b} onChange={e => { const nb = [...(currentSlide.bullets || [])]; nb[i] = e.target.value; updateSlide(activeSlide, { bullets: nb }); }} className="text-sm" dir="rtl" />
-                    <Button variant="ghost" size="sm" onClick={() => updateSlide(activeSlide, { bullets: (currentSlide.bullets || []).filter((_, j) => j !== i) })}><Trash2 className="w-3 h-3" /></Button>
+                    <Input value={b} onChange={e => {
+                      const newBullets = [...(currentSlide.bullets || [])];
+                      newBullets[i] = e.target.value;
+                      updateSlide(activeSlide, { bullets: newBullets });
+                    }} className="text-xs" dir="rtl" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => {
+                      const newBullets = (currentSlide.bullets || []).filter((_, j) => j !== i);
+                      updateSlide(activeSlide, { bullets: newBullets });
+                    }}><Trash2 className="w-3 h-3" /></Button>
                   </div>
                 ))}
-                <Button variant="outline" size="sm" className="w-full mt-1" onClick={() => updateSlide(activeSlide, { bullets: [...(currentSlide.bullets || []), 'פריט חדש'] })}>
-                  <Plus className="w-3 h-3 ml-1" />הוסף פריט
-                </Button>
+                <Button variant="outline" size="sm" className="w-full mt-1 text-xs" onClick={() => {
+                  updateSlide(activeSlide, { bullets: [...(currentSlide.bullets || []), 'פריט חדש'] });
+                }}><Plus className="w-3 h-3 ml-1" />הוסף</Button>
               </div>
             )}
 
@@ -1077,14 +1167,24 @@ const PresentationStudio = () => {
                 <label className="text-xs text-muted-foreground mb-1 block">נתונים</label>
                 {(currentSlide.stats || []).map((s, i) => (
                   <div key={i} className="flex gap-1 mb-1">
-                    <Input value={s.value} onChange={e => { const ns = [...(currentSlide.stats || [])]; ns[i] = { ...ns[i], value: e.target.value }; updateSlide(activeSlide, { stats: ns }); }} className="text-sm w-20" dir="ltr" placeholder="ערך" />
-                    <Input value={s.label} onChange={e => { const ns = [...(currentSlide.stats || [])]; ns[i] = { ...ns[i], label: e.target.value }; updateSlide(activeSlide, { stats: ns }); }} className="text-sm flex-1" dir="rtl" placeholder="תיאור" />
-                    <Button variant="ghost" size="sm" onClick={() => updateSlide(activeSlide, { stats: (currentSlide.stats || []).filter((_, j) => j !== i) })}><Trash2 className="w-3 h-3" /></Button>
+                    <Input value={s.value} onChange={e => {
+                      const stats = [...(currentSlide.stats || [])];
+                      stats[i] = { ...stats[i], value: e.target.value };
+                      updateSlide(activeSlide, { stats });
+                    }} className="text-xs w-20" placeholder="ערך" dir="rtl" />
+                    <Input value={s.label} onChange={e => {
+                      const stats = [...(currentSlide.stats || [])];
+                      stats[i] = { ...stats[i], label: e.target.value };
+                      updateSlide(activeSlide, { stats });
+                    }} className="text-xs" placeholder="תווית" dir="rtl" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => {
+                      updateSlide(activeSlide, { stats: (currentSlide.stats || []).filter((_, j) => j !== i) });
+                    }}><Trash2 className="w-3 h-3" /></Button>
                   </div>
                 ))}
-                <Button variant="outline" size="sm" className="w-full mt-1" onClick={() => updateSlide(activeSlide, { stats: [...(currentSlide.stats || []), { value: '0', label: 'תיאור' }] })}>
-                  <Plus className="w-3 h-3 ml-1" />הוסף נתון
-                </Button>
+                <Button variant="outline" size="sm" className="w-full mt-1 text-xs" onClick={() => {
+                  updateSlide(activeSlide, { stats: [...(currentSlide.stats || []), { value: '0', label: 'חדש' }] });
+                }}><Plus className="w-3 h-3 ml-1" />הוסף</Button>
               </div>
             )}
 
@@ -1092,47 +1192,33 @@ const PresentationStudio = () => {
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">שלבים</label>
                 {(currentSlide.steps || []).map((s, i) => (
-                  <div key={i} className="space-y-1 mb-2 p-2 rounded bg-muted/50">
-                    <Input value={s.title} onChange={e => { const ns = [...(currentSlide.steps || [])]; ns[i] = { ...ns[i], title: e.target.value }; updateSlide(activeSlide, { steps: ns }); }} className="text-sm" dir="rtl" placeholder="כותרת שלב" />
-                    <Input value={s.desc} onChange={e => { const ns = [...(currentSlide.steps || [])]; ns[i] = { ...ns[i], desc: e.target.value }; updateSlide(activeSlide, { steps: ns }); }} className="text-sm" dir="rtl" placeholder="תיאור" />
+                  <div key={i} className="border border-border rounded p-2 mb-2 space-y-1">
+                    <div className="flex gap-1">
+                      <Input value={s.number} onChange={e => {
+                        const steps = [...(currentSlide.steps || [])];
+                        steps[i] = { ...steps[i], number: e.target.value };
+                        updateSlide(activeSlide, { steps });
+                      }} className="text-xs w-12" dir="ltr" />
+                      <Input value={s.title} onChange={e => {
+                        const steps = [...(currentSlide.steps || [])];
+                        steps[i] = { ...steps[i], title: e.target.value };
+                        updateSlide(activeSlide, { steps });
+                      }} className="text-xs" dir="rtl" />
+                    </div>
+                    <Input value={s.desc} onChange={e => {
+                      const steps = [...(currentSlide.steps || [])];
+                      steps[i] = { ...steps[i], desc: e.target.value };
+                      updateSlide(activeSlide, { steps });
+                    }} className="text-xs" placeholder="תיאור" dir="rtl" />
                   </div>
                 ))}
-                <Button variant="outline" size="sm" className="w-full mt-1" onClick={() => updateSlide(activeSlide, { steps: [...(currentSlide.steps || []), { number: String((currentSlide.steps?.length || 0) + 1).padStart(2, '0'), title: 'שלב חדש', desc: 'תיאור' }] })}>
-                  <Plus className="w-3 h-3 ml-1" />הוסף שלב
-                </Button>
+                <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => {
+                  const n = String((currentSlide.steps?.length || 0) + 1).padStart(2, '0');
+                  updateSlide(activeSlide, { steps: [...(currentSlide.steps || []), { number: n, title: 'שלב', desc: 'תיאור' }] });
+                }}><Plus className="w-3 h-3 ml-1" />הוסף שלב</Button>
               </div>
             )}
           </div>
-
-          {/* Theme switcher in editor */}
-          <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border">
-            <label className="text-xs font-bold text-foreground mb-2 block">סגנון עיצוב</label>
-            <div className="flex gap-1">
-              {THEMES.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => setCurrentTheme(t.id)}
-                  className={`flex-1 text-[10px] py-1.5 px-1 rounded font-medium transition-all ${
-                    currentTheme === t.id ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {profile && (
-            <div className="p-3 rounded-lg bg-muted/50 border border-border">
-              <div className="flex items-center gap-2">
-                {profile.logo_url && <img src={profile.logo_url} alt="" className="w-8 h-8 rounded object-contain bg-white p-0.5" />}
-                <div>
-                  <p className="text-xs font-medium text-foreground">{profile.business_name}</p>
-                  <p className="text-[10px] text-muted-foreground">המיתוג מוטמע אוטומטית</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
