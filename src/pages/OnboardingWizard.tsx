@@ -9,7 +9,7 @@ import StepSelectClient from '@/components/wizard/StepSelectClient';
 import StepMagicLink from '@/components/wizard/StepMagicLink';
 import StepWebsiteInsights from '@/components/wizard/StepWebsiteInsights';
 import StepStrategicMRI from '@/components/wizard/StepStrategicMRI';
-import StepContactAssets from '@/components/wizard/StepContactAssets';
+// StepContactAssets removed - contact info is now collected in the snapshot view
 import StepPastMaterials from '@/components/wizard/StepPastMaterials';
 import StepBrandPassport from '@/components/wizard/StepBrandPassport';
 import { Rocket, Loader2 } from 'lucide-react';
@@ -19,15 +19,14 @@ import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 
-const TOTAL_STEPS_REGULAR = 8;
-const TOTAL_STEPS_AGENCY = 9; // Extra step for client selection
+const TOTAL_STEPS_REGULAR = 7;
+const TOTAL_STEPS_AGENCY = 8;
 
 const stepTitlesRegular = [
   'ברוכים הבאים',
   'בחירת מסלול',
   'הלינק הקסום',
   'מה למדנו עליכם',
-  'פרטי יצירת קשר',
   'ה-MRI האסטרטגי',
   'חומרי עבר',
   'דרכון המותג',
@@ -39,7 +38,6 @@ const stepTitlesAgency = [
   'בחירת מסלול',
   'הלינק הקסום',
   'מה למדנו עליכם',
-  'פרטי יצירת קשר',
   'ה-MRI האסטרטגי',
   'חומרי עבר',
   'דרכון המותג',
@@ -630,7 +628,7 @@ const OnboardingWizard = () => {
     return null;
   }
 
-  const handleContactAssetsChange = (data: Partial<ContactAssets>) => {
+  const handleContactAssetsChange = (data: Partial<import('@/types/wizard').ContactAssets>) => {
     setWizardData((prev) => ({
       ...prev,
       contactAssets: { ...prev.contactAssets, ...data },
@@ -671,21 +669,10 @@ const OnboardingWizard = () => {
         case 5:
           return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
         case 6:
-          const agencyContactValid = wizardData.contactAssets.contact_phone?.trim() && wizardData.contactAssets.contact_email?.trim();
-          return (
-            <div className="space-y-6">
-              <StepContactAssets data={wizardData.contactAssets} onChange={handleContactAssetsChange} />
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={prevStep}>הקודם</Button>
-                <Button onClick={nextStep} disabled={!agencyContactValid}>הבא</Button>
-              </div>
-            </div>
-          );
-        case 7:
           return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-        case 8:
+        case 7:
           return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-        case 9:
+        case 8:
           return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
         default:
           return null;
@@ -712,21 +699,10 @@ const OnboardingWizard = () => {
       case 4:
         return <StepWebsiteInsights data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
       case 5:
-        const contactValid = wizardData.contactAssets.contact_phone?.trim() && wizardData.contactAssets.contact_email?.trim();
-        return (
-          <div className="space-y-6">
-            <StepContactAssets data={wizardData.contactAssets} onChange={handleContactAssetsChange} />
-            <div className="flex justify-between">
-              <Button variant="outline" onClick={prevStep}>הקודם</Button>
-              <Button onClick={nextStep} disabled={!contactValid}>הבא</Button>
-            </div>
-          </div>
-        );
-      case 6:
         return <StepStrategicMRI data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-      case 7:
+      case 6:
         return <StepPastMaterials data={wizardData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />;
-      case 8:
+      case 7:
         return <StepBrandPassport data={wizardData} updateData={updateData} onComplete={handleComplete} onPrev={prevStep} />;
       default:
         return null;
