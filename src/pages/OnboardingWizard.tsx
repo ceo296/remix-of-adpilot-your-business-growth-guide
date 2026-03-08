@@ -597,6 +597,7 @@ const OnboardingWizard = () => {
               business_photos: businessPhotoUrls,
               past_materials: pastMaterialsData,
               past_materials_fonts: pastMaterialsFonts,
+              services: wizardData.websiteInsights.services || [],
               onboarding_completed: true,
               honorific_preference: wizardData.honorific,
             }]);
