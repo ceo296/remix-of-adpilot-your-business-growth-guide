@@ -31,8 +31,9 @@ interface SlideData {
 }
 
 const SLIDE_LABELS: Record<string, string> = {
-  cover: 'שער', about: 'אודות', services: 'שירותים', value_prop: 'הצעת ערך',
-  stats: 'נתונים', process: 'תהליך', testimonial: 'המלצה', team: 'צוות',
+  cover: 'שער', about: 'אודות', vision: 'חזון', services: 'שירותים', value_prop: 'הצעת ערך',
+  stats: 'נתונים', process: 'תהליך', methodology: 'מתודולוגיה', testimonial: 'המלצה',
+  social_proof: 'הוכחה חברתית', target_audience: 'קהל יעד', team: 'צוות',
   cta: 'קריאה לפעולה', contact: 'צור קשר', blank: 'ריקה',
 };
 
