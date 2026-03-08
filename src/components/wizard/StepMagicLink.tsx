@@ -45,6 +45,8 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
   const [showBrandingStudio, setShowBrandingStudio] = useState(false);
   const [showSnapshot, setShowSnapshot] = useState(false);
   const [analyzingMaterials, setAnalyzingMaterials] = useState<Set<string>>(new Set());
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const materialsInputRef = useRef<HTMLInputElement>(null);
 
