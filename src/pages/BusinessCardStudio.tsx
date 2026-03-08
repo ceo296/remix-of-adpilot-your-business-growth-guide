@@ -157,6 +157,8 @@ const BusinessCardStudio = () => {
       setIsExporting(false);
     }
   }, [isDoubleSided, cardSizeParam]);
+
+  const contactLine = (icon: string, value: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
       <span style={{ fontSize: '13px', color: '#666' }}>{value}</span>
       <span style={{ fontSize: '12px', opacity: 0.5 }}>{icon}</span>
