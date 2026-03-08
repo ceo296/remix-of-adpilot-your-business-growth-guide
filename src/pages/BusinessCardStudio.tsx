@@ -158,116 +158,190 @@ const BusinessCardStudio = () => {
     }
   }, [isDoubleSided, cardSizeParam]);
 
-  const contactLine = (icon: string, value: string) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-      <span style={{ fontSize: '13px', color: '#666' }}>{value}</span>
-      <span style={{ fontSize: '12px', opacity: 0.5 }}>{icon}</span>
+  // Helper to lighten/darken a hex color
+  const adjustColor = (hex: string, amount: number) => {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+    const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+    return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`;
+  };
+
+  const colorLight = adjustColor(color, 40);
+  const colorDark = adjustColor(color, -30);
+
+  const contactLine = (icon: string, value: string, textColor: string = '#555') => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-start' }}>
+      <span style={{ fontSize: '14px', width: '20px', height: '20px', borderRadius: '50%', background: `${color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
+      <span style={{ fontSize: '13px', color: textColor, fontWeight: 500 }}>{value}</span>
     </div>
   );
 
+  // SVG decorative patterns
+  const dotPattern = `url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1.5' fill='${encodeURIComponent(color)}' opacity='0.08'/%3E%3C/svg%3E")`;
+  const diagonalPattern = `url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40L40 0' stroke='${encodeURIComponent(color)}' stroke-width='0.5' opacity='0.06'/%3E%3C/svg%3E")`;
+
   const renderFront = () => {
     const style = template.replace('bc-', '');
-    const styles: Record<string, React.CSSProperties> = {
-      classic: { background: '#fff', color: '#222' },
-      modern: { background: '#fff', color: '#222' },
-      minimal: { background: '#fff', color: '#222' },
-      premium: { background: secColor, color: '#fff' },
-      bold: { background: color, color: '#fff' },
-      elegant: { background: '#fff', color: '#222' },
-    };
-    const base = styles[style] || styles.classic;
 
     return (
       <div
         ref={frontRef}
         style={{
           width: '900px', height: '500px', direction: 'rtl', fontFamily: profile?.header_font || 'Heebo, sans-serif',
-          position: 'relative', overflow: 'hidden', borderRadius: '12px', ...base,
+          position: 'relative', overflow: 'hidden', borderRadius: '0px', background: '#fff',
         }}
       >
-        {/* Top accent for modern/elegant */}
-        {(style === 'modern' || style === 'elegant') && (
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', background: color }} />
+        {/* Decorative accent shape — top-left colored area */}
+        {(style === 'classic' || style === 'elegant') && (
+          <>
+            <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: '6px', background: color }} />
+            <div style={{ position: 'absolute', bottom: 0, right: 0, width: '100%', height: '3px', background: `${color}40` }} />
+            {/* Subtle dot texture */}
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: dotPattern, backgroundSize: '20px 20px' }} />
+          </>
         )}
 
-        {/* Side panel for modern */}
         {style === 'modern' && (
-          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '35%', background: color }} />
+          <>
+            {/* Bold side panel with gradient */}
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '38%', background: `linear-gradient(160deg, ${color} 0%, ${colorDark} 100%)` }}>
+              {/* Diagonal pattern overlay */}
+              <div style={{ position: 'absolute', inset: 0, backgroundImage: diagonalPattern, backgroundSize: '40px 40px' }} />
+              {/* Decorative chevrons */}
+              <svg style={{ position: 'absolute', bottom: '30px', left: '30px', opacity: 0.15 }} width="80" height="80" viewBox="0 0 80 80">
+                <path d="M10 20L30 40L10 60" stroke="white" strokeWidth="4" fill="none" />
+                <path d="M30 20L50 40L30 60" stroke="white" strokeWidth="4" fill="none" />
+              </svg>
+            </div>
+            {/* Right side dot texture */}
+            <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: '38%', backgroundImage: dotPattern, backgroundSize: '20px 20px' }} />
+          </>
         )}
 
+        {style === 'minimal' && (
+          <>
+            <div style={{ position: 'absolute', top: '50%', left: '-60px', width: '200px', height: '200px', borderRadius: '50%', border: `2px solid ${color}15`, transform: 'translateY(-50%)' }} />
+            <div style={{ position: 'absolute', top: '50%', left: '-30px', width: '140px', height: '140px', borderRadius: '50%', border: `1px solid ${color}10`, transform: 'translateY(-50%)' }} />
+          </>
+        )}
+
+        {style === 'premium' && (
+          <>
+            <div style={{ position: 'absolute', inset: 0, background: secColor }} />
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color}15 0%, transparent 50%, ${color}10 100%)` }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: diagonalPattern, backgroundSize: '40px 40px', opacity: 0.5 }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: `linear-gradient(90deg, transparent 10%, ${color} 50%, transparent 90%)` }} />
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: `linear-gradient(90deg, transparent 10%, ${color}60 50%, transparent 90%)` }} />
+          </>
+        )}
+
+        {style === 'bold' && (
+          <>
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color} 0%, ${colorDark} 100%)` }} />
+            {/* Large geometric shape */}
+            <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '24px 24px', opacity: 0.3 }} />
+          </>
+        )}
+
+        {/* Content */}
         <div style={{ position: 'relative', zIndex: 1, padding: '48px 56px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          {/* Header */}
+          {/* Header row */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            {/* Logo */}
+            <div>
+              {logoUrl ? (
+                <div style={{ width: '80px', height: '80px', borderRadius: '8px', background: (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.1)' : `${color}08`, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px' }}>
+                  <img src={logoUrl} alt="logo" style={{ maxHeight: '64px', maxWidth: '64px', objectFit: 'contain', filter: (style === 'premium' || style === 'bold') ? 'brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,0.3))' : 'drop-shadow(0 1px 4px rgba(0,0,0,0.08))' }} />
+                </div>
+              ) : (
+                <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.1)' : color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '28px', fontWeight: 900, color: (style === 'premium' || style === 'bold') ? '#fff' : '#fff' }}>{cardData.businessName.charAt(0)}</span>
+                </div>
+              )}
+            </div>
+            {/* Name & title */}
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1.1, color: style === 'modern' ? '#fff' : base.color }}>
-                {cardData.businessName}
-              </div>
               {cardData.personName && (
-                <div style={{ fontSize: '18px', marginTop: '6px', color: style === 'modern' ? 'rgba(255,255,255,0.8)' : '#888' }}>
+                <div style={{ fontSize: '26px', fontWeight: 800, lineHeight: 1.1, color: (style === 'premium' || style === 'bold') ? '#fff' : '#222' }}>
                   {cardData.personName}
                 </div>
               )}
-              <div style={{ fontSize: '14px', marginTop: '4px', color: style === 'premium' || style === 'bold' || style === 'modern' ? color : '#aaa' }}>
+              <div style={{ fontSize: '28px', fontWeight: 900, lineHeight: 1.1, marginTop: cardData.personName ? '4px' : 0, color: (style === 'premium' || style === 'bold') ? '#fff' : '#222' }}>
+                {cardData.businessName}
+              </div>
+              <div style={{ display: 'inline-block', marginTop: '8px', padding: '3px 14px', borderRadius: '3px', fontSize: '13px', fontWeight: 600, background: (style === 'premium' || style === 'bold') ? `${color}` : `${color}15`, color: (style === 'premium' || style === 'bold') ? '#fff' : color }}>
                 {cardData.title}
               </div>
             </div>
-            {logoUrl && (
-              <img src={logoUrl} alt="logo" style={{ height: '64px', objectFit: 'contain', maxWidth: '140px', filter: (style === 'premium' || style === 'bold') ? 'brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,0.3))' : 'drop-shadow(0 2px 6px rgba(0,0,0,0.1))' }} />
-            )}
           </div>
 
-          {/* Contact info */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
-            {activeContactFields.includes('phone') && cardData.phone && contactLine('📞', cardData.phone)}
-            {activeContactFields.includes('email') && cardData.email && contactLine('✉', cardData.email)}
-            {activeContactFields.includes('address') && cardData.address && contactLine('📍', cardData.address)}
-            {activeContactFields.includes('whatsapp') && cardData.whatsapp && contactLine('💬', cardData.whatsapp)}
-            {activeContactFields.includes('website') && cardData.website && contactLine('🌐', cardData.website)}
+          {/* Divider */}
+          <div style={{ width: '60px', height: '2px', background: (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.2)' : `${color}30`, margin: '0 auto', position: 'absolute', top: '50%', right: '56px' }} />
+
+          {/* Contact info — bottom left */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {activeContactFields.includes('phone') && cardData.phone && contactLine('📞', cardData.phone, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
+            {activeContactFields.includes('email') && cardData.email && contactLine('✉', cardData.email, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
+            {activeContactFields.includes('address') && cardData.address && contactLine('📍', cardData.address, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
+            {activeContactFields.includes('whatsapp') && cardData.whatsapp && contactLine('💬', cardData.whatsapp, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
+            {activeContactFields.includes('website') && cardData.website && contactLine('🌐', cardData.website, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
           </div>
         </div>
-
-        {/* Bottom accent for premium */}
-        {style === 'premium' && (
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
-        )}
       </div>
     );
   };
 
   const renderBack = () => {
     const style = template.replace('bc-', '');
+    const isDark = style === 'premium';
+    const isBold = style === 'bold';
+    const bgColor = isDark ? secColor : isBold ? '#fff' : color;
+    const fgColor = isBold ? color : '#fff';
+
     return (
       <div
         ref={backRef}
         style={{
           width: '900px', height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: profile?.header_font || 'Heebo, sans-serif', borderRadius: '12px', overflow: 'hidden',
-          background: style === 'premium' ? secColor : style === 'bold' ? '#fff' : color,
+          fontFamily: profile?.header_font || 'Heebo, sans-serif', borderRadius: '0px', overflow: 'hidden',
+          background: isBold ? '#fff' : `linear-gradient(160deg, ${bgColor} 0%, ${adjustColor(bgColor, -20)} 100%)`,
           position: 'relative',
         }}
       >
-        {style === 'premium' && (
-          <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 50% 50%, ${color}40 0%, transparent 70%)` }} />
+        {/* Decorative elements */}
+        {isDark && (
+          <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 30% 70%, ${color}25 0%, transparent 60%)` }} />
         )}
+
+        {/* Geometric circles */}
+        <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '200px', height: '200px', borderRadius: '50%', border: `2px solid ${isBold ? `${color}15` : 'rgba(255,255,255,0.08)'}` }} />
+        <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: isBold ? `${color}06` : 'rgba(255,255,255,0.04)' }} />
+
+        {/* Pattern overlay */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: isBold ? dotPattern : dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '20px 20px', opacity: isBold ? 1 : 0.15 }} />
+
+        {/* Accent lines */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: isBold ? color : 'rgba(255,255,255,0.15)' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: isBold ? color : 'rgba(255,255,255,0.15)' }} />
+
         <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
           {logoUrl ? (
-            <img src={logoUrl} alt="logo" style={{ 
-              height: '120px', objectFit: 'contain', maxWidth: '280px',
-              filter: style === 'bold' ? 'none' : 'brightness(0) invert(1) drop-shadow(0 4px 12px rgba(0,0,0,0.3))',
-            }} />
+            <div style={{ width: '120px', height: '120px', margin: '0 auto', borderRadius: '16px', background: isBold ? `${color}08` : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+              <img src={logoUrl} alt="logo" style={{ 
+                maxHeight: '88px', maxWidth: '88px', objectFit: 'contain',
+                filter: isBold ? 'none' : 'brightness(0) invert(1) drop-shadow(0 4px 12px rgba(0,0,0,0.3))',
+              }} />
+            </div>
           ) : (
-            <div style={{ fontSize: '72px', fontWeight: 900, color: style === 'bold' ? color : '#fff' }}>
-              {cardData.businessName.charAt(0)}
+            <div style={{ width: '100px', height: '100px', margin: '0 auto', borderRadius: '16px', background: isBold ? `${color}10` : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '48px', fontWeight: 900, color: fgColor }}>{cardData.businessName.charAt(0)}</span>
             </div>
           )}
-          <div style={{ 
-            width: '60px', height: '2px', margin: '16px auto',
-            background: style === 'bold' ? color : 'rgba(255,255,255,0.4)',
-          }} />
-          <div style={{ 
-            fontSize: '16px', letterSpacing: '4px',
-            color: style === 'bold' ? '#666' : 'rgba(255,255,255,0.7)',
-          }}>
+          <div style={{ width: '40px', height: '2px', margin: '16px auto', background: isBold ? color : 'rgba(255,255,255,0.3)' }} />
+          <div style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '3px', color: isBold ? '#333' : 'rgba(255,255,255,0.85)' }}>
             {cardData.businessName}
           </div>
         </div>
