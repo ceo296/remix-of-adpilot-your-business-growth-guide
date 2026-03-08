@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Check, Building2, Clock, Star, Users, Sparkles } from 'lucide-react';
+import { Check, Building2, Clock, Star, Users, Sparkles, Plus, X, Edit2, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Select,
@@ -56,12 +56,9 @@ const INDUSTRY_OPTIONS = [
   'אחר',
 ];
 
-// Helper function to find matching industry or return 'אחר'
 const findMatchingIndustry = (industry: string): string => {
   if (!industry) return '';
-  // Try exact match first
   if (INDUSTRY_OPTIONS.includes(industry)) return industry;
-  // Try partial match
   const lowerIndustry = industry.toLowerCase();
   const found = INDUSTRY_OPTIONS.find(opt => 
     lowerIndustry.includes(opt.toLowerCase()) || opt.toLowerCase().includes(lowerIndustry)
@@ -82,17 +79,13 @@ const AUDIENCE_OPTIONS = [
   'אחר',
 ];
 
-// Helper function to find matching audience or return the closest match
 const findMatchingAudience = (audience: string): string => {
   if (!audience) return '';
-  // Try exact match first
   if (AUDIENCE_OPTIONS.includes(audience)) return audience;
-  // Try partial match
   const lowerAudience = audience.toLowerCase();
   const found = AUDIENCE_OPTIONS.find(opt => 
     lowerAudience.includes(opt.toLowerCase()) || opt.toLowerCase().includes(lowerAudience)
   );
-  // Check for common patterns
   if (lowerAudience.includes('בעלי עסקים') || lowerAudience.includes('מוסדות')) {
     return 'בעלי עסקים';
   }
@@ -106,22 +99,59 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
   const isManualMode = !data.websiteUrl;
   const hasAIPredictions = !!(data.websiteInsights.industry || data.websiteInsights.audience);
   
-  // Map AI-detected industry to one of our options
   const mappedIndustry = findMatchingIndustry(data.websiteInsights.industry || '');
   const originalIndustryIfOther = mappedIndustry === 'אחר' && data.websiteInsights.industry ? data.websiteInsights.industry : '';
   
   const [formValues, setFormValues] = useState({
     businessName: data.brand.name || '',
     industry: mappedIndustry,
-    industryOther: originalIndustryIfOther, // Store original if mapped to 'אחר'
+    industryOther: originalIndustryIfOther,
     seniority: data.websiteInsights.seniority || '',
     coreOffering: data.websiteInsights.coreOffering || '',
     audience: findMatchingAudience(data.websiteInsights.audience || ''),
     audienceOther: findMatchingAudience(data.websiteInsights.audience || '') === 'אחר' && data.websiteInsights.audience ? data.websiteInsights.audience : '',
   });
 
+  // Services state
+  const [services, setServices] = useState<string[]>(data.websiteInsights.services || []);
+  const [newService, setNewService] = useState('');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState('');
+
   const handleValueChange = (field: string, value: string) => {
     setFormValues(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addService = () => {
+    const trimmed = newService.trim();
+    if (!trimmed) return;
+    if (services.includes(trimmed)) {
+      toast.error('שירות זה כבר ברשימה');
+      return;
+    }
+    setServices(prev => [...prev, trimmed]);
+    setNewService('');
+  };
+
+  const removeService = (index: number) => {
+    setServices(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const startEdit = (index: number) => {
+    setEditingIndex(index);
+    setEditValue(services[index]);
+  };
+
+  const saveEdit = () => {
+    if (editingIndex === null) return;
+    const trimmed = editValue.trim();
+    if (!trimmed) {
+      removeService(editingIndex);
+    } else {
+      setServices(prev => prev.map((s, i) => i === editingIndex ? trimmed : s));
+    }
+    setEditingIndex(null);
+    setEditValue('');
   };
 
   const handleConfirm = () => {
@@ -240,7 +270,6 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
                 תחום עיסוק *
               </Label>
             </div>
-            {/* Free text input - primary option */}
             <Input
               value={formValues.industry === 'אחר' ? formValues.industryOther : (INDUSTRY_OPTIONS.includes(formValues.industry) ? '' : formValues.industry)}
               onChange={(e) => {
@@ -320,6 +349,94 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
             />
           </div>
 
+          {/* Services List */}
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200/50 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-md shadow-indigo-500/30 flex items-center justify-center">
+                <Package className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold text-indigo-800">
+                  השירותים / מוצרים שזיהינו
+                </Label>
+                <p className="text-xs text-indigo-600/70 mt-0.5">
+                  {services.length > 0 ? 'האם זה מדויק? ניתן לערוך, למחוק או להוסיף' : 'הוסיפו את השירותים/מוצרים שהעסק מציע'}
+                </p>
+              </div>
+            </div>
+
+            {/* Services chips */}
+            {services.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {services.map((service, index) => (
+                  <div key={index} className="group relative">
+                    {editingIndex === index ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEdit();
+                            if (e.key === 'Escape') { setEditingIndex(null); setEditValue(''); }
+                          }}
+                          className="h-8 w-40 text-sm bg-white text-gray-900 border-indigo-300"
+                          autoFocus
+                        />
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-8 w-8 p-0">
+                          <Check className="h-3.5 w-3.5 text-emerald-600" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border-2 border-indigo-200 shadow-sm hover:border-indigo-400 transition-all">
+                        <span className="text-sm font-medium text-indigo-900">{service}</span>
+                        <button
+                          onClick={() => startEdit(index)}
+                          className="p-0.5 rounded-full hover:bg-indigo-100 transition-colors opacity-60 hover:opacity-100"
+                        >
+                          <Edit2 className="h-3 w-3 text-indigo-600" />
+                        </button>
+                        <button
+                          onClick={() => removeService(index)}
+                          className="p-0.5 rounded-full hover:bg-red-100 transition-colors opacity-60 hover:opacity-100"
+                        >
+                          <X className="h-3 w-3 text-destructive" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add new service */}
+            <div className="flex items-center gap-2">
+              <Input
+                value={newService}
+                onChange={(e) => setNewService(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addService(); } }}
+                placeholder="הוסיפו שירות או מוצר..."
+                className="h-10 bg-white text-gray-900 border-indigo-200 hover:border-indigo-400 focus:border-indigo-500"
+              />
+              <Button
+                type="button"
+                onClick={addService}
+                size="sm"
+                variant="outline"
+                disabled={!newService.trim()}
+                className="h-10 px-4 border-indigo-300 hover:bg-indigo-100 hover:border-indigo-500 text-indigo-700"
+              >
+                <Plus className="h-4 w-4 ml-1" />
+                הוסף
+              </Button>
+            </div>
+
+            {services.length === 0 && (
+              <p className="text-xs text-indigo-500/60 text-center py-2">
+                לא זוהו שירותים - הוסיפו ידנית כדי לשפר את המצגות והמודעות
+              </p>
+            )}
+          </div>
+
           {/* Audience */}
           <div className={`p-5 rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 border-2 space-y-3 transition-all ${!formValues.audience ? 'border-destructive/50 ring-2 ring-destructive/20' : 'border-pink-200/50'}`}>
             <div className="flex items-center gap-3">
@@ -393,7 +510,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
           {isValid ? 'מעולה! אפשר להתקדם' : 'יש למלא את כל השדות'}
         </Button>
 
-        {/* Back Button - Prominent */}
+        {/* Back Button */}
         <Button
           onClick={onPrev}
           variant="outline"
