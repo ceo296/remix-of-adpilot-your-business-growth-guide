@@ -1118,6 +1118,12 @@ const PresentationStudio = () => {
               {businessPhotos.length > 0 && (
                 <Badge variant="outline" className="text-xs">📷 {businessPhotos.length} תמונות</Badge>
               )}
+              {imagesGenerating > 0 && (
+                <Badge variant="secondary" className="text-xs gap-1 animate-pulse">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  מייצר {imagesGenerating} תמונות...
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => { setSlides(null); setActiveSlide(0); }} className="gap-1">
