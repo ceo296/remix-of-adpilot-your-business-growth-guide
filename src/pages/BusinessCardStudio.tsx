@@ -5,11 +5,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { ArrowRight, Download, RotateCcw, Eye } from 'lucide-react';
+import { ArrowRight, Download, RotateCcw, Eye, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
 import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 
 interface CardData {
@@ -32,9 +33,11 @@ const BusinessCardStudio = () => {
   const template = searchParams.get('template') || 'bc-classic';
   const contactFieldsParam = searchParams.get('contactFields') || 'phone,email,address';
   const sidesParam = searchParams.get('sides') || '2';
+  const cardSizeParam = searchParams.get('size') || '90x50';
   const activeContactFields = contactFieldsParam.split(',');
   const [isDoubleSided, setIsDoubleSided] = useState(sidesParam === '2');
   const [viewingSide, setViewingSide] = useState<'front' | 'back'>('front');
+  const [isExporting, setIsExporting] = useState(false);
 
   const color = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#2A2F33';
@@ -79,6 +82,81 @@ const BusinessCardStudio = () => {
       toast.error('שגיאה בייצוא');
     }
   }, [isDoubleSided]);
+
+  const handleExportPdf = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      // Card dimensions in mm
+      const [cardW, cardH] = cardSizeParam === '85x55' ? [85, 55] : [90, 50];
+      const bleed = 3; // 3mm bleed on each side
+      const cropLen = 5; // 5mm crop mark length
+      const margin = 15; // margin from page edge
+      const totalW = cardW + bleed * 2;
+      const totalH = cardH + bleed * 2;
+
+      // Page size: enough for card + bleed + crop marks + margin
+      const pageW = totalW + margin * 2;
+      const pageH = totalH + margin * 2;
+
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [pageW, pageH] });
+
+      const drawCropMarks = (x: number, y: number, w: number, h: number) => {
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.1);
+        // Top-left
+        doc.line(x, y - cropLen, x, y); doc.line(x - cropLen, y, x, y);
+        // Top-right
+        doc.line(x + w, y - cropLen, x + w, y); doc.line(x + w, y, x + w + cropLen, y);
+        // Bottom-left
+        doc.line(x, y + h, x, y + h + cropLen); doc.line(x - cropLen, y + h, x, y + h);
+        // Bottom-right
+        doc.line(x + w, y + h, x + w, y + h + cropLen); doc.line(x + w, y + h, x + w + cropLen, y + h);
+      };
+
+      const addCardPage = async (ref: React.RefObject<HTMLDivElement | null>, label: string) => {
+        if (!ref.current) return;
+        const png = await toPng(ref.current, { pixelRatio: 6, width: 900, height: 500 });
+        
+        const x = margin;
+        const y = margin;
+
+        // Draw bleed area indicator (light gray border)
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.05);
+        doc.rect(x, y, totalW, totalH);
+
+        // Place image covering bleed area
+        doc.addImage(png, 'PNG', x, y, totalW, totalH);
+
+        // Crop marks at the trim line (inside bleed)
+        const trimX = x + bleed;
+        const trimY = y + bleed;
+        drawCropMarks(trimX, trimY, cardW, cardH);
+
+        // Label
+        doc.setFontSize(6);
+        doc.setTextColor(150);
+        doc.text(`${label} | ${cardW}×${cardH}mm | bleed ${bleed}mm`, pageW / 2, pageH - 3, { align: 'center' });
+      };
+
+      // Front page
+      await addCardPage(frontRef, 'חזית');
+
+      // Back page
+      if (isDoubleSided && backRef.current) {
+        doc.addPage([pageW, pageH], 'landscape');
+        await addCardPage(backRef, 'גב');
+      }
+
+      doc.save(`business-card-print-${Date.now()}.pdf`);
+      toast.success('PDF מוכן לדפוס יוצא בהצלחה!');
+    } catch (err) {
+      console.error(err);
+      toast.error('שגיאה בייצוא PDF');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [isDoubleSided, cardSizeParam]);
 
   const contactLine = (icon: string, value: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
@@ -210,10 +288,16 @@ const BusinessCardStudio = () => {
             </Button>
             <h1 className="text-xl font-bold text-foreground">עיצוב כרטיס ביקור</h1>
           </div>
-          <Button onClick={handleExport} className="gap-2">
-            <Download className="w-4 h-4" />
-            ייצוא PNG
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExport} className="gap-2">
+              <Download className="w-4 h-4" />
+              PNG
+            </Button>
+            <Button onClick={handleExportPdf} disabled={isExporting} className="gap-2">
+              <FileText className="w-4 h-4" />
+              {isExporting ? 'מייצא...' : 'PDF לדפוס'}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" dir="rtl">
