@@ -36,7 +36,8 @@ import {
   Monitor,
   Mail,
   MessageCircle,
-  LayoutGrid
+  LayoutGrid,
+  MapPin
 } from 'lucide-react';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
