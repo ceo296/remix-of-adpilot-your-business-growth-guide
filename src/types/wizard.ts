@@ -142,6 +142,7 @@ export interface WebsiteInsights {
   seniority: string;
   coreOffering: string;
   audience: string;
+  services: string[];
   confirmed: boolean;
 }
 
@@ -215,6 +216,7 @@ export const initialWizardData: WizardData = {
     seniority: '',
     coreOffering: '',
     audience: '',
+    services: [],
     confirmed: false,
   },
   strategicMRI: {
