@@ -628,7 +628,7 @@ const OnboardingWizard = () => {
     return null;
   }
 
-  const handleContactAssetsChange = (data: Partial<ContactAssets>) => {
+  const handleContactAssetsChange = (data: Partial<import('@/types/wizard').ContactAssets>) => {
     setWizardData((prev) => ({
       ...prev,
       contactAssets: { ...prev.contactAssets, ...data },
