@@ -211,21 +211,21 @@ export const TemplatePreview = ({ templateId, primaryColor = '#E34870', secondar
   const color = primaryColor;
   const secColor = secondaryColor || '#2A2F33';
 
-  // Business card mapping
-  const bcMap: Record<string, { style: string; doubleSided: boolean }> = {
-    'bc-classic': { style: 'classic', doubleSided: true },
-    'bc-modern': { style: 'modern', doubleSided: true },
-    'bc-minimal': { style: 'minimal', doubleSided: false },
-    'bc-premium': { style: 'premium', doubleSided: true },
-    'bc-bold': { style: 'bold', doubleSided: true },
-    'bc-elegant': { style: 'elegant', doubleSided: false },
+  const bcStyles: Record<string, string> = {
+    'bc-classic': 'classic',
+    'bc-modern': 'modern',
+    'bc-minimal': 'minimal',
+    'bc-premium': 'premium',
+    'bc-bold': 'bold',
+    'bc-elegant': 'elegant',
   };
 
-  if (bcMap[templateId]) {
-    const { style, doubleSided } = bcMap[templateId];
+  if (bcStyles[templateId]) {
+    const style = bcStyles[templateId];
+    const showDouble = doubleSidedOverride !== undefined ? doubleSidedOverride : true;
     return (
       <div className="w-full h-full bg-muted/30">
-        <BusinessCardPreview style={style} color={color} secondaryColor={secColor} businessName={businessName} doubleSided={doubleSided} />
+        <BusinessCardPreview style={style} color={color} secondaryColor={secColor} businessName={businessName} doubleSided={showDouble} />
       </div>
     );
   }
