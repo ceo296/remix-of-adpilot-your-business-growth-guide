@@ -207,7 +207,7 @@ const BusinessCardPreview = ({ style, color, secondaryColor, businessName, doubl
   );
 };
 
-export const TemplatePreview = ({ templateId, primaryColor = '#E34870', secondaryColor, businessName = 'שם העסק' }: TemplatePreviewProps) => {
+export const TemplatePreview = ({ templateId, primaryColor = '#E34870', secondaryColor, businessName = 'שם העסק', doubleSided: doubleSidedOverride }: TemplatePreviewProps) => {
   const color = primaryColor;
   const secColor = secondaryColor || '#2A2F33';
 
