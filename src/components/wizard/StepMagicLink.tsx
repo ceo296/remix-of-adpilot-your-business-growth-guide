@@ -315,6 +315,28 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
     setIsScanning(false);
   };
 
+  // ═══ Editable snapshot fields ═══
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+
+  const startEdit = (field: string, value: string) => {
+    setEditingField(field);
+    setEditValue(value);
+  };
+
+  const saveEdit = (field: string) => {
+    if (field === 'industry' || field === 'coreOffering' || field === 'audience' || field === 'seniority') {
+      updateData({ websiteInsights: { ...data.websiteInsights, [field]: editValue } });
+    } else if (field === 'businessName') {
+      updateData({ brand: { name: editValue } });
+    }
+    setEditingField(null);
+  };
+
+  const updateContact = (key: keyof ContactAssets, value: string) => {
+    updateData({ contactAssets: { ...data.contactAssets, [key]: value } });
+  };
+
   const handleContinueFromSnapshot = () => {
     onNext();
   };
