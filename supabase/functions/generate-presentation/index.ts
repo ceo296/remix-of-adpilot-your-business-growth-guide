@@ -28,7 +28,8 @@ serve(async (req) => {
 - אימייל: ${pd.email || 'לא סופק'}
 - כתובת: ${pd.address || 'לא סופק'}
 - אתר: ${pd.website || 'לא סופק'}
-- שירותים/תחומים: ${pd.xFactors?.join(', ') || 'לא סופק'}
+- שירותים/תחומים: ${pd.services?.join(', ') || pd.xFactors?.join(', ') || 'לא סופק'}
+- X-Factors/יתרונות: ${pd.xFactors?.join(', ') || 'לא סופק'}
 - קהל יעד: ${pd.targetAudience || 'לא סופק'}
 - יתרון מרכזי: ${pd.winningFeature || 'לא סופק'}
 - X-Factor ראשי: ${pd.primaryXFactor || 'לא סופק'}

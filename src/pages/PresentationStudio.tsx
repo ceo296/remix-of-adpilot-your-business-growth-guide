@@ -1029,6 +1029,7 @@ const PresentationStudio = () => {
         youtube: profile.contact_youtube,
         openingHours: profile.opening_hours,
         branches: profile.branches,
+        services: profile.services,
         industry: '',
       } : undefined;
 
