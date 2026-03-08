@@ -164,7 +164,7 @@ const InternalStudio = () => {
       const contactParams = needsContactPicker ? `&contactFields=${selectedContactFields.join(',')}` : '';
       if (selectedCategory === 'business-cards') {
         const sidesParam = `&sides=${isDoubleSided ? 2 : 1}`;
-        navigate(`/business-card-studio?template=${selectedTemplate}${contactParams}${sidesParam}`);
+        navigate(`/business-card-studio?template=${selectedTemplate}${contactParams}${sidesParam}&paper=${paperType}&size=${cardSize}`);
       } else if (selectedCategory === 'letterhead') {
         navigate(`/letterhead-studio?template=${selectedTemplate}${contactParams}`);
       } else {
