@@ -169,7 +169,18 @@ const FastTrackWizard = () => {
     setCurrentStep('mediaType');
   };
 
+  // Check if scope question is needed (newspapers or signage selected)
+  const needsScopeQuestion = selectedMediaTypes.some(t => t === 'newspapers' || t === 'signage');
+
   const handleProceedToMedia = () => {
+    if (needsScopeQuestion && !mediaScope) {
+      setCurrentStep('mediaScope');
+    } else {
+      setCurrentStep('media');
+    }
+  };
+
+  const handleProceedFromScope = () => {
     setCurrentStep('media');
   };
 
