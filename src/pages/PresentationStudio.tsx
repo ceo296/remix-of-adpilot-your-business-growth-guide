@@ -1029,7 +1029,7 @@ const PresentationStudio = () => {
     return (
       <>
         <TopNavbar />
-        <BriefScreen onGenerate={handleGenerate} businessName={businessName} isLoading={isGenerating} />
+        <BriefScreen onGenerate={handleGenerate} businessName={businessName} isLoading={isGenerating} profile={profile} />
       </>
     );
   }
