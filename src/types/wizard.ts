@@ -142,6 +142,7 @@ export interface WebsiteInsights {
   seniority: string;
   coreOffering: string;
   audience: string;
+  services: string[];
   confirmed: boolean;
 }
 
