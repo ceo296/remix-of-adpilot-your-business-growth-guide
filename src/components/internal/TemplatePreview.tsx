@@ -326,41 +326,85 @@ export const TemplatePreview = ({ templateId, primaryColor = '#E34870', secondar
       </div>
     ),
 
-    // Letterhead
+    // Letterhead — realistic minimalist with bottom contact grid
     'lh-classic': (
-      <div className="w-full h-full bg-white rounded flex flex-col p-2" dir="rtl">
-        <div className="flex items-center justify-between border-b pb-1 mb-2" style={{ borderColor: `${color}40` }}>
-          <div className="w-5 h-5 rounded" style={{ backgroundColor: color }} />
-          <div className="text-[6px] font-bold text-gray-800">{businessName}</div>
+      <div className="w-full h-full bg-white rounded flex flex-col overflow-hidden" dir="rtl">
+        {/* Header — logo + business name */}
+        <div className="flex items-center gap-1.5 p-2 pb-1">
+          <div className="w-5 h-5 rounded-sm" style={{ backgroundColor: color }} />
+          <div>
+            <div className="text-[7px] font-bold text-gray-800">{businessName}</div>
+            <div className="text-[4px] text-gray-300">בס״ד</div>
+          </div>
         </div>
-        <div className="flex-1 space-y-1">
-          <div className="h-[2px] bg-gray-100 rounded w-full" />
-          <div className="h-[2px] bg-gray-100 rounded w-full" />
-          <div className="h-[2px] bg-gray-100 rounded w-3/4" />
+        <div className="w-[85%] mx-auto h-[0.5px]" style={{ backgroundColor: `${color}30` }} />
+        {/* Body lines */}
+        <div className="flex-1 p-3 space-y-[5px]">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-[1.5px] bg-gray-50 rounded w-full" />
+          ))}
+        </div>
+        {/* Bottom contact grid */}
+        <div className="border-t px-2 py-1.5 flex items-center justify-between" style={{ borderColor: `${color}20` }}>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: color, opacity: 0.15 }} />
+            <div className="text-[3.5px] text-gray-400">{businessName}</div>
+          </div>
+          <div className="flex gap-2">
+            <div className="text-[3px] text-gray-300">054-000-0000</div>
+            <div className="text-[3px] text-gray-300">info@example.com</div>
+            <div className="text-[3px] text-gray-300">בני ברק</div>
+          </div>
         </div>
       </div>
     ),
     'lh-modern': (
       <div className="w-full h-full bg-white rounded flex flex-col overflow-hidden" dir="rtl">
-        <div className="h-2 w-full" style={{ backgroundColor: color }} />
-        <div className="p-2 flex-1">
-          <div className="text-[7px] font-bold text-gray-800">{businessName}</div>
-          <div className="mt-2 space-y-1">
-            <div className="h-[2px] bg-gray-100 rounded w-full" />
-            <div className="h-[2px] bg-gray-100 rounded w-full" />
+        {/* Top accent line */}
+        <div className="h-[3px] w-full" style={{ backgroundColor: color }} />
+        {/* Header */}
+        <div className="px-2 pt-2 flex items-start justify-between">
+          <div>
+            <div className="text-[7px] font-black text-gray-800">{businessName}</div>
+            <div className="text-[4px] text-gray-400 tracking-wider">PROFESSIONAL SERVICES</div>
+          </div>
+          <div className="w-5 h-5 rounded-sm border" style={{ borderColor: color }} />
+        </div>
+        {/* Body */}
+        <div className="flex-1 px-3 pt-3 space-y-[5px]">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-[1.5px] bg-gray-50 rounded w-full" />
+          ))}
+        </div>
+        {/* Bottom bar */}
+        <div className="px-2 py-1.5" style={{ backgroundColor: `${color}08` }}>
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <div className="text-[3px] text-gray-400">📞 054-000-0000</div>
+              <div className="text-[3px] text-gray-400">✉ info@example.com</div>
+            </div>
+            <div className="text-[3px] text-gray-400">📍 בני ברק</div>
           </div>
         </div>
-        <div className="h-1 w-full" style={{ backgroundColor: color, opacity: 0.3 }} />
+        <div className="h-[1.5px] w-full" style={{ backgroundColor: color, opacity: 0.3 }} />
       </div>
     ),
     'lh-minimal': (
-      <div className="w-full h-full bg-white rounded flex flex-col p-2" dir="rtl">
-        <div className="text-[7px] font-bold text-gray-800">{businessName}</div>
-        <div className="text-[4px] text-gray-400 mb-3">054-000-0000 | info@example.com</div>
-        <div className="flex-1 space-y-1">
-          <div className="h-[2px] bg-gray-50 rounded w-full" />
-          <div className="h-[2px] bg-gray-50 rounded w-full" />
-          <div className="h-[2px] bg-gray-50 rounded w-4/5" />
+      <div className="w-full h-full bg-white rounded flex flex-col overflow-hidden" dir="rtl">
+        {/* Clean header — just name */}
+        <div className="px-2 pt-3 text-center">
+          <div className="text-[8px] font-bold text-gray-800">{businessName}</div>
+          <div className="w-4 h-[0.5px] mx-auto mt-1" style={{ backgroundColor: color }} />
+        </div>
+        {/* Body */}
+        <div className="flex-1 px-3 pt-3 space-y-[5px]">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-[1.5px] bg-gray-50 rounded w-full" />
+          ))}
+        </div>
+        {/* Minimal bottom */}
+        <div className="text-center py-1.5 border-t" style={{ borderColor: `${color}15` }}>
+          <div className="text-[3px] text-gray-300">054-000-0000 | info@example.com | בני ברק</div>
         </div>
       </div>
     ),

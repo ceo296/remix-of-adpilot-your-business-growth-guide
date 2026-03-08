@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { 
   ArrowRight, 
   CreditCard, 
@@ -13,7 +15,13 @@ import {
   BookOpen,
   Sparkles,
   ChevronLeft,
-  Check
+  Check,
+  Phone,
+  AtSign,
+  MapPin,
+  MessageCircle,
+  Globe,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
@@ -121,8 +129,27 @@ const InternalStudio = () => {
   const { profile } = useClientProfile();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [selectedContactFields, setSelectedContactFields] = useState<string[]>(['phone', 'email', 'address']);
 
   const currentCategory = TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory);
+  const needsContactPicker = selectedCategory === 'business-cards' || selectedCategory === 'letterhead';
+
+  const CONTACT_FIELD_OPTIONS = [
+    { id: 'phone', label: 'טלפון', icon: Phone },
+    { id: 'email', label: 'אימייל', icon: AtSign },
+    { id: 'address', label: 'כתובת', icon: MapPin },
+    { id: 'whatsapp', label: 'וואטסאפ', icon: MessageCircle },
+    { id: 'website', label: 'אתר אינטרנט', icon: Globe },
+    { id: 'opening_hours', label: 'שעות פתיחה', icon: Clock },
+  ];
+
+  const toggleContactField = (fieldId: string) => {
+    setSelectedContactFields(prev =>
+      prev.includes(fieldId)
+        ? prev.filter(f => f !== fieldId)
+        : [...prev, fieldId]
+    );
+  };
 
   const handleSelectTemplate = (templateId: string) => {
     setSelectedTemplate(templateId);
@@ -130,8 +157,8 @@ const InternalStudio = () => {
 
   const handleContinue = () => {
     if (selectedTemplate && selectedCategory) {
-      // Navigate to studio with template context
-      navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}`);
+      const contactParams = needsContactPicker ? `&contactFields=${selectedContactFields.join(',')}` : '';
+      navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}${contactParams}`);
     }
   };
 
@@ -262,13 +289,49 @@ const InternalStudio = () => {
               ))}
             </div>
 
+            {/* Contact Fields Picker */}
+            {needsContactPicker && selectedTemplate && (
+              <Card className="mb-8 max-w-2xl mx-auto">
+                <CardContent className="p-6" dir="rtl">
+                  <h3 className="text-base font-bold text-foreground mb-1">אילו פרטים יופיעו?</h3>
+                  <p className="text-sm text-muted-foreground mb-4">בחר אילו פרטי קשר יוצגו על {selectedCategory === 'business-cards' ? 'כרטיס הביקור' : 'נייר המכתבים'}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {CONTACT_FIELD_OPTIONS.map((field) => {
+                      const isSelected = selectedContactFields.includes(field.id);
+                      const fieldMap: Record<string, string> = { phone: 'contact_phone', email: 'contact_email', address: 'contact_address', whatsapp: 'contact_whatsapp', website: 'website_url', opening_hours: 'opening_hours' };
+                      const profileValue = profile?.[fieldMap[field.id] as keyof typeof profile];
+                      return (
+                        <div
+                          key={field.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                            isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
+                          }`}
+                          onClick={() => toggleContactField(field.id)}
+                        >
+                          <Checkbox checked={isSelected} onCheckedChange={() => toggleContactField(field.id)} className="pointer-events-none" />
+                          <field.icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-sm font-medium cursor-pointer">{field.label}</Label>
+                            {profileValue && <p className="text-[10px] text-muted-foreground truncate">{String(profileValue)}</p>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {selectedContactFields.length === 0 && (
+                    <p className="text-xs text-destructive mt-2">יש לבחור לפחות פרט קשר אחד</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Continue Button */}
             <div className="flex justify-center">
               <Button
                 variant="gradient"
                 size="xl"
                 onClick={handleContinue}
-                disabled={!selectedTemplate}
+                disabled={!selectedTemplate || (needsContactPicker && selectedContactFields.length === 0)}
                 className="min-w-[300px] h-14 text-lg font-bold"
               >
                 <Sparkles className="w-5 h-5 ml-2" />
