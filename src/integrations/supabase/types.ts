@@ -417,6 +417,7 @@ export type Database = {
           primary_x_factor: string | null
           quality_signatures: Json | null
           secondary_color: string | null
+          services: string[] | null
           social_facebook: string | null
           social_instagram: string | null
           social_linkedin: string | null
@@ -467,6 +468,7 @@ export type Database = {
           primary_x_factor?: string | null
           quality_signatures?: Json | null
           secondary_color?: string | null
+          services?: string[] | null
           social_facebook?: string | null
           social_instagram?: string | null
           social_linkedin?: string | null
@@ -517,6 +519,7 @@ export type Database = {
           primary_x_factor?: string | null
           quality_signatures?: Json | null
           secondary_color?: string | null
+          services?: string[] | null
           social_facebook?: string | null
           social_instagram?: string | null
           social_linkedin?: string | null
