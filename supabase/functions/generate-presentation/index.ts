@@ -14,57 +14,80 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
-    // Build context from profile data
-    const profileContext = profileData ? `
+    // Build rich context from profile data
+    const pd = profileData || {};
+    const hasServices = pd.xFactors?.length > 0;
+    const hasTrustAssets = pd.qualitySignatures?.length > 0 || pd.successfulCampaigns?.length > 0;
+    const hasAddress = !!pd.address;
+    const hasSocials = pd.facebook || pd.instagram || pd.linkedin || pd.tiktok || pd.youtube;
+    
+    const profileContext = `
 פרטי העסק הידועים (חובה להשתמש בנתונים אלה בלבד - אסור להמציא פרטים):
-- שם העסק: ${profileData.businessName || businessName}
-- טלפון: ${profileData.phone || 'לא ידוע'}
-- אימייל: ${profileData.email || 'לא ידוע'}
-- כתובת: ${profileData.address || 'לא ידוע'}
-- אתר: ${profileData.website || 'לא ידוע'}
-- שירותים/תחומים: ${profileData.xFactors?.join(', ') || 'לא ידוע'}
-- קהל יעד: ${profileData.targetAudience || 'לא ידוע'}
-- יתרון מרכזי: ${profileData.winningFeature || 'לא ידוע'}
-` : '';
+- שם העסק: ${pd.businessName || businessName}
+- טלפון: ${pd.phone || 'לא סופק'}
+- אימייל: ${pd.email || 'לא סופק'}
+- כתובת: ${pd.address || 'לא סופק'}
+- אתר: ${pd.website || 'לא סופק'}
+- שירותים/תחומים: ${pd.xFactors?.join(', ') || 'לא סופק'}
+- קהל יעד: ${pd.targetAudience || 'לא סופק'}
+- יתרון מרכזי: ${pd.winningFeature || 'לא סופק'}
+- X-Factor ראשי: ${pd.primaryXFactor || 'לא סופק'}
+- נכסי אמון/הישגים: ${pd.qualitySignatures?.join(', ') || 'לא סופק'}
+- קמפיינים מוצלחים: ${pd.successfulCampaigns?.join(', ') || 'לא סופק'}
+- פייסבוק: ${pd.facebook || 'לא סופק'}
+- אינסטגרם: ${pd.instagram || 'לא סופק'}
+- לינקדאין: ${pd.linkedin || 'לא סופק'}
+- שעות פעילות: ${pd.openingHours || 'לא סופק'}
+- סניפים: ${pd.branches || 'לא סופק'}
+`;
 
     const themeInstructions: Record<string, string> = {
-      minimal: `סגנון מינימלי: כותרות קצרות וחדות, הרבה חלל לבן, ללא עודף מידע. כל שקופית מתמקדת ברעיון אחד בלבד. השתמש בניסוח מאופק ואלגנטי.`,
-      corporate: `סגנון תאגידי-מקצועי: מידע מקיף אך מסודר, נתונים ומספרים, שפה עסקית רצינית. הדגש ניסיון, מומחיות ותוצאות מוכחות.`,
-      creative: `סגנון יצירתי ונועז: כותרות פרובוקטיביות ומפתיעות, שפה שיווקית חזקה, ניסוחים לא שגרתיים. השתמש בשאלות רטוריות ומשפטי תועלת חזקים.`,
+      minimal: `סגנון מינימלי (Gamma.app style): כותרות קצרות וחדות, הרבה חלל לבן, ללא עודף מידע. כל שקופית מתמקדת ברעיון אחד בלבד. ניסוח מאופק ואלגנטי. טיפוגרפיה דקה ומדויקת.`,
+      corporate: `סגנון תאגידי-מקצועי (Beautiful.ai style): מידע מקיף אך מסודר, נתונים ומספרים, שפה עסקית רצינית. הדגש ניסיון, מומחיות ותוצאות מוכחות. layout מובנה עם grid.`,
+      creative: `סגנון יצירתי ונועז (Canva style): כותרות פרובוקטיביות ומפתיעות, שפה שיווקית חזקה, ניסוחים לא שגרתיים. שאלות רטוריות ומשפטי תועלת חזקים.`,
     };
 
-    const systemPrompt = `אתה מעצב מצגות מקצועי ברמה של Gamma / Beautiful.ai / Canva.
-תפקידך ליצור תוכן מצגת מושלם בעברית על בסיס הבריף ופרטי העסק.
+    // Dynamic slide logic instructions
+    const dynamicLogic = `
+לוגיקת בניית שקופיות דינמית (חשוב מאוד!):
+ניתח את המידע שקיבלת וצור רצף שקופיות שמרגיש פרימיום.
+
+ארכיטקטורת שקופיות:
+1. COVER (חובה, ראשונה): כותרת ויזואלית חזקה + כותרת משנה ברמה גבוהה.
+2. ABOUT - "מי אנחנו": סכם את הסיפור ל-2-3 פסקאות חזקות.
+3. VISION - אם הבריף ארוך ועשיר, צור שקופית "חזון וערכים" נפרדת. אם קצר - דלג.
+4. SERVICES (דינמי):
+   - אם יש פחות מ-4 שירותים: שקופית אחת עם כולם.
+   - אם יש 4+ שירותים: פצל לשקופיות נושאיות (למשל "שירותי ליבה" + "פתרונות מתקדמים").
+5. METHODOLOGY - אם הפרסונה/הבריף מרמזים על מומחיות, הוסף שקופית "איך אנחנו עובדים" עם steps.
+6. SOCIAL_PROOF - "למה דווקא אנחנו?": השתמש בכל נכסי האמון. אם יש יותר מ-5 - פצל ל-2 שקופיות.
+7. TARGET_AUDIENCE - "למי השירות שלנו מתאים": שקופית ייעודית עם bullets.
+8. CTA - "נשמח לשבת לקפה": פרטי קשר מלאים + סיום מקצועי.
+
+כללי ברזל:
+- מינימום 5, מקסימום 10 שקופיות - תלוי בעושר המידע.
+- שקופית ראשונה = cover, אחרונה = contact.
+- אל תחזור על אותו סוג שקופית אלא אם זה מוצדק (למשל 2 services).
+- אם אין מידע לשקופית - אל תיצור אותה. עדיף פחות ומדויק.
+- אסור להמציא מספרים, שמות, טלפונים או נתונים שלא סופקו.
+`;
+
+    const systemPrompt = `אתה Senior Presentation Architect ברמה של Gamma.app / Clean Modernism.
+תפקידך ליצור Business Profile מקצועי ברמה הגבוהה ביותר בעברית.
 
 ${themeInstructions[theme] || themeInstructions.corporate}
 
-הנחיות קריטיות:
-- חובה להיצמד לפרטים שקיבלת על העסק. אסור להמציא שמות, מספרי טלפון, כתובות או נתונים שלא סופקו.
-- אם אין לך מידע על משהו - אל תכתוב אותו. עדיף פחות תוכן מאשר תוכן שגוי.
+${dynamicLogic}
+
+הנחיות נוספות:
 - כותרות: 3-6 מילים, עוצמתיות ומדויקות
-- גוף טקסט: עד 3 שורות תמציתיות
-- bullets: 3-5 מילים לכל פריט
-- נתונים (stats): השתמש רק בנתונים שסופקו בבריף. אם אין - אל תמציא מספרים.
-- שפה שיווקית מקצועית המותאמת לתעשייה
+- גוף טקסט: תמציתי, עד 3 שורות
+- bullets: 3-6 מילים לכל פריט
+- נתונים (stats): רק אם סופקו בבריף. אם אין - אל תמציא.
+- שפה שיווקית מקצועית ופרימיום
 ${profileContext}
 
-החזר JSON בפורמט הבא בלבד (ללא markdown, ללא הסברים):
-
-סוגי שקופיות אפשריים:
-- cover: שער עם כותרת + כותרת משנה
-- about: אודות עם body text
-- services: שירותים עם bullets (4-6 פריטים)
-- value_prop: הצעת ערך עם bullets (3-4 יתרונות)
-- stats: נתונים/מספרים עם stats array (3-4 מספרים) - רק אם יש נתונים אמיתיים!
-- process: תהליך עבודה עם steps array (3-4 שלבים)
-- testimonial: המלצה עם body (ציטוט) + subtitle (שם הממליץ) - רק אם סופק בבריף
-- cta: קריאה לפעולה עם title + body
-- contact: צור קשר
-
-צור בדיוק ${slideCount} שקופיות.
-השקופית הראשונה חייבת להיות cover והאחרונה contact.
-ודא מגוון סוגי שקופיות - אל תחזור על אותו סוג.
-אם אין מספיק מידע לשקופית stats או testimonial - החלף בסוג אחר.`;
+צור בדיוק ${slideCount} שקופיות (או פחות אם אין מספיק מידע).`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -82,7 +105,7 @@ ${profileContext}
           type: "function",
           function: {
             name: "create_presentation",
-            description: "Create a professional presentation with slides",
+            description: "Create a professional business profile presentation with dynamic slides",
             parameters: {
               type: "object",
               properties: {
@@ -91,7 +114,7 @@ ${profileContext}
                   items: {
                     type: "object",
                     properties: {
-                      type: { type: "string", enum: ["cover", "about", "services", "value_prop", "stats", "process", "testimonial", "team", "cta", "contact"] },
+                      type: { type: "string", enum: ["cover", "about", "vision", "services", "value_prop", "stats", "process", "methodology", "testimonial", "social_proof", "target_audience", "team", "cta", "contact"] },
                       title: { type: "string" },
                       subtitle: { type: "string" },
                       body: { type: "string" },

@@ -21,7 +21,7 @@ export type PresentationTheme = 'minimal' | 'corporate' | 'creative';
 
 interface SlideData {
   id: string;
-  type: 'cover' | 'about' | 'services' | 'value_prop' | 'stats' | 'process' | 'testimonial' | 'team' | 'cta' | 'contact' | 'blank';
+  type: 'cover' | 'about' | 'vision' | 'services' | 'value_prop' | 'stats' | 'process' | 'methodology' | 'testimonial' | 'social_proof' | 'target_audience' | 'team' | 'cta' | 'contact' | 'blank';
   title: string;
   subtitle?: string;
   body?: string;
@@ -31,8 +31,9 @@ interface SlideData {
 }
 
 const SLIDE_LABELS: Record<string, string> = {
-  cover: 'שער', about: 'אודות', services: 'שירותים', value_prop: 'הצעת ערך',
-  stats: 'נתונים', process: 'תהליך', testimonial: 'המלצה', team: 'צוות',
+  cover: 'שער', about: 'אודות', vision: 'חזון', services: 'שירותים', value_prop: 'הצעת ערך',
+  stats: 'נתונים', process: 'תהליך', methodology: 'מתודולוגיה', testimonial: 'המלצה',
+  social_proof: 'הוכחה חברתית', target_audience: 'קהל יעד', team: 'צוות',
   cta: 'קריאה לפעולה', contact: 'צור קשר', blank: 'ריקה',
 };
 
@@ -537,6 +538,145 @@ const SlideRenderer = ({
         </div>
       );
 
+    case 'vision':
+      return (
+        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : (tc.darkSlideBg as string) }}>
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
+          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
+          {theme === 'creative' && <div style={{ position: 'absolute', top: -150, left: -150, width: 500, height: 500, borderRadius: '50%', background: hexToRgba(brandColor, 0.1) }} />}
+          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 180px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30 }}>
+              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : light, borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : light, letterSpacing: 3 }}>חזון וערכים</span>
+            </div>
+            <h2 style={{ fontSize: 72, fontWeight: 900, color: theme === 'minimal' ? '#111' : '#fff', marginBottom: 40, lineHeight: 1.1 }}>{slide.title}</h2>
+            {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: theme === 'minimal' ? '#666' : 'rgba(255,255,255,0.75)', maxWidth: 1300 }}>{slide.body}</p>}
+            {slide.bullets && (
+              <div style={{ display: 'flex', gap: 40, marginTop: 50 }}>
+                {slide.bullets.map((b, i) => (
+                  <div key={i} style={{ flex: 1, padding: '30px 28px', borderRadius: 20, background: theme === 'minimal' ? '#f8f9fa' : 'rgba(255,255,255,0.06)', border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+                    <div style={{ fontSize: 36, marginBottom: 12 }}>{['🎯', '💡', '🏆', '⭐'][i % 4]}</div>
+                    <span style={{ fontSize: 24, fontWeight: 600, color: theme === 'minimal' ? '#333' : 'rgba(255,255,255,0.9)' }}>{b}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ position: 'absolute', bottom: 50, left: 80, fontSize: 18, color: theme === 'minimal' ? '#ddd' : 'rgba(255,255,255,0.3)' }}>{businessName}</div>
+        </div>
+      );
+
+    case 'methodology':
+      return (
+        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : '#fafafa' }}>
+          {theme !== 'minimal' && <div style={{ position: 'absolute', top: 0, right: 0, width: 6, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${dark})` }} />}
+          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
+          <div style={{ padding: '100px 150px 100px 120px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
+              <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>איך אנחנו עובדים</span>
+            </div>
+            <h2 style={{ fontSize: 60, fontWeight: 900, color: '#111', marginBottom: 70 }}>{slide.title}</h2>
+            <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
+              {(slide.steps || []).map((s, i) => (
+                <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
+                  {i < (slide.steps?.length || 0) - 1 && (
+                    <div style={{ position: 'absolute', top: 35, left: -20, width: 40, height: 3, background: `${brandColor}30` }} />
+                  )}
+                  <div style={{
+                    width: 70, height: 70, borderRadius: 20,
+                    background: theme === 'creative' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : `linear-gradient(135deg, ${brandColor}, ${dark})`,
+                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 28, fontWeight: 900, margin: '0 auto 24px',
+                    boxShadow: `0 6px 25px ${brandColor}30`,
+                  }}>{s.number}</div>
+                  <h3 style={{ fontSize: 28, fontWeight: 800, color: '#222', marginBottom: 12 }}>{s.title}</h3>
+                  <p style={{ fontSize: 20, color: '#777', lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+    case 'social_proof':
+      return (
+        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : '#fafafa' }}>
+          {theme !== 'minimal' && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 8, background: `linear-gradient(90deg, ${brandColor}, ${dark})` }} />}
+          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
+          {theme === 'creative' && <div style={{ position: 'absolute', bottom: -100, right: -100, width: 350, height: 350, borderRadius: '50%', background: hexToRgba(brandColor, 0.05) }} />}
+          <div style={{ padding: '90px 140px', position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
+              <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>למה דווקא אנחנו?</span>
+            </div>
+            <h2 style={{ fontSize: 64, fontWeight: 900, color: '#111', marginBottom: 60 }}>{slide.title}</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: (slide.bullets?.length || 0) > 4 ? '1fr 1fr 1fr' : '1fr 1fr', gap: 28 }}>
+              {(slide.bullets || []).map((b, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 20,
+                  padding: theme === 'minimal' ? '24px 0' : '28px 32px',
+                  borderRadius: theme === 'minimal' ? 0 : 20,
+                  background: theme === 'minimal' ? 'transparent' : '#fff',
+                  boxShadow: theme === 'minimal' ? 'none' : '0 2px 20px rgba(0,0,0,0.04)',
+                  border: theme === 'minimal' ? 'none' : '1px solid #eee',
+                  borderBottom: theme === 'minimal' ? '1px solid #eee' : undefined,
+                }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 14,
+                    background: theme === 'creative' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : hexToRgba(brandColor, 0.1),
+                    color: theme === 'creative' ? '#fff' : brandColor,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 22, fontWeight: 800, flexShrink: 0,
+                  }}>✓</div>
+                  <span style={{ fontSize: 24, color: '#333', fontWeight: 600 }}>{b}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ position: 'absolute', bottom: 40, left: 60, fontSize: 18, color: '#ccc' }}>{businessName}</div>
+        </div>
+      );
+
+    case 'target_audience':
+      return (
+        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : (tc.darkSlideBg as string) }}>
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
+          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
+          {theme === 'creative' && (
+            <>
+              <div style={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+              <div style={{ position: 'absolute', bottom: -80, left: -80, width: 300, height: 300, borderRadius: '40%', background: 'rgba(255,255,255,0.03)', transform: 'rotate(30deg)' }} />
+            </>
+          )}
+          <div style={{ position: 'relative', padding: '100px 160px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30 }}>
+              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : light, borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : light, letterSpacing: 3 }}>למי השירות מתאים</span>
+            </div>
+            <h2 style={{ fontSize: 68, fontWeight: 900, color: theme === 'minimal' ? '#111' : '#fff', marginBottom: 50, lineHeight: 1.1 }}>{slide.title}</h2>
+            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: theme === 'minimal' ? '#888' : 'rgba(255,255,255,0.6)', marginBottom: 40, maxWidth: 1000 }}>{slide.body}</p>}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+              {(slide.bullets || []).map((b, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 20, padding: 28, borderRadius: 20,
+                  background: theme === 'minimal' ? '#f8f9fa' : 'rgba(255,255,255,0.06)',
+                  border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.08)',
+                }}>
+                  <div style={{
+                    width: 50, height: 50, borderRadius: 16,
+                    background: theme === 'creative' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : hexToRgba(brandColor, theme === 'minimal' ? 0.1 : 0.2),
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0,
+                  }}>👤</div>
+                  <span style={{ fontSize: 26, fontWeight: 600, color: theme === 'minimal' ? '#333' : 'rgba(255,255,255,0.9)' }}>{b}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ position: 'absolute', bottom: 50, left: 80, fontSize: 18, color: theme === 'minimal' ? '#ddd' : 'rgba(255,255,255,0.3)' }}>{businessName}</div>
+        </div>
+      );
+
     default:
       return (
         <div style={{ ...base, background: '#fff' }}>
@@ -681,6 +821,16 @@ const PresentationStudio = () => {
         xFactors: profile.x_factors,
         targetAudience: profile.target_audience,
         winningFeature: profile.winning_feature,
+        primaryXFactor: profile.primary_x_factor,
+        qualitySignatures: profile.quality_signatures as string[] | undefined,
+        successfulCampaigns: profile.successful_campaigns,
+        facebook: profile.social_facebook,
+        instagram: profile.social_instagram,
+        linkedin: profile.social_linkedin,
+        tiktok: profile.social_tiktok,
+        youtube: profile.contact_youtube,
+        openingHours: profile.opening_hours,
+        branches: profile.branches,
       } : undefined;
 
       const { data, error } = await supabase.functions.invoke('generate-presentation', {
@@ -900,14 +1050,14 @@ const PresentationStudio = () => {
               </div>
             )}
 
-            {(currentSlide.type === 'about' || currentSlide.type === 'contact' || currentSlide.type === 'testimonial' || currentSlide.type === 'cta') && (
+            {(currentSlide.type === 'about' || currentSlide.type === 'vision' || currentSlide.type === 'contact' || currentSlide.type === 'testimonial' || currentSlide.type === 'cta') && (
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">תוכן</label>
                 <Textarea value={currentSlide.body || ''} onChange={e => updateSlide(activeSlide, { body: e.target.value })} className="text-sm min-h-[120px]" dir="rtl" />
               </div>
             )}
 
-            {(currentSlide.type === 'services' || currentSlide.type === 'value_prop') && (
+            {(currentSlide.type === 'services' || currentSlide.type === 'value_prop' || currentSlide.type === 'social_proof' || currentSlide.type === 'target_audience' || currentSlide.type === 'vision') && (
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">פריטים</label>
                 {(currentSlide.bullets || []).map((b, i) => (
@@ -938,7 +1088,7 @@ const PresentationStudio = () => {
               </div>
             )}
 
-            {currentSlide.type === 'process' && (
+            {(currentSlide.type === 'process' || currentSlide.type === 'methodology') && (
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">שלבים</label>
                 {(currentSlide.steps || []).map((s, i) => (
