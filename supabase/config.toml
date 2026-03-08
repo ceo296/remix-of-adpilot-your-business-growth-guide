@@ -50,3 +50,9 @@ verify_jwt = false
 
 [functions.describe-brain-examples]
 verify_jwt = false
+
+[functions.generate-internal-material]
+verify_jwt = false
+
+[functions.generate-presentation]
+verify_jwt = false
