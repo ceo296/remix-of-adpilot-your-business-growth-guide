@@ -331,7 +331,7 @@ const InternalStudio = () => {
                 variant="gradient"
                 size="xl"
                 onClick={handleContinue}
-                disabled={!selectedTemplate}
+                disabled={!selectedTemplate || (needsContactPicker && selectedContactFields.length === 0)}
                 className="min-w-[300px] h-14 text-lg font-bold"
               >
                 <Sparkles className="w-5 h-5 ml-2" />
