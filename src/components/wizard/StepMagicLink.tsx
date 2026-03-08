@@ -564,30 +564,38 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
         {/* Contact Info Card */}
         <Card className="max-w-3xl mx-auto border-2 border-primary/20 shadow-lg">
           <CardContent className="p-6 space-y-5">
-            <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-              <Phone className="w-5 h-5 text-primary" />
-              פרטי יצירת קשר
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              השלימו או תקנו — הפרטים ישמשו בקמפיינים הבאים שלכם
-            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Phone className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-foreground">פרטי יצירת קשר</h3>
+                <p className="text-sm text-muted-foreground">
+                  השלימו או תקנו — הפרטים ישמשו בקמפיינים הבאים שלכם
+                </p>
+              </div>
+            </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              {CONTACT_FIELDS_CONFIG.map(({ key, label, icon: Icon, placeholder, type }) => (
-                <div key={key} className="space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                    <Icon className="w-3.5 h-3.5" />
-                    {label}
-                  </label>
-                  <Input
-                    type={type}
-                    value={contact[key] || ''}
-                    onChange={(e) => updateContact(key, e.target.value)}
-                    placeholder={placeholder}
-                    className="h-9 text-sm text-left"
-                    dir="ltr"
-                  />
-                </div>
-              ))}
+              {CONTACT_FIELDS_CONFIG.map(({ key, label, icon: Icon, placeholder, type }) => {
+                const isFilled = !!(contact[key]?.trim());
+                return (
+                  <div key={key} className={`space-y-1.5 p-3 rounded-xl border-2 transition-colors ${isFilled ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-dashed border-muted-foreground/20 bg-muted/30'}`}>
+                    <label className="flex items-center gap-1.5 text-xs font-semibold">
+                      <Icon className={`w-3.5 h-3.5 ${isFilled ? 'text-emerald-600' : 'text-muted-foreground/50'}`} />
+                      <span className={isFilled ? 'text-foreground' : 'text-muted-foreground/70'}>{label}</span>
+                      {isFilled && <CheckCircle2 className="w-3 h-3 text-emerald-500 mr-auto" />}
+                    </label>
+                    <Input
+                      type={type}
+                      value={contact[key] || ''}
+                      onChange={(e) => updateContact(key, e.target.value)}
+                      placeholder={placeholder}
+                      className={`h-9 text-sm text-left border-0 bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0 ${isFilled ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
+                      dir="ltr"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
