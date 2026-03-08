@@ -86,15 +86,12 @@ const BusinessCardStudio = () => {
   const handleExportPdf = useCallback(async () => {
     setIsExporting(true);
     try {
-      // Card dimensions in mm
       const [cardW, cardH] = cardSizeParam === '85x55' ? [85, 55] : [90, 50];
-      const bleed = 3; // 3mm bleed on each side
-      const cropLen = 5; // 5mm crop mark length
-      const margin = 15; // margin from page edge
+      const bleed = 3;
+      const cropLen = 5;
+      const margin = 15;
       const totalW = cardW + bleed * 2;
       const totalH = cardH + bleed * 2;
-
-      // Page size: enough for card + bleed + crop marks + margin
       const pageW = totalW + margin * 2;
       const pageH = totalH + margin * 2;
 
@@ -103,46 +100,30 @@ const BusinessCardStudio = () => {
       const drawCropMarks = (x: number, y: number, w: number, h: number) => {
         doc.setDrawColor(0);
         doc.setLineWidth(0.1);
-        // Top-left
         doc.line(x, y - cropLen, x, y); doc.line(x - cropLen, y, x, y);
-        // Top-right
         doc.line(x + w, y - cropLen, x + w, y); doc.line(x + w, y, x + w + cropLen, y);
-        // Bottom-left
         doc.line(x, y + h, x, y + h + cropLen); doc.line(x - cropLen, y + h, x, y + h);
-        // Bottom-right
         doc.line(x + w, y + h, x + w, y + h + cropLen); doc.line(x + w, y + h, x + w + cropLen, y + h);
       };
 
       const addCardPage = async (ref: React.RefObject<HTMLDivElement | null>, label: string) => {
         if (!ref.current) return;
         const png = await toPng(ref.current, { pixelRatio: 6, width: 900, height: 500 });
-        
         const x = margin;
         const y = margin;
-
-        // Draw bleed area indicator (light gray border)
         doc.setDrawColor(200);
         doc.setLineWidth(0.05);
         doc.rect(x, y, totalW, totalH);
-
-        // Place image covering bleed area
         doc.addImage(png, 'PNG', x, y, totalW, totalH);
-
-        // Crop marks at the trim line (inside bleed)
         const trimX = x + bleed;
         const trimY = y + bleed;
         drawCropMarks(trimX, trimY, cardW, cardH);
-
-        // Label
         doc.setFontSize(6);
         doc.setTextColor(150);
         doc.text(`${label} | ${cardW}×${cardH}mm | bleed ${bleed}mm`, pageW / 2, pageH - 3, { align: 'center' });
       };
 
-      // Front page
       await addCardPage(frontRef, 'חזית');
-
-      // Back page
       if (isDoubleSided && backRef.current) {
         doc.addPage([pageW, pageH], 'landscape');
         await addCardPage(backRef, 'גב');
@@ -158,7 +139,6 @@ const BusinessCardStudio = () => {
     }
   }, [isDoubleSided, cardSizeParam]);
 
-  // Helper to lighten/darken a hex color
   const adjustColor = (hex: string, amount: number) => {
     const num = parseInt(hex.replace('#', ''), 16);
     const r = Math.min(255, Math.max(0, (num >> 16) + amount));
@@ -167,13 +147,20 @@ const BusinessCardStudio = () => {
     return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`;
   };
 
+  const hexToRgb = (hex: string) => {
+    const num = parseInt(hex.replace('#', ''), 16);
+    return { r: num >> 16, g: (num >> 8) & 0xFF, b: num & 0xFF };
+  };
+
   const colorLight = adjustColor(color, 40);
   const colorDark = adjustColor(color, -30);
+  const colorVeryDark = adjustColor(color, -60);
+  const rgb = hexToRgb(color);
 
-  const contactLine = (icon: string, value: string, textColor: string = '#555') => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-start' }}>
-      <span style={{ fontSize: '14px', width: '20px', height: '20px', borderRadius: '50%', background: `${color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
-      <span style={{ fontSize: '13px', color: textColor, fontWeight: 500 }}>{value}</span>
+  const contactLine = (icon: string, value: string, textColor: string = '#444', iconBg: string = `${color}15`) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+      <span style={{ fontSize: '16px', width: '32px', height: '32px', borderRadius: '50%', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</span>
+      <span style={{ fontSize: '17px', color: textColor, fontWeight: 600, letterSpacing: '0.3px' }}>{value}</span>
     </div>
   );
 
@@ -183,111 +170,169 @@ const BusinessCardStudio = () => {
 
   const renderFront = () => {
     const style = template.replace('bc-', '');
+    const isDark = style === 'premium' || style === 'bold';
+    const font = profile?.header_font || 'Heebo, sans-serif';
 
     return (
       <div
         ref={frontRef}
         style={{
-          width: '900px', height: '500px', direction: 'rtl', fontFamily: profile?.header_font || 'Heebo, sans-serif',
-          position: 'relative', overflow: 'hidden', borderRadius: '0px', background: '#fff',
+          width: '900px', height: '500px', direction: 'rtl', fontFamily: font,
+          position: 'relative', overflow: 'hidden', borderRadius: '0px',
+          background: isDark ? (style === 'premium' ? secColor : `linear-gradient(135deg, ${color} 0%, ${colorVeryDark} 100%)`) : '#fff',
         }}
       >
-        {/* Decorative accent shape — top-left colored area */}
+        {/* === CLASSIC / ELEGANT: Big colored header band === */}
         {(style === 'classic' || style === 'elegant') && (
           <>
-            <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: '6px', background: color }} />
-            <div style={{ position: 'absolute', bottom: 0, right: 0, width: '100%', height: '3px', background: `${color}40` }} />
-            {/* Subtle dot texture */}
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: dotPattern, backgroundSize: '20px 20px' }} />
+            {/* Top color band - 45% of card */}
+            <div style={{ position: 'absolute', top: 0, right: 0, left: 0, height: '45%', background: `linear-gradient(135deg, ${color} 0%, ${colorDark} 100%)` }}>
+              <div style={{ position: 'absolute', inset: 0, backgroundImage: dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '20px 20px', opacity: 0.15 }} />
+              {/* Decorative circle */}
+              <div style={{ position: 'absolute', top: '-40px', left: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+            </div>
+            {/* Curved separator */}
+            <svg style={{ position: 'absolute', top: '43%', left: 0, right: 0, width: '100%' }} viewBox="0 0 900 30" preserveAspectRatio="none">
+              <path d={`M0 0 L900 0 L900 15 Q450 35 0 15 Z`} fill={colorDark} />
+            </svg>
+            {/* Bottom texture */}
+            <div style={{ position: 'absolute', bottom: 0, right: 0, left: 0, height: '55%', backgroundImage: dotPattern, backgroundSize: '20px 20px' }} />
           </>
         )}
 
+        {/* === MODERN: Side panel 42% with wave cutoff === */}
         {style === 'modern' && (
           <>
-            {/* Bold side panel with gradient */}
-            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '38%', background: `linear-gradient(160deg, ${color} 0%, ${colorDark} 100%)` }}>
-              {/* Diagonal pattern overlay */}
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: diagonalPattern, backgroundSize: '40px 40px' }} />
-              {/* Decorative chevrons */}
-              <svg style={{ position: 'absolute', bottom: '30px', left: '30px', opacity: 0.15 }} width="80" height="80" viewBox="0 0 80 80">
-                <path d="M10 20L30 40L10 60" stroke="white" strokeWidth="4" fill="none" />
-                <path d="M30 20L50 40L30 60" stroke="white" strokeWidth="4" fill="none" />
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '42%', background: `linear-gradient(160deg, ${color} 0%, ${colorVeryDark} 100%)` }}>
+              <div style={{ position: 'absolute', inset: 0, backgroundImage: diagonalPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '40px 40px', opacity: 0.15 }} />
+              {/* Decorative rings */}
+              <svg style={{ position: 'absolute', bottom: '20px', left: '20px', opacity: 0.12 }} width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="50" stroke="white" strokeWidth="2" fill="none" />
+                <circle cx="60" cy="60" r="35" stroke="white" strokeWidth="1.5" fill="none" />
+                <circle cx="60" cy="60" r="20" stroke="white" strokeWidth="1" fill="none" />
               </svg>
             </div>
-            {/* Right side dot texture */}
-            <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: '38%', backgroundImage: dotPattern, backgroundSize: '20px 20px' }} />
+            {/* Wave separator */}
+            <svg style={{ position: 'absolute', left: '40%', top: 0, bottom: 0, height: '100%', width: '60px' }} viewBox="0 0 60 500" preserveAspectRatio="none">
+              <path d={`M0 0 L20 0 Q60 125 20 250 Q-20 375 20 500 L0 500 Z`} fill={colorVeryDark} />
+            </svg>
+            <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: '42%', backgroundImage: dotPattern, backgroundSize: '20px 20px' }} />
           </>
         )}
 
+        {/* === MINIMAL: Geometric accent === */}
         {style === 'minimal' && (
           <>
-            <div style={{ position: 'absolute', top: '50%', left: '-60px', width: '200px', height: '200px', borderRadius: '50%', border: `2px solid ${color}15`, transform: 'translateY(-50%)' }} />
-            <div style={{ position: 'absolute', top: '50%', left: '-30px', width: '140px', height: '140px', borderRadius: '50%', border: `1px solid ${color}10`, transform: 'translateY(-50%)' }} />
+            {/* Bottom-left colored triangle area */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, width: '250px', height: '250px', background: `linear-gradient(135deg, ${color} 0%, ${colorDark} 100%)`, clipPath: 'polygon(0 100%, 100% 100%, 0 0)' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, width: '250px', height: '250px', backgroundImage: dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '20px 20px', opacity: 0.15, clipPath: 'polygon(0 100%, 100% 100%, 0 0)' }} />
+            {/* Top-right accent dot */}
+            <div style={{ position: 'absolute', top: '30px', left: '30px', width: '10px', height: '10px', borderRadius: '50%', background: color }} />
+            <div style={{ position: 'absolute', top: '30px', left: '50px', width: '6px', height: '6px', borderRadius: '50%', background: `${color}50` }} />
           </>
         )}
 
+        {/* === PREMIUM: Dark luxury with gold-like accent === */}
         {style === 'premium' && (
           <>
-            <div style={{ position: 'absolute', inset: 0, background: secColor }} />
-            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color}15 0%, transparent 50%, ${color}10 100%)` }} />
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: diagonalPattern, backgroundSize: '40px 40px', opacity: 0.5 }} />
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: `linear-gradient(90deg, transparent 10%, ${color} 50%, transparent 90%)` }} />
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: `linear-gradient(90deg, transparent 10%, ${color}60 50%, transparent 90%)` }} />
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${secColor} 0%, ${adjustColor(secColor, -20)} 100%)` }} />
+            <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 80% 20%, ${color}20 0%, transparent 50%)` }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: diagonalPattern.replace(encodeURIComponent(color), encodeURIComponent(color)), backgroundSize: '30px 30px', opacity: 0.4 }} />
+            {/* Gold accent lines */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: `linear-gradient(90deg, transparent 5%, ${color} 50%, transparent 95%)` }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: `linear-gradient(90deg, transparent 5%, ${color} 50%, transparent 95%)` }} />
+            {/* Corner accent */}
+            <svg style={{ position: 'absolute', top: '15px', right: '15px', opacity: 0.2 }} width="60" height="60" viewBox="0 0 60 60">
+              <path d="M0 0 L60 0 L60 5 L5 5 L5 60 L0 60 Z" fill={color} />
+            </svg>
+            <svg style={{ position: 'absolute', bottom: '15px', left: '15px', opacity: 0.2 }} width="60" height="60" viewBox="0 0 60 60">
+              <path d="M60 60 L0 60 L0 55 L55 55 L55 0 L60 0 Z" fill={color} />
+            </svg>
           </>
         )}
 
+        {/* === BOLD: Full color with dramatic geometric shapes === */}
         {style === 'bold' && (
           <>
-            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color} 0%, ${colorDark} 100%)` }} />
-            {/* Large geometric shape */}
-            <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
-            <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '24px 24px', opacity: 0.3 }} />
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color} 0%, ${colorVeryDark} 100%)` }} />
+            <div style={{ position: 'absolute', bottom: '-100px', left: '-100px', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+            <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '250px', height: '250px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.08)' }} />
+            <div style={{ position: 'absolute', top: '30%', right: '15%', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '24px 24px', opacity: 0.2 }} />
+            {/* Accent stripe */}
+            <div style={{ position: 'absolute', top: '20px', right: 0, width: '6px', height: '80px', background: 'rgba(255,255,255,0.2)', borderRadius: '0 3px 3px 0' }} />
           </>
         )}
 
-        {/* Content */}
-        <div style={{ position: 'relative', zIndex: 1, padding: '48px 56px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          {/* Header row */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            {/* Logo */}
-            <div>
+        {/* ========== CONTENT ========== */}
+        <div style={{ position: 'relative', zIndex: 1, padding: '40px 50px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          
+          {/* Top section — different layout per style */}
+          {(style === 'classic' || style === 'elegant') ? (
+            // Classic/Elegant: Name in the white header band area
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
               {logoUrl ? (
-                <div style={{ width: '80px', height: '80px', borderRadius: '8px', background: (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.1)' : `${color}08`, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px' }}>
-                  <img src={logoUrl} alt="logo" style={{ maxHeight: '64px', maxWidth: '64px', objectFit: 'contain', filter: (style === 'premium' || style === 'bold') ? 'brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,0.3))' : 'drop-shadow(0 1px 4px rgba(0,0,0,0.08))' }} />
+                <div style={{ width: '90px', height: '90px', borderRadius: '14px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', flexShrink: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
+                  <img src={logoUrl} alt="logo" style={{ maxHeight: '70px', maxWidth: '70px', objectFit: 'contain', filter: 'brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,0.3))' }} />
                 </div>
               ) : (
-                <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.1)' : color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '28px', fontWeight: 900, color: (style === 'premium' || style === 'bold') ? '#fff' : '#fff' }}>{cardData.businessName.charAt(0)}</span>
+                <div style={{ width: '80px', height: '80px', borderRadius: '14px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontSize: '38px', fontWeight: 900, color: '#fff' }}>{cardData.businessName.charAt(0)}</span>
                 </div>
               )}
-            </div>
-            {/* Name & title */}
-            <div style={{ textAlign: 'right' }}>
-              {cardData.personName && (
-                <div style={{ fontSize: '26px', fontWeight: 800, lineHeight: 1.1, color: (style === 'premium' || style === 'bold') ? '#fff' : '#222' }}>
-                  {cardData.personName}
+              <div>
+                <div style={{ fontSize: '34px', fontWeight: 900, color: '#fff', lineHeight: 1.1, textShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+                  {cardData.businessName}
                 </div>
-              )}
-              <div style={{ fontSize: '28px', fontWeight: 900, lineHeight: 1.1, marginTop: cardData.personName ? '4px' : 0, color: (style === 'premium' || style === 'bold') ? '#fff' : '#222' }}>
-                {cardData.businessName}
-              </div>
-              <div style={{ display: 'inline-block', marginTop: '8px', padding: '3px 14px', borderRadius: '3px', fontSize: '13px', fontWeight: 600, background: (style === 'premium' || style === 'bold') ? `${color}` : `${color}15`, color: (style === 'premium' || style === 'bold') ? '#fff' : color }}>
-                {cardData.title}
+                {cardData.personName && (
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginTop: '4px' }}>
+                    {cardData.personName}
+                  </div>
+                )}
+                <div style={{ display: 'inline-block', marginTop: '6px', padding: '4px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 700, background: 'rgba(255,255,255,0.2)', color: '#fff', backdropFilter: 'blur(4px)' }}>
+                  {cardData.title}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            // Other styles
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              {/* Logo */}
+              <div>
+                {logoUrl ? (
+                  <div style={{ width: '100px', height: '100px', borderRadius: '16px', background: isDark ? 'rgba(255,255,255,0.1)' : `${color}08`, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.2)' : `0 4px 20px ${color}15` }}>
+                    <img src={logoUrl} alt="logo" style={{ maxHeight: '76px', maxWidth: '76px', objectFit: 'contain', filter: isDark ? 'brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,0.3))' : 'drop-shadow(0 2px 8px rgba(0,0,0,0.1))' }} />
+                  </div>
+                ) : (
+                  <div style={{ width: '80px', height: '80px', borderRadius: '16px', background: isDark ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${color} 0%, ${colorDark} 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 20px rgba(${rgb.r},${rgb.g},${rgb.b},0.3)` }}>
+                    <span style={{ fontSize: '40px', fontWeight: 900, color: '#fff' }}>{cardData.businessName.charAt(0)}</span>
+                  </div>
+                )}
+              </div>
+              {/* Name & title */}
+              <div style={{ textAlign: 'right' }}>
+                {cardData.personName && (
+                  <div style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, color: isDark ? '#fff' : '#222' }}>
+                    {cardData.personName}
+                  </div>
+                )}
+                <div style={{ fontSize: '34px', fontWeight: 900, lineHeight: 1.1, marginTop: cardData.personName ? '4px' : 0, color: isDark ? '#fff' : '#222' }}>
+                  {cardData.businessName}
+                </div>
+                <div style={{ display: 'inline-block', marginTop: '10px', padding: '5px 18px', borderRadius: '4px', fontSize: '15px', fontWeight: 700, background: isDark ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)` : `${color}15`, color: isDark ? '#fff' : color, border: isDark ? `1px solid rgba(${rgb.r},${rgb.g},${rgb.b},0.4)` : 'none' }}>
+                  {cardData.title}
+                </div>
+              </div>
+            </div>
+          )}
 
-          {/* Divider */}
-          <div style={{ width: '60px', height: '2px', background: (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.2)' : `${color}30`, margin: '0 auto', position: 'absolute', top: '50%', right: '56px' }} />
-
-          {/* Contact info — bottom left */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {activeContactFields.includes('phone') && cardData.phone && contactLine('📞', cardData.phone, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
-            {activeContactFields.includes('email') && cardData.email && contactLine('✉', cardData.email, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
-            {activeContactFields.includes('address') && cardData.address && contactLine('📍', cardData.address, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
-            {activeContactFields.includes('whatsapp') && cardData.whatsapp && contactLine('💬', cardData.whatsapp, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
-            {activeContactFields.includes('website') && cardData.website && contactLine('🌐', cardData.website, (style === 'premium' || style === 'bold') ? 'rgba(255,255,255,0.85)' : '#555')}
+          {/* Contact info — BIGGER */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {activeContactFields.includes('phone') && cardData.phone && contactLine('📞', cardData.phone, isDark ? 'rgba(255,255,255,0.9)' : '#444', isDark ? 'rgba(255,255,255,0.12)' : `${color}15`)}
+            {activeContactFields.includes('email') && cardData.email && contactLine('✉', cardData.email, isDark ? 'rgba(255,255,255,0.9)' : '#444', isDark ? 'rgba(255,255,255,0.12)' : `${color}15`)}
+            {activeContactFields.includes('address') && cardData.address && contactLine('📍', cardData.address, isDark ? 'rgba(255,255,255,0.9)' : '#444', isDark ? 'rgba(255,255,255,0.12)' : `${color}15`)}
+            {activeContactFields.includes('whatsapp') && cardData.whatsapp && contactLine('💬', cardData.whatsapp, isDark ? 'rgba(255,255,255,0.9)' : '#444', isDark ? 'rgba(255,255,255,0.12)' : `${color}15`)}
+            {activeContactFields.includes('website') && cardData.website && contactLine('🌐', cardData.website, isDark ? 'rgba(255,255,255,0.9)' : '#444', isDark ? 'rgba(255,255,255,0.12)' : `${color}15`)}
           </div>
         </div>
       </div>
@@ -296,20 +341,15 @@ const BusinessCardStudio = () => {
 
   const renderBack = () => {
     const style = template.replace('bc-', '');
-    const isDark = style === 'premium' || style === 'bold';
     const font = profile?.header_font || 'Heebo, sans-serif';
 
-    // Back uses the brand color as main background (inverted from front)
     const bgMain = (style === 'premium') ? secColor : color;
-    const bgGrad = adjustColor(bgMain, -25);
-    const textMain = '#fff';
-    const textSub = 'rgba(255,255,255,0.8)';
-    const accentLine = 'rgba(255,255,255,0.15)';
+    const bgGrad = adjustColor(bgMain, -35);
 
     const backContactLine = (icon: string, value: string) => (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-start' }}>
-        <span style={{ fontSize: '13px', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
-        <span style={{ fontSize: '13px', color: textSub, fontWeight: 500 }}>{value}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+        <span style={{ fontSize: '15px', width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</span>
+        <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{value}</span>
       </div>
     );
 
@@ -319,48 +359,51 @@ const BusinessCardStudio = () => {
         style={{
           width: '900px', height: '500px', direction: 'rtl', fontFamily: font,
           position: 'relative', overflow: 'hidden', borderRadius: '0px',
-          background: `linear-gradient(160deg, ${bgMain} 0%, ${bgGrad} 100%)`,
+          background: `linear-gradient(150deg, ${bgMain} 0%, ${bgGrad} 100%)`,
         }}
       >
         {/* Radial glow */}
-        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 70% 30%, rgba(255,255,255,0.08) 0%, transparent 60%)` }} />
+        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)` }} />
 
-        {/* Geometric circles */}
-        <div style={{ position: 'absolute', top: '-60px', left: '-60px', width: '220px', height: '220px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.06)' }} />
-        <div style={{ position: 'absolute', bottom: '-50px', right: '-50px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
+        {/* Geometric shapes - MORE dramatic */}
+        <div style={{ position: 'absolute', top: '-80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+        <div style={{ position: 'absolute', bottom: '-60px', right: '-60px', width: '220px', height: '220px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.06)' }} />
+        <div style={{ position: 'absolute', top: '40%', right: '20%', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
 
-        {/* Pattern overlay */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '20px 20px', opacity: 0.12 }} />
+        {/* Pattern */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: dotPattern.replace(encodeURIComponent(color), 'white'), backgroundSize: '20px 20px', opacity: 0.1 }} />
 
         {/* Accent bars */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: accentLine }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: accentLine }} />
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
 
-        {/* Modern style: side accent strip */}
-        {style === 'modern' && (
-          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '8px', background: `linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 100%)` }} />
-        )}
+        {/* Corner accents */}
+        <svg style={{ position: 'absolute', top: '12px', right: '12px', opacity: 0.15 }} width="50" height="50" viewBox="0 0 50 50">
+          <path d="M0 0 L50 0 L50 4 L4 4 L4 50 L0 50 Z" fill="white" />
+        </svg>
+        <svg style={{ position: 'absolute', bottom: '12px', left: '12px', opacity: 0.15 }} width="50" height="50" viewBox="0 0 50 50">
+          <path d="M50 50 L0 50 L0 46 L46 46 L46 0 L50 0 Z" fill="white" />
+        </svg>
 
-        {/* Content layout: logo+name top, contact bottom */}
-        <div style={{ position: 'relative', zIndex: 1, padding: '48px 56px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          
+        {/* Content */}
+        <div style={{ position: 'relative', zIndex: 1, padding: '44px 50px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           {/* Top: Logo + Business Name */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'flex-start' }}>
             {logoUrl ? (
-              <div style={{ width: '72px', height: '72px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', flexShrink: 0 }}>
-                <img src={logoUrl} alt="logo" style={{ maxHeight: '52px', maxWidth: '52px', objectFit: 'contain', filter: 'brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
+              <div style={{ width: '90px', height: '90px', borderRadius: '16px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', flexShrink: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
+                <img src={logoUrl} alt="logo" style={{ maxHeight: '66px', maxWidth: '66px', objectFit: 'contain', filter: 'brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
               </div>
             ) : (
-              <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: '28px', fontWeight: 900, color: textMain }}>{cardData.businessName.charAt(0)}</span>
+              <div style={{ width: '80px', height: '80px', borderRadius: '16px', background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: '40px', fontWeight: 900, color: '#fff' }}>{cardData.businessName.charAt(0)}</span>
               </div>
             )}
             <div>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: textMain, lineHeight: 1.2 }}>
+              <div style={{ fontSize: '30px', fontWeight: 900, color: '#fff', lineHeight: 1.2, textShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 {cardData.businessName}
               </div>
               {cardData.personName && (
-                <div style={{ fontSize: '14px', fontWeight: 500, color: textSub, marginTop: '4px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 500, color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
                   {cardData.personName} • {cardData.title}
                 </div>
               )}
@@ -368,7 +411,7 @@ const BusinessCardStudio = () => {
           </div>
 
           {/* Divider */}
-          <div style={{ width: '60px', height: '2px', background: 'rgba(255,255,255,0.2)', marginTop: '12px' }} />
+          <div style={{ width: '60px', height: '2px', background: 'rgba(255,255,255,0.2)' }} />
 
           {/* Bottom: Contact details */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -469,7 +512,6 @@ const BusinessCardStudio = () => {
               </CardContent>
             </Card>
 
-            {/* Sides toggle */}
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -482,37 +524,26 @@ const BusinessCardStudio = () => {
 
           {/* Preview Area */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Side toggle tabs */}
             {isDoubleSided && (
               <div className="flex gap-2 justify-center">
-                <Button
-                  variant={viewingSide === 'front' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewingSide('front')}
-                >
+                <Button variant={viewingSide === 'front' ? 'default' : 'outline'} size="sm" onClick={() => setViewingSide('front')}>
                   <Eye className="w-4 h-4 ml-1" />
                   חזית
                 </Button>
-                <Button
-                  variant={viewingSide === 'back' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewingSide('back')}
-                >
+                <Button variant={viewingSide === 'back' ? 'default' : 'outline'} size="sm" onClick={() => setViewingSide('back')}>
                   <RotateCcw className="w-4 h-4 ml-1" />
                   גב
                 </Button>
               </div>
             )}
 
-            {/* Card Preview */}
             <div className="flex items-center justify-center p-8 bg-muted/30 rounded-xl min-h-[400px]">
-              <div className="transform scale-[0.65] origin-center" style={{ filter: 'drop-shadow(0 8px 32px rgba(0,0,0,0.15))' }}>
+              <div className="transform scale-[0.65] origin-center" style={{ filter: 'drop-shadow(0 12px 40px rgba(0,0,0,0.2))' }}>
                 {(!isDoubleSided || viewingSide === 'front') && renderFront()}
                 {isDoubleSided && viewingSide === 'back' && renderBack()}
               </div>
             </div>
 
-            {/* Render both for export (hidden) */}
             {isDoubleSided && viewingSide !== 'front' && (
               <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
                 {renderFront()}
