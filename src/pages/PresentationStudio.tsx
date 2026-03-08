@@ -875,17 +875,53 @@ const BriefScreen = ({
               </div>
             </div>
 
+            {/* Use Profile Toggle */}
+            {hasProfileData && (
+              <div
+                onClick={() => setUseProfile(!useProfile)}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  useProfile
+                    ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                    : 'border-border hover:border-primary/30 bg-card'
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                  useProfile ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground'
+                }`}>
+                  {useProfile && <span className="text-xs font-bold">✓</span>}
+                </div>
+                <div className="flex-1">
+                  <div className="font-bold text-sm text-foreground">בנה מצגת מתיק הלקוח שלי</div>
+                  <div className="text-xs text-muted-foreground">נשתמש בשירותים, יתרונות וקהל היעד שכבר הגדרת</div>
+                </div>
+                <Building2 className={`w-5 h-5 ${useProfile ? 'text-primary' : 'text-muted-foreground'}`} />
+              </div>
+            )}
+
+            {/* Profile preview when toggled */}
+            {useProfile && hasProfileData && (
+              <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">הנתונים שישמשו לבניית המצגת:</p>
+                <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed max-h-32 overflow-y-auto">{profileBrief}</p>
+              </div>
+            )}
+
             <div>
-              <label className="text-sm font-bold text-foreground mb-2 block">על מה המצגת? *</label>
+              <label className="text-sm font-bold text-foreground mb-2 block">
+                {useProfile ? 'הערות נוספות (אופציונלי)' : 'על מה המצגת? *'}
+              </label>
               <Textarea
                 value={brief}
                 onChange={e => setBrief(e.target.value)}
-                placeholder={`לדוגמה: מצגת תדמית ל${businessName}. אנחנו מתמחים ב... היתרונות שלנו הם... קהל היעד שלנו...`}
-                rows={5}
+                placeholder={useProfile
+                  ? 'הוסף הערות או דגשים נוספים שלא מופיעים בתיק...'
+                  : `לדוגמה: מצגת תדמית ל${businessName}. אנחנו מתמחים ב... היתרונות שלנו הם... קהל היעד שלנו...`
+                }
+                rows={useProfile ? 3 : 5}
                 className="text-base"
                 dir="rtl"
               />
-              <p className="text-xs text-muted-foreground mt-1">ככל שתתאר יותר, התוצאה תהיה מדויקת יותר</p>
+              {!useProfile && <p className="text-xs text-muted-foreground mt-1">ככל שתתאר יותר, התוצאה תהיה מדויקת יותר</p>}
             </div>
 
             <div>
@@ -901,14 +937,15 @@ const BriefScreen = ({
 
             <Button
               className="w-full h-12 text-base gap-2"
-              onClick={() => onGenerate(brief, slideCount, theme)}
-              disabled={!brief.trim() || isLoading}
+              onClick={() => onGenerate(effectiveBrief, slideCount, theme)}
+              disabled={(!useProfile && !brief.trim()) || isLoading}
             >
               {isLoading ? (
                 <><Loader2 className="w-5 h-5 animate-spin" />יוצר את המצגת...</>
               ) : (
                 <><Wand2 className="w-5 h-5" />צור מצגת</>
               )}
+            </Button>
             </Button>
           </CardContent>
         </Card>
