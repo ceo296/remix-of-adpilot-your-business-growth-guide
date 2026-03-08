@@ -19,6 +19,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import MediaPortal from "./pages/MediaPortal";
 import AdkopWizard from "./pages/AdkopWizard";
 import MediaExport from "./pages/MediaExport";
+import PresentationStudio from "./pages/PresentationStudio";
+import CatalogStudio from "./pages/CatalogStudio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
