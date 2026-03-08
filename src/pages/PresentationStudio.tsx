@@ -872,6 +872,7 @@ const PresentationStudio = () => {
   const [isPresenting, setIsPresenting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<PresentationTheme>('corporate');
+  const [imagesGenerating, setImagesGenerating] = useState(0);
 
   const brandColor = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#1a1a2e';
