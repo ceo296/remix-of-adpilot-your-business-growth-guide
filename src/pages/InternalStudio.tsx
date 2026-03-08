@@ -47,10 +47,12 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     description: 'כרטיסים מקצועיים שמשאירים רושם',
     icon: CreditCard,
     templates: [
-      { id: 'bc-classic', name: 'קלאסי', description: 'עיצוב נקי ומקצועי', aspectRatio: '3.5:2', popular: true },
-      { id: 'bc-modern', name: 'מודרני', description: 'קווים חדים וצבעים נועזים', aspectRatio: '3.5:2' },
-      { id: 'bc-minimal', name: 'מינימליסטי', description: 'פחות זה יותר', aspectRatio: '3.5:2' },
-      { id: 'bc-premium', name: 'פרימיום', description: 'עיצוב יוקרתי עם אלמנטים מיוחדים', aspectRatio: '3.5:2' },
+      { id: 'bc-classic', name: 'קלאסי דו-צדדי', description: 'עיצוב נקי ומקצועי · דו-צדדי', aspectRatio: '3.5:2', popular: true },
+      { id: 'bc-modern', name: 'מודרני דו-צדדי', description: 'קווים חדים וצבעים נועזים · דו-צדדי', aspectRatio: '3.5:2' },
+      { id: 'bc-minimal', name: 'מינימליסטי', description: 'פחות זה יותר · חד-צדדי', aspectRatio: '3.5:2' },
+      { id: 'bc-premium', name: 'פרימיום דו-צדדי', description: 'עיצוב יוקרתי · דו-צדדי', aspectRatio: '3.5:2' },
+      { id: 'bc-bold', name: 'בולד דו-צדדי', description: 'צבעוני ובולט · דו-צדדי', aspectRatio: '3.5:2' },
+      { id: 'bc-elegant', name: 'אלגנטי', description: 'עדין ומעודן · חד-צדדי', aspectRatio: '3.5:2' },
     ]
   },
   {
