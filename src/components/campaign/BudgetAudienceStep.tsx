@@ -118,6 +118,7 @@ export const BudgetAudienceStep = ({
   onManualMediaSelect,
   manualMediaSelection,
   selectedMediaTypes = [],
+  mediaScope,
 }: BudgetAudienceStepProps) => {
   const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [isLoadingPackages, setIsLoadingPackages] = useState(false);
