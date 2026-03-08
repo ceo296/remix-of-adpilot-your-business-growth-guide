@@ -121,8 +121,9 @@ ${profileContext}
                       bullets: { type: "array", items: { type: "string" } },
                       stats: { type: "array", items: { type: "object", properties: { value: { type: "string" }, label: { type: "string" } }, required: ["value", "label"] } },
                       steps: { type: "array", items: { type: "object", properties: { number: { type: "string" }, title: { type: "string" }, desc: { type: "string" } }, required: ["number", "title", "desc"] } },
+                      image_prompt: { type: "string", description: "A detailed English prompt to generate a professional, relevant background image for this slide using AI image generation. Describe the visual scene, mood, colors, and composition. Must be photorealistic and business-appropriate. Example: 'Modern bright office space with glass walls, warm golden sunlight, soft bokeh, professional atmosphere'" },
                     },
-                    required: ["type", "title"],
+                    required: ["type", "title", "image_prompt"],
                     additionalProperties: false
                   }
                 }
