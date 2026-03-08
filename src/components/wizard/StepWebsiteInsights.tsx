@@ -167,6 +167,7 @@ const StepWebsiteInsights = ({ data, updateData, onNext, onPrev }: StepWebsiteIn
         seniority: formValues.seniority,
         coreOffering: formValues.coreOffering,
         audience: finalAudience,
+        services: services,
         confirmed: true,
       },
     });

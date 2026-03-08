@@ -543,7 +543,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
 
   // Manual Mode - With input fields
   if (inputMode === 'manual') {
-    const insights = data.websiteInsights || { industry: '', seniority: '', coreOffering: '', audience: '', confirmed: false };
+    const insights = data.websiteInsights || { industry: '', seniority: '', coreOffering: '', audience: '', services: [], confirmed: false };
     
     const handleManualFieldChange = (field: string, value: string) => {
       updateData({
