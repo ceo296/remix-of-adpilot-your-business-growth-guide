@@ -30,8 +30,32 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
   const [newService, setNewService] = useState('');
   const [isExtractingColors, setIsExtractingColors] = useState(false);
   const [showNoMaterialsFlow, setShowNoMaterialsFlow] = useState(false);
+  const [validationError, setValidationError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const businessPhotoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleNext = () => {
+    const hasService = (data.websiteInsights?.services || []).length > 0;
+    const hasPrimaryColor = !!data.brand?.colors?.primary && data.brand.colors.primary.trim() !== '';
+    
+    if (!hasService && !hasPrimaryColor) {
+      setValidationError('יש להגדיר לפחות שירות אחד וצבע ראשי לפני שממשיכים');
+      toast.error('יש להגדיר לפחות שירות אחד וצבע ראשי');
+      return;
+    }
+    if (!hasService) {
+      setValidationError('יש להוסיף לפחות שירות אחד');
+      toast.error('יש להוסיף לפחות שירות אחד');
+      return;
+    }
+    if (!hasPrimaryColor) {
+      setValidationError('יש להגדיר צבע ראשי');
+      toast.error('יש להגדיר צבע ראשי');
+      return;
+    }
+    setValidationError('');
+    onNext();
+  };
 
   // --- Services ---
   const services = data.websiteInsights?.services || [];
@@ -527,7 +551,7 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
                     <Upload className="w-5 h-5 ml-2" />
                     בעצם יש לי משהו
                   </Button>
-                  <Button variant="outline" size="lg" onClick={onNext}>
+                  <Button variant="outline" size="lg" onClick={handleNext}>
                     מעולה, תבנו לי חדש
                     <ArrowLeft className="w-5 h-5 mr-2" />
                   </Button>
@@ -579,10 +603,13 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
 
       {/* ═══════════════ Navigation ═══════════════ */}
       <div className="flex flex-col items-center gap-4 max-w-3xl mx-auto pt-6">
-        <Button variant="gradient" size="xl" onClick={onNext} className="w-full max-w-md h-16 text-xl font-bold">
+        <Button variant="gradient" size="xl" onClick={handleNext} className="w-full max-w-md h-16 text-xl font-bold">
           קדימה, ממשיכים
           <ArrowLeft className="w-6 h-6 mr-2" />
         </Button>
+        {validationError && (
+          <p className="text-sm text-destructive font-medium">{validationError}</p>
+        )}
         <Button variant="outline" size="lg" onClick={onPrev} className="text-base">
           <ArrowRight className="w-5 h-5 ml-2" />
           חזרה
