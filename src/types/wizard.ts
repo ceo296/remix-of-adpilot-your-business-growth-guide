@@ -216,6 +216,7 @@ export const initialWizardData: WizardData = {
     seniority: '',
     coreOffering: '',
     audience: '',
+    services: [],
     confirmed: false,
   },
   strategicMRI: {

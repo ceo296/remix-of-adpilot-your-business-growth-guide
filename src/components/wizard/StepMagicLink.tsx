@@ -319,6 +319,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
         seniority: '',
         coreOffering: '',
         audience: '',
+        services: [],
         confirmed: false,
       },
     });
