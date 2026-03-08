@@ -144,6 +144,7 @@ export const useAdkopAgents = () => {
         'jewelry': ['תכשיט', 'טבעת', 'שרשרת', 'זהב'],
         'electronics': ['אלקטרוניקה', 'מחשב', 'טלפון'],
         'events': ['אירוע', 'חתונה', 'שמחה', 'אולם'],
+        'hotels': ['מלון', 'נופש', 'חופשה', 'צימר', 'בין הזמנים', 'שבת במלון'],
       };
       let detectedTopic: string | undefined;
       for (const [topic, keywords] of Object.entries(topicMap)) {
