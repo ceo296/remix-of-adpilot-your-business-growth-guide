@@ -30,8 +30,32 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
   const [newService, setNewService] = useState('');
   const [isExtractingColors, setIsExtractingColors] = useState(false);
   const [showNoMaterialsFlow, setShowNoMaterialsFlow] = useState(false);
+  const [validationError, setValidationError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const businessPhotoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleNext = () => {
+    const hasService = (data.websiteInsights?.services || []).length > 0;
+    const hasPrimaryColor = !!data.brand?.colors?.primary && data.brand.colors.primary.trim() !== '';
+    
+    if (!hasService && !hasPrimaryColor) {
+      setValidationError('יש להגדיר לפחות שירות אחד וצבע ראשי לפני שממשיכים');
+      toast.error('יש להגדיר לפחות שירות אחד וצבע ראשי');
+      return;
+    }
+    if (!hasService) {
+      setValidationError('יש להוסיף לפחות שירות אחד');
+      toast.error('יש להוסיף לפחות שירות אחד');
+      return;
+    }
+    if (!hasPrimaryColor) {
+      setValidationError('יש להגדיר צבע ראשי');
+      toast.error('יש להגדיר צבע ראשי');
+      return;
+    }
+    setValidationError('');
+    onNext();
+  };
 
   // --- Services ---
   const services = data.websiteInsights?.services || [];
