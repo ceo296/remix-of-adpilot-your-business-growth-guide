@@ -21,6 +21,7 @@ import AdkopWizard from "./pages/AdkopWizard";
 import MediaExport from "./pages/MediaExport";
 import PresentationStudio from "./pages/PresentationStudio";
 import CatalogStudio from "./pages/CatalogStudio";
+import BusinessCardStudio from "./pages/BusinessCardStudio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/media-export" element={<MediaExport />} />
             <Route path="/presentation-studio" element={<PresentationStudio />} />
             <Route path="/catalog-studio" element={<CatalogStudio />} />
+            <Route path="/business-card-studio" element={<BusinessCardStudio />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </HashRouter>
