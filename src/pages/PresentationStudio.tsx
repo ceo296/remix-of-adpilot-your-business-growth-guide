@@ -946,7 +946,6 @@ const BriefScreen = ({
                 <><Wand2 className="w-5 h-5" />צור מצגת</>
               )}
             </Button>
-            </Button>
           </CardContent>
         </Card>
       </div>
