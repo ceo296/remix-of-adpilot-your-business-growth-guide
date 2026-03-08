@@ -5,13 +5,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, Download, FileText } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowRight, Download, FileText, Sparkles, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LetterData {
   businessName: string;
@@ -38,6 +40,8 @@ const LetterheadStudio = () => {
   const contactFieldsParam = searchParams.get('contactFields') || 'phone,email,address';
   const activeContactFields = contactFieldsParam.split(',');
   const [isExporting, setIsExporting] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [letterType, setLetterType] = useState('general');
 
   const color = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#2A2F33';
@@ -428,6 +432,21 @@ const LetterheadStudio = () => {
                     <Input value={letterData.recipientTitle} onChange={e => updateField('recipientTitle', e.target.value)} placeholder="תפקיד" />
                   </div>
                   <div>
+                    <Label className="text-xs">סוג מכתב</Label>
+                    <Select value={letterType} onValueChange={setLetterType}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general">מכתב כללי</SelectItem>
+                        <SelectItem value="price-quote">הצעת מחיר</SelectItem>
+                        <SelectItem value="formal-letter">מכתב רשמי</SelectItem>
+                        <SelectItem value="thank-you">מכתב תודה</SelectItem>
+                        <SelectItem value="invitation">הזמנה לאירוע</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
                     <Label className="text-xs">תוכן</Label>
                     <Textarea
                       value={letterData.letterContent}
@@ -448,6 +467,58 @@ const LetterheadStudio = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <Button 
+              className="w-full gap-2" 
+              variant="outline"
+              disabled={isAiLoading}
+              onClick={async () => {
+                setIsAiLoading(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke('generate-internal-material', {
+                    body: {
+                      type: 'letterhead',
+                      profileData: {
+                        businessName: profile?.business_name,
+                        phone: profile?.contact_phone,
+                        email: profile?.contact_email,
+                        address: profile?.contact_address,
+                        website: profile?.website_url,
+                        xFactors: profile?.x_factors,
+                        targetAudience: profile?.target_audience,
+                        winningFeature: profile?.winning_feature,
+                      },
+                      extraContext: {
+                        letterType,
+                        recipientName: letterData.recipientName,
+                        letterTopic: letterData.letterContent?.slice(0, 100),
+                      },
+                    },
+                  });
+                  if (error) throw error;
+                  const result = data?.result;
+                  if (result) {
+                    setLetterData(prev => ({
+                      ...prev,
+                      ...(result.subtitle && { subtitle: result.subtitle }),
+                      ...(result.recipientName && { recipientName: result.recipientName }),
+                      ...(result.recipientTitle && { recipientTitle: result.recipientTitle }),
+                      ...(result.letterContent && { letterContent: result.letterContent }),
+                      ...(result.senderName && { senderName: result.senderName }),
+                      ...(result.senderTitle && { senderTitle: result.senderTitle }),
+                    }));
+                    toast.success('✨ המכתב נוצר בהצלחה!');
+                  }
+                } catch (err: any) {
+                  toast.error(err.message || 'שגיאה ביצירת מכתב');
+                } finally {
+                  setIsAiLoading(false);
+                }
+              }}
+            >
+              {isAiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {isAiLoading ? 'AI כותב...' : '✨ כתוב מכתב עם AI'}
+            </Button>
           </div>
 
           {/* Preview Area */}
