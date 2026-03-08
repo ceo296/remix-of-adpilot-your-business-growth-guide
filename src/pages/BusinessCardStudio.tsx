@@ -522,6 +522,48 @@ const BusinessCardStudio = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <Button 
+              className="w-full gap-2" 
+              variant="outline"
+              disabled={isAiLoading}
+              onClick={async () => {
+                setIsAiLoading(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke('generate-internal-material', {
+                    body: {
+                      type: 'business-card',
+                      profileData: {
+                        businessName: profile?.business_name,
+                        phone: profile?.contact_phone,
+                        email: profile?.contact_email,
+                        address: profile?.contact_address,
+                        website: profile?.website_url,
+                        xFactors: profile?.x_factors,
+                        targetAudience: profile?.target_audience,
+                        winningFeature: profile?.winning_feature,
+                      },
+                    },
+                  });
+                  if (error) throw error;
+                  const result = data?.result;
+                  if (result) {
+                    setCardData(prev => ({
+                      ...prev,
+                      title: result.title || prev.title,
+                    }));
+                    toast.success(`💡 AI הציע: "${result.tagline}"`, { duration: 6000 });
+                  }
+                } catch (err: any) {
+                  toast.error(err.message || 'שגיאה ביצירת תוכן');
+                } finally {
+                  setIsAiLoading(false);
+                }
+              }}
+            >
+              {isAiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {isAiLoading ? 'AI חושב...' : '✨ תוכן חכם עם AI'}
+            </Button>
           </div>
 
           {/* Preview Area */}
