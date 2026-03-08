@@ -40,6 +40,8 @@ const LetterheadStudio = () => {
   const contactFieldsParam = searchParams.get('contactFields') || 'phone,email,address';
   const activeContactFields = contactFieldsParam.split(',');
   const [isExporting, setIsExporting] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [letterType, setLetterType] = useState('general');
 
   const color = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#2A2F33';
