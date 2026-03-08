@@ -132,6 +132,8 @@ const InternalStudio = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [selectedContactFields, setSelectedContactFields] = useState<string[]>(['phone', 'email', 'address']);
   const [isDoubleSided, setIsDoubleSided] = useState(true);
+  const [paperType, setPaperType] = useState('matte');
+  const [cardSize, setCardSize] = useState('90x50');
 
   const currentCategory = TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory);
   const needsContactPicker = selectedCategory === 'business-cards' || selectedCategory === 'letterhead';
