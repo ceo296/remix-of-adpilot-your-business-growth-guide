@@ -194,10 +194,18 @@ const FastTrackWizard = () => {
 
   const handleBackFromMedia = () => {
     if (isMediaOnlyMode) {
-      setCurrentStep('mediaType');
+      if (needsScopeQuestion) {
+        setCurrentStep('mediaScope');
+      } else {
+        setCurrentStep('mediaType');
+      }
     } else {
       setCurrentStep('brief');
     }
+  };
+
+  const handleBackFromScope = () => {
+    setCurrentStep('mediaType');
   };
 
   const toggleMediaType = (mediaTypeId: string) => {
