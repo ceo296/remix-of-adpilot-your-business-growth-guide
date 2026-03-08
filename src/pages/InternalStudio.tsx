@@ -132,6 +132,8 @@ const InternalStudio = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [selectedContactFields, setSelectedContactFields] = useState<string[]>(['phone', 'email', 'address']);
   const [isDoubleSided, setIsDoubleSided] = useState(true);
+  const [paperType, setPaperType] = useState('matte');
+  const [cardSize, setCardSize] = useState('90x50');
 
   const currentCategory = TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory);
   const needsContactPicker = selectedCategory === 'business-cards' || selectedCategory === 'letterhead';
@@ -162,7 +164,7 @@ const InternalStudio = () => {
       const contactParams = needsContactPicker ? `&contactFields=${selectedContactFields.join(',')}` : '';
       if (selectedCategory === 'business-cards') {
         const sidesParam = `&sides=${isDoubleSided ? 2 : 1}`;
-        navigate(`/business-card-studio?template=${selectedTemplate}${contactParams}${sidesParam}`);
+        navigate(`/business-card-studio?template=${selectedTemplate}${contactParams}${sidesParam}&paper=${paperType}&size=${cardSize}`);
       } else if (selectedCategory === 'letterhead') {
         navigate(`/letterhead-studio?template=${selectedTemplate}${contactParams}`);
       } else {
@@ -301,7 +303,8 @@ const InternalStudio = () => {
 
             {/* Double-sided toggle for business cards */}
             {selectedCategory === 'business-cards' && (
-              <div className="mb-6 max-w-2xl mx-auto">
+              <div className="mb-6 max-w-2xl mx-auto space-y-3">
+                {/* Double-sided toggle */}
                 <Card>
                   <CardContent className="p-4 flex items-center justify-between" dir="rtl">
                     <div>
@@ -314,6 +317,56 @@ const InternalStudio = () => {
                       <span className={`text-xs ${!isDoubleSided ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>חד-צדדי</span>
                       <Switch checked={isDoubleSided} onCheckedChange={setIsDoubleSided} />
                       <span className={`text-xs ${isDoubleSided ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>דו-צדדי</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Paper type & card size */}
+                <Card>
+                  <CardContent className="p-4 space-y-4" dir="rtl">
+                    {/* Card size */}
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground mb-2">גודל כרטיס</h3>
+                      <div className="flex gap-2">
+                        {[
+                          { id: '90x50', label: '90×50 מ״מ', desc: 'סטנדרטי' },
+                          { id: '85x55', label: '85×55 מ״מ', desc: 'אירופאי' },
+                        ].map(size => (
+                          <div
+                            key={size.id}
+                            className={`flex-1 p-3 rounded-lg border cursor-pointer transition-all text-center ${
+                              cardSize === size.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
+                            }`}
+                            onClick={() => setCardSize(size.id)}
+                          >
+                            <div className="text-sm font-medium text-foreground">{size.label}</div>
+                            <div className="text-[10px] text-muted-foreground">{size.desc}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Paper type */}
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground mb-2">סוג נייר</h3>
+                      <div className="flex gap-2">
+                        {[
+                          { id: 'matte', label: 'מט', desc: 'מגע חלק ואלגנטי' },
+                          { id: 'glossy', label: 'מבריק', desc: 'ברק וצבעים חיים' },
+                          { id: 'chromo', label: 'כרומו', desc: 'עבה ואיכותי' },
+                        ].map(paper => (
+                          <div
+                            key={paper.id}
+                            className={`flex-1 p-3 rounded-lg border cursor-pointer transition-all text-center ${
+                              paperType === paper.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
+                            }`}
+                            onClick={() => setPaperType(paper.id)}
+                          >
+                            <div className="text-sm font-medium text-foreground">{paper.label}</div>
+                            <div className="text-[10px] text-muted-foreground">{paper.desc}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
