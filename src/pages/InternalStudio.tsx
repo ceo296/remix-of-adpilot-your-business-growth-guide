@@ -272,6 +272,7 @@ const InternalStudio = () => {
                         templateId={template.id}
                         primaryColor={profile?.primary_color || '#E34870'}
                         businessName={profile?.business_name || 'שם העסק'}
+                        doubleSided={selectedCategory === 'business-cards' ? isDoubleSided : undefined}
                       />
                       {template.popular && (
                         <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs">
