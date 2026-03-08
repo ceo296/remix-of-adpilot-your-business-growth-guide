@@ -6,62 +6,230 @@
 interface TemplatePreviewProps {
   templateId: string;
   primaryColor?: string;
+  secondaryColor?: string;
   businessName?: string;
 }
 
-export const TemplatePreview = ({ templateId, primaryColor = '#E34870', businessName = 'שם העסק' }: TemplatePreviewProps) => {
+/** Realistic business card front/back previews */
+const BusinessCardFront = ({ color, secondaryColor, businessName, style }: { color: string; secondaryColor: string; businessName: string; style: string }) => {
+  const darkBg = secondaryColor || '#1a1a2e';
+  
+  const styles: Record<string, React.ReactNode> = {
+    'classic': (
+      <div className="w-full h-full bg-white rounded-sm flex flex-col justify-between p-[10%]" dir="rtl">
+        <div className="flex items-start justify-between">
+          <div className="w-[22%] aspect-square rounded-sm" style={{ backgroundColor: color }} />
+          <div className="text-right">
+            <div className="text-[7px] font-black text-gray-800 leading-tight">{businessName}</div>
+            <div className="text-[5px] text-gray-400 mt-0.5">מנכ״ל</div>
+          </div>
+        </div>
+        <div className="space-y-[3px]">
+          <div className="flex items-center gap-1 justify-end">
+            <div className="text-[4.5px] text-gray-500">054-000-0000</div>
+            <div className="w-[5px] h-[5px] rounded-full" style={{ backgroundColor: color, opacity: 0.5 }} />
+          </div>
+          <div className="flex items-center gap-1 justify-end">
+            <div className="text-[4.5px] text-gray-500">info@example.com</div>
+            <div className="w-[5px] h-[5px] rounded-full" style={{ backgroundColor: color, opacity: 0.5 }} />
+          </div>
+          <div className="flex items-center gap-1 justify-end">
+            <div className="text-[4.5px] text-gray-500">בני ברק</div>
+            <div className="w-[5px] h-[5px] rounded-full" style={{ backgroundColor: color, opacity: 0.5 }} />
+          </div>
+        </div>
+      </div>
+    ),
+    'modern': (
+      <div className="w-full h-full rounded-sm overflow-hidden flex" dir="rtl">
+        <div className="w-[35%] h-full flex flex-col items-center justify-center" style={{ backgroundColor: color }}>
+          <div className="w-[50%] aspect-square rounded-sm bg-white/20" />
+        </div>
+        <div className="w-[65%] bg-white flex flex-col justify-between p-[8%]">
+          <div>
+            <div className="text-[8px] font-black text-gray-800 leading-tight">{businessName}</div>
+            <div className="text-[4.5px] text-gray-400 mt-0.5 tracking-[0.15em] uppercase">Creative Studio</div>
+          </div>
+          <div className="space-y-[2px]">
+            <div className="h-[2px] rounded-full w-[70%]" style={{ backgroundColor: color, opacity: 0.2 }} />
+            <div className="text-[4px] text-gray-400">054-000-0000</div>
+            <div className="text-[4px] text-gray-400">info@example.com</div>
+          </div>
+        </div>
+      </div>
+    ),
+    'minimal': (
+      <div className="w-full h-full bg-white rounded-sm flex flex-col items-center justify-center p-[10%]">
+        <div className="text-[9px] font-bold text-gray-800 tracking-wide text-center">{businessName}</div>
+        <div className="w-[30%] h-[1.5px] my-[6%]" style={{ backgroundColor: color }} />
+        <div className="text-[4.5px] text-gray-400 text-center">054-000-0000</div>
+        <div className="text-[4.5px] text-gray-400 text-center mt-[2px]">info@example.com</div>
+      </div>
+    ),
+    'premium': (
+      <div className="w-full h-full rounded-sm overflow-hidden relative" style={{ backgroundColor: darkBg }}>
+        <div className="absolute inset-0 opacity-20" style={{ background: `linear-gradient(135deg, ${color} 0%, transparent 60%)` }} />
+        <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+        <div className="relative h-full flex flex-col justify-between p-[10%]" dir="rtl">
+          <div className="flex items-start justify-between">
+            <div className="w-[18%] aspect-square rounded-sm border" style={{ borderColor: `${color}60` }} />
+            <div className="text-right">
+              <div className="text-[8px] font-bold text-white leading-tight">{businessName}</div>
+              <div className="text-[4.5px] mt-0.5" style={{ color }}>מותג יוקרתי</div>
+            </div>
+          </div>
+          <div className="space-y-[2px]">
+            <div className="text-[4px] text-white/50">054-000-0000</div>
+            <div className="text-[4px] text-white/50">info@example.com</div>
+          </div>
+        </div>
+      </div>
+    ),
+    'bold': (
+      <div className="w-full h-full rounded-sm overflow-hidden" style={{ backgroundColor: color }}>
+        <div className="h-full flex flex-col justify-between p-[10%]" dir="rtl">
+          <div>
+            <div className="text-[9px] font-black text-white leading-tight">{businessName}</div>
+            <div className="text-[5px] text-white/60 mt-0.5">עיצוב ומיתוג</div>
+          </div>
+          <div className="flex items-end justify-between">
+            <div className="space-y-[2px]">
+              <div className="text-[4px] text-white/70">054-000-0000</div>
+              <div className="text-[4px] text-white/70">info@example.com</div>
+            </div>
+            <div className="w-[20%] aspect-square rounded-sm bg-white/20" />
+          </div>
+        </div>
+      </div>
+    ),
+    'elegant': (
+      <div className="w-full h-full bg-white rounded-sm overflow-hidden" dir="rtl">
+        <div className="h-[3px] w-full" style={{ backgroundColor: color }} />
+        <div className="p-[10%] h-full flex flex-col justify-between">
+          <div className="text-center">
+            <div className="w-[20%] aspect-square mx-auto rounded-full border-2 mb-[6%]" style={{ borderColor: color }} />
+            <div className="text-[8px] font-bold text-gray-800">{businessName}</div>
+            <div className="text-[4.5px] text-gray-400 mt-[2px]">שירות מקצועי</div>
+          </div>
+          <div className="flex justify-center gap-3">
+            <div className="text-[4px] text-gray-400">054-000-0000</div>
+            <div className="text-[4px]" style={{ color }}>|</div>
+            <div className="text-[4px] text-gray-400">info@example.com</div>
+          </div>
+        </div>
+      </div>
+    ),
+  };
+  return styles[style] || styles['classic'];
+};
+
+const BusinessCardBack = ({ color, secondaryColor, businessName, style }: { color: string; secondaryColor: string; businessName: string; style: string }) => {
+  const darkBg = secondaryColor || '#1a1a2e';
+  
+  const styles: Record<string, React.ReactNode> = {
+    'classic': (
+      <div className="w-full h-full rounded-sm flex items-center justify-center" style={{ backgroundColor: color }}>
+        <div className="w-[35%] aspect-square rounded-md bg-white/20 flex items-center justify-center">
+          <div className="text-[10px] font-black text-white">{businessName.charAt(0)}</div>
+        </div>
+      </div>
+    ),
+    'modern': (
+      <div className="w-full h-full rounded-sm overflow-hidden" style={{ backgroundColor: color }}>
+        <div className="h-full flex items-center justify-center relative">
+          <div className="absolute inset-0 opacity-10" style={{ background: 'repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 8px)' }} />
+          <div className="text-[14px] font-black text-white/90 tracking-tight">{businessName}</div>
+        </div>
+      </div>
+    ),
+    'minimal': (
+      <div className="w-full h-full bg-gray-50 rounded-sm flex items-center justify-center">
+        <div className="w-[30%] aspect-square rounded-full flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
+          <div className="text-[12px] font-bold" style={{ color }}>{businessName.charAt(0)}</div>
+        </div>
+      </div>
+    ),
+    'premium': (
+      <div className="w-full h-full rounded-sm overflow-hidden relative" style={{ backgroundColor: darkBg }}>
+        <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 50%, ${color}30 0%, transparent 70%)` }} />
+        <div className="h-full flex items-center justify-center relative">
+          <div className="text-center">
+            <div className="text-[12px] font-bold text-white">{businessName.charAt(0)}</div>
+            <div className="w-[40%] mx-auto h-[1px] mt-1" style={{ backgroundColor: color }} />
+          </div>
+        </div>
+      </div>
+    ),
+    'bold': (
+      <div className="w-full h-full bg-white rounded-sm flex items-center justify-center">
+        <div className="text-[16px] font-black" style={{ color }}>{businessName.charAt(0)}</div>
+      </div>
+    ),
+    'elegant': (
+      <div className="w-full h-full rounded-sm overflow-hidden" style={{ backgroundColor: color }}>
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-[25%] aspect-square mx-auto rounded-full bg-white/20 flex items-center justify-center mb-1">
+              <div className="text-[10px] font-bold text-white">{businessName.charAt(0)}</div>
+            </div>
+            <div className="text-[6px] text-white/70 tracking-widest uppercase">{businessName}</div>
+          </div>
+        </div>
+      </div>
+    ),
+  };
+  return styles[style] || styles['classic'];
+};
+
+/** Business card wrapper — shows front + optional back */
+const BusinessCardPreview = ({ style, color, secondaryColor, businessName, doubleSided }: { 
+  style: string; color: string; secondaryColor: string; businessName: string; doubleSided: boolean; 
+}) => {
+  if (doubleSided) {
+    return (
+      <div className="w-full h-full flex flex-col gap-[6%] p-[4%]">
+        <div className="flex-1 rounded shadow-md overflow-hidden" style={{ aspectRatio: '9/5' }}>
+          <BusinessCardFront color={color} secondaryColor={secondaryColor} businessName={businessName} style={style} />
+        </div>
+        <div className="flex-1 rounded shadow-md overflow-hidden" style={{ aspectRatio: '9/5' }}>
+          <BusinessCardBack color={color} secondaryColor={secondaryColor} businessName={businessName} style={style} />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="w-full h-full flex items-center justify-center p-[6%]">
+      <div className="w-full rounded shadow-lg overflow-hidden" style={{ aspectRatio: '9/5' }}>
+        <BusinessCardFront color={color} secondaryColor={secondaryColor} businessName={businessName} style={style} />
+      </div>
+    </div>
+  );
+};
+
+export const TemplatePreview = ({ templateId, primaryColor = '#E34870', secondaryColor, businessName = 'שם העסק' }: TemplatePreviewProps) => {
   const color = primaryColor;
+  const secColor = secondaryColor || '#2A2F33';
+
+  // Business card mapping
+  const bcMap: Record<string, { style: string; doubleSided: boolean }> = {
+    'bc-classic': { style: 'classic', doubleSided: true },
+    'bc-modern': { style: 'modern', doubleSided: true },
+    'bc-minimal': { style: 'minimal', doubleSided: false },
+    'bc-premium': { style: 'premium', doubleSided: true },
+    'bc-bold': { style: 'bold', doubleSided: true },
+    'bc-elegant': { style: 'elegant', doubleSided: false },
+  };
+
+  if (bcMap[templateId]) {
+    const { style, doubleSided } = bcMap[templateId];
+    return (
+      <div className="w-full h-full bg-muted/30">
+        <BusinessCardPreview style={style} color={color} secondaryColor={secColor} businessName={businessName} doubleSided={doubleSided} />
+      </div>
+    );
+  }
 
   const previews: Record<string, React.ReactNode> = {
-    // Business Cards
-    'bc-classic': (
-      <div className="w-full h-full bg-white rounded flex flex-col justify-between p-3 text-right" dir="rtl">
-        <div>
-          <div className="w-6 h-6 rounded" style={{ backgroundColor: color }} />
-          <div className="mt-2 text-[8px] font-bold text-gray-800">{businessName}</div>
-          <div className="text-[6px] text-gray-400 mt-0.5">מנהל/ת</div>
-        </div>
-        <div className="space-y-0.5">
-          <div className="h-[3px] rounded-full bg-gray-200 w-3/4" />
-          <div className="h-[3px] rounded-full bg-gray-200 w-1/2" />
-          <div className="h-[3px] rounded-full bg-gray-200 w-2/3" />
-        </div>
-      </div>
-    ),
-    'bc-modern': (
-      <div className="w-full h-full rounded overflow-hidden flex" dir="rtl">
-        <div className="w-1/3 h-full" style={{ backgroundColor: color }} />
-        <div className="w-2/3 bg-white flex flex-col justify-center p-3">
-          <div className="text-[8px] font-black text-gray-800">{businessName}</div>
-          <div className="text-[5px] text-gray-400 mt-0.5 tracking-wider">CREATIVE AGENCY</div>
-          <div className="mt-2 space-y-0.5">
-            <div className="h-[2px] rounded-full w-full" style={{ backgroundColor: color, opacity: 0.3 }} />
-            <div className="h-[2px] rounded-full bg-gray-200 w-3/4" />
-          </div>
-        </div>
-      </div>
-    ),
-    'bc-minimal': (
-      <div className="w-full h-full bg-white rounded flex flex-col items-center justify-center p-3">
-        <div className="text-[9px] font-bold text-gray-800 tracking-wide">{businessName}</div>
-        <div className="w-8 h-[1px] my-1.5" style={{ backgroundColor: color }} />
-        <div className="text-[5px] text-gray-400">054-000-0000</div>
-        <div className="text-[5px] text-gray-400">info@example.com</div>
-      </div>
-    ),
-    'bc-premium': (
-      <div className="w-full h-full rounded overflow-hidden relative" style={{ backgroundColor: '#1a1a2e' }}>
-        <div className="absolute inset-0 opacity-20" style={{ background: `linear-gradient(135deg, ${color} 0%, transparent 60%)` }} />
-        <div className="relative h-full flex flex-col justify-between p-3 text-right" dir="rtl">
-          <div className="w-5 h-5 rounded-sm border" style={{ borderColor: color, opacity: 0.6 }} />
-          <div>
-            <div className="text-[8px] font-bold text-white">{businessName}</div>
-            <div className="text-[5px] mt-0.5" style={{ color }}>מותג יוקרתי</div>
-          </div>
-        </div>
-      </div>
-    ),
-
     // Flyers
     'flyer-a5': (
       <div className="w-full h-full bg-white rounded flex flex-col overflow-hidden" dir="rtl">
@@ -126,7 +294,7 @@ export const TemplatePreview = ({ templateId, primaryColor = '#E34870', business
 
     // Invitations
     'inv-wedding': (
-      <div className="w-full h-full rounded overflow-hidden flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, #fdf6e3, #f5e6d0)` }}>
+      <div className="w-full h-full rounded overflow-hidden flex flex-col items-center justify-center p-2" style={{ background: 'linear-gradient(135deg, #fdf6e3, #f5e6d0)' }}>
         <div className="text-[5px] text-amber-700 tracking-widest">בשעה טובה</div>
         <div className="text-[8px] font-bold text-amber-900 mt-1">שם החתן ושם הכלה</div>
         <div className="w-6 h-[1px] bg-amber-400 my-1" />
@@ -134,7 +302,7 @@ export const TemplatePreview = ({ templateId, primaryColor = '#E34870', business
       </div>
     ),
     'inv-bar': (
-      <div className="w-full h-full rounded overflow-hidden flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, #e8f0fe, #d0e0ff)` }}>
+      <div className="w-full h-full rounded overflow-hidden flex flex-col items-center justify-center p-2" style={{ background: 'linear-gradient(135deg, #e8f0fe, #d0e0ff)' }}>
         <div className="text-[5px] text-blue-600">בס״ד</div>
         <div className="text-[7px] font-bold text-blue-900 mt-1">שמחת הבר מצוה</div>
         <div className="w-5 h-[1px] bg-blue-300 my-1" />
@@ -142,7 +310,7 @@ export const TemplatePreview = ({ templateId, primaryColor = '#E34870', business
       </div>
     ),
     'inv-brit': (
-      <div className="w-full h-full rounded overflow-hidden flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, #f0fdf4, #dcfce7)` }}>
+      <div className="w-full h-full rounded overflow-hidden flex flex-col items-center justify-center p-2" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
         <div className="text-[5px] text-emerald-600">בשמחה רבה</div>
         <div className="text-[7px] font-bold text-emerald-900 mt-1">ברית מילה</div>
         <div className="w-5 h-[1px] bg-emerald-300 my-1" />
@@ -150,7 +318,7 @@ export const TemplatePreview = ({ templateId, primaryColor = '#E34870', business
       </div>
     ),
     'inv-event': (
-      <div className="w-full h-full rounded overflow-hidden flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, #faf5ff, #ede9fe)` }}>
+      <div className="w-full h-full rounded overflow-hidden flex flex-col items-center justify-center p-2" style={{ background: 'linear-gradient(135deg, #faf5ff, #ede9fe)' }}>
         <div className="text-[5px] text-violet-600">הנכם מוזמנים</div>
         <div className="text-[7px] font-bold text-violet-900 mt-1">אירוע מיוחד</div>
         <div className="w-5 h-[1px] bg-violet-300 my-1" />
