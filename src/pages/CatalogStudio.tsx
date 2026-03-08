@@ -46,6 +46,7 @@ const CatalogStudio = () => {
   const [pages, setPages] = useState<CatalogPage[]>(DEFAULT_PAGES);
   const [activePage, setActivePage] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   const brandColor = profile?.primary_color || '#E34870';
   const secondaryColor = profile?.secondary_color || '#1a1a2e';
