@@ -21,7 +21,7 @@ export type PresentationTheme = 'minimal' | 'corporate' | 'creative';
 
 interface SlideData {
   id: string;
-  type: 'cover' | 'about' | 'services' | 'value_prop' | 'stats' | 'process' | 'testimonial' | 'team' | 'cta' | 'contact' | 'blank';
+  type: 'cover' | 'about' | 'vision' | 'services' | 'value_prop' | 'stats' | 'process' | 'methodology' | 'testimonial' | 'social_proof' | 'target_audience' | 'team' | 'cta' | 'contact' | 'blank';
   title: string;
   subtitle?: string;
   body?: string;
