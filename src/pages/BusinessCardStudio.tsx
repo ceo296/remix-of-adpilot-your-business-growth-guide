@@ -33,9 +33,11 @@ const BusinessCardStudio = () => {
   const template = searchParams.get('template') || 'bc-classic';
   const contactFieldsParam = searchParams.get('contactFields') || 'phone,email,address';
   const sidesParam = searchParams.get('sides') || '2';
+  const cardSizeParam = searchParams.get('size') || '90x50';
   const activeContactFields = contactFieldsParam.split(',');
   const [isDoubleSided, setIsDoubleSided] = useState(sidesParam === '2');
   const [viewingSide, setViewingSide] = useState<'front' | 'back'>('front');
+  const [isExporting, setIsExporting] = useState(false);
 
   const color = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#2A2F33';
