@@ -47,6 +47,9 @@ const FOLDER_TO_TOPIC: Record<string, string> = {
   'ספרי קודש': 'judaica',
   'תכשיטים': 'jewelry',
   'שעונים': 'jewelry',
+  'פאות': 'wigs',
+  'פאה': 'wigs',
+  'שיער': 'wigs',
   'מיתוג': 'branding',
   'branding': 'branding',
 };
