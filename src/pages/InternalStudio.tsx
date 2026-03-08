@@ -128,6 +128,7 @@ const InternalStudio = () => {
   const { user } = useAuth();
   const { profile } = useClientProfile();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [selectedContactFields, setSelectedContactFields] = useState<string[]>(['phone', 'email', 'address']);
 
   const currentCategory = TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory);
