@@ -291,22 +291,63 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
 
   const { strategy, websiteInsights } = data;
 
+  // Helper for brand presence label
+  const getBrandPresenceLabel = () => {
+    switch (data.strategicMRI.brandPresence) {
+      case 'known': return 'מותג מוכר';
+      case 'expert': return 'מומחה בתחום';
+      case 'active': return 'שחקן פעיל';
+      default: return '';
+    }
+  };
+
+  const getAudienceToneLabel = () => {
+    switch (data.strategicMRI.audienceTone) {
+      case 'broad': return 'רחב - פשוט וברור';
+      case 'premium': return 'פרימיום - יוקרתי';
+      case 'b2b': return 'עסקי - מקצועי';
+      default: return '';
+    }
+  };
+
+  const getXFactorLabel = (factor: string) => {
+    switch (factor) {
+      case 'veteran': return 'ותק וניסיון';
+      case 'product': return 'עליונות מוצרית';
+      case 'price': return 'מחיר תחרותי';
+      case 'service': return 'שירות ויחס';
+      case 'brand': return 'הבטחה פרסומית';
+      default: return factor;
+    }
+  };
+
+  const getQualitySignatureLabel = (type: string) => {
+    switch (type) {
+      case 'experience': return 'שנות ניסיון';
+      case 'technology': return 'טכנולוגיה';
+      case 'service': return 'שירות';
+      case 'trust': return 'אמון';
+      case 'scale': return 'היקף';
+      default: return type;
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
         <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-          <Sparkles className="w-10 h-10 text-primary" />
+          <Layers className="w-10 h-10 text-primary" />
         </div>
         <h2 className="text-3xl font-bold text-foreground">
-          אז בוא נראה אם הבנו אתכם נכון
+          תעודת הזהות שלכם
         </h2>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          הנה ה"דרכון" של המותג והקמפיין {getYourWord(data.honorific)} - בדקו שהכל מדויק
+          הכל מתחיל פה. ככל שנקבל יותר מידע — ככה המודעות ייצאו יותר מדויקות ומקצועיות.
         </p>
       </div>
 
-      {/* AI Validation Section */}
+      {/* AI Validation Section - same as before */}
       {(isValidating || validationIssues.length > 0) && (
         <div className="max-w-2xl mx-auto">
           <Card className={`border-2 overflow-hidden ${
@@ -403,22 +444,26 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
         </div>
       )}
 
-      {/* Brand Passport Card */}
-      <div className="max-w-2xl mx-auto">
+      {/* Full Identity Card */}
+      <div className="max-w-2xl mx-auto space-y-5">
+
+        {/* ─── Card 1: Brand Identity (Logo, Colors, Fonts) ─── */}
         <Card className="border-2 border-primary/20 overflow-hidden">
-          {/* Header with client's brand colors */}
           <div 
             className="p-6 text-white"
             style={{ 
-              background: `linear-gradient(135deg, ${data.brand.colors.primary} 0%, ${data.brand.colors.secondary || data.brand.colors.primary} 100%)`
+              background: `linear-gradient(135deg, ${data.brand.colors.primary || 'hsl(var(--primary))'} 0%, ${data.brand.colors.secondary || data.brand.colors.primary || 'hsl(var(--primary))'} 100%)`
             }}
           >
             <div className="flex items-center justify-between">
               <div>
                 <Badge variant="secondary" className="bg-white/20 text-white border-0 mb-2">
-                  פרופיל מותג
+                  זהות מותגית
                 </Badge>
                 <h3 className="text-2xl font-bold">{data.brand.name || 'שם העסק'}</h3>
+                {websiteInsights?.industry && (
+                  <p className="text-white/80 text-sm mt-1">{websiteInsights.industry}</p>
+                )}
               </div>
               {data.brand.logo && (
                 <div className="w-20 h-20 rounded-xl bg-white p-2 flex items-center justify-center shadow-lg">
@@ -431,7 +476,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                       className="max-w-full max-h-full object-contain"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="flex flex-col items-center text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg></div>';
                       }}
                     />
                   )}
@@ -441,7 +485,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
           </div>
 
           <CardContent className="p-6 space-y-6">
-            {/* Brand Identity Section */}
+            {/* Colors & Fonts */}
             <div className="grid md:grid-cols-2 gap-6">
               {/* Colors */}
               <div className="space-y-3">
@@ -463,18 +507,8 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                     ) : (
                       <>
                         {data.brand.logo && !data.brand.logo.startsWith('data:application/pdf') && !data.brand.logo.toLowerCase().endsWith('.pdf') && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 text-xs gap-1"
-                            onClick={handleExtractColorsFromLogo}
-                            disabled={isExtractingColors}
-                          >
-                            {isExtractingColors ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Sparkles className="w-3 h-3" />
-                            )}
+                          <Button variant="ghost" size="sm" className="h-6 text-xs gap-1" onClick={handleExtractColorsFromLogo} disabled={isExtractingColors}>
+                            {isExtractingColors ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                             חלץ מהלוגו
                           </Button>
                         )}
@@ -487,57 +521,25 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                 </h4>
                 {editMode === 'colors' ? (
                   <div className="flex gap-3">
-                    <div className="text-center space-y-2">
-                      <input
-                        type="color"
-                        value={editedColors.primary}
-                        onChange={(e) => setEditedColors(prev => ({ ...prev, primary: e.target.value }))}
-                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm cursor-pointer"
-                      />
-                      <span className="text-xs text-muted-foreground block">ראשי</span>
-                    </div>
-                    <div className="text-center space-y-2">
-                      <input
-                        type="color"
-                        value={editedColors.secondary}
-                        onChange={(e) => setEditedColors(prev => ({ ...prev, secondary: e.target.value }))}
-                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm cursor-pointer"
-                      />
-                      <span className="text-xs text-muted-foreground block">משני</span>
-                    </div>
-                    <div className="text-center space-y-2">
-                      <input
-                        type="color"
-                        value={editedColors.background}
-                        onChange={(e) => setEditedColors(prev => ({ ...prev, background: e.target.value }))}
-                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm cursor-pointer"
-                      />
-                      <span className="text-xs text-muted-foreground block">רקע</span>
-                    </div>
+                    {(['primary', 'secondary', 'background'] as const).map((key) => (
+                      <div key={key} className="text-center space-y-2">
+                        <input type="color" value={editedColors[key]} onChange={(e) => setEditedColors(prev => ({ ...prev, [key]: e.target.value }))} className="w-14 h-14 rounded-xl border-2 border-border shadow-sm cursor-pointer" />
+                        <span className="text-xs text-muted-foreground block">{key === 'primary' ? 'ראשי' : key === 'secondary' ? 'משני' : 'רקע'}</span>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="flex gap-3">
-                    <div className="text-center">
-                      <div 
-                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm"
-                        style={{ backgroundColor: data.brand.colors.primary }}
-                      />
-                      <span className="text-xs text-muted-foreground mt-1 block">ראשי</span>
-                    </div>
-                    <div className="text-center">
-                      <div 
-                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm"
-                        style={{ backgroundColor: data.brand.colors.secondary }}
-                      />
-                      <span className="text-xs text-muted-foreground mt-1 block">משני</span>
-                    </div>
-                    <div className="text-center">
-                      <div 
-                        className="w-14 h-14 rounded-xl border-2 border-border shadow-sm"
-                        style={{ backgroundColor: data.brand.colors.background }}
-                      />
-                      <span className="text-xs text-muted-foreground mt-1 block">רקע</span>
-                    </div>
+                    {[
+                      { color: data.brand.colors.primary, label: 'ראשי' },
+                      { color: data.brand.colors.secondary, label: 'משני' },
+                      { color: data.brand.colors.background, label: 'רקע' },
+                    ].map((c) => (
+                      <div key={c.label} className="text-center">
+                        <div className="w-14 h-14 rounded-xl border-2 border-border shadow-sm" style={{ backgroundColor: c.color }} />
+                        <span className="text-xs text-muted-foreground mt-1 block">{c.label}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -551,36 +553,22 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                   </span>
                   {editMode === 'fonts' ? (
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode(null)}>
-                        <X className="w-3 h-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-600" onClick={handleSaveFonts}>
-                        <Check className="w-3 h-3" />
-                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode(null)}><X className="w-3 h-3" /></Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-600" onClick={handleSaveFonts}><Check className="w-3 h-3" /></Button>
                     </div>
                   ) : (
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode('fonts')}>
-                      <Pencil className="w-3 h-3" />
-                    </Button>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode('fonts')}><Pencil className="w-3 h-3" /></Button>
                   )}
                 </h4>
                 {editMode === 'fonts' ? (
                   <div className="space-y-2">
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">פונט כותרות</label>
-                      <Input
-                        value={editedFonts.headerFont}
-                        onChange={(e) => setEditedFonts(prev => ({ ...prev, headerFont: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
+                      <Input value={editedFonts.headerFont} onChange={(e) => setEditedFonts(prev => ({ ...prev, headerFont: e.target.value }))} className="h-8 text-sm" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">פונט טקסט</label>
-                      <Input
-                        value={editedFonts.bodyFont}
-                        onChange={(e) => setEditedFonts(prev => ({ ...prev, bodyFont: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
+                      <Input value={editedFonts.bodyFont} onChange={(e) => setEditedFonts(prev => ({ ...prev, bodyFont: e.target.value }))} className="h-8 text-sm" />
                     </div>
                   </div>
                 ) : (
@@ -597,239 +585,281 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Business Insights Section */}
-            {websiteInsights && (
-              <div className="pt-4 border-t border-border space-y-4">
-                <h4 className="font-semibold text-foreground flex items-center gap-2 justify-between">
-                  <span className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-primary" />
-                    אודות העסק
-                  </span>
-                  {editMode === 'business' ? (
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode(null)}>
-                        <X className="w-3 h-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-600" onClick={handleSaveBusiness}>
-                        <Check className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditMode('business')}>
-                      <Pencil className="w-3 h-3" />
-                    </Button>
-                  )}
-                </h4>
+        {/* ─── Card 2: Services & Business Info ─── */}
+        {(websiteInsights?.services?.length > 0 || websiteInsights?.industry || websiteInsights?.coreOffering) && (
+          <Card className="border-2 border-border overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Building2 className="w-5 h-5" />
+                השירותים שלכם
+              </h3>
+              <p className="text-sm text-white/80">מה אתם מציעים? זה ישפיע על הטקסטים במודעות ובמצגות.</p>
+            </div>
+            <CardContent className="p-6 space-y-4">
+              {/* Services tags */}
+              {websiteInsights?.services?.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {websiteInsights.services.map((service, idx) => (
+                    <Badge key={idx} variant="secondary" className="px-4 py-2 text-sm font-medium">
+                      {service}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Business details grid */}
+              <div className="grid md:grid-cols-2 gap-3">
                 {editMode === 'business' ? (
-                  <div className="grid md:grid-cols-2 gap-3">
+                  <>
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">תחום פעילות</label>
-                      <Input
-                        value={editedBusiness.industry}
-                        onChange={(e) => setEditedBusiness(prev => ({ ...prev, industry: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
+                      <Input value={editedBusiness.industry} onChange={(e) => setEditedBusiness(prev => ({ ...prev, industry: e.target.value }))} className="h-8 text-sm" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">ותק בשוק</label>
-                      <Input
-                        value={editedBusiness.seniority}
-                        onChange={(e) => setEditedBusiness(prev => ({ ...prev, seniority: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
+                      <Input value={editedBusiness.seniority} onChange={(e) => setEditedBusiness(prev => ({ ...prev, seniority: e.target.value }))} className="h-8 text-sm" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">קהל יעד</label>
-                      <Input
-                        value={editedBusiness.audience}
-                        onChange={(e) => setEditedBusiness(prev => ({ ...prev, audience: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
+                      <Input value={editedBusiness.audience} onChange={(e) => setEditedBusiness(prev => ({ ...prev, audience: e.target.value }))} className="h-8 text-sm" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">הצעת הערך</label>
-                      <Input
-                        value={editedBusiness.coreOffering}
-                        onChange={(e) => setEditedBusiness(prev => ({ ...prev, coreOffering: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
+                      <Input value={editedBusiness.coreOffering} onChange={(e) => setEditedBusiness(prev => ({ ...prev, coreOffering: e.target.value }))} className="h-8 text-sm" />
                     </div>
-                  </div>
+                    <div className="md:col-span-2 flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => setEditMode(null)}>ביטול</Button>
+                      <Button size="sm" onClick={handleSaveBusiness}><Check className="w-3 h-3 ml-1" />שמור</Button>
+                    </div>
+                  </>
                 ) : (
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {websiteInsights.industry && (
-                      <div className="p-3 rounded-lg bg-secondary/50">
-                        <p className="text-xs text-muted-foreground mb-1">תחום פעילות</p>
-                        <p className="font-medium text-sm">{websiteInsights.industry}</p>
-                      </div>
-                    )}
-                    {websiteInsights.seniority && (
+                  <>
+                    {websiteInsights?.seniority && (
                       <div className="p-3 rounded-lg bg-secondary/50">
                         <p className="text-xs text-muted-foreground mb-1">ותק בשוק</p>
                         <p className="font-medium text-sm">{websiteInsights.seniority}</p>
                       </div>
                     )}
-                    {websiteInsights.audience && (
+                    {websiteInsights?.coreOffering && (
                       <div className="p-3 rounded-lg bg-secondary/50">
-                        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          קהל יעד
-                        </p>
-                        <p className="font-medium text-sm">{websiteInsights.audience}</p>
-                      </div>
-                    )}
-                    {websiteInsights.coreOffering && (
-                      <div className="p-3 rounded-lg bg-secondary/50">
-                        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                          <Award className="w-3 h-3" />
-                          הצעת הערך
-                        </p>
+                        <p className="text-xs text-muted-foreground mb-1">הצעת הערך</p>
                         <p className="font-medium text-sm">{websiteInsights.coreOffering}</p>
                       </div>
                     )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Strategic Positioning Section */}
-            <div className="pt-4 border-t border-border space-y-4">
-              <h4 className="font-semibold text-foreground flex items-center gap-2">
-                <Target className="w-4 h-4 text-primary" />
-                מיצוב אסטרטגי
-              </h4>
-              
-              <div className="grid md:grid-cols-2 gap-3">
-                {/* Advantage Type */}
-                <div className="p-3 rounded-lg bg-secondary/50">
-                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                    {data.strategicMRI.advantageType === 'hard' ? (
-                      <Package className="w-3 h-3" />
-                    ) : (
-                      <Heart className="w-3 h-3" />
+                    {websiteInsights?.audience && (
+                      <div className="p-3 rounded-lg bg-secondary/50">
+                        <p className="text-xs text-muted-foreground mb-1">קהל יעד</p>
+                        <p className="font-medium text-sm">{websiteInsights.audience}</p>
+                      </div>
                     )}
-                    סוג היתרון
-                  </p>
-                  <p className="font-medium text-sm">
-                    {data.strategicMRI.advantageType === 'hard' ? 'יתרון פיזי מובהק' : 'יתרון תדמיתי/רגשי'}
-                  </p>
-                </div>
-
-                {/* Primary X-Factor */}
-                {data.strategicMRI.primaryXFactor && (
-                  <div className="p-3 rounded-lg bg-secondary/50">
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                      <Trophy className="w-3 h-3" />
-                      הגורם המבדל העיקרי
-                    </p>
-                    <p className="font-medium text-sm">
-                      {data.strategicMRI.primaryXFactor === 'veteran' && 'הוותק והניסיון'}
-                      {data.strategicMRI.primaryXFactor === 'product' && 'עליונות מוצרית'}
-                      {data.strategicMRI.primaryXFactor === 'price' && 'המחיר'}
-                      {data.strategicMRI.primaryXFactor === 'service' && 'השירות והיחס'}
-                      {data.strategicMRI.primaryXFactor === 'brand' && 'הבטחה פרסומית'}
-                    </p>
-                  </div>
-                )}
-
-                {/* Price Positioning */}
-                <div className="p-3 rounded-lg bg-secondary/50">
-                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                    <Tag className="w-3 h-3" />
-                    מיצוב מחיר
-                  </p>
-                  <p className="font-medium text-sm">
-                    {data.strategicMRI.myPosition.x < -30 ? 'זול / משתלם' : 
-                     data.strategicMRI.myPosition.x > 30 ? 'פרימיום / יוקרה' : 'מחיר ביניים'}
-                  </p>
-                </div>
-
-                {/* Style Positioning */}
-                <div className="p-3 rounded-lg bg-secondary/50">
-                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    סגנון
-                  </p>
-                  <p className="font-medium text-sm">
-                    {data.strategicMRI.myPosition.y < -30 ? 'קלאסי ומסורתי' : 
-                     data.strategicMRI.myPosition.y > 30 ? 'מודרני וחדשני' : 'מאוזן'}
-                  </p>
-                </div>
-
-                {/* Winning Feature - if exists */}
-                {data.strategicMRI.winningFeature && (
-                  <div className="p-3 rounded-lg bg-secondary/50 md:col-span-2">
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                      <Award className="w-3 h-3" />
-                      הפיצ'ר המנצח
-                    </p>
-                    <p className="font-medium text-sm">{data.strategicMRI.winningFeature}</p>
-                  </div>
+                    <div className="flex justify-end md:col-span-2">
+                      <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => setEditMode('business')}>
+                        <Pencil className="w-3 h-3" />
+                        ערוך פרטי עסק
+                      </Button>
+                    </div>
+                  </>
                 )}
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ─── Card 3: Strategic DNA ─── */}
+        <Card className="border-2 border-border overflow-hidden">
+          <div className="bg-gradient-to-r from-violet-600 to-indigo-700 p-4">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              ה-DNA האסטרטגי
+            </h3>
+            <p className="text-sm text-white/80">מה מבדל אתכם, למי אתם מדברים, ואיך אתם נתפסים.</p>
+          </div>
+          <CardContent className="p-6 space-y-5">
+            {/* Brand Presence & Audience Tone */}
+            <div className="grid md:grid-cols-2 gap-3">
+              {data.strategicMRI.brandPresence && (
+                <div className="p-3 rounded-lg bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <Anchor className="w-3 h-3" />
+                    נוכחות מותגית
+                  </p>
+                  <p className="font-medium text-sm">{getBrandPresenceLabel()}</p>
+                </div>
+              )}
+              {data.strategicMRI.audienceTone && (
+                <div className="p-3 rounded-lg bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    טון דיבור
+                  </p>
+                  <p className="font-medium text-sm">{getAudienceToneLabel()}</p>
+                </div>
+              )}
             </div>
 
-            {/* Past Materials */}
-            {data.pastMaterials.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-semibold text-foreground flex items-center gap-2">
-                  <Image className="w-4 h-4 text-primary" />
-                  חומרים קודמים ({data.pastMaterials.length})
-                </h4>
-                <div className="flex gap-2 flex-wrap">
-                  {data.pastMaterials.slice(0, 4).map((material) => (
-                    <div 
-                      key={material.id}
-                      className="w-16 h-16 rounded-lg overflow-hidden border border-border"
+            {/* X-Factors */}
+            {data.strategicMRI.xFactors.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Trophy className="w-3 h-3" />
+                  גורמי בידול
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {data.strategicMRI.xFactors.map((factor) => (
+                    <Badge 
+                      key={factor} 
+                      variant={factor === data.strategicMRI.primaryXFactor ? 'default' : 'secondary'}
+                      className="px-3 py-1.5"
                     >
-                      {material.type === 'image' ? (
-                        <img 
-                          src={material.preview} 
-                          alt={material.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-secondary flex items-center justify-center">
-                          <span className="text-xs text-muted-foreground">PDF</span>
-                        </div>
-                      )}
-                    </div>
+                      {factor === data.strategicMRI.primaryXFactor && <Zap className="w-3 h-3 ml-1" />}
+                      {getXFactorLabel(factor)}
+                    </Badge>
                   ))}
-                  {data.pastMaterials.length > 4 && (
-                    <div className="w-16 h-16 rounded-lg bg-secondary flex items-center justify-center">
-                      <span className="text-sm text-muted-foreground">
-                        +{data.pastMaterials.length - 4}
-                      </span>
-                    </div>
-                  )}
+                </div>
+                {data.strategicMRI.primaryXFactor && data.strategicMRI.xFactorDetails[data.strategicMRI.primaryXFactor] && (
+                  <p className="text-sm text-muted-foreground bg-secondary/30 p-2 rounded-lg">
+                    "{data.strategicMRI.xFactorDetails[data.strategicMRI.primaryXFactor]}"
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Quality Signatures */}
+            {data.strategicMRI.qualitySignatures.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Award className="w-3 h-3" />
+                  תבלינים חזקים (הוכחות)
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {data.strategicMRI.qualitySignatures.map((sig, idx) => (
+                    <Badge key={idx} variant="outline" className="px-3 py-1.5 text-sm">
+                      {getQualitySignatureLabel(sig.type)}: {sig.value}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Summary Stats */}
-            <div className="pt-4 border-t border-border">
-              <div className="flex items-center justify-center gap-4 flex-wrap text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Check className="w-4 h-4 text-green-500" />
-                  זהות מותגית
+            {/* Target Audience */}
+            <div className="grid md:grid-cols-2 gap-3">
+              {data.strategicMRI.endConsumer && (
+                <div className="p-3 rounded-lg bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1">צרכן קצה</p>
+                  <p className="font-medium text-sm">{data.strategicMRI.endConsumer}</p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Check className="w-4 h-4 text-green-500" />
-                  פלטת צבעים
+              )}
+              {data.strategicMRI.decisionMaker && (
+                <div className="p-3 rounded-lg bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1">מקבל ההחלטות</p>
+                  <p className="font-medium text-sm">{data.strategicMRI.decisionMaker}</p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Check className="w-4 h-4 text-green-500" />
-                  אסטרטגיה
-                </div>
-                <div className="flex items-center gap-1">
-                  <Check className="w-4 h-4 text-green-500" />
-                  תזמון
-                </div>
+              )}
+            </div>
+
+            {/* Competitors */}
+            {(data.strategicMRI.competitors.length > 0 || data.strategicMRI.noCompetitors) && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  מתחרים
+                </p>
+                {data.strategicMRI.noCompetitors ? (
+                  <p className="text-sm text-muted-foreground">אין מתחרים ישירים</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {data.strategicMRI.competitors.map((comp, idx) => (
+                      <Badge key={idx} variant="outline" className="px-3 py-1.5">{comp}</Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Positioning */}
+            <div className="grid md:grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-secondary/50">
+                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                  <Tag className="w-3 h-3" />
+                  מיצוב מחיר
+                </p>
+                <p className="font-medium text-sm">
+                  {data.strategicMRI.myPosition.x < -30 ? 'זול / משתלם' : 
+                   data.strategicMRI.myPosition.x > 30 ? 'פרימיום / יוקרה' : 'מחיר ביניים'}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-secondary/50">
+                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  סגנון
+                </p>
+                <p className="font-medium text-sm">
+                  {data.strategicMRI.myPosition.y < -30 ? 'קלאסי ומסורתי' : 
+                   data.strategicMRI.myPosition.y > 30 ? 'מודרני וחדשני' : 'מאוזן'}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* ─── Card 4: Past Materials (if any) ─── */}
+        {data.pastMaterials.length > 0 && (
+          <Card className="border-2 border-border overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-600 to-gray-700 p-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Image className="w-5 h-5" />
+                חומרים קודמים ({data.pastMaterials.length})
+              </h3>
+            </div>
+            <CardContent className="p-6">
+              <div className="flex gap-2 flex-wrap">
+                {data.pastMaterials.slice(0, 6).map((material) => (
+                  <div key={material.id} className="w-20 h-20 rounded-lg overflow-hidden border border-border">
+                    {material.type === 'image' ? (
+                      <img src={material.preview} alt={material.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-secondary flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">PDF</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {data.pastMaterials.length > 6 && (
+                  <div className="w-20 h-20 rounded-lg bg-secondary flex items-center justify-center">
+                    <span className="text-sm text-muted-foreground">+{data.pastMaterials.length - 6}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Summary completeness bar */}
+        <div className="flex items-center justify-center gap-4 flex-wrap text-sm text-muted-foreground py-2">
+          <div className="flex items-center gap-1">
+            <Check className="w-4 h-4 text-green-500" />
+            זהות מותגית
+          </div>
+          {websiteInsights?.services?.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Check className="w-4 h-4 text-green-500" />
+              שירותים
+            </div>
+          )}
+          <div className="flex items-center gap-1">
+            <Check className="w-4 h-4 text-green-500" />
+            אסטרטגיה
+          </div>
+          {data.pastMaterials.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Check className="w-4 h-4 text-green-500" />
+              חומרים
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Navigation */}
