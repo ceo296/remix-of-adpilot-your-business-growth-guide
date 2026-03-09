@@ -401,10 +401,25 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                         </div>
                       )}
                       {/* Tagline under logo */}
-                      {selectedTaglineIndex !== null && brandResult.strategy.tagline_options?.[selectedTaglineIndex] && (
-                        <p className="text-lg font-bold mt-1" style={{ color: selectedDirection.colors.primary }}>
-                          {brandResult.strategy.tagline_options[selectedTaglineIndex].hebrew}
-                        </p>
+                      {(() => {
+                        const displayTagline = customTagline || (selectedTaglineIndex !== null ? brandResult.strategy.tagline_options?.[selectedTaglineIndex]?.hebrew : null);
+                        return displayTagline ? (
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-lg font-bold" style={{ color: selectedDirection.colors.primary }}>{displayTagline}</p>
+                            <button onClick={() => { setCustomTagline(displayTagline); setIsEditingTagline(true); }} className="opacity-50 hover:opacity-100 transition-opacity">
+                              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                            </button>
+                          </div>
+                        ) : null;
+                      })()}
+                      {/* Subtitle under tagline */}
+                      {showSubtitle && subtitle && (
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-muted-foreground font-medium">{subtitle}</p>
+                          <button onClick={() => setShowSubtitle(true)} className="opacity-50 hover:opacity-100 transition-opacity">
+                            <Pencil className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </Card>
