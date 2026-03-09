@@ -29,7 +29,7 @@ CRITICAL: No text, no letters, no words, no watermarks, no logos. Just the produ
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image',
+        model: 'google/gemini-3-pro-image-preview',
         messages: [{ role: 'user', content: prompt }],
         modalities: ['image', 'text'],
       }),
