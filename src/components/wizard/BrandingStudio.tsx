@@ -146,7 +146,9 @@ export function BrandingStudio({ isOpen, onClose, businessName }: BrandingStudio
         designPreferences: '',
       });
       setBrandResult(null);
+      setSelectedLogoIndex(0);
       setGenerationStep(0);
+      setLogoBgMode('light');
     }
   }, [isOpen, businessName]);
 
