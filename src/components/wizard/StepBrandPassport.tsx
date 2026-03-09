@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText, AlertTriangle, Lightbulb, Bot, RefreshCw, ArrowLeft, Camera } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText, AlertTriangle, Lightbulb, Bot, RefreshCw, ArrowLeft, Camera, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getYourWord } from '@/lib/honorific-utils';
@@ -34,6 +34,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
   const [hasValidated, setHasValidated] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editFieldValue, setEditFieldValue] = useState('');
+  const [newService, setNewService] = useState('');
   
   // Editable local state
   const [editedFonts, setEditedFonts] = useState({
@@ -589,8 +590,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
         </Card>
 
         {/* ─── Card 2: Services & Business Info ─── */}
-        {(websiteInsights?.services?.length > 0 || websiteInsights?.industry || websiteInsights?.coreOffering) && (
-          <Card className="border-2 border-border overflow-hidden">
+        <Card className="border-2 border-border overflow-hidden">
             <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Building2 className="w-5 h-5" />
@@ -599,16 +599,55 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
               <p className="text-sm text-white/80">מה אתם מציעים? זה ישפיע על הטקסטים במודעות ובמצגות.</p>
             </div>
             <CardContent className="p-6 space-y-4">
-              {/* Services tags */}
-              {websiteInsights?.services?.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {websiteInsights.services.map((service, idx) => (
-                    <Badge key={idx} variant="secondary" className="px-4 py-2 text-sm font-medium">
-                      {service}
-                    </Badge>
-                  ))}
+              {/* Services tags with editing */}
+              <div className="space-y-3">
+                {(websiteInsights?.services || []).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {(websiteInsights?.services || []).map((service, idx) => (
+                      <Badge key={idx} variant="secondary" className="px-4 py-2 text-sm font-medium gap-2">
+                        {service}
+                        <button 
+                          onClick={() => {
+                            const updated = [...(data.websiteInsights?.services || [])];
+                            updated.splice(idx, 1);
+                            updateData({ websiteInsights: { ...data.websiteInsights, services: updated } });
+                          }}
+                          className="hover:text-destructive transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Input
+                    value={newService}
+                    onChange={(e) => setNewService(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newService.trim()) {
+                        updateData({ websiteInsights: { ...data.websiteInsights, services: [...(data.websiteInsights?.services || []), newService.trim()] } });
+                        setNewService('');
+                      }
+                    }}
+                    placeholder="הוסיפו שירות (לדוגמא: ייעוץ, עיצוב, הדרכה...)"
+                    className="flex-1"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => {
+                      if (newService.trim()) {
+                        updateData({ websiteInsights: { ...data.websiteInsights, services: [...(data.websiteInsights?.services || []), newService.trim()] } });
+                        setNewService('');
+                      }
+                    }}
+                    disabled={!newService.trim()}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
                 </div>
-              )}
+              </div>
 
               {/* Business details grid */}
               <div className="grid md:grid-cols-2 gap-3">
@@ -666,7 +705,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
               </div>
             </CardContent>
           </Card>
-        )}
 
         {/* ─── Card 3: Strategic DNA ─── */}
         <Card className="border-2 border-border overflow-hidden">
