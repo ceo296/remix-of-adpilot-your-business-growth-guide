@@ -1033,6 +1033,25 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
         isOpen={showBrandingStudio} 
         onClose={() => setShowBrandingStudio(false)}
         businessName={data.brand.name}
+        onBrandingComplete={(branding) => {
+          // Hydrate wizard data with branding results so user doesn't re-enter info
+          updateData({
+            brand: {
+              name: branding.businessName,
+              logo: branding.logo,
+              colors: {
+                primary: branding.colors.primary,
+                secondary: branding.colors.secondary,
+                background: branding.colors.background,
+              },
+              headerFont: branding.fonts.header,
+              bodyFont: branding.fonts.body,
+            },
+          });
+          setShowBrandingStudio(false);
+          // Auto-advance to next step
+          onNext();
+        }}
       />
     </>
   );
