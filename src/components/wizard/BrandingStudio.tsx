@@ -38,15 +38,29 @@ interface TaglineOption {
   style: string;
 }
 
+interface WorldReference {
+  brand: string;
+  colors: string;
+  lesson: string;
+}
+
+interface BrandValue {
+  value: string;
+  icon: string;
+  designConnection: string;
+}
+
 interface BrandDirection {
   name: string;
   nameEn: string;
   philosophy: string;
   colors: { primary: string; secondary: string; accent: string; background: string; dark: string };
   colorDescription: string;
+  colorEmotion: string | null;
   fonts: { header: string; body: string };
   logo: string | null;
   mockup: string | null;
+  worldReferences: WorldReference[];
 }
 
 interface BrandResult {
@@ -54,6 +68,7 @@ interface BrandResult {
     tagline_options?: TaglineOption[];
     brand_voice: string;
     brand_essence_summary: string;
+    brand_values?: BrandValue[];
   };
   directions: BrandDirection[];
 }
