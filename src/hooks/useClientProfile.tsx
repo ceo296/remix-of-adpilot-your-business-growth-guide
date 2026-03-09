@@ -24,12 +24,13 @@ export const useClientProfile = () => {
 
     try {
       setLoading(true);
+      // First try to get a completed profile (so user isn't stuck on incomplete ones)
       const { data, error } = await supabase
         .from('client_profiles')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_agency_profile', false)
-        .order('onboarding_completed', { ascending: true })
+        .order('onboarding_completed', { ascending: false })
         .order('updated_at', { ascending: false })
         .limit(1);
 

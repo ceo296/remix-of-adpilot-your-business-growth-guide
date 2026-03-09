@@ -15,7 +15,7 @@ const Dashboard = () => {
   const [userName, setUserName] = useState<string>('');
   const [brandName, setBrandName] = useState<string>('');
 
-  // Redirect if not authenticated or onboarding not completed
+  // Redirect if not authenticated; allow access if ANY profile is completed
   useEffect(() => {
     if (authLoading || profileLoading) return;
 
@@ -24,13 +24,22 @@ const Dashboard = () => {
       return;
     }
 
-    if (!profile) {
-      navigate('/onboarding', { replace: true });
-      return;
-    }
-
-    if (!profile.onboarding_completed) {
-      navigate('/onboarding', { replace: true });
+    // If current profile is incomplete, check if there's ANY completed profile
+    if (!profile || !profile.onboarding_completed) {
+      const checkAnyCompleted = async () => {
+        const { data } = await supabase
+          .from('client_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('onboarding_completed', true)
+          .limit(1);
+        
+        // Only redirect to onboarding if NO profiles are completed
+        if (!data || data.length === 0) {
+          navigate('/onboarding', { replace: true });
+        }
+      };
+      checkAnyCompleted();
     }
   }, [authLoading, profileLoading, user, profile, navigate]);
 
