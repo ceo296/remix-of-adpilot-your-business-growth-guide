@@ -225,16 +225,27 @@ IMPORTANT: Be HONEST. If the detected font is NOT in the available Google Fonts 
     const headerFont = allowedFonts.includes(colors.headerFont) ? colors.headerFont : null;
     const bodyFont = allowedFonts.includes(colors.bodyFont) ? colors.bodyFont : null;
     
+    // Extract detected font info
+    const detectedFontName = colors.detectedFontName || null;
+    const fontConfidence = colors.fontConfidence || null;
+    const isDetectedFontAvailable = detectedFontName ? allowedFonts.includes(detectedFontName) : false;
+    
     if (validationErrors.length > 0) {
       console.error("Color validation errors:", validationErrors);
     }
 
-    console.log("Returning colors and fonts:", { colors, headerFont, bodyFont });
+    console.log("Returning colors and fonts:", { colors, headerFont, bodyFont, detectedFontName, fontConfidence });
 
     return new Response(
       JSON.stringify({ 
         colors: { primary: colors.primary, secondary: colors.secondary, background: colors.background },
-        fonts: headerFont ? { headerFont, bodyFont: bodyFont || "Heebo" } : null
+        fonts: headerFont ? { 
+          headerFont, 
+          bodyFont: bodyFont || "Heebo",
+          detectedFontName,
+          fontConfidence,
+          isDetectedFontAvailable,
+        } : null
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
