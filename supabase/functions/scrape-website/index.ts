@@ -58,7 +58,7 @@ serve(async (req) => {
       body: JSON.stringify({
         url: formattedUrl,
         formats: options?.formats || ['markdown', 'branding'],
-        onlyMainContent: options?.onlyMainContent ?? true,
+        onlyMainContent: false,
         waitFor: options?.waitFor || 2000,
       }),
     });
