@@ -24,6 +24,13 @@ interface BriefData {
   designPreferences: string;
 }
 
+interface LogoOption {
+  name: string;
+  nameEn: string;
+  description: string;
+  image: string;
+}
+
 interface BrandResult {
   strategy: {
     tagline: string;
@@ -47,6 +54,7 @@ interface BrandResult {
     mockup_scenes: string[];
   };
   logo: string | null;
+  logoOptions: LogoOption[];
   mockups: string[];
 }
 
