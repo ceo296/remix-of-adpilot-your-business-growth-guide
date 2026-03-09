@@ -28,8 +28,13 @@ Design Preferences: ${designPreferences}
 
 Return a JSON object with this EXACT structure (no markdown, no backticks, just pure JSON):
 {
-  "tagline": "A powerful Hebrew tagline for the brand (3-6 words)",
-  "tagline_english": "English translation of the tagline",
+  "tagline_options": [
+    {"hebrew": "סלוגן עברי אופציה 1 (3-6 מילים)", "english": "English translation 1", "style": "רגשי"},
+    {"hebrew": "סלוגן עברי אופציה 2 (3-6 מילים)", "english": "English translation 2", "style": "פונקציונלי"},
+    {"hebrew": "סלוגן עברי אופציה 3 (3-6 מילים)", "english": "English translation 3", "style": "מפתיע"}
+  ],
+  "tagline": "The best tagline from the options above (Hebrew)",
+  "tagline_english": "English translation of the best tagline",
   "brand_voice": "2-3 sentences describing the brand's communication style in Hebrew",
   "colors": {
     "primary": "#HEX - the main brand color",
@@ -116,34 +121,39 @@ Return a JSON object with this EXACT structure (no markdown, no backticks, just 
     
     const logoStyles = [
       {
-        name: 'מינימליסטי',
-        nameEn: 'Minimalist',
-        description: 'Clean geometric shapes, minimal details, modern and timeless',
-        styleDirective: 'Minimalist, geometric, clean lines, flat design, ultra-modern. Think Apple/Nike simplicity.',
+        name: 'טיפוגרפי',
+        nameEn: 'Typographic',
+        description: 'Logo made purely from the business name with creative typography',
+        styleDirective: `Typographic logo - the business name "${businessName || 'Brand'}" IS the logo. Creative font treatment, unique letter styling, custom typeface feel. NO icon, NO symbol - just the name designed beautifully. Think Coca-Cola, Google, or FedEx style wordmarks. The text must be in Hebrew.`,
+        includesName: true,
       },
       {
-        name: 'אלגנטי',
-        nameEn: 'Elegant',
-        description: 'Refined, luxurious feel with sophisticated details',
-        styleDirective: 'Elegant, refined, luxury feel. Thin strokes, ornamental touches, premium aesthetic. Think high-end fashion brand.',
+        name: 'אייקון + שם למטה',
+        nameEn: 'Icon Above Name',
+        description: 'Icon/symbol on top with business name below',
+        styleDirective: `Logo with a relevant icon/symbol centered ABOVE the business name "${businessName || 'Brand'}" written in Hebrew below it. Clean layout, balanced proportions. The icon should relate to the business field. Professional and balanced composition.`,
+        includesName: true,
       },
       {
-        name: 'מודרני נועז',
-        nameEn: 'Bold Modern',
-        description: 'Strong, confident shapes with bold presence',
-        styleDirective: 'Bold, strong, confident. Thick lines, powerful shapes, high contrast. Dynamic and impactful.',
+        name: 'אייקון + שם בצד',
+        nameEn: 'Icon Beside Name',
+        description: 'Icon/symbol next to the business name horizontally',
+        styleDirective: `Horizontal logo with a relevant icon/symbol on one side and the business name "${businessName || 'Brand'}" in Hebrew on the other side. Side by side layout. Clean, modern, works great on headers and business cards.`,
+        includesName: true,
       },
       {
-        name: 'אורגני',
-        nameEn: 'Organic',
-        description: 'Natural flowing forms, soft curves, friendly feel',
-        styleDirective: 'Organic, natural, flowing curves. Soft shapes, approachable, warm feeling. Hand-crafted quality.',
+        name: 'אותיות קריאייטיב',
+        nameEn: 'Creative Letterform',
+        description: 'Creative design integrated into the letters of the name',
+        styleDirective: `Creative letterform logo where the Hebrew letters of "${businessName || 'Brand'}" incorporate clever visual elements related to the business field. Like FedEx arrow or Amazon smile - a hidden or integrated visual meaning within the typography. The letters themselves tell the story.`,
+        includesName: true,
       },
       {
-        name: 'גיאומטרי',
-        nameEn: 'Geometric',
-        description: 'Abstract geometric patterns, structured and balanced',
-        styleDirective: 'Abstract geometric, structured symmetry, mathematical precision. Tessellated or interlocking shapes.',
+        name: 'סמליל מינימלי',
+        nameEn: 'Minimal Symbol',
+        description: 'Clean minimal icon/symbol only',
+        styleDirective: 'Minimalist icon/symbol logo mark only - NO text, NO letters. Pure graphic symbol. Clean geometric shapes, modern and timeless. Think Apple or Nike.',
+        includesName: false,
       },
     ];
 
@@ -152,13 +162,12 @@ Return a JSON object with this EXACT structure (no markdown, no backticks, just 
         // Small stagger to avoid rate limits
         await new Promise(r => setTimeout(r, idx * 1500));
         
-        const logoPrompt = `Create a professional logo icon for a business called "${businessName || 'Brand'}".
+        const logoPrompt = `Create a professional logo for a business called "${businessName || 'Brand'}".
 Logo concept: ${strategy.logo_concept}
 Color palette: Primary ${strategy.colors.primary}, Secondary ${strategy.colors.secondary}, Accent ${strategy.colors.accent}
 Design style: ${style.styleDirective}
 IMPORTANT RULES:
-- Create ONLY the logo mark/icon - NO text, NO letters, NO words whatsoever
-- Pure graphic symbol/icon only
+- ${style.includesName ? `The business name "${businessName || 'Brand'}" MUST appear clearly in Hebrew as part of the logo` : 'Create ONLY the logo mark/icon - NO text, NO letters'}
 - Must work on both light and dark backgrounds
 - On a clean white background, centered, with generous padding
 - High resolution, crisp edges, professional quality

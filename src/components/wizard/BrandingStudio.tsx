@@ -37,12 +37,20 @@ interface LogoOption {
   nameEn: string;
   description: string;
   image: string;
+  includesName?: boolean;
+}
+
+interface TaglineOption {
+  hebrew: string;
+  english: string;
+  style: string;
 }
 
 interface BrandResult {
   strategy: {
     tagline: string;
     tagline_english: string;
+    tagline_options?: TaglineOption[];
     brand_voice: string;
     colors: {
       primary: string;
@@ -136,6 +144,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [generationStep, setGenerationStep] = useState(0);
   const [brandResult, setBrandResult] = useState<BrandResult | null>(null);
   const [selectedLogoIndex, setSelectedLogoIndex] = useState(0);
+  const [selectedTaglineIndex, setSelectedTaglineIndex] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark' | 'brand'>('light');
   const presentationRef = useRef<HTMLDivElement>(null);
@@ -155,6 +164,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
       });
       setBrandResult(null);
       setSelectedLogoIndex(0);
+      setSelectedTaglineIndex(0);
       setGenerationStep(0);
       setLogoBgMode('light');
     }
@@ -223,6 +233,8 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
 
     const selectedLogo = brandResult.logoOptions?.[selectedLogoIndex]?.image || brandResult.logo || null;
     const s = brandResult.strategy;
+    const taglineOptions = s.tagline_options || [];
+    const selectedTagline = taglineOptions[selectedTaglineIndex] || null;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -271,7 +283,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
           logo: selectedLogo,
           colors: s.colors,
           fonts: s.fonts,
-          tagline: s.tagline,
+          tagline: selectedTagline?.hebrew || s.tagline,
           brandVoice: s.brand_voice,
         });
         onClose();
@@ -401,15 +413,49 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
               <p className="text-muted-foreground">הנה הזהות העיצובית שנוצרה עבורכם</p>
             </div>
 
-            {/* Tagline */}
-            <Card className="p-8 text-center space-y-3" style={{ 
-              background: `linear-gradient(135deg, ${brandResult.strategy.colors.primary}15, ${brandResult.strategy.colors.secondary}15)` 
-            }}>
-              <p className="text-sm text-muted-foreground font-medium">סלוגן המותג</p>
-              <h3 className="text-3xl font-bold" style={{ color: brandResult.strategy.colors.primary }}>
-                {brandResult.strategy.tagline}
-              </h3>
-              <p className="text-sm text-muted-foreground">{brandResult.strategy.tagline_english}</p>
+            {/* Tagline Selection */}
+            <Card className="p-8 space-y-5">
+              <h4 className="text-lg font-bold text-center">✨ בחרו את הסלוגן שלכם</h4>
+              {brandResult.strategy.tagline_options && brandResult.strategy.tagline_options.length > 0 ? (
+                <div className="grid gap-3">
+                  {brandResult.strategy.tagline_options.map((option, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedTaglineIndex(idx)}
+                      className={`relative p-5 rounded-xl border-2 text-right transition-all duration-300 ${
+                        selectedTaglineIndex === idx
+                          ? 'border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/30'
+                          : 'border-border hover:border-primary/40'
+                      }`}
+                      style={selectedTaglineIndex === idx ? {
+                        background: `linear-gradient(135deg, ${brandResult.strategy.colors.primary}10, ${brandResult.strategy.colors.secondary}10)`
+                      } : {}}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1 flex-1">
+                          <p className="text-xl font-bold text-foreground">{option.hebrew}</p>
+                          <p className="text-sm text-muted-foreground">{option.english}</p>
+                        </div>
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground whitespace-nowrap">
+                          {option.style}
+                        </span>
+                      </div>
+                      {selectedTaglineIndex === idx && (
+                        <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-md">
+                          <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center p-6 rounded-xl" style={{
+                  background: `linear-gradient(135deg, ${brandResult.strategy.colors.primary}15, ${brandResult.strategy.colors.secondary}15)`
+                }}>
+                  <p className="text-2xl font-bold text-foreground">{brandResult.strategy.tagline}</p>
+                  <p className="text-sm text-muted-foreground mt-2">{brandResult.strategy.tagline_english}</p>
+                </div>
+              )}
             </Card>
 
             {/* Logo Options Gallery */}
