@@ -526,14 +526,38 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
               </div>
 
               {/* Fonts */}
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                   <Type className="w-4 h-4" /> פונטים
                 </span>
+                {detectedFontInfo && !detectedFontInfo.isAvailable && (
+                  <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                    <div className="text-xs">
+                      <p className="text-amber-600 dark:text-amber-400 font-medium">
+                        זיהינו את הפונט: <span className="font-bold">{detectedFontInfo.name}</span>
+                      </p>
+                      <p className="text-muted-foreground mt-0.5">
+                        פונט זה אינו זמין כרגע במערכת. הצענו תחליף קרוב
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {detectedFontInfo?.isAvailable && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                      זיהינו את הפונט: <span className="font-bold">{detectedFontInfo.name}</span> ✓
+                    </p>
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground">
                   כותרות: <span className="font-medium text-foreground">{data.brand.headerFont}</span>
                   {' | '}
                   גוף: <span className="font-medium text-foreground">{data.brand.bodyFont}</span>
+                  {detectedFontInfo && !detectedFontInfo.isAvailable && (
+                    <span className="text-xs text-amber-500 mr-1">(תחליף)</span>
+                  )}
                 </p>
               </div>
             </CardContent>
