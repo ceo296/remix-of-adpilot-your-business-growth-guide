@@ -161,7 +161,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
         <p className="text-muted-foreground">לפני שמדברים על עיצוב, בואו נבין את ה-DNA האסטרטגי {getYourWord(data.honorific)}</p>
       </div>
 
-      {/* ─── NEW Section 1: Brand Presence ─── */}
+      {/* ─── Section 1: Brand Presence ─── */}
       <Card className="border-2 shadow-xl overflow-hidden">
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -171,34 +171,92 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
           <p className="text-sm text-white/80">איך היית מגדיר את הנוכחות של המותג שלך בשוק?</p>
         </div>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {BRAND_PRESENCE_OPTIONS.map((option) => {
-              const isSelected = mri.brandPresence === option.id;
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Known Brand - Luxury/Gold aesthetic */}
+            {(() => {
+              const isSelected = mri.brandPresence === 'known';
               return (
                 <div
-                  key={option.id}
-                  onClick={() => updateMRI({ brandPresence: option.id })}
-                  className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center ${
-                    isSelected
-                      ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]'
-                      : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                  onClick={() => updateMRI({ brandPresence: 'known' })}
+                  className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-amber-400' : 'hover:scale-[1.01] hover:shadow-xl'
                   }`}
                 >
-                  <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-all bg-gradient-to-br ${option.gradient} shadow-lg ${
-                    isSelected ? 'scale-110' : 'opacity-70'
-                  }`}>
-                    <option.icon className="w-8 h-8 text-white" />
+                  <div className={`absolute inset-0 bg-gradient-to-br from-amber-900 via-amber-800 to-yellow-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, rgba(255,215,0,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,215,0,0.2) 0%, transparent 40%)' }} />
+                  <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
+                    <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
+                      <Crown className={`w-12 h-12 ${isSelected ? 'text-yellow-300' : 'text-yellow-400/60'}`} strokeWidth={1.5} />
+                    </div>
+                    <h4 className="font-bold text-white text-lg tracking-wide mb-2">מותג מוכר</h4>
+                    <p className="text-sm text-amber-100/70 leading-relaxed">השם שלי מספיק, אני מעדיף עיצוב נקי, מינימליסטי ויוקרתי</p>
                   </div>
-                  <h4 className="font-bold text-foreground mb-2">{option.label}</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{option.description}</p>
                   {isSelected && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="w-4 h-4 text-primary-foreground" />
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-amber-900" />
                     </div>
                   )}
                 </div>
               );
-            })}
+            })()}
+
+            {/* Expert - Professional/Trust blue aesthetic */}
+            {(() => {
+              const isSelected = mri.brandPresence === 'expert';
+              return (
+                <div
+                  onClick={() => updateMRI({ brandPresence: 'expert' })}
+                  className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-sky-400' : 'hover:scale-[1.01] hover:shadow-xl'
+                  }`}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(100,180,255,0.05) 10px, rgba(100,180,255,0.05) 20px)' }} />
+                  <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
+                    <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
+                      <Briefcase className={`w-12 h-12 ${isSelected ? 'text-sky-300' : 'text-sky-400/60'}`} strokeWidth={1.5} />
+                    </div>
+                    <h4 className="font-bold text-white text-lg tracking-wide mb-2">מומחה בתחומו</h4>
+                    <p className="text-sm text-blue-100/70 leading-relaxed">אני בונה אמון דרך מקצועיות, איכות וניסיון</p>
+                  </div>
+                  {isSelected && (
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-sky-400 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-blue-900" />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Active Player - Bold/Energetic green aesthetic */}
+            {(() => {
+              const isSelected = mri.brandPresence === 'active';
+              return (
+                <div
+                  onClick={() => updateMRI({ brandPresence: 'active' })}
+                  className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-emerald-400' : 'hover:scale-[1.01] hover:shadow-xl'
+                  }`}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-green-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className="absolute top-0 left-0 w-32 h-32 opacity-20">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-transparent rounded-full blur-2xl" />
+                  </div>
+                  <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
+                    <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
+                      <Zap className={`w-12 h-12 ${isSelected ? 'text-emerald-300' : 'text-emerald-400/60'}`} strokeWidth={1.5} />
+                    </div>
+                    <h4 className="font-bold text-white text-lg tracking-wide mb-2">שחקן אקטיבי</h4>
+                    <p className="text-sm text-emerald-100/70 leading-relaxed">אני כאן כדי לייצר תוצאות, המודעות שלי צריכות להיות בולטות</p>
+                  </div>
+                  {isSelected && (
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-emerald-400 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-emerald-900" />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </CardContent>
       </Card>
@@ -528,30 +586,92 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
           <p className="text-sm text-white/80">זה יקבע את טון השפה במודעות</p>
         </div>
         <CardContent className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {AUDIENCE_TONE_OPTIONS.map((option) => {
-              const isSelected = mri.audienceTone === option.id;
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Broad audience */}
+            {(() => {
+              const isSelected = mri.audienceTone === 'broad';
               return (
                 <div
-                  key={option.id}
-                  onClick={() => updateMRI({ audienceTone: option.id, endConsumer: option.id === 'b2b' ? 'b2b' : 'private' })}
-                  className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center ${
-                    isSelected ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]' : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                  onClick={() => updateMRI({ audienceTone: 'broad', endConsumer: 'private' })}
+                  className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-cyan-400' : 'hover:scale-[1.01] hover:shadow-xl'
                   }`}
                 >
-                  <div className={`w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center transition-all bg-gradient-to-br ${option.gradient} shadow-lg ${isSelected ? 'scale-110' : 'opacity-70'}`}>
-                    <option.icon className="w-7 h-7 text-white" />
+                  <div className={`absolute inset-0 bg-gradient-to-br from-cyan-800 via-blue-800 to-sky-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className="absolute bottom-0 left-0 w-full h-1/2 opacity-10 bg-gradient-to-t from-cyan-300 to-transparent" />
+                  <div className="relative p-6 text-center min-h-[160px] flex flex-col items-center justify-center">
+                    <div className={`mb-3 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
+                      <Users className={`w-11 h-11 ${isSelected ? 'text-cyan-300' : 'text-cyan-400/60'}`} strokeWidth={1.5} />
+                    </div>
+                    <h4 className="font-bold text-white text-lg mb-1">הקהל הרחב</h4>
+                    <p className="text-sm text-cyan-100/70">שפה פשוטה, ברורה ובגובה העיניים</p>
                   </div>
-                  <h4 className="font-bold text-foreground mb-1">{option.label}</h4>
-                  <p className="text-sm text-muted-foreground">{option.description}</p>
                   {isSelected && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="w-4 h-4 text-primary-foreground" />
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-cyan-400 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-cyan-900" />
                     </div>
                   )}
                 </div>
               );
-            })}
+            })()}
+
+            {/* Premium audience */}
+            {(() => {
+              const isSelected = mri.audienceTone === 'premium';
+              return (
+                <div
+                  onClick={() => updateMRI({ audienceTone: 'premium', endConsumer: 'private' })}
+                  className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-amber-400' : 'hover:scale-[1.01] hover:shadow-xl'
+                  }`}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br from-stone-900 via-amber-950 to-stone-800 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255,215,0,0.4) 0%, transparent 60%)' }} />
+                  <div className="relative p-6 text-center min-h-[160px] flex flex-col items-center justify-center">
+                    <div className={`mb-3 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
+                      <Crown className={`w-11 h-11 ${isSelected ? 'text-amber-300' : 'text-amber-400/60'}`} strokeWidth={1.5} />
+                    </div>
+                    <h4 className="font-bold text-white text-lg mb-1">קהל פרימיום</h4>
+                    <p className="text-sm text-amber-100/70">שפה גבוהה, מאופקת, דגש על איכות ובלעדיות</p>
+                  </div>
+                  {isSelected && (
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-amber-900" />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* B2B audience */}
+            {(() => {
+              const isSelected = mri.audienceTone === 'b2b';
+              return (
+                <div
+                  onClick={() => updateMRI({ audienceTone: 'b2b', endConsumer: 'b2b' })}
+                  className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-violet-400' : 'hover:scale-[1.01] hover:shadow-xl'
+                  }`}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className="absolute top-0 right-0 w-24 h-24 opacity-15">
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-400 to-transparent rounded-full blur-xl" />
+                  </div>
+                  <div className="relative p-6 text-center min-h-[160px] flex flex-col items-center justify-center">
+                    <div className={`mb-3 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
+                      <Briefcase className={`w-11 h-11 ${isSelected ? 'text-violet-300' : 'text-violet-400/60'}`} strokeWidth={1.5} />
+                    </div>
+                    <h4 className="font-bold text-white text-lg mb-1">קהל עסקי (B2B)</h4>
+                    <p className="text-sm text-violet-100/70">שפה מקצועית, עניינית ודגש על תועלות</p>
+                  </div>
+                  {isSelected && (
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-violet-400 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-violet-900" />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </CardContent>
       </Card>
