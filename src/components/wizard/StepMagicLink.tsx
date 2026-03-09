@@ -450,16 +450,16 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
     );
 
     const CONTACT_FIELDS_CONFIG = [
-      { key: 'contact_phone' as keyof ContactAssets, label: 'טלפון', icon: Phone, placeholder: '03-1234567', type: 'tel' },
-      { key: 'contact_whatsapp' as keyof ContactAssets, label: 'וואטסאפ', icon: MessageCircle, placeholder: '050-1234567', type: 'tel' },
-      { key: 'contact_email' as keyof ContactAssets, label: 'מייל', icon: Mail, placeholder: 'info@business.com', type: 'email' },
-      { key: 'contact_address' as keyof ContactAssets, label: 'כתובת', icon: MapPin, placeholder: 'רחוב הדוגמה 10, בני ברק', type: 'text' },
-      { key: 'website_url' as keyof ContactAssets, label: 'אתר', icon: Globe, placeholder: 'www.example.co.il', type: 'url' },
-      { key: 'social_facebook' as keyof ContactAssets, label: 'פייסבוק', icon: Facebook, placeholder: 'facebook.com/page', type: 'text' },
-      { key: 'social_instagram' as keyof ContactAssets, label: 'אינסטגרם', icon: Instagram, placeholder: '@username', type: 'text' },
-      { key: 'contact_youtube' as keyof ContactAssets, label: 'יוטיוב', icon: Youtube, placeholder: 'youtube.com/@channel', type: 'text' },
-      { key: 'social_tiktok' as keyof ContactAssets, label: 'טיקטוק', icon: Music2, placeholder: '@username', type: 'text' },
-      { key: 'social_linkedin' as keyof ContactAssets, label: 'לינקדאין', icon: Linkedin, placeholder: 'linkedin.com/company/...', type: 'text' },
+      { key: 'contact_phone' as keyof ContactAssets, label: 'טלפון', icon: Phone, placeholder: 'הזינו מספר טלפון', type: 'tel' },
+      { key: 'contact_whatsapp' as keyof ContactAssets, label: 'וואטסאפ', icon: MessageCircle, placeholder: 'הזינו מספר וואטסאפ', type: 'tel' },
+      { key: 'contact_email' as keyof ContactAssets, label: 'מייל', icon: Mail, placeholder: 'הזינו כתובת מייל', type: 'email' },
+      { key: 'contact_address' as keyof ContactAssets, label: 'כתובת', icon: MapPin, placeholder: 'הזינו כתובת', type: 'text' },
+      { key: 'website_url' as keyof ContactAssets, label: 'אתר', icon: Globe, placeholder: 'הזינו כתובת אתר', type: 'url' },
+      { key: 'social_facebook' as keyof ContactAssets, label: 'פייסבוק', icon: Facebook, placeholder: 'הזינו קישור לעמוד', type: 'text' },
+      { key: 'social_instagram' as keyof ContactAssets, label: 'אינסטגרם', icon: Instagram, placeholder: 'הזינו שם משתמש', type: 'text' },
+      { key: 'contact_youtube' as keyof ContactAssets, label: 'יוטיוב', icon: Youtube, placeholder: 'הזינו קישור לערוץ', type: 'text' },
+      { key: 'social_tiktok' as keyof ContactAssets, label: 'טיקטוק', icon: Music2, placeholder: 'הזינו שם משתמש', type: 'text' },
+      { key: 'social_linkedin' as keyof ContactAssets, label: 'לינקדאין', icon: Linkedin, placeholder: 'הזינו קישור לעמוד', type: 'text' },
     ];
 
     return (
