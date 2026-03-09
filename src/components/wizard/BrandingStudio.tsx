@@ -610,44 +610,42 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                       <div className="flex items-center justify-center gap-1">
                         <p className="text-xs text-muted-foreground font-mono">{color}</p>
                         <button
-                          onClick={async (e) => {
+                          onClick={(e) => {
                             e.stopPropagation();
-                            if (regeneratingColor) return;
-                            setRegeneratingColor(key);
-                            try {
-                              const { data, error } = await supabase.functions.invoke('generate-branding', {
-                                body: {
-                                  businessName: briefData.businessName,
-                                  essence: briefData.essence,
-                                  differentiator: briefData.differentiator,
-                                  persona: `Replace ONLY the ${key} color (currently ${color}). Keep all other colors exactly the same.`,
-                                  audience: briefData.audience,
-                                  vision: briefData.vision,
-                                  designPreferences: `Current palette: ${JSON.stringify(brandResult.strategy.colors)}. Generate a DIFFERENT ${key} color that still harmonizes with the others.`,
-                                },
-                              });
-                              if (data?.strategy?.colors?.[key]) {
-                                const newColors = { ...brandResult.strategy.colors };
-                                (newColors as any)[key] = data.strategy.colors[key];
-                                setBrandResult({
-                                  ...brandResult,
-                                  strategy: { ...brandResult.strategy, colors: newColors }
-                                });
-                                toast.success(`צבע ${label} הוחלף!`);
+                            // Generate a random harmonious color shift
+                            const hexToHsl = (hex: string) => {
+                              const r = parseInt(hex.slice(1, 3), 16) / 255;
+                              const g = parseInt(hex.slice(3, 5), 16) / 255;
+                              const b = parseInt(hex.slice(5, 7), 16) / 255;
+                              const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                              let h = 0, s = 0, l = (max + min) / 2;
+                              if (max !== min) {
+                                const d = max - min;
+                                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                                h = max === r ? ((g - b) / d + (g < b ? 6 : 0)) / 6 : max === g ? ((b - r) / d + 2) / 6 : ((r - g) / d + 4) / 6;
                               }
-                            } catch {
-                              toast.error('שגיאה בהחלפת צבע');
-                            }
-                            setRegeneratingColor(null);
+                              return [h * 360, s * 100, l * 100];
+                            };
+                            const hslToHex = (h: number, s: number, l: number) => {
+                              s /= 100; l /= 100;
+                              const a = s * Math.min(l, 1 - l);
+                              const f = (n: number) => { const k = (n + h / 30) % 12; return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); };
+                              return '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+                            };
+                            const [h, s, l] = hexToHsl(color);
+                            const newH = (h + 30 + Math.random() * 60) % 360;
+                            const newColor = hslToHex(newH, Math.min(100, s + (Math.random() * 20 - 10)), Math.min(95, Math.max(10, l + (Math.random() * 20 - 10))));
+                            const newColors = { ...brandResult.strategy.colors };
+                            (newColors as any)[key] = newColor;
+                            setBrandResult({
+                              ...brandResult,
+                              strategy: { ...brandResult.strategy, colors: newColors }
+                            });
+                            toast.success(`צבע ${label} הוחלף!`);
                           }}
-                          className="opacity-0 group-hover:opacity-100 hover:text-primary transition-opacity"
                           title={`החלף צבע ${label}`}
                         >
-                          {regeneratingColor === key ? (
-                            <Loader2 className="w-3 h-3 animate-spin text-primary" />
-                          ) : (
-                            <RotateCcw className="w-3 h-3 text-muted-foreground hover:text-primary cursor-pointer" />
-                          )}
+                          <RotateCcw className="w-3 h-3 text-muted-foreground hover:text-primary cursor-pointer" />
                         </button>
                       </div>
                     </div>
