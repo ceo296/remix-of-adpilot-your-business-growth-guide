@@ -705,7 +705,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
               </div>
             </CardContent>
           </Card>
-        )}
 
         {/* ─── Card 3: Strategic DNA ─── */}
         <Card className="border-2 border-border overflow-hidden">
