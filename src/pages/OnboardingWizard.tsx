@@ -19,8 +19,8 @@ import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 
-const TOTAL_STEPS_REGULAR = 7;
-const TOTAL_STEPS_AGENCY = 8;
+const TOTAL_STEPS_REGULAR = 6;
+const TOTAL_STEPS_AGENCY = 7;
 
 const stepTitlesRegular = [
   'ברוכים הבאים',
@@ -28,8 +28,7 @@ const stepTitlesRegular = [
   'הלינק הקסום',
   'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
-  'חומרי עבר',
-  'דרכון המותג',
+  'תעודת הזהות',
 ];
 
 const stepTitlesAgency = [
@@ -39,8 +38,7 @@ const stepTitlesAgency = [
   'הלינק הקסום',
   'מה למדנו עליכם',
   'ה-MRI האסטרטגי',
-  'חומרי עבר',
-  'דרכון המותג',
+  'תעודת הזהות',
 ];
 
 const OnboardingWizard = () => {
