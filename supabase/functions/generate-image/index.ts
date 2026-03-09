@@ -93,8 +93,8 @@ interface AIModelConfig {
 
 // Engine version → model priority mapping
 const ENGINE_MODELS: Record<string, string[]> = {
-  'nano-banana-pro': ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'],
-  'nano-banana': ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'],
+  'nano-banana-pro': ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'],
+  'nano-banana': ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'],
 };
 
 // ───── LAYER 1: Visual-only generation ─────
@@ -224,7 +224,7 @@ VERY IMPORTANT:
 - If you are uncertain about letter order, just place the text exactly as provided character by character from right to left.`;
 
   // Use flash model for text overlay (faster, good at text)
-  const textModels = ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'];
+  const textModels = ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'];
   
   for (const tryModel of textModels) {
     console.log("[Layer 2 - Text] Trying model:", tryModel);
