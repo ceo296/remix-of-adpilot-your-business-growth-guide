@@ -112,28 +112,6 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
     updateData({ brand: { [fontType]: value } });
   };
 
-  // --- Business Photos ---
-  const handleBusinessPhotos = (files: FileList | null) => {
-    if (!files) return;
-    Array.from(files).forEach((file) => {
-      if (!file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const photo: UploadedMaterial = {
-          id: Math.random().toString(36).substr(2, 9),
-          name: file.name,
-          type: 'image',
-          preview: event.target?.result as string,
-        };
-        updateData({ businessPhotos: [...(data.businessPhotos || []), photo] });
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const removeBusinessPhoto = (id: string) => {
-    updateData({ businessPhotos: (data.businessPhotos || []).filter((p) => p.id !== id) });
-  };
 
   // --- Past Materials ---
   const handleFiles = (files: FileList | null) => {
