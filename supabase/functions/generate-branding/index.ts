@@ -28,8 +28,13 @@ Design Preferences: ${designPreferences}
 
 Return a JSON object with this EXACT structure (no markdown, no backticks, just pure JSON):
 {
-  "tagline": "A powerful Hebrew tagline for the brand (3-6 words)",
-  "tagline_english": "English translation of the tagline",
+  "tagline_options": [
+    {"hebrew": "סלוגן עברי אופציה 1 (3-6 מילים)", "english": "English translation 1", "style": "רגשי"},
+    {"hebrew": "סלוגן עברי אופציה 2 (3-6 מילים)", "english": "English translation 2", "style": "פונקציונלי"},
+    {"hebrew": "סלוגן עברי אופציה 3 (3-6 מילים)", "english": "English translation 3", "style": "מפתיע"}
+  ],
+  "tagline": "The best tagline from the options above (Hebrew)",
+  "tagline_english": "English translation of the best tagline",
   "brand_voice": "2-3 sentences describing the brand's communication style in Hebrew",
   "colors": {
     "primary": "#HEX - the main brand color",
