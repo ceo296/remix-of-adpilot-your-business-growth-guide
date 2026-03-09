@@ -228,7 +228,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
           logo: selectedDirection.logo,
           colors: selectedDirection.colors,
           fonts: selectedDirection.fonts,
-          tagline: selectedTagline?.hebrew,
+          tagline: fullTagline || undefined,
           brandVoice: brandResult.strategy.brand_voice,
         });
         onClose();
