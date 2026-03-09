@@ -37,6 +37,13 @@ interface LogoOption {
   nameEn: string;
   description: string;
   image: string;
+  includesName?: boolean;
+}
+
+interface TaglineOption {
+  hebrew: string;
+  english: string;
+  style: string;
 }
 
 interface BrandResult {
