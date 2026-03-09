@@ -54,6 +54,9 @@ Return a JSON object (no markdown, no backticks, just pure JSON):
   ],
   "brand_voice": "2-3 sentences describing the brand communication style in Hebrew",
   "brand_essence_summary": "A compelling 2-sentence Hebrew summary of the brand identity",
+  "brand_values": [
+    {"value": "Hebrew value name (e.g. אמינות)", "icon": "emoji", "designConnection": "One Hebrew sentence: how this value translates to the visual design"}
+  ],
   "directions": [
     {
       "name": "Short Hebrew name for this direction (2-3 words like: מינימליזם יוקרתי)",
@@ -63,26 +66,32 @@ Return a JSON object (no markdown, no backticks, just pure JSON):
         "primary": "#HEX", "secondary": "#HEX", "accent": "#HEX", "background": "#HEX", "dark": "#HEX"
       },
       "colorDescription": "Short Hebrew description of the palette (like: ורוד עתיק עמוק בשילוב רוז גולד)",
+      "colorEmotion": "One Hebrew sentence connecting this palette to an emotion (e.g. הכחול העמוק משדר ביטחון ושלווה, הזהב מוסיף תחושת פאר)",
       "fonts": {
         "header": "Hebrew Google Font name",
         "body": "Hebrew Google Font name"
       },
       "logoDirective": "Detailed English instruction for the logo design - style, shapes, composition, what to include",
-      "mockupScene": "English description of a realistic mockup scene to visualize this direction (e.g., elegant business card on marble surface with gold pen)"
+      "mockupScene": "English description of a realistic mockup scene to visualize this direction (e.g., elegant business card on marble surface with gold pen)",
+      "worldReferences": [
+        {"brand": "Famous brand name in this field", "colors": "Their dominant colors (e.g. אדום ולבן)", "lesson": "One Hebrew sentence - what we learn from them"}
+      ]
     },
     {
       "name": "...", "nameEn": "...", "philosophy": "...",
       "colors": { "primary": "#HEX", "secondary": "#HEX", "accent": "#HEX", "background": "#HEX", "dark": "#HEX" },
-      "colorDescription": "...",
+      "colorDescription": "...", "colorEmotion": "...",
       "fonts": { "header": "...", "body": "..." },
-      "logoDirective": "...", "mockupScene": "..."
+      "logoDirective": "...", "mockupScene": "...",
+      "worldReferences": [{"brand": "...", "colors": "...", "lesson": "..."}]
     },
     {
       "name": "...", "nameEn": "...", "philosophy": "...",
       "colors": { "primary": "#HEX", "secondary": "#HEX", "accent": "#HEX", "background": "#HEX", "dark": "#HEX" },
-      "colorDescription": "...",
+      "colorDescription": "...", "colorEmotion": "...",
       "fonts": { "header": "...", "body": "..." },
-      "logoDirective": "...", "mockupScene": "..."
+      "logoDirective": "...", "mockupScene": "...",
+      "worldReferences": [{"brand": "...", "colors": "...", "lesson": "..."}]
     }
   ]
 }
@@ -93,7 +102,10 @@ CRITICAL RULES:
 - Each direction MUST have a different aesthetic feel (e.g., one minimalist luxury, one bold modern, one warm organic)
 - Font choices: use from Assistant, Heebo, Rubik, Alef, David Libre, Frank Ruhl Libre, Secular One, Suez One
 - Color palettes should be dramatically different from each other
-- Examples of direction contrast: Black+Gold luxury vs Blue+Cyan tech vs Green+Terracotta organic`;
+- Examples of direction contrast: Black+Gold luxury vs Blue+Cyan tech vs Green+Terracotta organic
+- brand_values: provide exactly 3-4 core brand values derived from the brief
+- worldReferences: provide exactly 2-3 famous brands from the same industry/field for each direction, showing their color approach
+- colorEmotion: connect the chosen colors to the emotional response they create`;
 
     const strategyData = await aiCall("google/gemini-2.5-flash", [{ role: "user", content: strategyPrompt }]);
     if (strategyData.error) {
