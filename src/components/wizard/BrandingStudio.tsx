@@ -144,7 +144,8 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [generationStep, setGenerationStep] = useState(0);
   const [brandResult, setBrandResult] = useState<BrandResult | null>(null);
   const [selectedLogoIndex, setSelectedLogoIndex] = useState(0);
-  const [selectedTaglineIndex, setSelectedTaglineIndex] = useState(0);
+  const [selectedTaglineIndex, setSelectedTaglineIndex] = useState<number | null>(null);
+  const [showTaglineSelection, setShowTaglineSelection] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark' | 'brand'>('light');
   const [swapSource, setSwapSource] = useState<string | null>(null);
