@@ -233,6 +233,8 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
 
     const selectedLogo = brandResult.logoOptions?.[selectedLogoIndex]?.image || brandResult.logo || null;
     const s = brandResult.strategy;
+    const taglineOptions = s.tagline_options || [];
+    const selectedTagline = taglineOptions[selectedTaglineIndex] || null;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
