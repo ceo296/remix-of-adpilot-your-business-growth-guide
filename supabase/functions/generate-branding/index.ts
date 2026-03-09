@@ -104,7 +104,7 @@ The logo should be on a clean white background, centered, with generous padding 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
+        model: "google/gemini-3-pro-image-preview",
         messages: [{ role: "user", content: logoPrompt }],
         modalities: ["image", "text"],
       }),
@@ -142,7 +142,7 @@ NO text or letters in the image - just show the colors and design patterns appli
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image",
+            model: "google/gemini-3-pro-image-preview",
             messages: [{ role: "user", content: mockupPrompt }],
             modalities: ["image", "text"],
           }),

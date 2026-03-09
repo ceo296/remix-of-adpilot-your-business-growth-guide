@@ -27,7 +27,7 @@ Important: No text, no letters, no words, no watermarks. Clean visual only. 4K q
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image',
+        model: 'google/gemini-3-pro-image-preview',
         messages: [{ role: 'user', content: enhancedPrompt }],
         modalities: ['image', 'text'],
       }),
