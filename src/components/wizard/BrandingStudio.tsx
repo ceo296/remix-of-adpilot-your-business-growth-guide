@@ -221,6 +221,9 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const handleSaveAndContinue = async () => {
     if (!brandResult) return;
 
+    const selectedLogo = brandResult.logoOptions?.[selectedLogoIndex]?.image || brandResult.logo || null;
+    const s = brandResult.strategy;
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error('יש להתחבר'); return; }
@@ -248,7 +251,6 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
         .limit(1);
 
       if (profiles && profiles.length > 0) {
-        const s = brandResult.strategy;
         await supabase.from('client_profiles').update({
           business_name: briefData.businessName || undefined,
           primary_color: s.colors.primary,
@@ -256,13 +258,27 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
           background_color: s.colors.background,
           header_font: s.fonts.header,
           body_font: s.fonts.body,
-          logo_url: brandResult.logoOptions?.[selectedLogoIndex]?.image || brandResult.logo || undefined,
+          logo_url: selectedLogo || undefined,
         }).eq('id', profiles[0].id);
       }
 
       toast.success('המיתוג נשמר בהצלחה!');
-      onClose();
-      navigate('/dashboard');
+
+      // If callback provided, pass branding back to wizard instead of navigating away
+      if (onBrandingComplete) {
+        onBrandingComplete({
+          businessName: briefData.businessName,
+          logo: selectedLogo,
+          colors: s.colors,
+          fonts: s.fonts,
+          tagline: s.tagline,
+          brandVoice: s.brand_voice,
+        });
+        onClose();
+      } else {
+        onClose();
+        navigate('/dashboard');
+      }
     } catch (e) {
       console.error('Save error:', e);
       toast.error('שגיאה בשמירה');
