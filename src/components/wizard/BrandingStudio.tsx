@@ -50,6 +50,7 @@ interface BrandResult {
   strategy: {
     tagline: string;
     tagline_english: string;
+    tagline_options?: TaglineOption[];
     brand_voice: string;
     colors: {
       primary: string;
