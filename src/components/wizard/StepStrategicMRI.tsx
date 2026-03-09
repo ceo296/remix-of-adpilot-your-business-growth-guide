@@ -372,76 +372,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
         </CardContent>
       </Card>
 
-      {/* ─── Section 2: Reality Check ─── */}
-      <Card className="border-border overflow-hidden">
-        <CardContent className="p-6 space-y-6">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground mb-1">בואו נהיה כנים - איפה היתרון יושב?</h3>
-            <p className="text-sm text-muted-foreground">לחצו על הצד שמתאים יותר לעסק</p>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div
-              onClick={() => updateMRI({ advantageSlider: 20, advantageType: 'hard' })}
-              className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center ${
-                mri.advantageSlider < 50 ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]' : 'border-border bg-card hover:border-primary/30'
-              }`}
-            >
-              <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-colors ${mri.advantageSlider < 50 ? 'bg-primary/20' : 'bg-muted'}`}>
-                <Package className={`w-8 h-8 ${mri.advantageSlider < 50 ? 'text-primary' : 'text-muted-foreground'}`} />
-              </div>
-              <h4 className="font-bold text-foreground mb-2">יתרון פיזי מובהק</h4>
-              <p className="text-sm text-muted-foreground">טעים יותר, חזק יותר, מהיר יותר</p>
-              <div className="mt-3 flex flex-wrap gap-1 justify-center">
-                <Badge variant="secondary" className="text-xs">איכות</Badge>
-                <Badge variant="secondary" className="text-xs">ביצועים</Badge>
-                <Badge variant="secondary" className="text-xs">עובדות</Badge>
-              </div>
-              {mri.advantageSlider < 50 && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <Check className="w-4 h-4 text-primary-foreground" />
-                </div>
-              )}
-            </div>
 
-            <div
-              onClick={() => updateMRI({ advantageSlider: 80, advantageType: 'soft' })}
-              className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 text-center ${
-                mri.advantageSlider >= 50 ? 'border-primary bg-primary/10 shadow-lg scale-[1.02]' : 'border-border bg-card hover:border-primary/30'
-              }`}
-            >
-              <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-colors ${mri.advantageSlider >= 50 ? 'bg-primary/20' : 'bg-muted'}`}>
-                <Heart className={`w-8 h-8 ${mri.advantageSlider >= 50 ? 'text-primary' : 'text-muted-foreground'}`} />
-              </div>
-              <h4 className="font-bold text-foreground mb-2">יתרון תדמיתי/רגשי</h4>
-              <p className="text-sm text-muted-foreground">יוקרה, היימיש, סטייל, כיף</p>
-              <div className="mt-3 flex flex-wrap gap-1 justify-center">
-                <Badge variant="secondary" className="text-xs">תחושה</Badge>
-                <Badge variant="secondary" className="text-xs">סיפור</Badge>
-                <Badge variant="secondary" className="text-xs">חוויה</Badge>
-              </div>
-              {mri.advantageSlider >= 50 && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <Check className="w-4 h-4 text-primary-foreground" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {mri.advantageSlider < 50 && (
-            <div className="animate-fade-in pt-2">
-              <Label htmlFor="winning-feature" className="text-foreground">מה הפיצ'ר המנצח?</Label>
-              <Input
-                id="winning-feature"
-                value={mri.winningFeature}
-                onChange={(e) => updateMRI({ winningFeature: e.target.value })}
-                placeholder="לדוגמה: הכי מהיר בשוק, 100% טבעי..."
-                className="mt-2"
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* ─── NEW Section 3: Quality Signatures (conditional - not for "known" brand) ─── */}
       {mri.brandPresence !== 'known' && (
