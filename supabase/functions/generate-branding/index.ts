@@ -128,39 +128,44 @@ Return a JSON object with this EXACT structure (no markdown, no backticks, just 
     
     const logoStyles = [
       {
-        name: 'טיפוגרפי',
-        nameEn: 'Typographic',
-        description: 'Logo made purely from the business name with creative typography',
-        styleDirective: `Typographic logo - the business name "${businessName || 'Brand'}" IS the logo. Creative font treatment, unique letter styling, custom typeface feel. NO icon, NO symbol - just the name designed beautifully. Think Coca-Cola, Google, or FedEx style wordmarks. The text must be in Hebrew.`,
+        name: 'מינימליסטי יוקרתי',
+        nameEn: 'Luxury Minimal',
+        description: 'Elegant minimalist logo with premium feel',
+        colorWorld: 'Black, gold (#C9A84C), and off-white. Think luxury fashion brands like Chanel or Dior.',
+        styleDirective: `Ultra-premium minimalist logo. Thin elegant serif or sans-serif typography. The business name "${businessName || 'Brand'}" in Hebrew with refined letter spacing. Colors: black and gold only. NO gradients, NO complex shapes. Think high-end fashion brand. Extremely clean, lots of white space. Sophisticated and timeless.`,
         includesName: true,
       },
       {
-        name: 'אייקון + שם למטה',
-        nameEn: 'Icon Above Name',
-        description: 'Icon/symbol on top with business name below',
-        styleDirective: `Logo with a relevant icon/symbol centered ABOVE the business name "${businessName || 'Brand'}" written in Hebrew below it. Clean layout, balanced proportions. The icon should relate to the business field. Professional and balanced composition.`,
+        name: 'מודרני דיגיטלי',
+        nameEn: 'Modern Digital',
+        description: 'Tech-forward modern logo with bold colors',
+        colorWorld: 'Electric blue (#2563EB), cyan (#06B6D4), and dark navy (#0F172A). Think tech startups like Stripe or Vercel.',
+        styleDirective: `Modern tech-forward logo. Bold geometric icon ABOVE the business name "${businessName || 'Brand'}" in Hebrew. Use electric blue and cyan gradients. Clean sans-serif font. The icon should be abstract/geometric - circles, hexagons, or intersecting shapes. Feels like a successful tech company. Contemporary and innovative.`,
         includesName: true,
       },
       {
-        name: 'אייקון + שם בצד',
-        nameEn: 'Icon Beside Name',
-        description: 'Icon/symbol next to the business name horizontally',
-        styleDirective: `Horizontal logo with a relevant icon/symbol on one side and the business name "${businessName || 'Brand'}" in Hebrew on the other side. Side by side layout. Clean, modern, works great on headers and business cards.`,
+        name: 'אורגני טבעי',
+        nameEn: 'Organic Natural',
+        description: 'Warm organic logo with natural earth tones',
+        colorWorld: 'Deep forest green (#1B4332), warm terracotta (#C2703E), and cream (#FDF6EC). Think artisan/boutique brands.',
+        styleDirective: `Warm organic logo with the business name "${businessName || 'Brand'}" in Hebrew alongside a hand-drawn style icon. Use earthy green and terracotta colors. The icon should feel organic - leaves, flowing lines, or handcrafted elements. Rounded, warm typography. Feels like a premium artisan brand. Inviting and authentic.`,
         includesName: true,
       },
       {
-        name: 'אותיות קריאייטיב',
-        nameEn: 'Creative Letterform',
-        description: 'Creative design integrated into the letters of the name',
-        styleDirective: `Creative letterform logo where the Hebrew letters of "${businessName || 'Brand'}" incorporate clever visual elements related to the business field. Like FedEx arrow or Amazon smile - a hidden or integrated visual meaning within the typography. The letters themselves tell the story.`,
+        name: 'בולד גרפי',
+        nameEn: 'Bold Graphic',
+        description: 'High-impact bold graphic logo',
+        colorWorld: 'Deep red (#B91C1C), charcoal (#1F2937), and white. Think powerful brands like CNN or Netflix.',
+        styleDirective: `High-impact bold logo where the Hebrew letters of "${businessName || 'Brand'}" are designed with creative graphic treatment - letters integrated with a strong visual concept related to the business field. Bold, thick strokes. Red and dark charcoal color scheme. Commanding presence. Think FedEx arrow or Amazon smile - clever hidden meaning in the typography. Strong and memorable.`,
         includesName: true,
       },
       {
-        name: 'סמליל מינימלי',
-        nameEn: 'Minimal Symbol',
-        description: 'Clean minimal icon/symbol only',
-        styleDirective: 'Minimalist icon/symbol logo mark only - NO text, NO letters. Pure graphic symbol. Clean geometric shapes, modern and timeless. Think Apple or Nike.',
-        includesName: false,
+        name: 'קלאסי מעוצב',
+        nameEn: 'Classic Refined',
+        description: 'Timeless classic logo with emblem style',
+        colorWorld: 'Navy blue (#1E3A5F), silver/gray (#94A3B8), and white. Think professional firms like law offices or financial institutions.',
+        styleDirective: `Classic emblem-style logo. The business name "${businessName || 'Brand'}" in Hebrew inside or alongside a refined crest, shield, or circular emblem. Navy blue and silver color scheme. Traditional serif typography. Feels established, trustworthy, and professional. Think heritage brands, luxury hotels, or premium financial services. Timeless and authoritative.`,
+        includesName: true,
       },
     ];
 
@@ -170,12 +175,14 @@ Return a JSON object with this EXACT structure (no markdown, no backticks, just 
         await new Promise(r => setTimeout(r, idx * 1500));
         
         const logoPrompt = `Create a professional logo for a business called "${businessName || 'Brand'}".
-Logo concept: ${strategy.logo_concept}
-Color palette: Primary ${strategy.colors.primary}, Secondary ${strategy.colors.secondary}, Accent ${strategy.colors.accent}
+Business field: ${essence || strategy.logo_concept}
+VISUAL WORLD: ${style.colorWorld}
 Design style: ${style.styleDirective}
-IMPORTANT RULES:
+
+CRITICAL RULES:
 - ${style.includesName ? `The business name "${businessName || 'Brand'}" MUST appear clearly in Hebrew as part of the logo` : 'Create ONLY the logo mark/icon - NO text, NO letters'}
-- Must work on both light and dark backgrounds
+- USE ONLY the colors specified in VISUAL WORLD above - do NOT use the same colors as other variations
+- Each logo variation must feel like it comes from a completely different design studio
 - On a clean white background, centered, with generous padding
 - High resolution, crisp edges, professional quality
 - The design must feel premium and sophisticated`;
