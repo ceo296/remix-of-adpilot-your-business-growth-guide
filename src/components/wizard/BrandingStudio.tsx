@@ -190,7 +190,8 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
     if (!brandResult || !selectedDirection) return;
 
     const taglineOptions = brandResult.strategy.tagline_options || [];
-    const selectedTagline = selectedTaglineIndex !== null ? taglineOptions[selectedTaglineIndex] : null;
+    const selectedTagline = customTagline || (selectedTaglineIndex !== null ? taglineOptions[selectedTaglineIndex]?.hebrew : null);
+    const fullTagline = [selectedTagline, subtitle].filter(Boolean).join(' | ');
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
