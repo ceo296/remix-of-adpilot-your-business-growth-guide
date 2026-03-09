@@ -164,6 +164,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
       });
       setBrandResult(null);
       setSelectedLogoIndex(0);
+      setSelectedTaglineIndex(0);
       setGenerationStep(0);
       setLogoBgMode('light');
     }
