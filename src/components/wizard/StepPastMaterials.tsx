@@ -562,44 +562,6 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
         )}
       </div>
 
-      {/* ═══════════════ SECTION 5: Business Photos ═══════════════ */}
-      <div className="max-w-3xl mx-auto space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Camera className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-bold text-lg text-foreground">תמונות מהעסק או המוצר</h3>
-            <p className="text-sm text-muted-foreground">תמונות שנוכל להשתמש בהן בחומרי הפרסום — מוצרים, חנות, צוות...</p>
-          </div>
-        </div>
-
-        <input ref={businessPhotoInputRef} type="file" accept="image/*" multiple onChange={(e) => handleBusinessPhotos(e.target.files)} className="hidden" />
-
-        <Card className="border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all cursor-pointer" onClick={() => businessPhotoInputRef.current?.click()}>
-          <CardContent className="p-6">
-            {data.businessPhotos && data.businessPhotos.length > 0 ? (
-              <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-                {data.businessPhotos.map((photo) => (
-                  <div key={photo.id} className="relative group rounded-lg overflow-hidden border border-border" onClick={(e) => e.stopPropagation()}>
-                    <img src={photo.preview} alt={photo.name} className="w-full h-24 object-cover" />
-                    <button onClick={() => removeBusinessPhoto(photo.id)} className="absolute top-1 left-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"><X className="w-3 h-3" /></button>
-                  </div>
-                ))}
-                <div className="rounded-lg border-2 border-dashed border-primary/30 flex items-center justify-center h-24 hover:border-primary hover:bg-primary/5 transition-all">
-                  <Camera className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-4 space-y-2">
-                <Camera className="w-8 h-8 text-primary/50 mx-auto" />
-                <p className="text-sm text-muted-foreground">העלו תמונות מהמוצר, החנות, או כל דבר שרלוונטי לפרסום</p>
-                <p className="text-xs text-muted-foreground/70">אופציונלי — אבל עוזר לנו ליצור קריאייטיב אותנטי</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
       {/* ═══════════════ Navigation ═══════════════ */}
       <div className="flex flex-col items-center gap-4 max-w-3xl mx-auto pt-6">

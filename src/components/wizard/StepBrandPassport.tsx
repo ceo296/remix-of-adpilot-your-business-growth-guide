@@ -837,7 +837,33 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
           </Card>
         )}
 
-        {/* Summary completeness bar */}
+        {/* ─── Card 5: Business Photos (read-only summary) ─── */}
+        {data.businessPhotos && data.businessPhotos.length > 0 && (
+          <Card className="border-2 border-border overflow-hidden">
+            <div className="bg-gradient-to-r from-teal-600 to-emerald-700 p-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                תמונות מהעסק ({data.businessPhotos.length})
+              </h3>
+              <p className="text-sm text-white/80">תמונות שיוכלו לשמש בחומרי הפרסום</p>
+            </div>
+            <CardContent className="p-6">
+              <div className="flex gap-2 flex-wrap">
+                {data.businessPhotos.slice(0, 8).map((photo) => (
+                  <div key={photo.id} className="w-20 h-20 rounded-lg overflow-hidden border border-border">
+                    <img src={photo.preview} alt={photo.name} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                {data.businessPhotos.length > 8 && (
+                  <div className="w-20 h-20 rounded-lg bg-secondary flex items-center justify-center">
+                    <span className="text-sm text-muted-foreground">+{data.businessPhotos.length - 8}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="flex items-center justify-center gap-4 flex-wrap text-sm text-muted-foreground py-2">
           <div className="flex items-center gap-1">
             <Check className="w-4 h-4 text-green-500" />
