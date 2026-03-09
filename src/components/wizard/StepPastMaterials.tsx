@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Upload, FileText, X, ArrowLeft, ArrowRight, Loader2, Eye, Palette, Layout, Type, MapPin, Sparkles, Camera, Star, ArrowLeftRight, Plus, Trash2, RefreshCw, Layers, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Upload, FileText, X, ArrowLeft, ArrowRight, Loader2, Eye, Palette, Layout, Type, MapPin, Sparkles, Star, ArrowLeftRight, Plus, Trash2, RefreshCw, Layers, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   Select,
