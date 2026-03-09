@@ -29,13 +29,20 @@ Design Preferences: ${designPreferences}
 Return a JSON object with this EXACT structure (no markdown, no backticks, just pure JSON):
 {
   "tagline_options": [
-    {"hebrew": "סלוגן עברי אופציה 1 (3-6 מילים)", "english": "English translation 1", "style": "רגשי"},
-    {"hebrew": "סלוגן עברי אופציה 2 (3-6 מילים)", "english": "English translation 2", "style": "פונקציונלי"},
-    {"hebrew": "סלוגן עברי אופציה 3 (3-6 מילים)", "english": "English translation 3", "style": "מפתיע"}
+    {"hebrew": "סלוגן עברי 2-3 מילים בלבד - יצירתי שמעביר את הערך", "english": "English translation 1", "style": "יצירתי"},
+    {"hebrew": "סלוגן עברי 2-3 מילים בלבד - אינפורמטיבי שמתאר את התחום", "english": "English translation 2", "style": "אינפורמטיבי"},
+    {"hebrew": "סלוגן עברי 2-3 מילים בלבד - יצירתי נוסף", "english": "English translation 3", "style": "יצירתי"}
   ],
-  "tagline": "The best tagline from the options above (Hebrew)",
+  "tagline": "The best tagline from the options above (Hebrew) - MUST be 2-3 words only",
   "tagline_english": "English translation of the best tagline",
   "brand_voice": "2-3 sentences describing the brand's communication style in Hebrew",
+  
+  CRITICAL TAGLINE RULES:
+  - Each tagline MUST be exactly 2-3 Hebrew words. Maximum 4 words in rare cases. NEVER more.
+  - Examples of GOOD taglines: "משרד פרסום בוטיקי", "חוויה מעל הכל", "עיצוב ללא פשרות", "הבית של הקריאייטיב"
+  - Examples of BAD taglines (too long): "מגשימים חזון בונים עתיד יצירתי" - this is 5 words, NOT allowed
+  - Style "יצירתי": A creative phrase that conveys the brand's core value metaphorically
+  - Style "אינפורמטיבי": A descriptive phrase that tells what the business does (like "משרד פרסום בוטיקי")
   "colors": {
     "primary": "#HEX - the main brand color",
     "secondary": "#HEX - complementary accent color",
