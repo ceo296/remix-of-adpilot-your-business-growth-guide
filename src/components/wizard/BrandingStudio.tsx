@@ -388,8 +388,81 @@ export function BrandingStudio({ isOpen, onClose, businessName }: BrandingStudio
               <p className="text-sm text-muted-foreground">{brandResult.strategy.tagline_english}</p>
             </Card>
 
-            {/* Logo */}
-            {brandResult.logo && (
+            {/* Logo Options Gallery */}
+            {brandResult.logoOptions && brandResult.logoOptions.length > 0 && (
+              <Card className="p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-bold flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    בחרו את הלוגו שלכם
+                  </h4>
+                  <div className="flex gap-1 bg-muted rounded-lg p-1">
+                    {([['light', '☀️'], ['dark', '🌙'], ['brand', '🎨']] as const).map(([mode, emoji]) => (
+                      <button
+                        key={mode}
+                        onClick={() => setLogoBgMode(mode)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${logoBgMode === mode ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Selected Logo - Hero Display */}
+                <div className="flex justify-center">
+                  <div 
+                    className="relative w-64 h-64 rounded-3xl flex items-center justify-center p-8 shadow-2xl border-2 transition-all duration-500"
+                    style={{ 
+                      backgroundColor: logoBgMode === 'dark' ? '#1a1a2e' : logoBgMode === 'brand' ? brandResult.strategy.colors.primary : '#ffffff',
+                      borderColor: logoBgMode === 'brand' ? brandResult.strategy.colors.secondary : logoBgMode === 'dark' ? '#333' : '#e5e7eb',
+                    }}
+                  >
+                    <img 
+                      src={brandResult.logoOptions[selectedLogoIndex]?.image} 
+                      alt="Selected Logo" 
+                      className="max-w-full max-h-full object-contain drop-shadow-xl"
+                      style={{ filter: logoBgMode === 'dark' ? 'brightness(1.1)' : 'none' }}
+                    />
+                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+                      {brandResult.logoOptions[selectedLogoIndex]?.name}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logo Options Grid */}
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                  {brandResult.logoOptions.map((option, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedLogoIndex(idx)}
+                      className={`group relative rounded-xl border-2 p-3 transition-all duration-300 hover:scale-105 ${
+                        selectedLogoIndex === idx 
+                          ? 'border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/30 bg-primary/5' 
+                          : 'border-border hover:border-primary/40 bg-card'
+                      }`}
+                    >
+                      <div className="aspect-square flex items-center justify-center p-2">
+                        <img src={option.image} alt={option.nameEn} className="max-w-full max-h-full object-contain" />
+                      </div>
+                      <p className="text-xs font-medium text-center mt-2 truncate">{option.name}</p>
+                      {selectedLogoIndex === idx && (
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-md">
+                          <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="text-sm text-muted-foreground text-center">
+                  💡 {brandResult.strategy.logo_concept}
+                </p>
+              </Card>
+            )}
+
+            {/* Fallback: single logo */}
+            {(!brandResult.logoOptions || brandResult.logoOptions.length === 0) && brandResult.logo && (
               <Card className="p-8 space-y-4">
                 <h4 className="text-lg font-bold flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
