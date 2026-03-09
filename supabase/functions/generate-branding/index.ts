@@ -162,13 +162,12 @@ Return a JSON object with this EXACT structure (no markdown, no backticks, just 
         // Small stagger to avoid rate limits
         await new Promise(r => setTimeout(r, idx * 1500));
         
-        const logoPrompt = `Create a professional logo icon for a business called "${businessName || 'Brand'}".
+        const logoPrompt = `Create a professional logo for a business called "${businessName || 'Brand'}".
 Logo concept: ${strategy.logo_concept}
 Color palette: Primary ${strategy.colors.primary}, Secondary ${strategy.colors.secondary}, Accent ${strategy.colors.accent}
 Design style: ${style.styleDirective}
 IMPORTANT RULES:
-- Create ONLY the logo mark/icon - NO text, NO letters, NO words whatsoever
-- Pure graphic symbol/icon only
+- ${style.includesName ? `The business name "${businessName || 'Brand'}" MUST appear clearly in Hebrew as part of the logo` : 'Create ONLY the logo mark/icon - NO text, NO letters'}
 - Must work on both light and dark backgrounds
 - On a clean white background, centered, with generous padding
 - High resolution, crisp edges, professional quality
