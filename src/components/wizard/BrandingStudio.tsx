@@ -207,6 +207,44 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
 
   const selectedDirection = brandResult?.directions?.[selectedDirectionIndex];
 
+  const exportPdf = useCallback(async () => {
+    if (!pdfRef.current || !selectedDirection || !brandResult) return;
+    setIsExportingPdf(true);
+    try {
+      const el = pdfRef.current;
+      el.style.display = 'block';
+      await new Promise(r => setTimeout(r, 600));
+
+      const dataUrl = await toPng(el, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+      });
+
+      el.style.display = 'none';
+
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = reject; });
+
+      const imgW = img.naturalWidth;
+      const imgH = img.naturalHeight;
+      const pdfW = 210;
+      const pdfH = (imgH / imgW) * pdfW;
+
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: [pdfW, Math.max(pdfH, 297)] });
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfW, pdfH);
+      pdf.save(`${briefData.businessName || 'branding'}-כיוון-${selectedDirectionIndex + 1}.pdf`);
+      toast.success('ה-PDF הורד בהצלחה! 📄');
+    } catch (e) {
+      console.error('PDF export error:', e);
+      toast.error('שגיאה בייצוא PDF');
+    } finally {
+      setIsExportingPdf(false);
+      if (pdfRef.current) pdfRef.current.style.display = 'none';
+    }
+  }, [selectedDirection, brandResult, briefData.businessName, selectedDirectionIndex]);
+
   const handleSaveAndContinue = async () => {
     if (!brandResult || !selectedDirection) return;
 
