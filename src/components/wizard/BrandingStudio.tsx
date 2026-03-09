@@ -114,6 +114,10 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark' | 'brand'>('light');
   const [swapSource, setSwapSource] = useState<string | null>(null);
+  const [customTagline, setCustomTagline] = useState<string>('');
+  const [isEditingTagline, setIsEditingTagline] = useState(false);
+  const [subtitle, setSubtitle] = useState<string>('');
+  const [showSubtitle, setShowSubtitle] = useState(false);
   const presentationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
