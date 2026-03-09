@@ -11,6 +11,14 @@ import { toast } from "sonner";
 interface BrandingStudioProps {
   isOpen: boolean;
   onClose: () => void;
+  onBrandingComplete?: (branding: {
+    businessName: string;
+    logo: string | null;
+    colors: { primary: string; secondary: string; accent?: string; background: string; dark?: string };
+    fonts: { header: string; body: string };
+    tagline?: string;
+    brandVoice?: string;
+  }) => void;
   businessName?: string;
 }
 
