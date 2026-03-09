@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Sparkles, ArrowLeft, ArrowRight, Check, Loader2, Palette, Target, Users, Eye, Download, RefreshCw } from "lucide-react";
+import { X, Sparkles, ArrowLeft, ArrowRight, Check, Loader2, Palette, Target, Users, Eye, Download, RefreshCw, ArrowLeftRight, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -147,6 +147,8 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [selectedTaglineIndex, setSelectedTaglineIndex] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark' | 'brand'>('light');
+  const [swapSource, setSwapSource] = useState<string | null>(null);
+  const [regeneratingColor, setRegeneratingColor] = useState<string | null>(null);
   const presentationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -549,24 +551,110 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
 
             {/* Color Palette */}
             <Card className="p-8 space-y-4">
-              <h4 className="text-lg font-bold flex items-center gap-2">
-                <Palette className="w-5 h-5 text-primary" />
-                פלטת צבעים
-              </h4>
-              <div className="grid grid-cols-5 gap-4">
-                {Object.entries(brandResult.strategy.colors).map(([key, color]) => (
-                  <div key={key} className="space-y-2 text-center">
-                    <div className="w-full aspect-square rounded-xl shadow-lg border border-border" style={{ backgroundColor: color }} />
-                    <p className="text-xs font-medium capitalize">{
-                      key === 'primary' ? 'ראשי' :
-                      key === 'secondary' ? 'משני' :
-                      key === 'accent' ? 'אקסנט' :
-                      key === 'background' ? 'רקע' : 'כהה'
-                    }</p>
-                    <p className="text-xs text-muted-foreground font-mono">{color}</p>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between">
+                <h4 className="text-lg font-bold flex items-center gap-2">
+                  <Palette className="w-5 h-5 text-primary" />
+                  פלטת צבעים
+                </h4>
+                {swapSource && (
+                  <Button variant="ghost" size="sm" onClick={() => setSwapSource(null)} className="text-xs gap-1">
+                    <X className="w-3 h-3" /> ביטול החלפה
+                  </Button>
+                )}
               </div>
+              {swapSource && (
+                <p className="text-sm text-primary font-medium text-center animate-pulse">
+                  🔄 לחצו על צבע אחר כדי להחליף מיקומים
+                </p>
+              )}
+              <div className="grid grid-cols-5 gap-4">
+                {Object.entries(brandResult.strategy.colors).map(([key, color]) => {
+                  const label = key === 'primary' ? 'ראשי' :
+                    key === 'secondary' ? 'משני' :
+                    key === 'accent' ? 'אקסנט' :
+                    key === 'background' ? 'רקע' : 'כהה';
+                  const isSwapSource = swapSource === key;
+                  return (
+                    <div key={key} className="space-y-2 text-center">
+                      <button
+                        onClick={() => {
+                          if (!swapSource) {
+                            setSwapSource(key);
+                          } else if (swapSource === key) {
+                            setSwapSource(null);
+                          } else {
+                            // Swap the two colors
+                            const newColors = { ...brandResult.strategy.colors };
+                            const temp = newColors[swapSource as keyof typeof newColors];
+                            (newColors as any)[swapSource] = newColors[key as keyof typeof newColors];
+                            (newColors as any)[key] = temp;
+                            setBrandResult({
+                              ...brandResult,
+                              strategy: { ...brandResult.strategy, colors: newColors }
+                            });
+                            setSwapSource(null);
+                            toast.success('הצבעים הוחלפו!');
+                          }
+                        }}
+                        className={`w-full aspect-square rounded-xl shadow-lg border-2 transition-all duration-300 hover:scale-105 cursor-pointer ${
+                          isSwapSource 
+                            ? 'border-primary ring-4 ring-primary/30 scale-110' 
+                            : swapSource 
+                              ? 'border-dashed border-primary/50 hover:border-primary' 
+                              : 'border-border hover:border-primary/40'
+                        }`}
+                        style={{ backgroundColor: color }}
+                        title={swapSource ? (isSwapSource ? 'לחצו לביטול' : 'לחצו להחלפה') : 'לחצו להחלפת מיקום'}
+                      />
+                      <p className="text-xs font-medium">{label}</p>
+                      <div className="flex items-center justify-center gap-1">
+                        <p className="text-xs text-muted-foreground font-mono">{color}</p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Generate a random harmonious color shift
+                            const hexToHsl = (hex: string) => {
+                              const r = parseInt(hex.slice(1, 3), 16) / 255;
+                              const g = parseInt(hex.slice(3, 5), 16) / 255;
+                              const b = parseInt(hex.slice(5, 7), 16) / 255;
+                              const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                              let h = 0, s = 0, l = (max + min) / 2;
+                              if (max !== min) {
+                                const d = max - min;
+                                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                                h = max === r ? ((g - b) / d + (g < b ? 6 : 0)) / 6 : max === g ? ((b - r) / d + 2) / 6 : ((r - g) / d + 4) / 6;
+                              }
+                              return [h * 360, s * 100, l * 100];
+                            };
+                            const hslToHex = (h: number, s: number, l: number) => {
+                              s /= 100; l /= 100;
+                              const a = s * Math.min(l, 1 - l);
+                              const f = (n: number) => { const k = (n + h / 30) % 12; return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); };
+                              return '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+                            };
+                            const [h, s, l] = hexToHsl(color);
+                            const newH = (h + 30 + Math.random() * 60) % 360;
+                            const newColor = hslToHex(newH, Math.min(100, s + (Math.random() * 20 - 10)), Math.min(95, Math.max(10, l + (Math.random() * 20 - 10))));
+                            const newColors = { ...brandResult.strategy.colors };
+                            (newColors as any)[key] = newColor;
+                            setBrandResult({
+                              ...brandResult,
+                              strategy: { ...brandResult.strategy, colors: newColors }
+                            });
+                            toast.success(`צבע ${label} הוחלף!`);
+                          }}
+                          title={`החלף צבע ${label}`}
+                        >
+                          <RotateCcw className="w-3 h-3 text-muted-foreground hover:text-primary cursor-pointer" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                💡 לחצו על צבע להחלפת מיקום עם צבע אחר • לחצו על ↺ ליד צבע להחלפתו
+              </p>
             </Card>
 
             {/* Typography */}
