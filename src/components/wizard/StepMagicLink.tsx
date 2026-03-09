@@ -3,7 +3,7 @@ import { WizardData, WizardDataUpdate, UploadedMaterial, ContactAssets } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft, Wand2, Upload, FileText, X, Image, Link as LinkIcon, Palette, Type, Star, Eye, CheckCircle2, Pencil, Phone, Mail, MapPin, MessageCircle, Youtube, Facebook, Instagram, Linkedin, Music2 } from 'lucide-react';
+import { Globe, Sparkles, Loader2, Keyboard, ArrowLeft, Wand2, Upload, FileText, X, Image, Link as LinkIcon, Palette, Type, Star, Eye, CheckCircle2, Pencil, Phone, Mail, MapPin, MessageCircle, Youtube, Facebook, Instagram, Linkedin, Music2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,6 +47,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
   const [analyzingMaterials, setAnalyzingMaterials] = useState<Set<string>>(new Set());
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [detectedFontInfo, setDetectedFontInfo] = useState<{ name: string; confidence: string; isAvailable: boolean } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const materialsInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,28 +86,38 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
           body: { imageBase64: dataUrl }
         });
         if (!error && result?.colors) {
-          updateData({
-            brand: {
-              logo: dataUrl,
-              colors: {
-                primary: result.colors.primary,
-                secondary: result.colors.secondary,
-                background: result.colors.background,
-              },
+          const brandUpdate: any = {
+            logo: dataUrl,
+            colors: {
+              primary: result.colors.primary,
+              secondary: result.colors.secondary,
+              background: result.colors.background,
             },
-          });
-          const fontMsg = result.fonts?.headerFont ? ` | פונט: ${result.fonts.headerFont}` : '';
-          toast.success(`צבעים חולצו בהצלחה מהלוגו!${fontMsg}`, { id: 'auto-color-extract' });
+          };
+          
           if (result.fonts?.headerFont) {
-            updateData({
-              brand: {
-                logo: dataUrl,
-                colors: { primary: result.colors.primary, secondary: result.colors.secondary, background: result.colors.background },
-                headerFont: result.fonts.headerFont,
-                bodyFont: result.fonts.bodyFont || 'Heebo',
-              },
+            brandUpdate.headerFont = result.fonts.headerFont;
+            brandUpdate.bodyFont = result.fonts.bodyFont || 'Heebo';
+          }
+          
+          updateData({ brand: brandUpdate });
+          
+          // Store detected font info for display
+          if (result.fonts?.detectedFontName) {
+            setDetectedFontInfo({
+              name: result.fonts.detectedFontName,
+              confidence: result.fonts.fontConfidence || 'low',
+              isAvailable: result.fonts.isDetectedFontAvailable || false,
             });
           }
+          
+          let fontMsg = '';
+          if (result.fonts?.detectedFontName && !result.fonts.isDetectedFontAvailable) {
+            fontMsg = ` | זיהינו פונט: ${result.fonts.detectedFontName} (אינו במערכת, הצענו תחליף)`;
+          } else if (result.fonts?.headerFont) {
+            fontMsg = ` | פונט: ${result.fonts.headerFont}`;
+          }
+          toast.success(`צבעים חולצו בהצלחה מהלוגו!${fontMsg}`, { id: 'auto-color-extract' });
         } else {
           toast.dismiss('auto-color-extract');
         }
@@ -515,14 +526,38 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
               </div>
 
               {/* Fonts */}
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                   <Type className="w-4 h-4" /> פונטים
                 </span>
+                {detectedFontInfo && !detectedFontInfo.isAvailable && (
+                  <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                    <div className="text-xs">
+                      <p className="text-amber-600 dark:text-amber-400 font-medium">
+                        זיהינו את הפונט: <span className="font-bold">{detectedFontInfo.name}</span>
+                      </p>
+                      <p className="text-muted-foreground mt-0.5">
+                        פונט זה אינו זמין כרגע במערכת. הצענו תחליף קרוב
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {detectedFontInfo?.isAvailable && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                      זיהינו את הפונט: <span className="font-bold">{detectedFontInfo.name}</span> ✓
+                    </p>
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground">
                   כותרות: <span className="font-medium text-foreground">{data.brand.headerFont}</span>
                   {' | '}
                   גוף: <span className="font-medium text-foreground">{data.brand.bodyFont}</span>
+                  {detectedFontInfo && !detectedFontInfo.isAvailable && (
+                    <span className="text-xs text-amber-500 mr-1">(תחליף)</span>
+                  )}
                 </p>
               </div>
             </CardContent>

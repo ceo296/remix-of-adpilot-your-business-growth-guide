@@ -64,17 +64,20 @@ serve(async (req) => {
       base64Prefix: typeof imageBase64 === "string" ? imageBase64.slice(0, 32) : null,
     });
 
-    const systemPrompt = `You are a professional brand analyst. Analyze the provided logo image and extract:
+    const systemPrompt = `You are a professional brand analyst and typography expert. Analyze the provided logo image and extract:
 1. The dominant BRAND colors
-2. The closest matching Hebrew Google Font for the logo's typography
+2. Try to IDENTIFY the actual font used in the logo text (if any text is visible)
+3. Suggest the closest matching Hebrew Google Font from our available list
 
 Return ONLY a valid JSON object with this exact structure:
 {
   "primary": "#XXXXXX",
   "secondary": "#XXXXXX", 
   "background": "#XXXXXX",
-  "headerFont": "FontName",
-  "bodyFont": "FontName"
+  "detectedFontName": "The actual font name you identify (e.g., Fb UnicaSansHeb, Guttman Vilna, Narkis Block, etc.) or null if you cannot identify it",
+  "fontConfidence": "high" | "medium" | "low",
+  "headerFont": "FontName from available list",
+  "bodyFont": "FontName from available list"
 }
 
 COLOR RULES (follow strictly):
@@ -96,16 +99,21 @@ For MONOCHROME logos:
 
 - Background is the canvas behind the logo; if white/light use #FFFFFF
 
-FONT RULES — CRITICAL DISTINCTION:
-The LOGO font is often decorative/custom and NOT suitable for ad headlines or body text.
-Your job is to recommend fonts for the AD TEXT (headlines, subheadlines, body copy) that COMPLEMENT the logo style — not replicate it.
+FONT IDENTIFICATION RULES — CRITICAL:
+1. FIRST, try to identify the ACTUAL font name used in the logo. Common Hebrew fonts include:
+   Fb UnicaSansHeb, Fb Reforma, Fb Agnita, Fb Spacer, Guttman Vilna, Guttman David, Guttman Keren,
+   Narkis Block, Narkis Tam, Hadassa, Aharoni, Arial Hebrew, Miriam, FrankRuehl, David, 
+   Levenim MT, Rod, Ktav Yad, Shuneet, Almoni, Miri, Ploni, Makabi, Stam Ashkenaz, Carmelit,
+   Open Sans Hebrew, Varela Round, Bona Nova, Karantina, Amatic SC, etc.
+2. Set "detectedFontName" to the font name you identify, or null if you truly cannot tell.
+3. Set "fontConfidence": "high" if you're quite sure, "medium" if it's a good guess, "low" if uncertain.
+4. DO NOT make up font names. If you don't recognize the font, set detectedFontName to null.
 
-- headerFont = the font for AD HEADLINES and subheadlines (bold, impactful, readable at large sizes)
-- bodyFont = the font for AD BODY TEXT (clean, readable at small sizes)
-- These are NOT the logo font — they are fonts that PAIR WELL with the logo's visual identity.
-
-You MUST choose from this exact list of Hebrew Google Fonts:
+AVAILABLE GOOGLE FONTS (for headerFont and bodyFont suggestions):
   "Assistant", "Heebo", "Rubik", "Alef", "David Libre", "Frank Ruhl Libre", "Secular One", "Suez One"
+
+- headerFont = closest AVAILABLE match for headlines that complements the logo style
+- bodyFont = clean readable font for body text
 
 Pairing logic based on LOGO STYLE:
 - Logo has thick/bold/geometric feel → headerFont: "Secular One" or "Rubik", bodyFont: "Heebo" or "Assistant"
@@ -114,7 +122,7 @@ Pairing logic based on LOGO STYLE:
 - Logo has rounded/friendly feel → headerFont: "Rubik" or "Alef", bodyFont: "Heebo"
 - Logo has luxury/premium feel → headerFont: "Suez One" or "Frank Ruhl Libre", bodyFont: "David Libre" or "Assistant"
 
-IMPORTANT: Actually analyze the visual weight, style, and personality of the logo. Choose fonts that create a COHESIVE brand feel when used alongside the logo in an ad.`;
+IMPORTANT: Be HONEST. If the detected font is NOT in the available Google Fonts list, say so. Never pretend a Google Font IS the actual logo font.`;
 
     console.log("Sending image to AI for color extraction...");
     console.log("Image content type:", isBase64 ? "base64" : "URL");
@@ -217,16 +225,27 @@ IMPORTANT: Actually analyze the visual weight, style, and personality of the log
     const headerFont = allowedFonts.includes(colors.headerFont) ? colors.headerFont : null;
     const bodyFont = allowedFonts.includes(colors.bodyFont) ? colors.bodyFont : null;
     
+    // Extract detected font info
+    const detectedFontName = colors.detectedFontName || null;
+    const fontConfidence = colors.fontConfidence || null;
+    const isDetectedFontAvailable = detectedFontName ? allowedFonts.includes(detectedFontName) : false;
+    
     if (validationErrors.length > 0) {
       console.error("Color validation errors:", validationErrors);
     }
 
-    console.log("Returning colors and fonts:", { colors, headerFont, bodyFont });
+    console.log("Returning colors and fonts:", { colors, headerFont, bodyFont, detectedFontName, fontConfidence });
 
     return new Response(
       JSON.stringify({ 
         colors: { primary: colors.primary, secondary: colors.secondary, background: colors.background },
-        fonts: headerFont ? { headerFont, bodyFont: bodyFont || "Heebo" } : null
+        fonts: headerFont ? { 
+          headerFont, 
+          bodyFont: bodyFont || "Heebo",
+          detectedFontName,
+          fontConfidence,
+          isDetectedFontAvailable,
+        } : null
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
