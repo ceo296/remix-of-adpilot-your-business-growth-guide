@@ -854,7 +854,83 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
           </CardContent>
         </Card>
 
-        {/* ═══ SECTION 3: Website / Link ═══ */}
+        {/* ═══ SECTION 2.5: Business Photos Upload ═══ */}
+        <Card className="max-w-2xl mx-auto border-2 border-teal-500/20 shadow-lg">
+          <CardContent className="p-8 space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-md shadow-teal-500/30 flex items-center justify-center">
+                <Camera className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <label className="text-base font-semibold text-foreground">
+                  תמונות מהעסק או המוצר
+                </label>
+                <p className="text-sm text-muted-foreground">
+                  תמונות שנוכל להשתמש בהן בחומרי הפרסום — מוצרים, חנות, צוות...
+                </p>
+              </div>
+            </div>
+
+            <input
+              ref={businessPhotoInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                if (!e.target.files) return;
+                Array.from(e.target.files).forEach((file) => {
+                  const reader = new FileReader();
+                  reader.onload = (event) => {
+                    const photo = {
+                      id: `biz-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                      name: file.name,
+                      type: 'image',
+                      preview: event.target?.result as string,
+                    };
+                    updateData({ businessPhotos: [...(data.businessPhotos || []), photo] });
+                  };
+                  reader.readAsDataURL(file);
+                });
+                e.target.value = '';
+              }}
+              className="hidden"
+            />
+
+            {data.businessPhotos && data.businessPhotos.length > 0 ? (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {data.businessPhotos.map((photo) => (
+                  <div key={photo.id} className="relative group rounded-xl overflow-hidden border-2 border-border aspect-square">
+                    <img src={photo.preview} alt={photo.name} className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => updateData({ businessPhotos: (data.businessPhotos || []).filter((p) => p.id !== photo.id) })}
+                      className="absolute top-1 left-1 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                <div
+                  onClick={() => businessPhotoInputRef.current?.click()}
+                  className="rounded-xl border-2 border-dashed border-teal-300 hover:border-teal-500 aspect-square flex items-center justify-center cursor-pointer hover:bg-teal-50 transition-colors"
+                >
+                  <Camera className="w-6 h-6 text-teal-500" />
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => businessPhotoInputRef.current?.click()}
+                className="w-full min-h-[100px] rounded-2xl border-3 border-dashed border-teal-300 hover:border-teal-500 bg-gradient-to-br from-teal-50 to-emerald-50 hover:from-teal-100 hover:to-emerald-100 flex items-center justify-center cursor-pointer transition-all group"
+              >
+                <div className="text-center p-6 group-hover:scale-105 transition-transform">
+                  <Camera className="w-8 h-8 text-teal-500/50 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">העלו תמונות מהמוצר, החנות, או כל דבר שרלוונטי לפרסום</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">אופציונלי — אבל עוזר לנו ליצור קריאייטיב אותנטי</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="max-w-2xl mx-auto border-2 border-blue-500/20 shadow-lg">
           <CardContent className="p-8 space-y-6">
             <div className="flex items-center gap-3">
