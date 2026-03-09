@@ -248,7 +248,7 @@ export function BrandingStudio({ isOpen, onClose, businessName }: BrandingStudio
           background_color: s.colors.background,
           header_font: s.fonts.header,
           body_font: s.fonts.body,
-          logo_url: brandResult.logo || undefined,
+          logo_url: brandResult.logoOptions?.[selectedLogoIndex]?.image || brandResult.logo || undefined,
         }).eq('id', profiles[0].id);
       }
 
