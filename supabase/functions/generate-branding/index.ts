@@ -258,6 +258,7 @@ NO text or letters in the image - just show the colors and design patterns appli
       success: true,
       strategy,
       logo: logoBase64,
+      logoOptions: logoResults,
       mockups: mockupImages.filter(Boolean),
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
