@@ -106,7 +106,7 @@ const BRIEF_STEPS = [
 const GENERATION_STEPS = [
   { text: 'מנתחים את הבריף שלכם...', duration: 3000 },
   { text: 'בוחרים פלטת צבעים מושלמת...', duration: 4000 },
-  { text: 'מעצבים את הלוגו...', duration: 8000 },
+  { text: 'מעצבים 5 סגנונות לוגו...', duration: 12000 },
   { text: 'בוחרים טיפוגרפיה מדויקת...', duration: 3000 },
   { text: 'יוצרים הדמיות מותג...', duration: 10000 },
   { text: 'מרכיבים את חבילת המיתוג...', duration: 5000 },
