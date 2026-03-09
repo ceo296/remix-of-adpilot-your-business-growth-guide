@@ -111,35 +111,94 @@ Return a JSON object with this EXACT structure (no markdown, no backticks, just 
 
     console.log("Strategy generated:", strategy.tagline);
 
-    // Step 2: Generate logo image
-    console.log("Step 2: Generating logo...");
-    const logoPrompt = `Create a professional, modern logo for a business called "${businessName || 'Brand'}".
+    // Step 2: Generate multiple logo style options
+    console.log("Step 2: Generating logo variations...");
+    
+    const logoStyles = [
+      {
+        name: 'מינימליסטי',
+        nameEn: 'Minimalist',
+        description: 'Clean geometric shapes, minimal details, modern and timeless',
+        styleDirective: 'Minimalist, geometric, clean lines, flat design, ultra-modern. Think Apple/Nike simplicity.',
+      },
+      {
+        name: 'אלגנטי',
+        nameEn: 'Elegant',
+        description: 'Refined, luxurious feel with sophisticated details',
+        styleDirective: 'Elegant, refined, luxury feel. Thin strokes, ornamental touches, premium aesthetic. Think high-end fashion brand.',
+      },
+      {
+        name: 'מודרני נועז',
+        nameEn: 'Bold Modern',
+        description: 'Strong, confident shapes with bold presence',
+        styleDirective: 'Bold, strong, confident. Thick lines, powerful shapes, high contrast. Dynamic and impactful.',
+      },
+      {
+        name: 'אורגני',
+        nameEn: 'Organic',
+        description: 'Natural flowing forms, soft curves, friendly feel',
+        styleDirective: 'Organic, natural, flowing curves. Soft shapes, approachable, warm feeling. Hand-crafted quality.',
+      },
+      {
+        name: 'גיאומטרי',
+        nameEn: 'Geometric',
+        description: 'Abstract geometric patterns, structured and balanced',
+        styleDirective: 'Abstract geometric, structured symmetry, mathematical precision. Tessellated or interlocking shapes.',
+      },
+    ];
+
+    const logoPromises = logoStyles.map(async (style, idx) => {
+      try {
+        // Small stagger to avoid rate limits
+        await new Promise(r => setTimeout(r, idx * 1500));
+        
+        const logoPrompt = `Create a professional logo icon for a business called "${businessName || 'Brand'}".
 Logo concept: ${strategy.logo_concept}
 Color palette: Primary ${strategy.colors.primary}, Secondary ${strategy.colors.secondary}, Accent ${strategy.colors.accent}
-Style: Clean, professional, suitable for the Israeli market. The logo should work on both light and dark backgrounds.
-IMPORTANT: Create ONLY the logo mark/icon - NO text, NO letters, NO words in the logo. Pure graphic symbol/icon only.
-The logo should be on a clean white background, centered, with generous padding around it.`;
+Design style: ${style.styleDirective}
+IMPORTANT RULES:
+- Create ONLY the logo mark/icon - NO text, NO letters, NO words whatsoever
+- Pure graphic symbol/icon only
+- Must work on both light and dark backgrounds
+- On a clean white background, centered, with generous padding
+- High resolution, crisp edges, professional quality
+- The design must feel premium and sophisticated`;
 
-    const logoResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
-        messages: [{ role: "user", content: logoPrompt }],
-        modalities: ["image", "text"],
-      }),
+        const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3.1-flash-image-preview",
+            messages: [{ role: "user", content: logoPrompt }],
+            modalities: ["image", "text"],
+          }),
+        });
+
+        if (!resp.ok) {
+          console.error(`Logo style ${idx} (${style.nameEn}) failed:`, resp.status);
+          return null;
+        }
+        const d = await resp.json();
+        const imageUrl = d.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+        return imageUrl ? { ...style, image: imageUrl } : null;
+      } catch (e) {
+        console.error(`Logo style ${idx} error:`, e);
+        return null;
+      }
     });
 
-    if (!logoResponse.ok) {
-      console.error("Logo generation failed:", logoResponse.status);
+    const logoResults = [];
+    for (const promise of logoPromises) {
+      const result = await promise;
+      if (result) logoResults.push(result);
     }
-
-    const logoData = await logoResponse.json();
-    const logoBase64 = logoData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
-    console.log("Logo generated:", !!logoBase64);
+    
+    console.log("Logo variations generated:", logoResults.length);
+    // Keep the first one as the primary for backward compatibility
+    const logoBase64 = logoResults[0]?.image || null;
 
     // Step 3: Generate mockup images (2 mockups in parallel)
     console.log("Step 3: Generating mockups...");
@@ -199,6 +258,7 @@ NO text or letters in the image - just show the colors and design patterns appli
       success: true,
       strategy,
       logo: logoBase64,
+      logoOptions: logoResults,
       mockups: mockupImages.filter(Boolean),
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
