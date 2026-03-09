@@ -551,24 +551,112 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
 
             {/* Color Palette */}
             <Card className="p-8 space-y-4">
-              <h4 className="text-lg font-bold flex items-center gap-2">
-                <Palette className="w-5 h-5 text-primary" />
-                פלטת צבעים
-              </h4>
-              <div className="grid grid-cols-5 gap-4">
-                {Object.entries(brandResult.strategy.colors).map(([key, color]) => (
-                  <div key={key} className="space-y-2 text-center">
-                    <div className="w-full aspect-square rounded-xl shadow-lg border border-border" style={{ backgroundColor: color }} />
-                    <p className="text-xs font-medium capitalize">{
-                      key === 'primary' ? 'ראשי' :
-                      key === 'secondary' ? 'משני' :
-                      key === 'accent' ? 'אקסנט' :
-                      key === 'background' ? 'רקע' : 'כהה'
-                    }</p>
-                    <p className="text-xs text-muted-foreground font-mono">{color}</p>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between">
+                <h4 className="text-lg font-bold flex items-center gap-2">
+                  <Palette className="w-5 h-5 text-primary" />
+                  פלטת צבעים
+                </h4>
+                {swapSource && (
+                  <Button variant="ghost" size="sm" onClick={() => setSwapSource(null)} className="text-xs gap-1">
+                    <X className="w-3 h-3" /> ביטול החלפה
+                  </Button>
+                )}
               </div>
+              {swapSource && (
+                <p className="text-sm text-primary font-medium text-center animate-pulse">
+                  🔄 לחצו על צבע אחר כדי להחליף מיקומים
+                </p>
+              )}
+              <div className="grid grid-cols-5 gap-4">
+                {Object.entries(brandResult.strategy.colors).map(([key, color]) => {
+                  const label = key === 'primary' ? 'ראשי' :
+                    key === 'secondary' ? 'משני' :
+                    key === 'accent' ? 'אקסנט' :
+                    key === 'background' ? 'רקע' : 'כהה';
+                  const isSwapSource = swapSource === key;
+                  return (
+                    <div key={key} className="space-y-2 text-center">
+                      <button
+                        onClick={() => {
+                          if (!swapSource) {
+                            setSwapSource(key);
+                          } else if (swapSource === key) {
+                            setSwapSource(null);
+                          } else {
+                            // Swap the two colors
+                            const newColors = { ...brandResult.strategy.colors };
+                            const temp = newColors[swapSource as keyof typeof newColors];
+                            (newColors as any)[swapSource] = newColors[key as keyof typeof newColors];
+                            (newColors as any)[key] = temp;
+                            setBrandResult({
+                              ...brandResult,
+                              strategy: { ...brandResult.strategy, colors: newColors }
+                            });
+                            setSwapSource(null);
+                            toast.success('הצבעים הוחלפו!');
+                          }
+                        }}
+                        className={`w-full aspect-square rounded-xl shadow-lg border-2 transition-all duration-300 hover:scale-105 cursor-pointer ${
+                          isSwapSource 
+                            ? 'border-primary ring-4 ring-primary/30 scale-110' 
+                            : swapSource 
+                              ? 'border-dashed border-primary/50 hover:border-primary' 
+                              : 'border-border hover:border-primary/40'
+                        }`}
+                        style={{ backgroundColor: color }}
+                        title={swapSource ? (isSwapSource ? 'לחצו לביטול' : 'לחצו להחלפה') : 'לחצו להחלפת מיקום'}
+                      />
+                      <p className="text-xs font-medium">{label}</p>
+                      <div className="flex items-center justify-center gap-1">
+                        <p className="text-xs text-muted-foreground font-mono">{color}</p>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (regeneratingColor) return;
+                            setRegeneratingColor(key);
+                            try {
+                              const { data, error } = await supabase.functions.invoke('generate-branding', {
+                                body: {
+                                  businessName: briefData.businessName,
+                                  essence: briefData.essence,
+                                  differentiator: briefData.differentiator,
+                                  persona: `Replace ONLY the ${key} color (currently ${color}). Keep all other colors exactly the same.`,
+                                  audience: briefData.audience,
+                                  vision: briefData.vision,
+                                  designPreferences: `Current palette: ${JSON.stringify(brandResult.strategy.colors)}. Generate a DIFFERENT ${key} color that still harmonizes with the others.`,
+                                },
+                              });
+                              if (data?.strategy?.colors?.[key]) {
+                                const newColors = { ...brandResult.strategy.colors };
+                                (newColors as any)[key] = data.strategy.colors[key];
+                                setBrandResult({
+                                  ...brandResult,
+                                  strategy: { ...brandResult.strategy, colors: newColors }
+                                });
+                                toast.success(`צבע ${label} הוחלף!`);
+                              }
+                            } catch {
+                              toast.error('שגיאה בהחלפת צבע');
+                            }
+                            setRegeneratingColor(null);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 hover:text-primary transition-opacity"
+                          title={`החלף צבע ${label}`}
+                        >
+                          {regeneratingColor === key ? (
+                            <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                          ) : (
+                            <RotateCcw className="w-3 h-3 text-muted-foreground hover:text-primary cursor-pointer" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                💡 לחצו על צבע להחלפת מיקום עם צבע אחר • לחצו על ↺ ליד צבע להחלפתו
+              </p>
             </Card>
 
             {/* Typography */}
