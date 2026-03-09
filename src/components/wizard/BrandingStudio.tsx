@@ -11,6 +11,14 @@ import { toast } from "sonner";
 interface BrandingStudioProps {
   isOpen: boolean;
   onClose: () => void;
+  onBrandingComplete?: (branding: {
+    businessName: string;
+    logo: string | null;
+    colors: { primary: string; secondary: string; accent?: string; background: string; dark?: string };
+    fonts: { header: string; body: string };
+    tagline?: string;
+    brandVoice?: string;
+  }) => void;
   businessName?: string;
 }
 
@@ -112,7 +120,7 @@ const GENERATION_STEPS = [
   { text: 'מרכיבים את חבילת המיתוג...', duration: 5000 },
 ];
 
-export function BrandingStudio({ isOpen, onClose, businessName }: BrandingStudioProps) {
+export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessName }: BrandingStudioProps) {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<StudioPhase>('brief');
   const [briefStep, setBriefStep] = useState(0);
@@ -213,6 +221,9 @@ export function BrandingStudio({ isOpen, onClose, businessName }: BrandingStudio
   const handleSaveAndContinue = async () => {
     if (!brandResult) return;
 
+    const selectedLogo = brandResult.logoOptions?.[selectedLogoIndex]?.image || brandResult.logo || null;
+    const s = brandResult.strategy;
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error('יש להתחבר'); return; }
@@ -240,7 +251,6 @@ export function BrandingStudio({ isOpen, onClose, businessName }: BrandingStudio
         .limit(1);
 
       if (profiles && profiles.length > 0) {
-        const s = brandResult.strategy;
         await supabase.from('client_profiles').update({
           business_name: briefData.businessName || undefined,
           primary_color: s.colors.primary,
@@ -248,13 +258,27 @@ export function BrandingStudio({ isOpen, onClose, businessName }: BrandingStudio
           background_color: s.colors.background,
           header_font: s.fonts.header,
           body_font: s.fonts.body,
-          logo_url: brandResult.logoOptions?.[selectedLogoIndex]?.image || brandResult.logo || undefined,
+          logo_url: selectedLogo || undefined,
         }).eq('id', profiles[0].id);
       }
 
       toast.success('המיתוג נשמר בהצלחה!');
-      onClose();
-      navigate('/dashboard');
+
+      // If callback provided, pass branding back to wizard instead of navigating away
+      if (onBrandingComplete) {
+        onBrandingComplete({
+          businessName: briefData.businessName,
+          logo: selectedLogo,
+          colors: s.colors,
+          fonts: s.fonts,
+          tagline: s.tagline,
+          brandVoice: s.brand_voice,
+        });
+        onClose();
+      } else {
+        onClose();
+        navigate('/dashboard');
+      }
     } catch (e) {
       console.error('Save error:', e);
       toast.error('שגיאה בשמירה');
