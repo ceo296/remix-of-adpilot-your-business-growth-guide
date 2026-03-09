@@ -147,6 +147,8 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [selectedTaglineIndex, setSelectedTaglineIndex] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark' | 'brand'>('light');
+  const [swapSource, setSwapSource] = useState<string | null>(null);
+  const [regeneratingColor, setRegeneratingColor] = useState<string | null>(null);
   const presentationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
