@@ -120,7 +120,7 @@ const GENERATION_STEPS = [
   { text: 'מרכיבים את חבילת המיתוג...', duration: 5000 },
 ];
 
-export function BrandingStudio({ isOpen, onClose, businessName }: BrandingStudioProps) {
+export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessName }: BrandingStudioProps) {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<StudioPhase>('brief');
   const [briefStep, setBriefStep] = useState(0);
