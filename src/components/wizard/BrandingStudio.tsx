@@ -140,46 +140,6 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const pdfRef = useRef<HTMLDivElement>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
-  const exportPdf = useCallback(async () => {
-    if (!pdfRef.current || !selectedDirection || !brandResult) return;
-    setIsExportingPdf(true);
-    try {
-      // Make the hidden div visible for capture
-      const el = pdfRef.current;
-      el.style.display = 'block';
-      // Wait for images to load
-      await new Promise(r => setTimeout(r, 500));
-
-      const dataUrl = await toPng(el, {
-        quality: 1,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-      });
-
-      el.style.display = 'none';
-
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = reject; });
-
-      const imgW = img.naturalWidth;
-      const imgH = img.naturalHeight;
-      const pdfW = 210; // A4 mm
-      const pdfH = (imgH / imgW) * pdfW;
-
-      const pdf = new jsPDF({ orientation: pdfH > 297 ? 'p' : 'p', unit: 'mm', format: [pdfW, Math.max(pdfH, 297)] });
-      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfW, pdfH);
-      pdf.save(`${briefData.businessName || 'branding'}-כיוון-${selectedDirectionIndex + 1}.pdf`);
-      toast.success('ה-PDF הורד בהצלחה! 📄');
-    } catch (e) {
-      console.error('PDF export error:', e);
-      toast.error('שגיאה בייצוא PDF');
-    } finally {
-      setIsExportingPdf(false);
-      if (pdfRef.current) pdfRef.current.style.display = 'none';
-    }
-  }, [selectedDirection, brandResult, briefData.businessName, selectedDirectionIndex]);
-
   useEffect(() => {
     if (isOpen) {
       setPhase('brief');
