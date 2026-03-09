@@ -85,28 +85,38 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
           body: { imageBase64: dataUrl }
         });
         if (!error && result?.colors) {
-          updateData({
-            brand: {
-              logo: dataUrl,
-              colors: {
-                primary: result.colors.primary,
-                secondary: result.colors.secondary,
-                background: result.colors.background,
-              },
+          const brandUpdate: any = {
+            logo: dataUrl,
+            colors: {
+              primary: result.colors.primary,
+              secondary: result.colors.secondary,
+              background: result.colors.background,
             },
-          });
-          const fontMsg = result.fonts?.headerFont ? ` | פונט: ${result.fonts.headerFont}` : '';
-          toast.success(`צבעים חולצו בהצלחה מהלוגו!${fontMsg}`, { id: 'auto-color-extract' });
+          };
+          
           if (result.fonts?.headerFont) {
-            updateData({
-              brand: {
-                logo: dataUrl,
-                colors: { primary: result.colors.primary, secondary: result.colors.secondary, background: result.colors.background },
-                headerFont: result.fonts.headerFont,
-                bodyFont: result.fonts.bodyFont || 'Heebo',
-              },
+            brandUpdate.headerFont = result.fonts.headerFont;
+            brandUpdate.bodyFont = result.fonts.bodyFont || 'Heebo';
+          }
+          
+          updateData({ brand: brandUpdate });
+          
+          // Store detected font info for display
+          if (result.fonts?.detectedFontName) {
+            setDetectedFontInfo({
+              name: result.fonts.detectedFontName,
+              confidence: result.fonts.fontConfidence || 'low',
+              isAvailable: result.fonts.isDetectedFontAvailable || false,
             });
           }
+          
+          let fontMsg = '';
+          if (result.fonts?.detectedFontName && !result.fonts.isDetectedFontAvailable) {
+            fontMsg = ` | זיהינו פונט: ${result.fonts.detectedFontName} (אינו במערכת, הצענו תחליף)`;
+          } else if (result.fonts?.headerFont) {
+            fontMsg = ` | פונט: ${result.fonts.headerFont}`;
+          }
+          toast.success(`צבעים חולצו בהצלחה מהלוגו!${fontMsg}`, { id: 'auto-color-extract' });
         } else {
           toast.dismiss('auto-color-extract');
         }
