@@ -544,6 +544,83 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                     </div>
                   </div>
                 </Card>
+
+                {/* Deep Dive - Expandable */}
+                <div className="border border-border rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setDeepDiveOpen(!deepDiveOpen)}
+                    className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <Globe className="w-4 h-4" />
+                      <span>רוצים להעמיק? רפרנסים מהתחום, פסיכולוגיית צבע וערכי מותג</span>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${deepDiveOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {deepDiveOpen && (
+                    <div className="p-5 pt-0 space-y-5 border-t border-border">
+                      {/* World References */}
+                      {selectedDirection.worldReferences && selectedDirection.worldReferences.length > 0 && (
+                        <div className="space-y-3 pt-4">
+                          <h5 className="text-sm font-bold flex items-center gap-2">
+                            <Globe className="w-4 h-4 text-primary" />
+                            רפרנסים מהתחום
+                          </h5>
+                          <div className="grid gap-2">
+                            {selectedDirection.worldReferences.map((ref, idx) => (
+                              <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 text-xs font-bold text-primary">
+                                  {idx + 1}
+                                </div>
+                                <div className="space-y-0.5">
+                                  <p className="text-sm font-bold">{ref.brand} <span className="font-normal text-muted-foreground">({ref.colors})</span></p>
+                                  <p className="text-xs text-muted-foreground">{ref.lesson}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Color Emotion */}
+                      {selectedDirection.colorEmotion && (
+                        <div className="space-y-2">
+                          <h5 className="text-sm font-bold flex items-center gap-2">
+                            <Heart className="w-4 h-4 text-rose-500" />
+                            חיבור רגשי לצבע
+                          </h5>
+                          <div className="p-3 rounded-lg border border-border" style={{
+                            background: `linear-gradient(135deg, ${selectedDirection.colors.primary}08, ${selectedDirection.colors.secondary}08)`
+                          }}>
+                            <p className="text-sm text-foreground leading-relaxed">{selectedDirection.colorEmotion}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Brand Values */}
+                      {brandResult.strategy.brand_values && brandResult.strategy.brand_values.length > 0 && (
+                        <div className="space-y-3">
+                          <h5 className="text-sm font-bold flex items-center gap-2">
+                            <Star className="w-4 h-4 text-amber-500" />
+                            ערכי המותג → עיצוב
+                          </h5>
+                          <div className="grid gap-2">
+                            {brandResult.strategy.brand_values.map((val, idx) => (
+                              <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                                <span className="text-lg">{val.icon}</span>
+                                <div>
+                                  <p className="text-sm font-bold">{val.value}</p>
+                                  <p className="text-xs text-muted-foreground">{val.designConnection}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
