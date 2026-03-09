@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { X, Sparkles, ArrowLeft, ArrowRight, Check, Loader2, Palette, Target, Users, Eye, RefreshCw, RotateCcw, ChevronLeft, ChevronRight, Pencil, Type, ChevronDown, Globe, Heart, Star } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { X, Sparkles, ArrowLeft, ArrowRight, Check, Loader2, Palette, Target, Users, Eye, RefreshCw, RotateCcw, ChevronLeft, ChevronRight, Pencil, Type, ChevronDown, Globe, Heart, Star, Download } from "lucide-react";
+import { toPng } from "html-to-image";
+import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
