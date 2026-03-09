@@ -220,6 +220,7 @@ The mockup must feel luxurious and real.`;
         tagline_options: strategy.tagline_options,
         brand_voice: strategy.brand_voice,
         brand_essence_summary: strategy.brand_essence_summary,
+        brand_values: strategy.brand_values || [],
       },
       directions: directionResults,
     }), {
