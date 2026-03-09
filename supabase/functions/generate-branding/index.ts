@@ -78,12 +78,35 @@ Return a JSON object with this EXACT structure (no markdown, no backticks, just 
     // Clean JSON from markdown
     strategyText = strategyText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     
+    // Extract JSON object boundaries
+    const jsonStart = strategyText.indexOf('{');
+    const jsonEnd = strategyText.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      strategyText = strategyText.substring(jsonStart, jsonEnd + 1);
+    }
+    
+    // Fix common JSON issues
+    strategyText = strategyText
+      .replace(/,\s*}/g, '}')
+      .replace(/,\s*]/g, ']')
+      .replace(/[\x00-\x1F\x7F]/g, (ch) => ch === '\n' || ch === '\r' || ch === '\t' ? ch : '');
+    
     let strategy;
     try {
       strategy = JSON.parse(strategyText);
     } catch (e) {
-      console.error("Failed to parse strategy JSON:", strategyText);
-      throw new Error("Failed to parse brand strategy");
+      console.error("Failed to parse strategy JSON:", strategyText.slice(0, 500));
+      // Last resort: try to balance braces
+      try {
+        const open = (strategyText.match(/{/g) || []).length;
+        const close = (strategyText.match(/}/g) || []).length;
+        if (open > close) {
+          strategyText += '}'.repeat(open - close);
+        }
+        strategy = JSON.parse(strategyText);
+      } catch (e2) {
+        throw new Error("Failed to parse brand strategy");
+      }
     }
 
     console.log("Strategy generated:", strategy.tagline);
