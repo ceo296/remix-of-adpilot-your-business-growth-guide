@@ -281,7 +281,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
           logo: selectedLogo,
           colors: s.colors,
           fonts: s.fonts,
-          tagline: s.tagline,
+          tagline: selectedTagline?.hebrew || s.tagline,
           brandVoice: s.brand_voice,
         });
         onClose();
