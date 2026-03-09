@@ -34,6 +34,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
   const [hasValidated, setHasValidated] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editFieldValue, setEditFieldValue] = useState('');
+  const [newService, setNewService] = useState('');
   
   // Editable local state
   const [editedFonts, setEditedFonts] = useState({
