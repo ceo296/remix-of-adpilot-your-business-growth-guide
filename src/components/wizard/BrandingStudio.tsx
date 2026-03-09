@@ -151,6 +151,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
       setIsEditingTagline(false);
       setSubtitle('');
       setShowSubtitle(false);
+      setDeepDiveOpen(false);
     }
   }, [isOpen, businessName]);
 
