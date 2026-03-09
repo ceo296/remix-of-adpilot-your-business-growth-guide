@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Sparkles, ArrowLeft, ArrowRight, Check, Loader2, Palette, Target, Users, Eye, RefreshCw, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Sparkles, ArrowLeft, ArrowRight, Check, Loader2, Palette, Target, Users, Eye, RefreshCw, RotateCcw, ChevronLeft, ChevronRight, Pencil, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -114,6 +114,10 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark' | 'brand'>('light');
   const [swapSource, setSwapSource] = useState<string | null>(null);
+  const [customTagline, setCustomTagline] = useState<string>('');
+  const [isEditingTagline, setIsEditingTagline] = useState(false);
+  const [subtitle, setSubtitle] = useState<string>('');
+  const [showSubtitle, setShowSubtitle] = useState(false);
   const presentationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -127,6 +131,10 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
       setShowTaglineSelection(false);
       setGenerationStep(0);
       setLogoBgMode('light');
+      setCustomTagline('');
+      setIsEditingTagline(false);
+      setSubtitle('');
+      setShowSubtitle(false);
     }
   }, [isOpen, businessName]);
 
@@ -182,7 +190,8 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
     if (!brandResult || !selectedDirection) return;
 
     const taglineOptions = brandResult.strategy.tagline_options || [];
-    const selectedTagline = selectedTaglineIndex !== null ? taglineOptions[selectedTaglineIndex] : null;
+    const selectedTagline = customTagline || (selectedTaglineIndex !== null ? taglineOptions[selectedTaglineIndex]?.hebrew : null);
+    const fullTagline = [selectedTagline, subtitle].filter(Boolean).join(' | ');
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -219,7 +228,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
           logo: selectedDirection.logo,
           colors: selectedDirection.colors,
           fonts: selectedDirection.fonts,
-          tagline: selectedTagline?.hebrew,
+          tagline: fullTagline || undefined,
           brandVoice: brandResult.strategy.brand_voice,
         });
         onClose();
@@ -393,10 +402,25 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                         </div>
                       )}
                       {/* Tagline under logo */}
-                      {selectedTaglineIndex !== null && brandResult.strategy.tagline_options?.[selectedTaglineIndex] && (
-                        <p className="text-lg font-bold mt-1" style={{ color: selectedDirection.colors.primary }}>
-                          {brandResult.strategy.tagline_options[selectedTaglineIndex].hebrew}
-                        </p>
+                      {(() => {
+                        const displayTagline = customTagline || (selectedTaglineIndex !== null ? brandResult.strategy.tagline_options?.[selectedTaglineIndex]?.hebrew : null);
+                        return displayTagline ? (
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-lg font-bold" style={{ color: selectedDirection.colors.primary }}>{displayTagline}</p>
+                            <button onClick={() => { setCustomTagline(displayTagline); setIsEditingTagline(true); }} className="opacity-50 hover:opacity-100 transition-opacity">
+                              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                            </button>
+                          </div>
+                        ) : null;
+                      })()}
+                      {/* Subtitle under tagline */}
+                      {showSubtitle && subtitle && (
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-muted-foreground font-medium">{subtitle}</p>
+                          <button onClick={() => setShowSubtitle(true)} className="opacity-50 hover:opacity-100 transition-opacity">
+                            <Pencil className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </Card>
@@ -506,7 +530,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
               </div>
             )}
 
-            {/* Tagline - optional */}
+            {/* Tagline + Subtitle */}
             {!showTaglineSelection ? (
               <Card className="p-6 text-center space-y-3">
                 <p className="text-muted-foreground">רוצים להוסיף סלוגן מתחת ללוגו?</p>
@@ -521,11 +545,11 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                 {brandResult.strategy.tagline_options && brandResult.strategy.tagline_options.length > 0 ? (
                   <div className="grid gap-3">
                     {brandResult.strategy.tagline_options.map((option, idx) => (
-                      <button key={idx} onClick={() => setSelectedTaglineIndex(idx)}
+                      <button key={idx} onClick={() => { setSelectedTaglineIndex(idx); setCustomTagline(''); setIsEditingTagline(false); }}
                         className={`relative p-4 rounded-xl border-2 text-right transition-all duration-300 ${
-                          selectedTaglineIndex === idx ? 'border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/30' : 'border-border hover:border-primary/40'
+                          selectedTaglineIndex === idx && !customTagline ? 'border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/30' : 'border-border hover:border-primary/40'
                         }`}
-                        style={selectedTaglineIndex === idx && selectedDirection ? {
+                        style={selectedTaglineIndex === idx && !customTagline && selectedDirection ? {
                           background: `linear-gradient(135deg, ${selectedDirection.colors.primary}10, ${selectedDirection.colors.secondary}10)`
                         } : {}}>
                         <div className="flex items-start justify-between gap-4">
@@ -535,14 +559,71 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                           </div>
                           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground whitespace-nowrap">{option.style}</span>
                         </div>
-                        {selectedTaglineIndex === idx && (
+                        {selectedTaglineIndex === idx && !customTagline && (
                           <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-md">
                             <Check className="w-3.5 h-3.5 text-primary-foreground" />
                           </div>
                         )}
                       </button>
                     ))}
-                    <button onClick={() => { setSelectedTaglineIndex(null); setShowTaglineSelection(false); }} className="text-sm text-muted-foreground hover:text-foreground transition-colors pt-1">↩ בלי סלוגן</button>
+
+                    {/* Custom tagline input */}
+                    <div className="border-t border-border pt-4 mt-2 space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <Pencil className="w-4 h-4" />
+                        <span>או כתבו סלוגן משלכם:</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          value={customTagline}
+                          onChange={(e) => { setCustomTagline(e.target.value); if (e.target.value) setSelectedTaglineIndex(null); }}
+                          placeholder="הקלידו סלוגן מותאם אישית..."
+                          className="flex-1 text-base"
+                          dir="rtl"
+                        />
+                        {customTagline && (
+                          <Button size="sm" variant="outline" onClick={() => { setCustomTagline(''); }}>
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                      {customTagline && (
+                        <p className="text-xs text-primary flex items-center gap-1">
+                          <Check className="w-3 h-3" /> הסלוגן המותאם יופיע מתחת ללוגו
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Subtitle option */}
+                    <div className="border-t border-border pt-4 mt-2 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <Type className="w-4 h-4" />
+                          <span>תת-כותרת תיאורית (אופציונלי):</span>
+                        </div>
+                        {!showSubtitle && (
+                          <Button size="sm" variant="ghost" onClick={() => setShowSubtitle(true)} className="text-xs gap-1">
+                            <span>+ הוסף</span>
+                          </Button>
+                        )}
+                      </div>
+                      {showSubtitle && (
+                        <div className="flex gap-2">
+                          <Input
+                            value={subtitle}
+                            onChange={(e) => setSubtitle(e.target.value)}
+                            placeholder="לדוגמה: ייעוץ וליווי עסקי | מאז 2005"
+                            className="flex-1 text-sm"
+                            dir="rtl"
+                          />
+                          <Button size="sm" variant="outline" onClick={() => { setShowSubtitle(false); setSubtitle(''); }}>
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    <button onClick={() => { setSelectedTaglineIndex(null); setCustomTagline(''); setShowTaglineSelection(false); setShowSubtitle(false); setSubtitle(''); }} className="text-sm text-muted-foreground hover:text-foreground transition-colors pt-1">↩ בלי סלוגן</button>
                   </div>
                 ) : (
                   <p className="text-center text-muted-foreground">לא נוצרו אפשרויות סלוגן</p>
