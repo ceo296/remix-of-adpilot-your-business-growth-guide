@@ -50,6 +50,7 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
   const [detectedFontInfo, setDetectedFontInfo] = useState<{ name: string; confidence: string; isAvailable: boolean } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const materialsInputRef = useRef<HTMLInputElement>(null);
+  const businessPhotoInputRef = useRef<HTMLInputElement>(null);
 
   // ═══ Logo Upload ═══
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
