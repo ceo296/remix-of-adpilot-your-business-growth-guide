@@ -133,6 +133,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [isEditingTagline, setIsEditingTagline] = useState(false);
   const [subtitle, setSubtitle] = useState<string>('');
   const [showSubtitle, setShowSubtitle] = useState(false);
+  const [deepDiveOpen, setDeepDiveOpen] = useState(false);
   const presentationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
