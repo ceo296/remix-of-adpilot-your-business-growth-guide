@@ -32,7 +32,7 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
   const [showNoMaterialsFlow, setShowNoMaterialsFlow] = useState(false);
   const [validationError, setValidationError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const businessPhotoInputRef = useRef<HTMLInputElement>(null);
+  
 
   const handleNext = () => {
     const hasService = (data.websiteInsights?.services || []).length > 0;
