@@ -127,7 +127,9 @@ export function BrandingStudio({ isOpen, onClose, businessName }: BrandingStudio
   });
   const [generationStep, setGenerationStep] = useState(0);
   const [brandResult, setBrandResult] = useState<BrandResult | null>(null);
+  const [selectedLogoIndex, setSelectedLogoIndex] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark' | 'brand'>('light');
   const presentationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
