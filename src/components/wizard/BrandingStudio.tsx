@@ -131,6 +131,10 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
       setShowTaglineSelection(false);
       setGenerationStep(0);
       setLogoBgMode('light');
+      setCustomTagline('');
+      setIsEditingTagline(false);
+      setSubtitle('');
+      setShowSubtitle(false);
     }
   }, [isOpen, businessName]);
 
