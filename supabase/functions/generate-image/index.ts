@@ -224,7 +224,7 @@ VERY IMPORTANT:
 - If you are uncertain about letter order, just place the text exactly as provided character by character from right to left.`;
 
   // Use flash model for text overlay (faster, good at text)
-  const textModels = ['google/gemini-2.5-flash-image', 'google/gemini-3-pro-image-preview'];
+  const textModels = ['google/gemini-3-pro-image-preview', 'google/gemini-2.5-flash-image'];
   
   for (const tryModel of textModels) {
     console.log("[Layer 2 - Text] Trying model:", tryModel);
