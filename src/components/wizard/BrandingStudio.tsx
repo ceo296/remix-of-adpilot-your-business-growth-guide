@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { X, Sparkles, ArrowLeft, ArrowRight, Check, Loader2, Palette, Target, Users, Eye, RefreshCw, RotateCcw, ChevronLeft, ChevronRight, Pencil, Type, ChevronDown, Globe, Heart, Star } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { X, Sparkles, ArrowLeft, ArrowRight, Check, Loader2, Palette, Target, Users, Eye, RefreshCw, RotateCcw, ChevronLeft, ChevronRight, Pencil, Type, ChevronDown, Globe, Heart, Star, Download } from "lucide-react";
+import { toPng } from "html-to-image";
+import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -135,6 +137,8 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [deepDiveOpen, setDeepDiveOpen] = useState(false);
   const presentationRef = useRef<HTMLDivElement>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -202,6 +206,44 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   };
 
   const selectedDirection = brandResult?.directions?.[selectedDirectionIndex];
+
+  const exportPdf = useCallback(async () => {
+    if (!pdfRef.current || !selectedDirection || !brandResult) return;
+    setIsExportingPdf(true);
+    try {
+      const el = pdfRef.current;
+      el.style.display = 'block';
+      await new Promise(r => setTimeout(r, 600));
+
+      const dataUrl = await toPng(el, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+      });
+
+      el.style.display = 'none';
+
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = reject; });
+
+      const imgW = img.naturalWidth;
+      const imgH = img.naturalHeight;
+      const pdfW = 210;
+      const pdfH = (imgH / imgW) * pdfW;
+
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: [pdfW, Math.max(pdfH, 297)] });
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfW, pdfH);
+      pdf.save(`${briefData.businessName || 'branding'}-כיוון-${selectedDirectionIndex + 1}.pdf`);
+      toast.success('ה-PDF הורד בהצלחה! 📄');
+    } catch (e) {
+      console.error('PDF export error:', e);
+      toast.error('שגיאה בייצוא PDF');
+    } finally {
+      setIsExportingPdf(false);
+      if (pdfRef.current) pdfRef.current.style.display = 'none';
+    }
+  }, [selectedDirection, brandResult, briefData.businessName, selectedDirectionIndex]);
 
   const handleSaveAndContinue = async () => {
     if (!brandResult || !selectedDirection) return;
@@ -737,11 +779,141 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                 <Check className="w-6 h-6" />
                 שמור ותמשיך לאונבורדינג
               </Button>
+              <Button variant="outline" size="lg" onClick={exportPdf} disabled={isExportingPdf} className="gap-2">
+                <Download className={`w-4 h-4 ${isExportingPdf ? 'animate-bounce' : ''}`} />
+                {isExportingPdf ? 'מייצא PDF...' : 'הורד כיוון מיתוג כ-PDF'}
+              </Button>
               <Button variant="outline" size="lg" onClick={startGeneration} disabled={isRegenerating} className="gap-2">
                 <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
                 צור מיתוג חדש
               </Button>
               <Button variant="ghost" onClick={onClose}>סגור</Button>
+            </div>
+          </div>
+        )}
+
+        {/* Hidden PDF Template */}
+        {brandResult && selectedDirection && (
+          <div
+            ref={pdfRef}
+            style={{ display: 'none', position: 'absolute', left: '-9999px', top: 0, width: '800px', fontFamily: 'Arial, sans-serif' }}
+            dir="rtl"
+          >
+            <div style={{ padding: '48px', background: '#fff' }}>
+              {/* Header */}
+              <div style={{ textAlign: 'center', marginBottom: '40px', borderBottom: `3px solid ${selectedDirection.colors.primary}`, paddingBottom: '24px' }}>
+                <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '8px' }}>{briefData.businessName}</h1>
+                <p style={{ fontSize: '16px', color: '#666', margin: 0 }}>כיוון מיתוג {selectedDirectionIndex + 1}: {selectedDirection.name}</p>
+              </div>
+
+              {/* Philosophy */}
+              <div style={{ padding: '20px', background: `${selectedDirection.colors.primary}10`, borderRadius: '12px', marginBottom: '32px', borderRight: `4px solid ${selectedDirection.colors.primary}` }}>
+                <p style={{ fontSize: '16px', lineHeight: '1.8', color: '#333', margin: 0 }}>{selectedDirection.philosophy}</p>
+              </div>
+
+              {/* Logo */}
+              {selectedDirection.logo && (
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '16px' }}>לוגו</h3>
+                  <div style={{ display: 'inline-block', padding: '32px', background: '#fff', border: '2px solid #e5e7eb', borderRadius: '16px' }}>
+                    <img src={selectedDirection.logo} alt="Logo" style={{ maxWidth: '240px', maxHeight: '240px' }} crossOrigin="anonymous" />
+                  </div>
+                  {(() => {
+                    const displayTagline = customTagline || (selectedTaglineIndex !== null ? brandResult.strategy.tagline_options?.[selectedTaglineIndex]?.hebrew : null);
+                    return displayTagline ? (
+                      <p style={{ fontSize: '20px', fontWeight: 'bold', color: selectedDirection.colors.primary, marginTop: '12px' }}>{displayTagline}</p>
+                    ) : null;
+                  })()}
+                </div>
+              )}
+
+              {/* Mockup */}
+              {selectedDirection.mockup && (
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '16px' }}>הדמיית יישום</h3>
+                  <img src={selectedDirection.mockup} alt="Mockup" style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid #e5e7eb' }} crossOrigin="anonymous" />
+                </div>
+              )}
+
+              {/* Color Palette */}
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '16px' }}>צבעוניות</h3>
+                {selectedDirection.colorDescription && (
+                  <p style={{ fontSize: '14px', color: '#666', marginBottom: '12px' }}>{selectedDirection.colorDescription}</p>
+                )}
+                <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                  {Object.entries(selectedDirection.colors).map(([key, color]) => {
+                    const label = key === 'primary' ? 'ראשי' : key === 'secondary' ? 'משני' : key === 'accent' ? 'אקסנט' : key === 'background' ? 'רקע' : 'כהה';
+                    return (
+                      <div key={key} style={{ textAlign: 'center' }}>
+                        <div style={{ width: '80px', height: '80px', borderRadius: '12px', backgroundColor: color, border: '2px solid #e5e7eb', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                        <p style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '8px', marginBottom: '2px' }}>{label}</p>
+                        <p style={{ fontSize: '11px', color: '#999', fontFamily: 'monospace', margin: 0 }}>{color}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Typography */}
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '16px' }}>טיפוגרפיה</h3>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ flex: 1, padding: '16px', background: '#f9f9f9', borderRadius: '12px' }}>
+                    <p style={{ fontSize: '12px', color: '#999', marginBottom: '8px', margin: '0 0 8px 0' }}>פונט כותרות</p>
+                    <p style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{selectedDirection.fonts.header}</p>
+                  </div>
+                  <div style={{ flex: 1, padding: '16px', background: '#f9f9f9', borderRadius: '12px' }}>
+                    <p style={{ fontSize: '12px', color: '#999', marginBottom: '8px', margin: '0 0 8px 0' }}>פונט גוף</p>
+                    <p style={{ fontSize: '16px', margin: 0 }}>{selectedDirection.fonts.body}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Brand Voice */}
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '12px' }}>קול המותג</h3>
+                <p style={{ fontSize: '14px', lineHeight: '1.8', color: '#555', margin: 0 }}>{brandResult.strategy.brand_voice}</p>
+              </div>
+
+              {/* Deep Dive content if open */}
+              {selectedDirection.worldReferences && selectedDirection.worldReferences.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '12px' }}>🌍 רפרנסים מהתחום</h3>
+                  {selectedDirection.worldReferences.map((ref, idx) => (
+                    <div key={idx} style={{ padding: '10px 12px', background: '#f5f5f5', borderRadius: '8px', marginBottom: '8px' }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{ref.brand}</span>
+                      <span style={{ color: '#888', fontSize: '13px' }}> ({ref.colors})</span>
+                      <p style={{ fontSize: '13px', color: '#666', margin: '4px 0 0 0' }}>{ref.lesson}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {selectedDirection.colorEmotion && (
+                <div style={{ marginBottom: '24px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '12px' }}>❤️ חיבור רגשי לצבע</h3>
+                  <p style={{ fontSize: '14px', lineHeight: '1.7', color: '#555', margin: 0 }}>{selectedDirection.colorEmotion}</p>
+                </div>
+              )}
+
+              {brandResult.strategy.brand_values && brandResult.strategy.brand_values.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '12px' }}>⭐ ערכי המותג → עיצוב</h3>
+                  {brandResult.strategy.brand_values.map((val, idx) => (
+                    <div key={idx} style={{ padding: '10px 12px', background: '#f5f5f5', borderRadius: '8px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>{val.icon}</span>
+                      <span style={{ fontWeight: 'bold', fontSize: '14px', marginRight: '8px' }}> {val.value}</span>
+                      <p style={{ fontSize: '13px', color: '#666', margin: '4px 0 0 0' }}>{val.designConnection}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Footer */}
+              <div style={{ borderTop: '2px solid #eee', paddingTop: '16px', textAlign: 'center', marginTop: '32px' }}>
+                <p style={{ fontSize: '12px', color: '#aaa', margin: 0 }}>נוצר באמצעות ADKOP Branding AI</p>
+              </div>
             </div>
           </div>
         )}
