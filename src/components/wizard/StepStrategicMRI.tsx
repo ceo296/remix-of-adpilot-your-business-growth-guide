@@ -454,55 +454,84 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
       )}
 
       {/* ─── Section: Competitors ─── */}
-      <Card className="border-border">
-        <CardContent className="p-6 space-y-5">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-gray-700 shadow-md flex items-center justify-center">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <span className="text-lg font-bold text-foreground">מתחרים עיקריים</span>
-              <span className="text-destructive mr-1">*</span>
-              <p className="text-sm text-muted-foreground">עד 3 מתחרים</p>
-            </div>
-          </div>
-
+      <Card className="border-2 shadow-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-600 to-gray-700 p-4">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            מתחרים עיקריים
+          </h3>
+          <p className="text-sm text-white/80">
+            {data.contactAssets?.contact_address
+              ? `מי המתחרים הכי קרובים אליך באזור ${data.contactAssets.contact_address}?`
+              : 'מי המתחרים הישירים שלך? חשבו על עסקים שהלקוחות שלכם שוקלים במקומכם'
+            }
+          </p>
+        </div>
+        <CardContent className="p-6 space-y-4">
           {!noCompetitors && (
-            <>
-              <div className="flex gap-3">
-                <Input
-                  value={newCompetitor}
-                  onChange={(e) => setNewCompetitor(e.target.value)}
-                  placeholder="שם המתחרה..."
-                  onKeyDown={(e) => e.key === 'Enter' && addCompetitor()}
-                  disabled={mri.competitors.length >= 3}
-                  className={`h-14 text-lg bg-background text-foreground ${!hasValidCompetitors ? 'border-destructive border-2' : ''}`}
-                />
-                <Button onClick={addCompetitor} disabled={!newCompetitor.trim() || mri.competitors.length >= 3} variant="outline" size="lg" className="h-14 w-14 border-2">
-                  <Plus className="w-6 h-6" />
-                </Button>
-              </div>
-              {mri.competitors.length > 0 && (
-                <div className="flex flex-wrap gap-3">
-                  {mri.competitors.map((comp, idx) => (
-                    <Badge key={idx} variant="outline" className="pl-4 pr-2 py-2.5 gap-3 text-base bg-card border-2">
-                      {comp}
-                      <button onClick={() => removeCompetitor(idx)} className="hover:bg-destructive/20 rounded-full p-1">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
+            <div className="space-y-3">
+              {[0, 1, 2].map((idx) => {
+                const value = mri.competitors[idx] || '';
+                const isEmpty = !value;
+                return (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
+                      value ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1 relative">
+                      <Input
+                        value={value}
+                        onChange={(e) => {
+                          const updated = [...mri.competitors];
+                          if (e.target.value) {
+                            updated[idx] = e.target.value;
+                          } else {
+                            updated.splice(idx, 1);
+                          }
+                          updateMRI({ competitors: updated.filter(Boolean) });
+                        }}
+                        placeholder={
+                          idx === 0 ? 'המתחרה הראשי שלך...' :
+                          idx === 1 ? 'מתחרה נוסף...' :
+                          'ועוד אחד (אופציונלי)...'
+                        }
+                        className={`h-12 text-base bg-background transition-all ${
+                          value ? 'border-primary/30 pr-10' : 'border-border'
+                        }`}
+                      />
+                      {value && (
+                        <button
+                          onClick={() => {
+                            const updated = mri.competitors.filter((_, i) => i !== idx);
+                            updateMRI({ competitors: updated });
+                          }}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-destructive/20 transition-colors"
+                        >
+                          <X className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {data.websiteInsights?.industry && (
+                <p className="text-xs text-muted-foreground pr-12">
+                  💡 חשבו על עסקים בתחום {data.websiteInsights.industry} שהלקוחות שלכם מכירים
+                </p>
               )}
-            </>
+            </div>
           )}
+
           <button
             onClick={toggleNoCompetitors}
-            className={`px-6 py-3 rounded-xl border-2 transition-all text-base font-medium ${
+            className={`px-5 py-2.5 rounded-xl border-2 transition-all text-sm font-medium ${
               noCompetitors ? 'border-primary bg-primary text-primary-foreground shadow-md' : 'border-border bg-card hover:border-primary/50 text-muted-foreground'
             }`}
           >
-            אין לי מתחרים
+            {noCompetitors ? '✓ אין לי מתחרים ישירים' : 'אין לי מתחרים'}
           </button>
         </CardContent>
       </Card>
