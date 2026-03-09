@@ -201,9 +201,11 @@ The mockup must feel luxurious and real.`;
         philosophy: dir.philosophy,
         colors: dir.colors,
         colorDescription: dir.colorDescription,
+        colorEmotion: dir.colorEmotion || null,
         fonts: dir.fonts,
         logo: logoImage,
         mockup: mockupImage,
+        worldReferences: dir.worldReferences || [],
       });
 
       // Delay between directions
