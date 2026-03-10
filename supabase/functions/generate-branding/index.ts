@@ -13,7 +13,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const aiCall = async (model: string, messages: any[], modalities?: string[]) => {
+    const aiCallSingle = async (model: string, messages: any[], modalities?: string[]) => {
       const body: any = { model, messages };
       if (modalities) body.modalities = modalities;
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -23,12 +23,28 @@ serve(async (req) => {
       });
       if (!resp.ok) {
         const status = resp.status;
-        if (status === 429 || status === 402) {
-          return { error: status === 429 ? "Rate limit exceeded" : "Payment required", status };
-        }
-        throw new Error(`AI call failed: ${status}`);
+        return { error: `AI call failed: ${status}`, status };
       }
       return resp.json();
+    };
+
+    const TEXT_FALLBACKS = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
+    const IMAGE_FALLBACKS = ["google/gemini-3.1-flash-image-preview", "google/gemini-3-pro-image-preview"];
+
+    const aiCall = async (model: string, messages: any[], modalities?: string[]) => {
+      const fallbacks = modalities ? IMAGE_FALLBACKS : TEXT_FALLBACKS;
+      const models = [model, ...fallbacks.filter(m => m !== model)];
+      for (const m of models) {
+        console.log(`Trying model: ${m}`);
+        const result = await aiCallSingle(m, messages, modalities);
+        if (!result.error) return result;
+        console.error(`Model ${m} failed with status ${result.status}`);
+        if (result.status >= 400 && result.status < 500 && result.status !== 402 && result.status !== 429) {
+          throw new Error(`AI call failed: ${result.status}`);
+        }
+        await new Promise(r => setTimeout(r, 300));
+      }
+      throw new Error("All AI models failed (402/429). Please try again later.");
     };
 
     // ═══════════ Step 1: Generate 3 branding directions ═══════════
@@ -113,11 +129,6 @@ CRITICAL RULES:
 - mockupScenes: MUST be 3 different scenes. At least 2 must be DIRECTLY related to the business field (e.g., moving company → branded truck, boxes with logo; restaurant → menu card, table setting; real estate → building sign, brochure). The 3rd can be a classic application (business card, storefront, stationery).`;
 
     const strategyData = await aiCall("google/gemini-2.5-flash", [{ role: "user", content: strategyPrompt }]);
-    if (strategyData.error) {
-      return new Response(JSON.stringify({ error: strategyData.error }), {
-        status: strategyData.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     let strategyText = strategyData.choices?.[0]?.message?.content || "";
     strategyText = strategyText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
