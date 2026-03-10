@@ -44,7 +44,7 @@ serve(async (req) => {
 
     const themeInstructions: Record<string, string> = {
       minimal: `סגנון מינימלי (Gamma.app style): כותרות קצרות וחדות, הרבה חלל לבן, ללא עודף מידע. כל שקופית מתמקדת ברעיון אחד בלבד. ניסוח מאופק ואלגנטי. טיפוגרפיה דקה ומדויקת.`,
-      corporate: `סגנון תאגידי-מקצועי (Beautiful.ai style): מידע מקיף אך מסודר, נתונים ומספרים, שפה עסקית רצינית. הדגש ניסיון, מומחיות ותוצאות מוכחות. layout מובנה עם grid.`,
+      corporate: `סגנון תאגידי-מקצועי (Beautiful.ai style):מידע מקיף אך מסודר, נתונים ומספרים, שפה עסקית רצינית. הדגש ניסיון, מומחיות ותוצאות מוכחות. layout מובנה עם grid.`,
       creative: `סגנון יצירתי ונועז (Canva style): כותרות פרובוקטיביות ומפתיעות, שפה שיווקית חזקה, ניסוחים לא שגרתיים. שאלות רטוריות ומשפטי תועלת חזקים.`,
     };
 
@@ -103,64 +103,94 @@ ${profileContext}
 
 צור בדיוק ${slideCount} שקופיות (או פחות אם אין מספיק מידע).`;
 
-    const models = ['google/gemini-3-flash-preview', 'google/gemini-2.5-flash', 'openai/gpt-5-mini'];
-    const userMessage = `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\nבריף:\n${brief}`;
-    const requestBody = (model: string) => JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "create_presentation",
-            description: "Create a professional business profile presentation with dynamic slides",
-            parameters: {
-              type: "object",
-              properties: {
-                slides: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      type: { type: "string", enum: ["cover", "about", "vision", "services", "value_prop", "stats", "process", "methodology", "testimonial", "social_proof", "target_audience", "team", "cta", "contact"] },
-                      title: { type: "string" },
-                      subtitle: { type: "string" },
-                      body: { type: "string" },
-                      bullets: { type: "array", items: { type: "string" } },
-                      stats: { type: "array", items: { type: "object", properties: { value: { type: "string" }, label: { type: "string" } }, required: ["value", "label"] } },
-                      steps: { type: "array", items: { type: "object", properties: { number: { type: "string" }, title: { type: "string" }, desc: { type: "string" } }, required: ["number", "title", "desc"] } },
-                      image_prompt: { type: "string", description: "A detailed English prompt to generate a professional, relevant background image for this slide using AI image generation. Describe the visual scene, mood, colors, and composition. Must be photorealistic and business-appropriate. Example: 'Modern bright office space with glass walls, warm golden sunlight, soft bokeh, professional atmosphere'" },
-                    },
-                    required: ["type", "title", "image_prompt"],
-                    additionalProperties: false
-                  }
-                }
-              },
-              required: ["slides"],
-              additionalProperties: false
+    const toolsSchema = [{
+      type: "function",
+      function: {
+        name: "create_presentation",
+        description: "Create a professional business profile presentation with dynamic slides",
+        parameters: {
+          type: "object",
+          properties: {
+            slides: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  type: { type: "string", enum: ["cover", "about", "vision", "services", "value_prop", "stats", "process", "methodology", "testimonial", "social_proof", "target_audience", "team", "cta", "contact"] },
+                  title: { type: "string" },
+                  subtitle: { type: "string" },
+                  body: { type: "string" },
+                  bullets: { type: "array", items: { type: "string" } },
+                  stats: { type: "array", items: { type: "object", properties: { value: { type: "string" }, label: { type: "string" } }, required: ["value", "label"] } },
+                  steps: { type: "array", items: { type: "object", properties: { number: { type: "string" }, title: { type: "string" }, desc: { type: "string" } }, required: ["number", "title", "desc"] } },
+                  image_prompt: { type: "string", description: "A detailed English prompt to generate a professional, relevant background image for this slide. NO TEXT, NO LETTERS." },
+                },
+                required: ["type", "title", "image_prompt"],
+                additionalProperties: false
+              }
             }
-          }
-        }],
-        tool_choice: { type: "function", function: { name: "create_presentation" } },
-      }),
-    });
+          },
+          required: ["slides"],
+          additionalProperties: false
+        }
+      }
+    }];
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'הגעת למגבלת הבקשות. נסה שוב בעוד דקה.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const userMessage = `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\nבריף:\n${brief}`;
+
+    // Try multiple models with fallback
+    const models = ['google/gemini-3-flash-preview', 'google/gemini-2.5-flash', 'openai/gpt-5-mini'];
+    let response: Response | null = null;
+
+    for (const model of models) {
+      console.log(`[generate-presentation] Trying model: ${model}`);
+      try {
+        response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage },
+            ],
+            tools: toolsSchema,
+            tool_choice: { type: "function", function: { name: "create_presentation" } },
+          }),
         });
+
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: 'הגעת למגבלת הבקשות. נסה שוב בעוד דקה.' }), {
+            status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: 'נדרש חידוש קרדיטים. עבור להגדרות → שימוש.' }), {
+            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        if (response.ok) {
+          console.log(`[generate-presentation] Success with model: ${model}`);
+          break;
+        }
+
+        const errText = await response.text();
+        console.error(`[generate-presentation] Model ${model} failed: ${response.status}`, errText);
+        response = null;
+        await new Promise(r => setTimeout(r, 1500));
+      } catch (fetchErr) {
+        console.error(`[generate-presentation] Fetch error for ${model}:`, fetchErr);
+        response = null;
+        await new Promise(r => setTimeout(r, 1500));
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'נדרש חידוש קרדיטים. עבור להגדרות → שימוש.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const text = await response.text();
-      console.error('AI gateway error:', response.status, text);
-      throw new Error('AI gateway error');
+    }
+
+    if (!response || !response.ok) {
+      throw new Error('שירות ה-AI אינו זמין כרגע. נסה שוב בעוד כמה דקות.');
     }
 
     const data = await response.json();
