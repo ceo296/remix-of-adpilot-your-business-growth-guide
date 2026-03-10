@@ -484,14 +484,11 @@ const SlideRenderer = ({
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', padding: '100px 150px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 500, color: labelColor(bg), letterSpacing: 2 }}>למה אנחנו</span>
-            </div>
             <h2 style={{
               fontSize: 68, fontWeight: 900, color: safeText(bg),
-              marginBottom: 60, lineHeight: 1.1, textShadow: textShadow(bg),
+              marginBottom: 20, lineHeight: 1.1, textShadow: textShadow(bg),
             }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
