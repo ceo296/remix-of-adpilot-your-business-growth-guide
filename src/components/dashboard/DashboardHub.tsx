@@ -107,14 +107,15 @@ const DashboardHub = () => {
     fetchCampaignData();
   }, [user]);
 
-  const handleNewCampaign = (type: 'create' | 'upload' | 'internal' | 'media-only') => {
+  const handleNewCampaign = (type: 'create' | 'upload' | 'internal' | 'media-only' | 'branding') => {
     if (type === 'create') {
-      // First go to campaign goal/setup wizard, then to studio
       navigate('/new-campaign');
     } else if (type === 'internal') {
       navigate('/internal-studio');
     } else if (type === 'media-only') {
       navigate('/new-campaign?mode=media-only');
+    } else if (type === 'branding') {
+      navigate('/internal-studio?open=branding');
     } else {
       navigate('/studio?mode=upload');
     }
