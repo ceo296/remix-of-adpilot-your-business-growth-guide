@@ -72,7 +72,11 @@ Return a JSON object (no markdown, no backticks, just pure JSON):
         "body": "Hebrew Google Font name"
       },
       "logoDirective": "Detailed English instruction for the logo design - style, shapes, composition. IMPORTANT: symbols must represent the BUSINESS FIELD (e.g. megaphone/lightbulb for advertising, fork/plate for food, building for real estate). NEVER use religious items (scrolls, megillahs, Torah, menorahs) unless the business sells them. Haredi feel comes from typography and colors only.",
-      "mockupScene": "English description of a realistic mockup scene to visualize this direction (e.g., elegant business card on marble surface with gold pen)",
+      "mockupScenes": [
+        "English description of mockup scene #1 - MUST be directly related to the business field (e.g., for moving company: branded truck on city street; for catering: elegant table setting with branded napkins)",
+        "English description of mockup scene #2 - a different field-relevant application (e.g., for moving company: branded uniform/boxes; for catering: branded packaging/menu card)",
+        "English description of mockup scene #3 - a classic branding application (e.g., business card on desk, storefront sign, branded stationery set)"
+      ],
       "worldReferences": [
         {"brand": "Famous brand name in this field", "colors": "Their dominant colors (e.g. אדום ולבן)", "lesson": "One Hebrew sentence - what we learn from them"}
       ]
@@ -82,7 +86,7 @@ Return a JSON object (no markdown, no backticks, just pure JSON):
       "colors": { "primary": "#HEX", "secondary": "#HEX", "accent": "#HEX", "background": "#HEX", "dark": "#HEX" },
       "colorDescription": "...", "colorEmotion": "...",
       "fonts": { "header": "...", "body": "..." },
-      "logoDirective": "...", "mockupScene": "...",
+      "logoDirective": "...", "mockupScenes": ["...", "...", "..."],
       "worldReferences": [{"brand": "...", "colors": "...", "lesson": "..."}]
     },
     {
@@ -90,7 +94,7 @@ Return a JSON object (no markdown, no backticks, just pure JSON):
       "colors": { "primary": "#HEX", "secondary": "#HEX", "accent": "#HEX", "background": "#HEX", "dark": "#HEX" },
       "colorDescription": "...", "colorEmotion": "...",
       "fonts": { "header": "...", "body": "..." },
-      "logoDirective": "...", "mockupScene": "...",
+      "logoDirective": "...", "mockupScenes": ["...", "...", "..."],
       "worldReferences": [{"brand": "...", "colors": "...", "lesson": "..."}]
     }
   ]
@@ -105,7 +109,8 @@ CRITICAL RULES:
 - Examples of direction contrast: Black+Gold luxury vs Blue+Cyan tech vs Green+Terracotta organic
 - brand_values: provide exactly 3-4 core brand values derived from the brief
 - worldReferences: provide exactly 2-3 famous brands from the same industry/field for each direction, showing their color approach
-- colorEmotion: connect the chosen colors to the emotional response they create`;
+- colorEmotion: connect the chosen colors to the emotional response they create
+- mockupScenes: MUST be 3 different scenes. At least 2 must be DIRECTLY related to the business field (e.g., moving company → branded truck, boxes with logo; restaurant → menu card, table setting; real estate → building sign, brochure). The 3rd can be a classic application (business card, storefront, stationery).`;
 
     const strategyData = await aiCall("google/gemini-2.5-flash", [{ role: "user", content: strategyPrompt }]);
     if (strategyData.error) {
@@ -176,26 +181,32 @@ CRITICAL RULES:
         console.error(`Logo ${i} error:`, e);
       }
 
-      // Small delay before mockup
+      // Small delay before mockups
       await new Promise(r => setTimeout(r, 1500));
 
-      // Generate mockup
-      let mockupImage = null;
-      try {
-        console.log(`Direction ${i + 1}: generating mockup...`);
-        const mockupPrompt = `Create a photorealistic mockup visualization for a brand called "${businessName || 'Brand'}".
-Scene: ${dir.mockupScene}
+      // Generate 3 mockups per direction
+      const mockupScenes = dir.mockupScenes || [dir.mockupScene || 'Professional business card on elegant desk'];
+      const mockupImages: string[] = [];
+      for (let m = 0; m < Math.min(mockupScenes.length, 3); m++) {
+        try {
+          console.log(`Direction ${i + 1}: generating mockup ${m + 1}/${mockupScenes.length}...`);
+          const mockupPrompt = `Create a photorealistic mockup visualization for a brand called "${businessName || 'Brand'}".
+Business field: ${essence}
+Scene: ${mockupScenes[m]}
 Brand colors: Primary ${dir.colors.primary}, Secondary ${dir.colors.secondary}, Background ${dir.colors.background}
 Style: High-end product photography. Elegant lighting, shallow depth of field.
 Show the brand's visual identity (colors, patterns) applied to the physical item.
 NO text or letters in the image - just show the colors and design applied to the object.
 The mockup must feel luxurious and real.`;
 
-        const mockupData = await aiCall("google/gemini-3.1-flash-image-preview",
-          [{ role: "user", content: mockupPrompt }], ["image", "text"]);
-        mockupImage = mockupData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
-      } catch (e) {
-        console.error(`Mockup ${i} error:`, e);
+          const mockupData = await aiCall("google/gemini-3.1-flash-image-preview",
+            [{ role: "user", content: mockupPrompt }], ["image", "text"]);
+          const img = mockupData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+          if (img) mockupImages.push(img);
+        } catch (e) {
+          console.error(`Mockup ${i}-${m} error:`, e);
+        }
+        if (m < mockupScenes.length - 1) await new Promise(r => setTimeout(r, 1500));
       }
 
       directionResults.push({
@@ -207,7 +218,8 @@ The mockup must feel luxurious and real.`;
         colorEmotion: dir.colorEmotion || null,
         fonts: dir.fonts,
         logo: logoImage,
-        mockup: mockupImage,
+        mockup: mockupImages[0] || null,
+        mockups: mockupImages,
         worldReferences: dir.worldReferences || [],
       });
 

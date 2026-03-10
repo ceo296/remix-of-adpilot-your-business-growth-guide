@@ -62,6 +62,7 @@ interface BrandDirection {
   fonts: { header: string; body: string };
   logo: string | null;
   mockup: string | null;
+  mockups: string[];
   worldReferences: WorldReference[];
 }
 
@@ -88,9 +89,9 @@ const BRIEF_STEPS = [
 const GENERATION_STEPS = [
   { text: 'מנתחים את הבריף שלכם...', duration: 3000 },
   { text: 'מעצבים 3 כיווני מיתוג...', duration: 5000 },
-  { text: 'יוצרים לוגו לכיוון 1...', duration: 8000 },
-  { text: 'יוצרים לוגו והדמיה לכיוון 2...', duration: 10000 },
-  { text: 'יוצרים לוגו והדמיה לכיוון 3...', duration: 10000 },
+  { text: 'יוצרים לוגו והדמיות לכיוון 1...', duration: 12000 },
+  { text: 'יוצרים לוגו והדמיות לכיוון 2...', duration: 12000 },
+  { text: 'יוצרים לוגו והדמיות לכיוון 3...', duration: 12000 },
   { text: 'מרכיבים את חבילת המיתוג...', duration: 3000 },
 ];
 
@@ -136,6 +137,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [subtitle, setSubtitle] = useState<string>('');
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [deepDiveOpen, setDeepDiveOpen] = useState(false);
+  const [activeMockupIndex, setActiveMockupIndex] = useState(0);
   const presentationRef = useRef<HTMLDivElement>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -398,7 +400,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
               {brandResult.directions.map((dir, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setSelectedDirectionIndex(idx)}
+                  onClick={() => { setSelectedDirectionIndex(idx); setActiveMockupIndex(0); }}
                   className={`relative px-6 py-3 rounded-xl border-2 transition-all duration-300 font-bold text-sm ${
                     selectedDirectionIndex === idx
                       ? 'border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/30 bg-primary/5'
@@ -484,19 +486,34 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                     </div>
                   </Card>
 
-                  {/* Mockup */}
+                  {/* Mockups Carousel */}
                   <Card className="p-6 space-y-4">
                     <h4 className="text-base font-bold flex items-center gap-2">
                       <Eye className="w-4 h-4 text-primary" />
-                      הדמיית יישום
+                      הדמיות יישום
                     </h4>
-                    {selectedDirection.mockup ? (
-                      <div className="rounded-xl overflow-hidden shadow-xl border border-border">
-                        <img src={selectedDirection.mockup} alt="Mockup" className="w-full aspect-square object-cover" />
-                      </div>
-                    ) : (
+                    {(selectedDirection.mockups?.length > 0 || selectedDirection.mockup) ? (() => {
+                      const allMockups = selectedDirection.mockups?.length > 0 ? selectedDirection.mockups : (selectedDirection.mockup ? [selectedDirection.mockup] : []);
+                      const currentMockup = allMockups[activeMockupIndex] || allMockups[0];
+                      return (
+                        <div className="space-y-3">
+                          <div className="rounded-xl overflow-hidden shadow-xl border border-border">
+                            <img src={currentMockup} alt={`Mockup ${activeMockupIndex + 1}`} className="w-full aspect-square object-cover" />
+                          </div>
+                          {allMockups.length > 1 && (
+                            <div className="flex justify-center gap-2">
+                              {allMockups.map((_, mIdx) => (
+                                <button key={mIdx} onClick={() => setActiveMockupIndex(mIdx)}
+                                  className={`w-2.5 h-2.5 rounded-full transition-all ${mIdx === activeMockupIndex ? 'scale-125' : 'opacity-40 hover:opacity-70'}`}
+                                  style={{ backgroundColor: mIdx === activeMockupIndex ? selectedDirection.colors.primary : '#999' }} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })() : (
                       <div className="w-full aspect-square rounded-xl bg-muted flex items-center justify-center">
-                        <p className="text-muted-foreground text-sm">הדמיה לא נוצרה</p>
+                        <p className="text-muted-foreground text-sm">הדמיות לא נוצרו</p>
                       </div>
                     )}
                   </Card>
@@ -827,13 +844,20 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                 </div>
               )}
 
-              {/* Mockup */}
-              {selectedDirection.mockup && (
-                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '16px' }}>הדמיית יישום</h3>
-                  <img src={selectedDirection.mockup} alt="Mockup" style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid #e5e7eb' }} crossOrigin="anonymous" />
-                </div>
-              )}
+              {/* Mockups */}
+              {(() => {
+                const allMockups = selectedDirection.mockups?.length > 0 ? selectedDirection.mockups : (selectedDirection.mockup ? [selectedDirection.mockup] : []);
+                return allMockups.length > 0 ? (
+                  <div style={{ marginBottom: '32px' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '16px' }}>הדמיות יישום</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: allMockups.length > 1 ? 'repeat(auto-fit, minmax(200px, 1fr))' : '1fr', gap: '12px' }}>
+                      {allMockups.map((m, mIdx) => (
+                        <img key={mIdx} src={m} alt={`Mockup ${mIdx + 1}`} style={{ width: '100%', borderRadius: '12px', border: '1px solid #e5e7eb' }} crossOrigin="anonymous" />
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
 
               {/* Color Palette */}
               <div style={{ marginBottom: '32px' }}>
