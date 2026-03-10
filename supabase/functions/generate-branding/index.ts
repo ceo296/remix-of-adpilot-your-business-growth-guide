@@ -181,26 +181,32 @@ CRITICAL RULES:
         console.error(`Logo ${i} error:`, e);
       }
 
-      // Small delay before mockup
+      // Small delay before mockups
       await new Promise(r => setTimeout(r, 1500));
 
-      // Generate mockup
-      let mockupImage = null;
-      try {
-        console.log(`Direction ${i + 1}: generating mockup...`);
-        const mockupPrompt = `Create a photorealistic mockup visualization for a brand called "${businessName || 'Brand'}".
-Scene: ${dir.mockupScene}
+      // Generate 3 mockups per direction
+      const mockupScenes = dir.mockupScenes || [dir.mockupScene || 'Professional business card on elegant desk'];
+      const mockupImages: string[] = [];
+      for (let m = 0; m < Math.min(mockupScenes.length, 3); m++) {
+        try {
+          console.log(`Direction ${i + 1}: generating mockup ${m + 1}/${mockupScenes.length}...`);
+          const mockupPrompt = `Create a photorealistic mockup visualization for a brand called "${businessName || 'Brand'}".
+Business field: ${essence}
+Scene: ${mockupScenes[m]}
 Brand colors: Primary ${dir.colors.primary}, Secondary ${dir.colors.secondary}, Background ${dir.colors.background}
 Style: High-end product photography. Elegant lighting, shallow depth of field.
 Show the brand's visual identity (colors, patterns) applied to the physical item.
 NO text or letters in the image - just show the colors and design applied to the object.
 The mockup must feel luxurious and real.`;
 
-        const mockupData = await aiCall("google/gemini-3.1-flash-image-preview",
-          [{ role: "user", content: mockupPrompt }], ["image", "text"]);
-        mockupImage = mockupData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
-      } catch (e) {
-        console.error(`Mockup ${i} error:`, e);
+          const mockupData = await aiCall("google/gemini-3.1-flash-image-preview",
+            [{ role: "user", content: mockupPrompt }], ["image", "text"]);
+          const img = mockupData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+          if (img) mockupImages.push(img);
+        } catch (e) {
+          console.error(`Mockup ${i}-${m} error:`, e);
+        }
+        if (m < mockupScenes.length - 1) await new Promise(r => setTimeout(r, 1500));
       }
 
       directionResults.push({
@@ -212,7 +218,8 @@ The mockup must feel luxurious and real.`;
         colorEmotion: dir.colorEmotion || null,
         fonts: dir.fonts,
         logo: logoImage,
-        mockup: mockupImage,
+        mockup: mockupImages[0] || null,
+        mockups: mockupImages,
         worldReferences: dir.worldReferences || [],
       });
 
