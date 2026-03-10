@@ -113,6 +113,16 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     templates: [],
     directRoute: '/presentation-studio',
   },
+  {
+    id: 'branding',
+    name: 'Branding',
+    nameHe: 'מיתוג',
+    description: 'עיצוב לוגו, פלטת צבעים וזהות מותגית',
+    icon: Palette,
+    comingSoon: false,
+    templates: [],
+    directRoute: '__branding__',
+  },
 ];
 
 const InternalStudio = () => {
