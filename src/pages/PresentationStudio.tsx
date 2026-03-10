@@ -800,11 +800,8 @@ const SlideRenderer = ({
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', padding: '100px 160px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: labelColor(bg), letterSpacing: 3 }}>למי השירות מתאים</span>
-            </div>
-            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 50, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 20, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
             {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1000, textShadow: textShadow(bg) }}>{slide.body}</p>}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
               {(slide.bullets || []).map((b, i) => (
