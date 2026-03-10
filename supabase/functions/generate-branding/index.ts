@@ -164,7 +164,10 @@ CRITICAL RULES:
 - Use ONLY the colors specified above
 - On a clean white background, centered, with generous padding
 - High resolution, crisp edges, professional quality
-- This must feel premium and sophisticated`;
+- This must feel premium and sophisticated
+- IRON RULE: Logo icons/symbols MUST represent the actual business field ("${essence}"). For an advertising agency use creative symbols (pen, lightbulb, megaphone, speech bubble). For a restaurant use food elements. For real estate use buildings/keys. NEVER use generic religious items (scrolls, megillahs, holy books, quills, menorahs, Torah scrolls) UNLESS the business itself sells religious items or books.
+- The "Haredi touch" should come ONLY through Hebrew typography style (serif fonts, classic letter forms) and color palette choices — NOT through religious objects or sacred items.
+- Think like a top branding agency: the logo must communicate what the business DOES, not who the audience is.`;
 
         const logoData = await aiCall("google/gemini-3.1-flash-image-preview",
           [{ role: "user", content: logoPrompt }], ["image", "text"]);
