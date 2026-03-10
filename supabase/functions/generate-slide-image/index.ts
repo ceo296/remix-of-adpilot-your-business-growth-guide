@@ -9,16 +9,31 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, brandColor } = await req.json();
+    const { prompt, brandColor, industry } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
+    // Industry-specific style directives
+    const industryStyles: Record<string, string> = {
+      'dental': 'Warm, inviting, bright and clean atmosphere. Soft natural lighting, welcoming mood. Smiling faces, hygiene, comfort.',
+      'medical': 'Clean, warm, professional medical environment. Soft lighting, trust and care feeling. No cold/dark tones.',
+      'healthcare': 'Warm, inviting healthcare setting. Gentle lighting, comfort and trust. Pastel and warm tones.',
+      'real_estate': 'Luxury architectural visualization, premium interiors/exteriors. Dramatic lighting, elegant dark tones allowed.',
+      'food': 'Appetizing macro food photography, warm natural light, clean styling, vibrant colors, shallow depth of field.',
+      'education': 'Warm, cheerful, family-friendly atmosphere. Bright colors, welcoming and playful mood.',
+      'legal': 'Elegant office atmosphere, symbolic objects (luxury pen, bookshelf), stable and restrained grid.',
+      'finance': 'Professional office setting, clean and organized, trust-building elements.',
+    };
+
+    const ind = (industry || '').toLowerCase();
+    const styleHint = Object.entries(industryStyles).find(([k]) => ind.includes(k))?.[1] || 'Ultra premium, photorealistic, cinematic lighting.';
+
     const enhancedPrompt = `Create a stunning, high-quality 16:9 professional presentation slide background image. 
 ${prompt}. 
-Style: Ultra premium, photorealistic, cinematic lighting, shallow depth of field, professional corporate photography. 
+Style: ${styleHint} Shallow depth of field, professional photography. 
 Color accent hint: ${brandColor || '#E34870'}. 
-Important: No text, no letters, no words, no watermarks. Clean visual only. 4K quality, dramatic lighting.`;
+Important: No text, no letters, no words, no watermarks, no women. Clean visual only. 4K quality. If humans appear, only Haredi Orthodox Jewish men.`;
 
     const models = ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'];
     let imageUrl: string | null = null;
