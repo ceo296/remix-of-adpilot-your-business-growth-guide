@@ -136,7 +136,9 @@ const InternalStudio = () => {
   const [paperType, setPaperType] = useState('matte');
   const [cardSize, setCardSize] = useState('90x50');
 
-  const [showBrandingStudio, setShowBrandingStudio] = useState(false);
+  // Auto-open branding if navigated with ?open=branding
+  const searchParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+  const [showBrandingStudio, setShowBrandingStudio] = useState(searchParams.get('open') === 'branding');
 
   const currentCategory = TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory);
   const needsContactPicker = selectedCategory === 'business-cards' || selectedCategory === 'letterhead';
