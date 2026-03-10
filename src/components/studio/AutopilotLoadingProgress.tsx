@@ -14,7 +14,7 @@ export const AutopilotLoadingProgress = () => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const timers: NodeJS.Timeout[] = [];
+    const timers: ReturnType<typeof setTimeout>[] = [];
     let elapsed = 0;
 
     STEPS.forEach((step, index) => {
