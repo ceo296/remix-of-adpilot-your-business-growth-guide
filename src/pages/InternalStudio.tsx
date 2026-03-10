@@ -13,7 +13,7 @@ import {
   Presentation, 
   Mail, 
   Calendar,
-  BookOpen,
+  
   Sparkles,
   ChevronLeft,
   Check,
