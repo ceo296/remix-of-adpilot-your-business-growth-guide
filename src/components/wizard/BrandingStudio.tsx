@@ -137,6 +137,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [subtitle, setSubtitle] = useState<string>('');
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [deepDiveOpen, setDeepDiveOpen] = useState(false);
+  const [activeMockupIndex, setActiveMockupIndex] = useState(0);
   const presentationRef = useRef<HTMLDivElement>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
