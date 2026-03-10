@@ -82,8 +82,8 @@ const LogoFooter = ({ logoUrl, businessName, brandColor, phone, theme }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         {logoUrl && (
           <img src={logoUrl} alt="logo" style={{
-            height: 36, objectFit: 'contain',
-            filter: isDark ? 'brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0,0,0,0.5))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))',
+            height: 40, objectFit: 'contain',
+            filter: isDark ? 'brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,0.5))' : 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))',
           }} />
         )}
         <span style={{
@@ -91,12 +91,6 @@ const LogoFooter = ({ logoUrl, businessName, brandColor, phone, theme }: {
           color: isDark ? 'rgba(255,255,255,0.7)' : '#888',
         }}>{businessName}</span>
       </div>
-      {phone && (
-        <span style={{
-          fontSize: 15, fontWeight: 500, direction: 'ltr',
-          color: isDark ? 'rgba(255,255,255,0.5)' : '#aaa',
-        }}>{phone}</span>
-      )}
     </div>
   );
 };
