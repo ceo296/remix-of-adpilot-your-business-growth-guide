@@ -13,7 +13,7 @@ import {
   Presentation, 
   Mail, 
   Calendar,
-  
+  Palette,
   Sparkles,
   ChevronLeft,
   Check,
@@ -28,6 +28,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
 import { TemplatePreview } from '@/components/internal/TemplatePreview';
+import { BrandingStudio } from '@/components/wizard/BrandingStudio';
 
 interface TemplateCategory {
   id: string;
