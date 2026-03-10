@@ -205,10 +205,15 @@ const SlideRenderer = ({
 }) => {
   const dark = adjustColor(brandColor, -40);
   const light = adjustColor(brandColor, 60);
+  const veryLight = adjustColor(brandColor, 100);
   const tc = getThemeConfig(theme, brandColor, secColor);
-  // Prefer AI-generated image, fallback to business photos
   const photo = slide.imageUrl || getPhotoForSlide(businessPhotos, slideIndex);
   const brandIsLight = isLightColor(brandColor);
+
+  // Theme mode helpers
+  const isDark = theme === 'corporate';
+  const isCreative = theme === 'creative';
+  const isMinimal = theme === 'minimal';
 
   const base: React.CSSProperties = {
     width: 1920, height: 1080, transform: `scale(${scale})`, transformOrigin: 'top right',
@@ -216,7 +221,7 @@ const SlideRenderer = ({
     position: 'absolute', top: 0, right: 0, overflow: 'hidden',
   };
 
-  const footer = <LogoFooter logoUrl={logoUrl} businessName={businessName} brandColor={brandColor} phone={phone} theme={slide.type === 'cover' || slide.type === 'cta' || slide.type === 'contact' || slide.type === 'vision' || slide.type === 'value_prop' || slide.type === 'target_audience' ? (theme === 'minimal' ? 'minimal' : 'corporate') : theme} />;
+  const footer = <LogoFooter logoUrl={logoUrl} businessName={businessName} brandColor={brandColor} phone={phone} theme={slide.type === 'cover' ? (isMinimal ? 'minimal' : 'corporate') : theme} />;
 
   // Ensure readable text: always dark text on light bg, white text on dark bg
   const safeText = (bg: 'dark' | 'light') => bg === 'dark' ? '#ffffff' : '#111111';
