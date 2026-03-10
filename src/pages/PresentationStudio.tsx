@@ -685,34 +685,41 @@ const SlideRenderer = ({
       );
     }
 
-    case 'social_proof':
+    case 'social_proof': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
-        <div style={{ ...base, background: '#fafafa' }}>
-          {photo && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
-          {theme !== 'minimal' && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 8, background: `linear-gradient(90deg, ${brandColor}, ${dark})` }} />}
+        <div style={{ ...base, background: theme === 'minimal' ? '#fafafa' : `linear-gradient(150deg, ${adjustColor(brandColor, -60)} 0%, ${dark} 50%, ${brandColor}bb 100%)` }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.15} />}
+          {photo && theme === 'minimal' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
+          {theme !== 'minimal' && (
+            <div style={{ position: 'absolute', top: -100, left: -100, width: 500, height: 500, borderRadius: '50%', background: `${light}08` }} />
+          )}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
           <div style={{ padding: '90px 140px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>למה דווקא אנחנו?</span>
+              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.85)', letterSpacing: 2 }}>למה דווקא אנחנו?</span>
             </div>
-            <h2 style={{ fontSize: 64, fontWeight: 900, color: '#111', marginBottom: 60 }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 60, textShadow: textShadow(bg) }}>{slide.title}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: (slide.bullets?.length || 0) > 4 ? '1fr 1fr 1fr' : '1fr 1fr', gap: 28 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: 20,
                   padding: '28px 32px', borderRadius: 20,
-                  background: '#fff', boxShadow: '0 2px 20px rgba(0,0,0,0.04)',
-                  border: '1px solid #eee',
+                  background: theme === 'minimal' ? '#fff' : 'rgba(255,255,255,0.08)',
+                  boxShadow: theme === 'minimal' ? '0 2px 20px rgba(0,0,0,0.04)' : '0 4px 25px rgba(0,0,0,0.15)',
+                  border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.12)',
+                  backdropFilter: theme !== 'minimal' ? 'blur(8px)' : undefined,
                 }}>
                   <div style={{
                     width: 48, height: 48, borderRadius: 14,
-                    background: hexToRgba(brandColor, 0.1),
-                    color: brandColor,
+                    background: theme === 'minimal' ? hexToRgba(brandColor, 0.1) : 'rgba(255,255,255,0.15)',
+                    color: theme === 'minimal' ? brandColor : '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 22, fontWeight: 800, flexShrink: 0,
                   }}>✓</div>
-                  <span style={{ fontSize: 24, color: '#222', fontWeight: 600 }}>{b}</span>
+                  <span style={{ fontSize: 24, color: safeSubtext(bg), fontWeight: 600 }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -720,6 +727,7 @@ const SlideRenderer = ({
           {footer}
         </div>
       );
+    }
 
     case 'target_audience': {
       const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
