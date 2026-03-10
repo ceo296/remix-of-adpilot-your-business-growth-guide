@@ -109,7 +109,8 @@ CRITICAL RULES:
 - Examples of direction contrast: Black+Gold luxury vs Blue+Cyan tech vs Green+Terracotta organic
 - brand_values: provide exactly 3-4 core brand values derived from the brief
 - worldReferences: provide exactly 2-3 famous brands from the same industry/field for each direction, showing their color approach
-- colorEmotion: connect the chosen colors to the emotional response they create`;
+- colorEmotion: connect the chosen colors to the emotional response they create
+- mockupScenes: MUST be 3 different scenes. At least 2 must be DIRECTLY related to the business field (e.g., moving company → branded truck, boxes with logo; restaurant → menu card, table setting; real estate → building sign, brochure). The 3rd can be a classic application (business card, storefront, stationery).`;
 
     const strategyData = await aiCall("google/gemini-2.5-flash", [{ role: "user", content: strategyPrompt }]);
     if (strategyData.error) {
