@@ -1225,7 +1225,25 @@ const PresentationStudio = () => {
             </div>
           </div>
 
-          <div className="flex-1 bg-muted/30 flex items-center justify-center p-8 overflow-hidden">
+          <div className="flex-1 bg-muted/30 flex items-center justify-center p-8 overflow-hidden relative group">
+            {/* Floating nav arrows */}
+            {activeSlide > 0 && (
+              <button
+                onClick={() => setActiveSlide(prev => prev - 1)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+            {activeSlide < slides.length - 1 && (
+              <button
+                onClick={() => setActiveSlide(prev => prev + 1)}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
             <div className="relative shadow-2xl rounded-lg overflow-hidden" style={{ width: 'min(100%, 960px)', aspectRatio: '16/9' }}>
               <SlideRenderer slide={currentSlide} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={0.5} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={activeSlide} address={address} />
               {currentSlide.imageLoading && !currentSlide.imageUrl && (
@@ -1237,16 +1255,11 @@ const PresentationStudio = () => {
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="flex items-center justify-center gap-4 py-2 bg-card border-t border-border">
-            <Button variant="ghost" size="sm" disabled={activeSlide === 0} onClick={() => setActiveSlide(prev => prev - 1)}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground">{activeSlide + 1} / {slides.length}</span>
-            <Button variant="ghost" size="sm" disabled={activeSlide === slides.length - 1} onClick={() => setActiveSlide(prev => prev + 1)}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
+            {/* Bottom slide counter */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm rounded-full px-4 py-1.5 text-white/80 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {activeSlide + 1} / {slides.length}
+            </div>
           </div>
         </div>
 
