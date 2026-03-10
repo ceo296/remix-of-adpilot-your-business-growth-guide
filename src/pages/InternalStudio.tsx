@@ -228,6 +228,7 @@ const InternalStudio = () => {
                 }`}
                 onClick={() => {
                   if (category.comingSoon) return;
+                  if (category.directRoute === '__branding__') { setShowBrandingStudio(true); return; }
                   if (category.directRoute) { navigate(category.directRoute); return; }
                   setSelectedCategory(category.id);
                 }}
