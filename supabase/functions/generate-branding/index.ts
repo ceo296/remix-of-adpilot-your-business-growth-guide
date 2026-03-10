@@ -71,7 +71,7 @@ Return a JSON object (no markdown, no backticks, just pure JSON):
         "header": "Hebrew Google Font name",
         "body": "Hebrew Google Font name"
       },
-      "logoDirective": "Detailed English instruction for the logo design - style, shapes, composition, what to include",
+      "logoDirective": "Detailed English instruction for the logo design - style, shapes, composition. IMPORTANT: symbols must represent the BUSINESS FIELD (e.g. megaphone/lightbulb for advertising, fork/plate for food, building for real estate). NEVER use religious items (scrolls, megillahs, Torah, menorahs) unless the business sells them. Haredi feel comes from typography and colors only.",
       "mockupScene": "English description of a realistic mockup scene to visualize this direction (e.g., elegant business card on marble surface with gold pen)",
       "worldReferences": [
         {"brand": "Famous brand name in this field", "colors": "Their dominant colors (e.g. אדום ולבן)", "lesson": "One Hebrew sentence - what we learn from them"}
