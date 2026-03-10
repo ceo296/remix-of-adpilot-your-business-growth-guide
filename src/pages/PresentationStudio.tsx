@@ -431,11 +431,8 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="42%" />}
           {decorBg}
           <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo && bg === 'light' ? '60%' : '100%', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 50 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 22, fontWeight: 600, color: labelColor(bg), letterSpacing: 3 }}>אודות</span>
-            </div>
             <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
             <p style={{ fontSize: 30, lineHeight: 2, color: safeSubtext(bg), maxWidth: 1200, textShadow: textShadow(bg) }}>{slide.body}</p>
           </div>
           {footer}
@@ -452,11 +449,8 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {decorBg}
           <div style={{ padding: '90px 140px', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: labelColor(bg), letterSpacing: 2 }}>השירותים שלנו</span>
-            </div>
-            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 60, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
@@ -465,14 +459,14 @@ const SlideRenderer = ({
                   ...getCardStyle(bg),
                 }}>
                   <div style={{
-                    width: 56, height: 56, borderRadius: 16,
+                    width: 56, height: 56, borderRadius: 16, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 24, fontWeight: 800, flexShrink: 0,
+                    fontSize: 24, fontWeight: 800,
                     ...getNumberBadge(bg),
                   }}>
                     {String(i + 1).padStart(2, '0')}
                   </div>
-                  <span style={{ fontSize: 28, color: safeSubtext(bg), fontWeight: 600 }}>{b}</span>
+                  <span style={{ fontSize: 26, color: safeSubtext(bg), fontWeight: 600, wordBreak: 'keep-all' }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -490,14 +484,11 @@ const SlideRenderer = ({
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', padding: '100px 150px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 500, color: labelColor(bg), letterSpacing: 2 }}>למה אנחנו</span>
-            </div>
             <h2 style={{
               fontSize: 68, fontWeight: 900, color: safeText(bg),
-              marginBottom: 60, lineHeight: 1.1, textShadow: textShadow(bg),
+              marginBottom: 20, lineHeight: 1.1, textShadow: textShadow(bg),
             }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
@@ -527,29 +518,27 @@ const SlideRenderer = ({
         <div style={{ ...base, background }}>
           {photo && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
-          <div style={{ position: 'relative', padding: '100px 140px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={{ width: 50, height: 6, background: '#fff', borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: 'rgba(255,255,255,0.85)', letterSpacing: 2 }}>נתונים</span>
-            </div>
+          <div style={{ position: 'relative', padding: '100px 140px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
             <h2 style={{ fontSize: 60, fontWeight: 900, color: '#fff', marginBottom: 10, textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>{slide.title}</h2>
             {slide.subtitle && <p style={{ fontSize: 26, color: 'rgba(255,255,255,0.8)', marginBottom: 60, textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>{slide.subtitle}</p>}
           </div>
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 50, padding: '0 140px', marginTop: -20 }}>
             {(slide.stats || []).map((s, i) => (
               <div key={i} style={{
-                textAlign: 'center', padding: '50px 40px', borderRadius: 24,
+                textAlign: 'center', padding: '50px 30px', borderRadius: 24,
                 background: isCreative ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(12px)',
                 boxShadow: '0 8px 40px rgba(0,0,0,0.15)',
-                flex: 1, maxWidth: 350,
+                flex: 1, maxWidth: 400, overflow: 'hidden',
                 border: isCreative ? '2px solid rgba(255,255,255,0.25)' : '1px solid rgba(255,255,255,0.15)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               }}>
                 <div style={{
-                  fontSize: 72, fontWeight: 900, lineHeight: 1, marginBottom: 12,
+                  fontSize: 64, fontWeight: 900, lineHeight: 1, marginBottom: 16,
                   color: '#fff', textShadow: '0 2px 15px rgba(0,0,0,0.3)',
+                  wordBreak: 'keep-all', whiteSpace: 'nowrap',
                 }}>{s.value}</div>
-                <div style={{ fontSize: 22, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{s.label}</div>
+                <div style={{ fontSize: 22, color: 'rgba(255,255,255,0.75)', fontWeight: 500, wordBreak: 'keep-all' }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -568,13 +557,8 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
           {decorBg}
           <div style={{ padding: '100px 150px 100px 120px', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: labelColor(bg), letterSpacing: 2 }}>
-                {slide.type === 'methodology' ? 'איך אנחנו עובדים' : 'תהליך העבודה'}
-              </span>
-            </div>
-            <h2 style={{ fontSize: 60, fontWeight: 900, color: safeText(bg), marginBottom: 70, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 60, fontWeight: 900, color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 60 }} />
             <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
               {(slide.steps || []).map((s, i) => (
                 <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
@@ -753,11 +737,8 @@ const SlideRenderer = ({
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 180px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: labelColor(bg), letterSpacing: 3 }}>חזון וערכים</span>
-            </div>
-            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 20, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 30 }} />
             {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: safeSubtext(bg), maxWidth: 1300, textShadow: textShadow(bg) }}>{slide.body}</p>}
             {slide.bullets && (
               <div style={{ display: 'flex', gap: 40, marginTop: 50 }}>
@@ -787,11 +768,8 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {decorBg}
           <div style={{ padding: '90px 140px', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: labelColor(bg), letterSpacing: 2 }}>למה דווקא אנחנו?</span>
-            </div>
-            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 60, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
             <div style={{ display: 'grid', gridTemplateColumns: (slide.bullets?.length || 0) > 4 ? '1fr 1fr 1fr' : '1fr 1fr', gap: 28 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
@@ -824,11 +802,8 @@ const SlideRenderer = ({
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', padding: '100px 160px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 30 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: labelColor(bg), letterSpacing: 3 }}>למי השירות מתאים</span>
-            </div>
-            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 50, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 20, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
             {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1000, textShadow: textShadow(bg) }}>{slide.body}</p>}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
               {(slide.bullets || []).map((b, i) => (
