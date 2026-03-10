@@ -103,17 +103,13 @@ ${profileContext}
 
 צור בדיוק ${slideCount} שקופיות (או פחות אם אין מספיק מידע).`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+    const models = ['google/gemini-3-flash-preview', 'google/gemini-2.5-flash', 'openai/gpt-5-mini'];
+    const userMessage = `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\nבריף:\n${brief}`;
+    const requestBody = (model: string) => JSON.stringify({
+        model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\nבריף:\n${brief}` },
+          { role: 'user', content: userMessage },
         ],
         tools: [{
           type: "function",
