@@ -637,6 +637,12 @@ const SlideRenderer = ({
             }}>
               <span style={{ fontSize: 28, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.2)' }}>צרו קשר עוד היום</span>
             </div>
+            {phone && (
+              <div style={{
+                marginTop: 30, fontSize: 38, fontWeight: 700, direction: 'ltr',
+                color: safeText(bg), textShadow: textShadow(bg), letterSpacing: 2,
+              }}>{phone}</div>
+            )}
           </div>
           {footer}
         </div>
