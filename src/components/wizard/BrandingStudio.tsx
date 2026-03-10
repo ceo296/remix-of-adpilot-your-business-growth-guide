@@ -844,12 +844,20 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                 </div>
               )}
 
-              {/* Mockup */}
-              {selectedDirection.mockup && (
-                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '16px' }}>הדמיית יישום</h3>
-                  <img src={selectedDirection.mockup} alt="Mockup" style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid #e5e7eb' }} crossOrigin="anonymous" />
-                </div>
+              {/* Mockups */}
+              {(() => {
+                const allMockups = selectedDirection.mockups?.length > 0 ? selectedDirection.mockups : (selectedDirection.mockup ? [selectedDirection.mockup] : []);
+                return allMockups.length > 0 ? (
+                  <div style={{ marginBottom: '32px' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '16px' }}>הדמיות יישום</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: allMockups.length > 1 ? 'repeat(auto-fit, minmax(200px, 1fr))' : '1fr', gap: '12px' }}>
+                      {allMockups.map((m, mIdx) => (
+                        <img key={mIdx} src={m} alt={`Mockup ${mIdx + 1}`} style={{ width: '100%', borderRadius: '12px', border: '1px solid #e5e7eb' }} crossOrigin="anonymous" />
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
               )}
 
               {/* Color Palette */}
