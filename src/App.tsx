@@ -20,7 +20,7 @@ import MediaPortal from "./pages/MediaPortal";
 import AdkopWizard from "./pages/AdkopWizard";
 import MediaExport from "./pages/MediaExport";
 import PresentationStudio from "./pages/PresentationStudio";
-import CatalogStudio from "./pages/CatalogStudio";
+
 import BusinessCardStudio from "./pages/BusinessCardStudio";
 import LetterheadStudio from "./pages/LetterheadStudio";
 import NotFound from "./pages/NotFound";
@@ -51,7 +51,7 @@ const App = () => (
             <Route path="/adkop" element={<AdkopWizard />} />
             <Route path="/media-export" element={<MediaExport />} />
             <Route path="/presentation-studio" element={<PresentationStudio />} />
-            <Route path="/catalog-studio" element={<CatalogStudio />} />
+            
             <Route path="/business-card-studio" element={<BusinessCardStudio />} />
             <Route path="/letterhead-studio" element={<LetterheadStudio />} />
             <Route path="*" element={<NotFound />} />

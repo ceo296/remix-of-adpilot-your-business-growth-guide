@@ -13,7 +13,7 @@ import {
   Presentation, 
   Mail, 
   Calendar,
-  BookOpen,
+  
   Sparkles,
   ChevronLeft,
   Check,
@@ -111,16 +111,6 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     comingSoon: false,
     templates: [],
     directRoute: '/presentation-studio',
-  },
-  {
-    id: 'catalogs',
-    name: 'Catalogs',
-    nameHe: 'קטלוגים',
-    description: 'קטלוגי מוצרים ושירותים',
-    icon: BookOpen,
-    comingSoon: false,
-    templates: [],
-    directRoute: '/catalog-studio',
   },
 ];
 
