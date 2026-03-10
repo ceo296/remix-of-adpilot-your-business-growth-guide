@@ -257,8 +257,17 @@ The mockup must feel luxurious and real.`;
 
   } catch (e) {
     console.error("Branding generation error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
+    const message = e instanceof Error ? e.message : "Unknown error";
+    const status = message === "PAYMENT_REQUIRED" ? 402 : message === "RATE_LIMITED" ? 429 : 500;
+    const publicMessage =
+      message === "PAYMENT_REQUIRED"
+        ? "Payment required"
+        : message === "RATE_LIMITED"
+          ? "Rate limit exceeded"
+          : message;
+
+    return new Response(JSON.stringify({ error: publicMessage }), {
+      status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
