@@ -13,7 +13,7 @@ import {
   Presentation, 
   Mail, 
   Calendar,
-  
+  Palette,
   Sparkles,
   ChevronLeft,
   Check,
@@ -28,6 +28,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
 import { TemplatePreview } from '@/components/internal/TemplatePreview';
+import { BrandingStudio } from '@/components/wizard/BrandingStudio';
 
 interface TemplateCategory {
   id: string;
@@ -112,6 +113,16 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     templates: [],
     directRoute: '/presentation-studio',
   },
+  {
+    id: 'branding',
+    name: 'Branding',
+    nameHe: 'מיתוג',
+    description: 'עיצוב לוגו, פלטת צבעים וזהות מותגית',
+    icon: Palette,
+    comingSoon: false,
+    templates: [],
+    directRoute: '__branding__',
+  },
 ];
 
 const InternalStudio = () => {
@@ -124,6 +135,10 @@ const InternalStudio = () => {
   const [isDoubleSided, setIsDoubleSided] = useState(true);
   const [paperType, setPaperType] = useState('matte');
   const [cardSize, setCardSize] = useState('90x50');
+
+  // Auto-open branding if navigated with ?open=branding
+  const searchParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+  const [showBrandingStudio, setShowBrandingStudio] = useState(searchParams.get('open') === 'branding');
 
   const currentCategory = TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory);
   const needsContactPicker = selectedCategory === 'business-cards' || selectedCategory === 'letterhead';
@@ -215,6 +230,7 @@ const InternalStudio = () => {
                 }`}
                 onClick={() => {
                   if (category.comingSoon) return;
+                  if (category.directRoute === '__branding__') { setShowBrandingStudio(true); return; }
                   if (category.directRoute) { navigate(category.directRoute); return; }
                   setSelectedCategory(category.id);
                 }}
@@ -434,6 +450,17 @@ const InternalStudio = () => {
           </div>
         )}
       </div>
+
+      {/* Branding Studio Modal */}
+      <BrandingStudio
+        isOpen={showBrandingStudio}
+        onClose={() => setShowBrandingStudio(false)}
+        businessName={profile?.business_name || 'העסק שלי'}
+        onBrandingComplete={(branding) => {
+          setShowBrandingStudio(false);
+          navigate('/profile');
+        }}
+      />
     </div>
   );
 };

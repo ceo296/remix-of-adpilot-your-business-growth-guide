@@ -16,7 +16,8 @@ import {
   Clock,
   Image,
   Newspaper,
-  Building2
+  Building2,
+  Palette
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CampaignHistory from './CampaignHistory';
@@ -106,14 +107,15 @@ const DashboardHub = () => {
     fetchCampaignData();
   }, [user]);
 
-  const handleNewCampaign = (type: 'create' | 'upload' | 'internal' | 'media-only') => {
+  const handleNewCampaign = (type: 'create' | 'upload' | 'internal' | 'media-only' | 'branding') => {
     if (type === 'create') {
-      // First go to campaign goal/setup wizard, then to studio
       navigate('/new-campaign');
     } else if (type === 'internal') {
       navigate('/internal-studio');
     } else if (type === 'media-only') {
       navigate('/new-campaign?mode=media-only');
+    } else if (type === 'branding') {
+      navigate('/internal-studio?open=branding');
     } else {
       navigate('/studio?mode=upload');
     }
@@ -127,7 +129,7 @@ const DashboardHub = () => {
         <p className="text-muted-foreground">{getWhatWouldYouLike(honorificPreference)}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto px-4">
         {/* Create Campaign with AI */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
@@ -147,6 +149,25 @@ const DashboardHub = () => {
           </CardContent>
         </Card>
 
+        {/* Branding */}
+        <Card 
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-pink-400 bg-gradient-to-br from-pink-50 to-rose-50 hover:from-pink-100 hover:to-rose-100"
+          onClick={() => handleNewCampaign('branding')}
+        >
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg shadow-pink-500/30 flex items-center justify-center mb-4">
+              <Palette className="w-10 h-10 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-pink-800 mb-2">מיתוג</h3>
+            <p className="text-pink-600 mb-3 text-sm">
+              זהות מותגית מלאה
+            </p>
+            <p className="text-xs text-muted-foreground">
+              לוגו, פלטת צבעים וזהות ויזואלית מקצועית
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Internal Materials */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100"
@@ -161,7 +182,7 @@ const DashboardHub = () => {
               לשימוש עסקי
             </p>
             <p className="text-xs text-muted-foreground">
-              מצגות, פרוספקטים, ניוזלטרים וחומרי שיווק פנימיים
+              מצגות, כרטיסי ביקור, פרוספקטים וניירת
             </p>
           </CardContent>
         </Card>
