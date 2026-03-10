@@ -34,17 +34,27 @@ serve(async (req) => {
     const aiCall = async (model: string, messages: any[], modalities?: string[]) => {
       const fallbacks = modalities ? IMAGE_FALLBACKS : TEXT_FALLBACKS;
       const models = [model, ...fallbacks.filter(m => m !== model)];
+      let saw402 = false;
+      let saw429 = false;
+
       for (const m of models) {
         console.log(`Trying model: ${m}`);
         const result = await aiCallSingle(m, messages, modalities);
         if (!result.error) return result;
+
         console.error(`Model ${m} failed with status ${result.status}`);
+        if (result.status === 402) saw402 = true;
+        if (result.status === 429) saw429 = true;
+
         if (result.status >= 400 && result.status < 500 && result.status !== 402 && result.status !== 429) {
           throw new Error(`AI call failed: ${result.status}`);
         }
         await new Promise(r => setTimeout(r, 300));
       }
-      throw new Error("All AI models failed (402/429). Please try again later.");
+
+      if (saw402) throw new Error("PAYMENT_REQUIRED");
+      if (saw429) throw new Error("RATE_LIMITED");
+      throw new Error("ALL_MODELS_FAILED");
     };
 
     // ═══════════ Step 1: Generate 3 branding directions ═══════════

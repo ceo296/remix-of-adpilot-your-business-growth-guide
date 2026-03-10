@@ -201,7 +201,16 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
       toast.success('3 כיווני מיתוג מוכנים! 🎨');
     } catch (e: any) {
       console.error('Branding generation error:', e);
-      toast.error('שגיאה ביצירת המיתוג. נסו שוב.');
+      const errorText = `${e?.message || ''} ${e?.context || ''}`.toLowerCase();
+
+      if (errorText.includes('402') || errorText.includes('payment required')) {
+        toast.error('נגמרה כרגע מכסת ה-AI בחשבון. נסו שוב עוד מעט או הוסיפו יתרה.');
+      } else if (errorText.includes('429') || errorText.includes('rate')) {
+        toast.error('יש עומס רגעי בבקשות AI. נסו שוב בעוד דקה.');
+      } else {
+        toast.error('שגיאה ביצירת המיתוג. נסו שוב.');
+      }
+
       setPhase('brief');
       setBriefStep(BRIEF_STEPS.length - 1);
     }
