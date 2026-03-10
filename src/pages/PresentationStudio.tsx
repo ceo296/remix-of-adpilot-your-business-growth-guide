@@ -293,24 +293,27 @@ const SlideRenderer = ({
     }
 
     case 'about': {
-      const bg: 'dark' | 'light' = 'light';
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
-        <div style={{ ...base, background: '#fff' }}>
-          {/* Split layout: text right, photo left */}
-          {photo && <PhotoBg url={photo} position="left" width="42%" />}
+        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : `linear-gradient(160deg, ${dark} 0%, ${brandColor}cc 50%, ${adjustColor(brandColor, 30)}aa 100%)` }}>
+          {/* Rich background */}
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.25} />}
+          {photo && theme === 'minimal' && <PhotoBg url={photo} position="left" width="42%" />}
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
           {theme !== 'minimal' && (
-            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 80, background: `linear-gradient(180deg, ${brandColor} 0%, ${dark} 100%)` }}>
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '20px 20px' }} />
-            </div>
+            <>
+              <div style={{ position: 'absolute', bottom: -200, left: -100, width: 600, height: 600, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+              <div style={{ position: 'absolute', top: -100, right: -50, width: 400, height: 400, borderRadius: '50%', background: `${light}15` }} />
+            </>
           )}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
-          <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo ? '60%' : '100%', position: 'relative' }}>
+          <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo && theme === 'minimal' ? '60%' : '100%', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 50 }}>
-              <div style={{ width: 60, height: 6, background: brandColor, borderRadius: 3 }} />
-              <span style={{ fontSize: 22, fontWeight: 600, color: brandColor, letterSpacing: 3 }}>אודות</span>
+              <div style={{ width: 60, height: 6, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 22, fontWeight: 600, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.85)', letterSpacing: 3 }}>אודות</span>
             </div>
-            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1 }}>{slide.title}</h2>
-            <p style={{ fontSize: 30, lineHeight: 2, color: safeSubtext(bg), maxWidth: 1200 }}>{slide.body}</p>
+            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <p style={{ fontSize: 30, lineHeight: 2, color: safeSubtext(bg), maxWidth: 1200, textShadow: textShadow(bg) }}>{slide.body}</p>
           </div>
           {footer}
         </div>
