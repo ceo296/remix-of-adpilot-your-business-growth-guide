@@ -431,11 +431,8 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="42%" />}
           {decorBg}
           <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo && bg === 'light' ? '60%' : '100%', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 50 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 22, fontWeight: 600, color: labelColor(bg), letterSpacing: 3 }}>אודות</span>
-            </div>
             <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
             <p style={{ fontSize: 30, lineHeight: 2, color: safeSubtext(bg), maxWidth: 1200, textShadow: textShadow(bg) }}>{slide.body}</p>
           </div>
           {footer}
