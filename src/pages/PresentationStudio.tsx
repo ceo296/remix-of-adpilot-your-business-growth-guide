@@ -411,49 +411,41 @@ const SlideRenderer = ({
       );
     }
 
-    case 'stats':
+    case 'stats': {
+      const bg: 'dark' | 'light' = 'dark';
       return (
-        <div style={{ ...base, background: '#fff' }}>
-          {/* Photo in the header band */}
-          <div style={{
-            position: 'absolute', top: 0, right: 0, left: 0, height: 350,
-            overflow: 'hidden',
-          }}>
-            {photo ? (
-              <>
-                <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${photo})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${hexToRgba(brandColor, 0.85)} 0%, ${hexToRgba(dark, 0.9)} 100%)` }} />
-              </>
-            ) : (
-              <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${brandColor} 0%, ${dark} 100%)` }} />
-            )}
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />
-          </div>
-          <svg style={{ position: 'absolute', top: 340, left: 0, width: '100%' }} viewBox="0 0 1920 60" preserveAspectRatio="none">
-            <path d="M0 0 L1920 0 L1920 30 Q960 65 0 30Z" fill={dark} />
-          </svg>
-          <div style={{ position: 'relative', padding: '80px 140px' }}>
+        <div style={{ ...base, background: `linear-gradient(135deg, ${dark} 0%, ${brandColor} 50%, ${adjustColor(brandColor, 40)} 100%)` }}>
+          {photo && <DarkPhotoBg url={photo} opacity={0.2} />}
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />
+          <div style={{ position: 'absolute', bottom: -200, right: -100, width: 600, height: 600, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+          <div style={{ position: 'relative', padding: '100px 140px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
+              <div style={{ width: 50, height: 6, background: '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: 'rgba(255,255,255,0.85)', letterSpacing: 2 }}>נתונים</span>
+            </div>
             <h2 style={{ fontSize: 60, fontWeight: 900, color: '#fff', marginBottom: 10, textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>{slide.title}</h2>
             {slide.subtitle && <p style={{ fontSize: 26, color: 'rgba(255,255,255,0.8)', marginBottom: 60, textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>{slide.subtitle}</p>}
           </div>
-          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 50, padding: '0 140px', marginTop: 40 }}>
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 50, padding: '0 140px', marginTop: -20 }}>
             {(slide.stats || []).map((s, i) => (
               <div key={i} style={{
                 textAlign: 'center', padding: '50px 40px', borderRadius: 24,
-                background: '#fff', boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
-                flex: 1, maxWidth: 350, border: '1px solid #eee',
+                background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)',
+                boxShadow: '0 8px 40px rgba(0,0,0,0.15)',
+                flex: 1, maxWidth: 350, border: '1px solid rgba(255,255,255,0.15)',
               }}>
                 <div style={{
                   fontSize: 72, fontWeight: 900, lineHeight: 1, marginBottom: 12,
-                  color: brandColor,
+                  color: '#fff', textShadow: '0 2px 15px rgba(0,0,0,0.3)',
                 }}>{s.value}</div>
-                <div style={{ fontSize: 22, color: '#666', fontWeight: 500 }}>{s.label}</div>
+                <div style={{ fontSize: 22, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{s.label}</div>
               </div>
             ))}
           </div>
           {footer}
         </div>
       );
+    }
 
     case 'process':
     case 'methodology':
