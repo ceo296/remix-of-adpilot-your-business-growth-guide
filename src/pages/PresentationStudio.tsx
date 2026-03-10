@@ -146,6 +146,7 @@ const DarkPhotoBg = ({ url, opacity = 0.25 }: { url: string; opacity?: number })
 const getThemeConfig = (theme: PresentationTheme, brandColor: string, secColor: string) => {
   const dark = adjustColor(brandColor, -40);
   const light = adjustColor(brandColor, 60);
+  const veryLight = adjustColor(brandColor, 100);
 
   switch (theme) {
     case 'minimal':
@@ -155,18 +156,21 @@ const getThemeConfig = (theme: PresentationTheme, brandColor: string, secColor: 
         accentBg: `${brandColor}08`, cardBg: '#f8f9fa', cardBorder: '#eee',
         darkSlideBg: '#fafafa', darkSlideText: '#111',
         dots: 'none', diag: 'none',
+        mode: 'light' as const,
       };
     case 'creative':
       return {
         coverBg: `linear-gradient(135deg, ${brandColor} 0%, #ff6b6b 30%, #ffd93d 60%, ${adjustColor(brandColor, 40)} 100%)`,
         coverText: '#fff', coverAccent: '#fff',
-        slideBg: '#fff', slideText: '#111', slideSubtext: '#555',
-        accentBg: `linear-gradient(135deg, ${hexToRgba(brandColor, 0.06)}, ${hexToRgba('#ff6b6b', 0.04)})`,
-        cardBg: '#fff', cardBorder: `${brandColor}20`,
+        slideBg: `linear-gradient(160deg, #fefefe 0%, ${veryLight}22 40%, ${hexToRgba(brandColor, 0.06)} 100%)`,
+        slideText: '#111', slideSubtext: '#444',
+        accentBg: `linear-gradient(135deg, ${hexToRgba(brandColor, 0.08)}, ${hexToRgba('#ff6b6b', 0.05)})`,
+        cardBg: '#fff', cardBorder: `${brandColor}25`,
         darkSlideBg: `linear-gradient(160deg, #1a1a2e 0%, ${dark} 50%, ${brandColor}90 100%)`,
         darkSlideText: '#fff',
-        dots: `url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='2' fill='white' opacity='0.08'/%3E%3C/svg%3E")`,
-        diag: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60L60 0' stroke='white' stroke-width='0.5' opacity='0.06'/%3E%3C/svg%3E")`,
+        dots: `url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='5' cy='5' r='3' fill='${encodeURIComponent(brandColor)}' opacity='0.07'/%3E%3C/svg%3E")`,
+        diag: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60L60 0' stroke='${encodeURIComponent(brandColor)}' stroke-width='0.8' opacity='0.06'/%3E%3C/svg%3E")`,
+        mode: 'light' as const,
       };
     default: // corporate
       return {
@@ -178,6 +182,7 @@ const getThemeConfig = (theme: PresentationTheme, brandColor: string, secColor: 
         darkSlideText: '#fff',
         dots: `url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='1.5' fill='white' opacity='0.06'/%3E%3C/svg%3E")`,
         diag: 'none',
+        mode: 'dark' as const,
       };
   }
 };
