@@ -82,8 +82,8 @@ const LogoFooter = ({ logoUrl, businessName, brandColor, phone, theme }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         {logoUrl && (
           <img src={logoUrl} alt="logo" style={{
-            height: 36, objectFit: 'contain',
-            filter: isDark ? 'brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0,0,0,0.5))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))',
+            height: 40, objectFit: 'contain',
+            filter: isDark ? 'brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,0.5))' : 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))',
           }} />
         )}
         <span style={{
@@ -91,12 +91,6 @@ const LogoFooter = ({ logoUrl, businessName, brandColor, phone, theme }: {
           color: isDark ? 'rgba(255,255,255,0.7)' : '#888',
         }}>{businessName}</span>
       </div>
-      {phone && (
-        <span style={{
-          fontSize: 15, fontWeight: 500, direction: 'ltr',
-          color: isDark ? 'rgba(255,255,255,0.5)' : '#aaa',
-        }}>{phone}</span>
-      )}
     </div>
   );
 };
@@ -643,6 +637,12 @@ const SlideRenderer = ({
             }}>
               <span style={{ fontSize: 28, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.2)' }}>צרו קשר עוד היום</span>
             </div>
+            {phone && (
+              <div style={{
+                marginTop: 30, fontSize: 38, fontWeight: 700, direction: 'ltr',
+                color: safeText(bg), textShadow: textShadow(bg), letterSpacing: 2,
+              }}>{phone}</div>
+            )}
           </div>
           {footer}
         </div>
