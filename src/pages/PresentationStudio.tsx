@@ -66,13 +66,16 @@ const isLightColor = (hex: string): boolean => {
 const LogoFooter = ({ logoUrl, businessName, brandColor, phone, theme }: {
   logoUrl?: string; businessName: string; brandColor: string; phone?: string; theme: PresentationTheme;
 }) => {
-  const isDark = theme !== 'minimal';
+  const isDark = theme === 'corporate';
+  const isCreative = theme === 'creative';
   return (
     <div style={{
       position: 'absolute', bottom: 0, left: 0, right: 0, height: 70,
       background: isDark
         ? 'linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 100%)'
-        : `linear-gradient(0deg, ${hexToRgba(brandColor, 0.08)} 0%, transparent 100%)`,
+        : isCreative
+          ? `linear-gradient(0deg, ${hexToRgba(brandColor, 0.06)} 0%, transparent 100%)`
+          : `linear-gradient(0deg, ${hexToRgba(brandColor, 0.08)} 0%, transparent 100%)`,
       display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
       padding: '0 60px 16px', zIndex: 10,
     }}>
