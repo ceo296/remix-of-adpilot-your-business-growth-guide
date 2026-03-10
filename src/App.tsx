@@ -51,7 +51,7 @@ const App = () => (
             <Route path="/adkop" element={<AdkopWizard />} />
             <Route path="/media-export" element={<MediaExport />} />
             <Route path="/presentation-studio" element={<PresentationStudio />} />
-            <Route path="/catalog-studio" element={<CatalogStudio />} />
+            
             <Route path="/business-card-studio" element={<BusinessCardStudio />} />
             <Route path="/letterhead-studio" element={<LetterheadStudio />} />
             <Route path="*" element={<NotFound />} />
