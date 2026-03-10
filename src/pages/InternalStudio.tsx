@@ -448,6 +448,17 @@ const InternalStudio = () => {
           </div>
         )}
       </div>
+
+      {/* Branding Studio Modal */}
+      <BrandingStudio
+        isOpen={showBrandingStudio}
+        onClose={() => setShowBrandingStudio(false)}
+        businessName={profile?.business_name || 'העסק שלי'}
+        onBrandingComplete={(branding) => {
+          setShowBrandingStudio(false);
+          navigate('/profile');
+        }}
+      />
     </div>
   );
 };
