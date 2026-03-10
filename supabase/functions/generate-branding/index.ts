@@ -129,11 +129,6 @@ CRITICAL RULES:
 - mockupScenes: MUST be 3 different scenes. At least 2 must be DIRECTLY related to the business field (e.g., moving company → branded truck, boxes with logo; restaurant → menu card, table setting; real estate → building sign, brochure). The 3rd can be a classic application (business card, storefront, stationery).`;
 
     const strategyData = await aiCall("google/gemini-2.5-flash", [{ role: "user", content: strategyPrompt }]);
-    if (strategyData.error) {
-      return new Response(JSON.stringify({ error: strategyData.error }), {
-        status: strategyData.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     let strategyText = strategyData.choices?.[0]?.message?.content || "";
     strategyText = strategyText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
