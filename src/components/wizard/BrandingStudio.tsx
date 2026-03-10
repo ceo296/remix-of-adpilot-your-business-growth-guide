@@ -400,7 +400,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
               {brandResult.directions.map((dir, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setSelectedDirectionIndex(idx)}
+                  onClick={() => { setSelectedDirectionIndex(idx); setActiveMockupIndex(0); }}
                   className={`relative px-6 py-3 rounded-xl border-2 transition-all duration-300 font-bold text-sm ${
                     selectedDirectionIndex === idx
                       ? 'border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/30 bg-primary/5'
