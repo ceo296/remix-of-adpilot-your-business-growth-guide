@@ -62,6 +62,7 @@ interface BrandDirection {
   fonts: { header: string; body: string };
   logo: string | null;
   mockup: string | null;
+  mockups: string[];
   worldReferences: WorldReference[];
 }
 
