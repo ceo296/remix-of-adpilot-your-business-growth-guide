@@ -94,7 +94,7 @@ Return a JSON object (no markdown, no backticks, just pure JSON):
       "colors": { "primary": "#HEX", "secondary": "#HEX", "accent": "#HEX", "background": "#HEX", "dark": "#HEX" },
       "colorDescription": "...", "colorEmotion": "...",
       "fonts": { "header": "...", "body": "..." },
-      "logoDirective": "...", "mockupScene": "...",
+      "logoDirective": "...", "mockupScenes": ["...", "...", "..."],
       "worldReferences": [{"brand": "...", "colors": "...", "lesson": "..."}]
     }
   ]
