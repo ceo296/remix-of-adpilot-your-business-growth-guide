@@ -858,7 +858,6 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                   </div>
                 ) : null;
               })()}
-              )}
 
               {/* Color Palette */}
               <div style={{ marginBottom: '32px' }}>
