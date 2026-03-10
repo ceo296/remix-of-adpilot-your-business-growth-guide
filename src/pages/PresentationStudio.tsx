@@ -1055,7 +1055,7 @@ const PresentationStudio = () => {
     try {
       setImagesGenerating(prev => prev + 1);
       const { data, error } = await supabase.functions.invoke('generate-slide-image', {
-        body: { prompt: imagePrompt, brandColor },
+        body: { prompt: imagePrompt, brandColor, industry: profile?.services?.join(', ') || '' },
       });
       if (error || data?.error) {
         console.warn(`Image generation failed for slide ${slideIndex}:`, error || data?.error);
