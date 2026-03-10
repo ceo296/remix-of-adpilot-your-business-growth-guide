@@ -449,11 +449,8 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {decorBg}
           <div style={{ padding: '90px 140px', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: labelColor(bg), letterSpacing: 2 }}>השירותים שלנו</span>
-            </div>
-            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 60, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
@@ -462,14 +459,14 @@ const SlideRenderer = ({
                   ...getCardStyle(bg),
                 }}>
                   <div style={{
-                    width: 56, height: 56, borderRadius: 16,
+                    width: 56, height: 56, borderRadius: 16, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 24, fontWeight: 800, flexShrink: 0,
+                    fontSize: 24, fontWeight: 800,
                     ...getNumberBadge(bg),
                   }}>
                     {String(i + 1).padStart(2, '0')}
                   </div>
-                  <span style={{ fontSize: 28, color: safeSubtext(bg), fontWeight: 600 }}>{b}</span>
+                  <span style={{ fontSize: 26, color: safeSubtext(bg), fontWeight: 600, wordBreak: 'keep-all' }}>{b}</span>
                 </div>
               ))}
             </div>
