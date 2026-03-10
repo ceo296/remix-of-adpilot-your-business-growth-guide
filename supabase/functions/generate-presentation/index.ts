@@ -14,12 +14,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
-    // Build rich context from profile data
     const pd = profileData || {};
-    const hasServices = pd.xFactors?.length > 0;
-    const hasTrustAssets = pd.qualitySignatures?.length > 0 || pd.successfulCampaigns?.length > 0;
-    const hasAddress = !!pd.address;
-    const hasSocials = pd.facebook || pd.instagram || pd.linkedin || pd.tiktok || pd.youtube;
     
     const profileContext = `
 פרטי העסק הידועים (חובה להשתמש בנתונים אלה בלבד - אסור להמציא פרטים):
@@ -44,83 +39,85 @@ serve(async (req) => {
 
     const themeInstructions: Record<string, string> = {
       minimal: `סגנון מינימלי (Gamma.app style): כותרות קצרות וחדות, הרבה חלל לבן, ללא עודף מידע. כל שקופית מתמקדת ברעיון אחד בלבד. ניסוח מאופק ואלגנטי. טיפוגרפיה דקה ומדויקת.`,
-      corporate: `סגנון תאגידי-מקצועי (Beautiful.ai style):מידע מקיף אך מסודר, נתונים ומספרים, שפה עסקית רצינית. הדגש ניסיון, מומחיות ותוצאות מוכחות. layout מובנה עם grid.`,
+      corporate: `סגנון תאגידי-מקצועי (Beautiful.ai style): מידע מקיף אך מסודר, נתונים ומספרים, שפה עסקית רצינית. הדגש ניסיון, מומחיות ותוצאות מוכחות. layout מובנה עם grid.`,
       creative: `סגנון יצירתי ונועז (Canva style): כותרות פרובוקטיביות ומפתיעות, שפה שיווקית חזקה, ניסוחים לא שגרתיים. שאלות רטוריות ומשפטי תועלת חזקים.`,
     };
 
-    // Dynamic slide logic instructions
-    const dynamicLogic = `
-לוגיקת בניית שקופיות דינמית (חשוב מאוד!):
-ניתח את המידע שקיבלת וצור רצף שקופיות שמרגיש פרימיום.
+    const systemPrompt = `🚀 אתה "The Visionary Engine" – מנהל אמנותי בסטודיו למיתוג יוקרה.
+המטרה: ליצור מצגת "Million Dollar" שמשלבת רגש, עוצמה וניקיון עיצובי קיצוני. בעברית.
 
-ארכיטקטורת שקופיות:
-1. COVER (חובה, ראשונה): כותרת ויזואלית חזקה + כותרת משנה ברמה גבוהה.
-2. ABOUT - "מי אנחנו": סכם את הסיפור ל-2-3 פסקאות חזקות.
+═══ הוראת יסוד: סנכרון מגזרי (Haredi Compliance) ═══
+אפס נוכחות נשים/בנות. בשימוש בדמויות אנושיות – גברים וילדים (בנים) בלבד.
+ודא שהלבוש והסיטואציה מכובדים ותואמים את רוח הלקוח.
+
+═══ סגנון נבחר ═══
+${themeInstructions[theme] || themeInstructions.corporate}
+
+═══ ארכיטקטורת שקופיות ═══
+1. COVER (חובה, ראשונה): כותרת Hero ענקית + כותרת משנה ברמה גבוהה.
+2. ABOUT - "מי אנחנו": 2-3 פסקאות חזקות. שפת מגזין, לא רשימות.
 3. VISION - אם הבריף ארוך ועשיר, צור שקופית "חזון וערכים" נפרדת. אם קצר - דלג.
-4. SERVICES (דינמי):
-   - אם יש פחות מ-4 שירותים: שקופית אחת עם כולם.
-   - אם יש 4+ שירותים: פצל לשקופיות נושאיות (למשל "שירותי ליבה" + "פתרונות מתקדמים").
-5. METHODOLOGY - אם הפרסונה/הבריף מרמזים על מומחיות, הוסף שקופית "איך אנחנו עובדים" עם steps.
-6. SOCIAL_PROOF - "למה דווקא אנחנו?": השתמש בכל נכסי האמון. אם יש יותר מ-5 - פצל ל-2 שקופיות.
-7. TARGET_AUDIENCE - "למי השירות שלנו מתאים": שקופית ייעודית עם bullets.
+4. SERVICES (דינמי): אם יש פחות מ-4 שירותים: שקופית אחת. אם 4+: פצל לנושאיות.
+5. METHODOLOGY - אם הפרסונה מרמזת על מומחיות, הוסף "איך אנחנו עובדים" עם steps.
+6. SOCIAL_PROOF - "למה דווקא אנחנו?": כל נכסי האמון. אם 5+ - פצל ל-2 שקופיות.
+7. TARGET_AUDIENCE - "למי מתאים": שקופית ייעודית.
 8. CTA - "נשמח לשבת לקפה": פרטי קשר מלאים + סיום מקצועי.
 
 כללי ברזל:
-- מינימום 5, מקסימום 10 שקופיות - תלוי בעושר המידע.
-- שקופית ראשונה = cover, אחרונה = contact.
-- אל תחזור על אותו סוג שקופית אלא אם זה מוצדק (למשל 2 services).
-- אם אין מידע לשקופית - אל תיצור אותה. עדיף פחות ומדויק.
+- מינימום 5, מקסימום 10 שקופיות.
+- שקופית ראשונה = cover, אחרונה = contact/cta.
+- כל שקופית חייבת להכיל תוכן (body/bullets/stats/steps) - אסור כותרת בלבד!
 - אסור להמציא מספרים, שמות, טלפונים או נתונים שלא סופקו.
-`;
 
-    const systemPrompt = `אתה Senior Presentation Architect ברמה של Gamma.app / Clean Modernism.
-תפקידך ליצור Business Profile מקצועי ברמה הגבוהה ביותר בעברית.
+═══ שפת המגזין (Editorial Layout) ═══
+CRITICAL: אסור להשתמש ברשימות נקודות גנריות ("•" bullets).
+כל מידע חייב להיות מוצג כ:
+- פסקאות body עשירות (2-3 משפטים) לשקפי about/vision/testimonial
+- steps ממוספרים עם כותרת + תיאור לשקפי methodology/process
+- stats עם מספר + label לנתונים מדידים
+- bullets רק לשקפי services/value_prop/social_proof/target_audience - אבל כל bullet חייב להיות משפט שלם (5-10 מילים), לא מילה אחת!
 
-הוראת יסוד: פעל בסנכרון מלא עם מגבלות המגזר החרדי (אפס נוכחות נשים, צניעות מחמירה ותוכן מותאם).
+כותרות: Hero Titles - 2-5 מילים דומיננטיות וחותכות.
+גוף טקסט: שפת מגזין עשירה, עד 3 שורות.
+White Space is Luxury: שטח ריק = יוקרה וביטחון של המותג.
 
-${themeInstructions[theme] || themeInstructions.corporate}
+═══ חופש יצירתי מונחה (Creative Intuition) ═══
+לכל שקף, בחר את האימפקט הוויזואלי החזק ביותר:
 
-${dynamicLogic}
+1. Human Connection: כשהמסר דורש אמון/שירות אישי/רגש.
+   → דמויות (גברים/בנים בלבד!) עם עומק שדה (bokeh) ותאורה טבעית.
+   
+2. Conceptual Objects: כשהמסר דורש איכות/טכנולוגיה/יוקרה חומרית.
+   → אובייקטים עוצמתיים, צילומי מאקרו (Macro), סטיילינג מושלם.
+   
+3. Abstract Atmosphere: כשהמסר תיאורטי או דורש "שקט" עיצובי.
+   → טקסטורות, גרדיאנטים עמוקים, אור דרמטי ללא אובייקט ספציפי.
 
-הנחיות נוספות:
-- כותרות: 3-6 מילים, עוצמתיות ומדויקות
-- גוף טקסט: תמציתי, עד 3 שורות
-- bullets: 3-6 מילים לכל פריט
-- נתונים (stats): רק אם סופקו בבריף. אם אין - אל תמציא.
-- שפה שיווקית מקצועית ופרימיום
-- כל שקופית חייבת להכיל תוכן (body/bullets/stats/steps) - אסור שקופיות עם כותרת בלבד!
-
-═══ אסטרטגיה ויזואלית מבוססת תחום (Industry-Driven Visuals) ═══
-עליך לבחור את עולם התוכן הוויזואלי ל-image_prompt לפי תחום העסק:
-• מרפאות שיניים / רפואה: רקעים חמים ומזמינים, חיוכים, אווירה נקייה ובהירה, תאורה רכה. השתלות/שיקום = גברים מבוגרים מחייכים. טיפולי ילדים = בנים/ילדים שמחים. אסור רקעים כהים/קודרים!
-• נדל"ן: הדמיות חוץ/פנים איכותיות, אדריכלות מרשימה. מותר רקעים כהים יוקרתיים. הימנע מדמויות אנושיות.
-• אוכל/קייטרינג: צילומי מאקרו מעוררי תיאבון, סטיילינג נקי, תאורה חמה וטבעית.
-• מקצועות חופשיים (עו"ד/רו"ח): אווירה משרדית, חפצים סימבוליים (עט יוקרתי, ספרייה), גריד יציב ומאופק.
-• חינוך/גנים: צבעוניות חמה ועליזה, אווירה משפחתית וחמימה.
-• כל תחום אחר: זהה את קהל היעד והתאם את הרקעים לאופי העסק.
+═══ אסטרטגיה ויזואלית מבוססת תחום ═══
+• מרפאות שיניים / רפואה: רקעים חמים ומזמינים, חיוכים, אווירה נקייה. אסור כהה/קודר!
+• נדל"ן: הדמיות אדריכלות מרשימות. מותר רקעים כהים יוקרתיים. ללא דמויות.
+• אוכל/קייטרינג: צילומי מאקרו מעוררי תיאבון, תאורה חמה.
+• מקצועות חופשיים: אווירה משרדית, חפצים סימבוליים, גריד מאופק.
+• חינוך/גנים: צבעוניות חמה ועליזה, אווירה משפחתית.
+• כל תחום אחר: התאם לקהל היעד ולאופי העסק.
 
 תעשיית הלקוח: ${profileData?.industry || 'כללי'}
 
 ═══ חוק האחידות הוויזואלית (Design DNA) ═══
-המצגת חייבת להישמר בקו אחיד והרמוני משקף השער ועד לשקף האחרון:
-1. סגנון רקע: אם נבחר סגנון כהה (Dark Mode) - כל המצגת תמשיך בקו זה. אין לערבב לבן וכהה.
-2. שפה צילומית: אם שקף השער משתמש בתמונת אווירה מלאה, שמור על מוטיב זה בשקפי המפתח.
-3. פלטת צבעים: השתמש אך ורק בצבעי המותג. הצבע הראשי שולט בגרפיקה, כותרות ואייקונים.
-4. היררכיה קבועה: מיקומי כותרות ולוגו במקומות קבועים בכל השקפים ליצירת חוויה זורמת.
+1. סגנון רקע אחיד: Dark Mode או Bright & Airy - לא לערבב!
+2. שפה צילומית אחידה: אם שקף השער Full-Bleed, שמור על זה.
+3. פלטת צבעים: אך ורק צבעי המותג. הצבע הראשי שולט.
+4. היררכיה קבועה: כותרות ולוגו במיקום קבוע בכל שקף.
 
 ═══ image_prompt (חובה לכל שקופית!) ═══
-- כתוב פרומפט מפורט באנגלית ליצירת תמונת רקע מקצועית.
-- התאם את התמונה לתחום העסק לפי הטבלה למעלה.
-- תאר סצנה, תאורה, קומפוזיציה, מצב רוח, צבעים.
-- שמור על אחידות ויזואלית: כל ה-image_prompts חייבים לשדר את אותו עולם תוכן ואווירה.
-- Cover: תמונה שמייצגת את עולם העסק (לא בהכרח כהה!)
-- About: סצנת עבודה או אווירה מתאימה לתחום
-- Services: ויזואל שמייצג את השירותים הספציפיים
-- Vision: תמונה מעוררת השראה בעולם התוכן של העסק
-- CTA/Contact: תמונה חמה ומזמינה
-- אל תכתוב "presentation" או "slide" - רק את הסצנה עצמה.
-- חובה: NO TEXT, NO LETTERS, NO WOMEN in image.
-- חובה: Haredi Orthodox Jewish men only if humans appear.
+- פרומפט מפורט באנגלית. תאר: סצנה, תאורה, קומפוזיציה, מצב רוח, צבעים.
+- ציין את סוג האינטואיציה שבחרת: "Human Connection:", "Conceptual Objects:", או "Abstract Atmosphere:" בתחילת הפרומפט.
+- שמור על אחידות: כל ה-prompts חייבים לשדר אותו עולם ואווירה.
+- Cover: תמונה דרמטית שמייצגת את עולם העסק.
+- CTA/Contact: תמונה חמה ומזמינה.
+- חובה: NO TEXT, NO LETTERS, NO WOMEN, NO GIRLS in image.
+- חובה: If humans appear - Haredi Orthodox Jewish men/boys only.
+- חובה: Cinematic quality, shallow depth of field, golden hour lighting.
 
 ${profileContext}
 
@@ -130,7 +127,7 @@ ${profileContext}
       type: "function",
       function: {
         name: "create_presentation",
-        description: "Create a professional business profile presentation with dynamic slides",
+        description: "Create a Million Dollar business profile presentation with editorial layouts",
         parameters: {
           type: "object",
           properties: {
@@ -140,13 +137,13 @@ ${profileContext}
                 type: "object",
                 properties: {
                   type: { type: "string", enum: ["cover", "about", "vision", "services", "value_prop", "stats", "process", "methodology", "testimonial", "social_proof", "target_audience", "team", "cta", "contact"] },
-                  title: { type: "string" },
+                  title: { type: "string", description: "Hero Title - 2-5 powerful words" },
                   subtitle: { type: "string" },
-                  body: { type: "string" },
-                  bullets: { type: "array", items: { type: "string" } },
+                  body: { type: "string", description: "Rich editorial paragraph, magazine-style prose" },
+                  bullets: { type: "array", items: { type: "string" }, description: "Full sentences (5-10 words each), NOT single words" },
                   stats: { type: "array", items: { type: "object", properties: { value: { type: "string" }, label: { type: "string" } }, required: ["value", "label"] } },
                   steps: { type: "array", items: { type: "object", properties: { number: { type: "string" }, title: { type: "string" }, desc: { type: "string" } }, required: ["number", "title", "desc"] } },
-                  image_prompt: { type: "string", description: "A detailed English prompt to generate a professional, relevant background image for this slide. NO TEXT, NO LETTERS." },
+                  image_prompt: { type: "string", description: "Start with 'Human Connection:', 'Conceptual Objects:', or 'Abstract Atmosphere:' then detailed English scene description. NO TEXT, NO LETTERS, NO WOMEN." },
                 },
                 required: ["type", "title", "image_prompt"],
                 additionalProperties: false
@@ -161,7 +158,6 @@ ${profileContext}
 
     const userMessage = `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\nבריף:\n${brief}`;
 
-    // Try multiple models with fallback
     const models = ['google/gemini-3-flash-preview', 'google/gemini-2.5-flash', 'openai/gpt-5-mini'];
     let response: Response | null = null;
 
