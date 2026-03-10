@@ -486,19 +486,34 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                     </div>
                   </Card>
 
-                  {/* Mockup */}
+                  {/* Mockups Carousel */}
                   <Card className="p-6 space-y-4">
                     <h4 className="text-base font-bold flex items-center gap-2">
                       <Eye className="w-4 h-4 text-primary" />
-                      הדמיית יישום
+                      הדמיות יישום
                     </h4>
-                    {selectedDirection.mockup ? (
-                      <div className="rounded-xl overflow-hidden shadow-xl border border-border">
-                        <img src={selectedDirection.mockup} alt="Mockup" className="w-full aspect-square object-cover" />
-                      </div>
-                    ) : (
+                    {(selectedDirection.mockups?.length > 0 || selectedDirection.mockup) ? (() => {
+                      const allMockups = selectedDirection.mockups?.length > 0 ? selectedDirection.mockups : (selectedDirection.mockup ? [selectedDirection.mockup] : []);
+                      const currentMockup = allMockups[activeMockupIndex] || allMockups[0];
+                      return (
+                        <div className="space-y-3">
+                          <div className="rounded-xl overflow-hidden shadow-xl border border-border">
+                            <img src={currentMockup} alt={`Mockup ${activeMockupIndex + 1}`} className="w-full aspect-square object-cover" />
+                          </div>
+                          {allMockups.length > 1 && (
+                            <div className="flex justify-center gap-2">
+                              {allMockups.map((_, mIdx) => (
+                                <button key={mIdx} onClick={() => setActiveMockupIndex(mIdx)}
+                                  className={`w-2.5 h-2.5 rounded-full transition-all ${mIdx === activeMockupIndex ? 'scale-125' : 'opacity-40 hover:opacity-70'}`}
+                                  style={{ backgroundColor: mIdx === activeMockupIndex ? selectedDirection.colors.primary : '#999' }} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })() : (
                       <div className="w-full aspect-square rounded-xl bg-muted flex items-center justify-center">
-                        <p className="text-muted-foreground text-sm">הדמיה לא נוצרה</p>
+                        <p className="text-muted-foreground text-sm">הדמיות לא נוצרו</p>
                       </div>
                     )}
                   </Card>
