@@ -396,8 +396,8 @@ const SlideRenderer = ({
               <img src={logoUrl} alt="logo" style={{ height: 60, objectFit: 'contain', marginBottom: 60, alignSelf: 'flex-start' }} />
             )}
             <h1 style={{
-              fontSize: isMinimal ? 96 : 100, fontWeight: 900,
-              color: safeText(bg), margin: 0, lineHeight: 1.05, letterSpacing: '-2px',
+              fontSize: isMinimal ? 96 : 110, fontWeight: 900,
+              color: safeText(bg), margin: 0, lineHeight: 1.0, letterSpacing: '-3px',
               textShadow: textShadow(bg),
             }}>
               {slide.title}
@@ -437,30 +437,41 @@ const SlideRenderer = ({
     case 'services': {
       const { background, mode, decorBg } = getSlideBg('services');
       const bg = mode;
+      const items = slide.bullets || [];
+      const useWideLayout = items.length <= 3;
       return (
         <div style={{ ...base, background }}>
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {decorBg}
-          <div style={{ padding: '90px 140px', position: 'relative' }}>
-            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) }}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
-              {(slide.bullets || []).map((b, i) => (
+          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg), letterSpacing: '-1px' }}>{slide.title}</h2>
+            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
+            {slide.subtitle && <p style={{ fontSize: 26, color: safeMuted(bg), marginBottom: 40, maxWidth: 900 }}>{slide.subtitle}</p>}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: useWideLayout ? `repeat(${items.length}, 1fr)` : '1fr 1fr',
+              gap: useWideLayout ? 50 : 28,
+              flex: 1, alignContent: 'start',
+            }}>
+              {items.map((b, i) => (
                 <div key={i} style={{
-                  display: 'flex', alignItems: 'center', gap: 24,
-                  padding: '30px 36px',
+                  padding: useWideLayout ? '44px 36px' : '30px 36px',
                   ...getCardStyle(bg),
+                  display: 'flex', flexDirection: useWideLayout ? 'column' : 'row',
+                  alignItems: useWideLayout ? 'center' : 'center',
+                  gap: useWideLayout ? 20 : 24,
+                  textAlign: useWideLayout ? 'center' : 'right',
                 }}>
                   <div style={{
-                    width: 56, height: 56, borderRadius: 16, flexShrink: 0,
+                    width: useWideLayout ? 64 : 56, height: useWideLayout ? 64 : 56, borderRadius: useWideLayout ? 20 : 16, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 24, fontWeight: 800,
+                    fontSize: useWideLayout ? 28 : 24, fontWeight: 800,
                     ...getNumberBadge(bg),
                   }}>
                     {String(i + 1).padStart(2, '0')}
                   </div>
-                  <span style={{ fontSize: 26, color: safeSubtext(bg), fontWeight: 600, wordBreak: 'keep-all' }}>{b}</span>
+                  <span style={{ fontSize: useWideLayout ? 28 : 26, color: safeSubtext(bg), fontWeight: 600, lineHeight: 1.5, wordBreak: 'keep-all' }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -473,29 +484,33 @@ const SlideRenderer = ({
     case 'value_prop': {
       const { background, mode, decorBg } = getSlideBg('value_prop');
       const bg = mode;
+      const items = slide.bullets || [];
       return (
         <div style={{ ...base, background }}>
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
-          <div style={{ position: 'relative', padding: '100px 150px' }}>
+          <div style={{ position: 'relative', padding: '100px 150px', height: '100%', display: 'flex', flexDirection: 'column' }}>
             <h2 style={{
-              fontSize: 68, fontWeight: 900, color: safeText(bg),
-              marginBottom: 20, lineHeight: 1.1, textShadow: textShadow(bg),
+              fontSize: 72, fontWeight: 900, color: safeText(bg),
+              marginBottom: 16, lineHeight: 1.1, textShadow: textShadow(bg), letterSpacing: '-1px',
             }}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
-              {(slide.bullets || []).map((b, i) => (
+            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
+            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1100, textShadow: textShadow(bg) }}>{slide.body}</p>}
+            <div style={{ display: 'flex', gap: 40, flex: 1, alignItems: 'flex-start' }}>
+              {items.map((b, i) => (
                 <div key={i} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 20, padding: 32,
+                  flex: 1, padding: '36px 28px', textAlign: 'center',
                   ...getCardStyle(bg),
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
                 }}>
                   <div style={{
-                    width: 14, height: 14, borderRadius: '50%',
-                    background: isCreative && bg === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : '#fff',
-                    flexShrink: 0, marginTop: 10,
-                    boxShadow: isDark ? '0 0 15px rgba(255,255,255,0.3)' : isCreative ? `0 0 12px ${hexToRgba(brandColor, 0.4)}` : 'none',
-                  }} />
-                  <span style={{ fontSize: 28, fontWeight: 500, lineHeight: 1.5, color: safeSubtext(bg) }}>{b}</span>
+                    width: 60, height: 60, borderRadius: '50%',
+                    background: isCreative && bg === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.15)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 28, fontWeight: 900, color: '#fff',
+                    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : `0 4px 20px ${hexToRgba(brandColor, 0.3)}`,
+                  }}>{String(i + 1).padStart(2, '0')}</div>
+                  <span style={{ fontSize: 26, fontWeight: 600, lineHeight: 1.5, color: safeSubtext(bg), wordBreak: 'keep-all' }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -762,29 +777,33 @@ const SlideRenderer = ({
     case 'social_proof': {
       const { background, mode, decorBg } = getSlideBg('social_proof');
       const bg = mode;
+      const items = slide.bullets || [];
+      // Magazine-style: staggered card sizes for visual interest
       return (
         <div style={{ ...base, background }}>
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {decorBg}
-          <div style={{ padding: '90px 140px', position: 'relative' }}>
-            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) }}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
-            <div style={{ display: 'grid', gridTemplateColumns: (slide.bullets?.length || 0) > 4 ? '1fr 1fr 1fr' : '1fr 1fr', gap: 28 }}>
-              {(slide.bullets || []).map((b, i) => (
+          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg), letterSpacing: '-1px' }}>{slide.title}</h2>
+            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
+            <div style={{ display: 'flex', gap: 32, flex: 1, alignItems: 'stretch' }}>
+              {items.map((b, i) => (
                 <div key={i} style={{
-                  display: 'flex', alignItems: 'center', gap: 20,
-                  padding: '28px 32px',
+                  flex: 1, padding: '36px 28px',
                   ...getCardStyle(bg),
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  textAlign: 'center', gap: 20,
                 }}>
                   <div style={{
-                    width: 48, height: 48, borderRadius: 14,
-                    background: isCreative && bg === 'light' ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.15)}, ${hexToRgba('#ff6b6b', 0.1)})` : isMinimal ? hexToRgba(brandColor, 0.1) : 'rgba(255,255,255,0.15)',
-                    color: isCreative && bg === 'light' ? brandColor : isMinimal ? brandColor : '#fff',
+                    width: 56, height: 56, borderRadius: '50%',
+                    background: isCreative && bg === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.2)',
+                    color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 22, fontWeight: 800, flexShrink: 0,
+                    fontSize: 26, fontWeight: 900, flexShrink: 0,
+                    boxShadow: `0 4px 20px ${isDark ? 'rgba(0,0,0,0.3)' : hexToRgba(brandColor, 0.25)}`,
                   }}>✓</div>
-                  <span style={{ fontSize: 24, color: safeSubtext(bg), fontWeight: 600 }}>{b}</span>
+                  <span style={{ fontSize: 24, color: safeSubtext(bg), fontWeight: 600, lineHeight: 1.5 }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -797,27 +816,30 @@ const SlideRenderer = ({
     case 'target_audience': {
       const { background, mode, decorBg } = getSlideBg('target_audience');
       const bg = mode;
+      const items = slide.bullets || [];
       return (
         <div style={{ ...base, background }}>
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
-          <div style={{ position: 'relative', padding: '100px 160px' }}>
-            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 20, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
+          <div style={{ position: 'relative', padding: '100px 160px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 16, lineHeight: 1.1, textShadow: textShadow(bg), letterSpacing: '-1px' }}>{slide.title}</h2>
+            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
             {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1000, textShadow: textShadow(bg) }}>{slide.body}</p>}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-              {(slide.bullets || []).map((b, i) => (
+            <div style={{ display: 'flex', gap: 36, flex: 1, alignItems: 'stretch' }}>
+              {items.map((b, i) => (
                 <div key={i} style={{
-                  display: 'flex', alignItems: 'center', gap: 20, padding: 28,
+                  flex: 1, padding: '40px 28px',
                   ...getCardStyle(bg),
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  textAlign: 'center', gap: 16,
                 }}>
                   <div style={{
-                    width: 50, height: 50, borderRadius: 16,
-                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.12)}, ${hexToRgba('#ffd93d', 0.1)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0,
+                    width: 60, height: 60, borderRadius: 18,
+                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.15)}, ${hexToRgba('#ffd93d', 0.1)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0,
                     border: isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined,
                   }}>👤</div>
-                  <span style={{ fontSize: 26, fontWeight: 600, color: safeSubtext(bg) }}>{b}</span>
+                  <span style={{ fontSize: 26, fontWeight: 600, color: safeSubtext(bg), lineHeight: 1.5 }}>{b}</span>
                 </div>
               ))}
             </div>

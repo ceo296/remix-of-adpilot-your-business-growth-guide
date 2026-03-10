@@ -14,9 +14,19 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
+    // Detect creative intuition type from prompt prefix
+    let intuitionStyle = '';
+    if (prompt.startsWith('Human Connection:')) {
+      intuitionStyle = 'Shallow depth of field (f/1.8 bokeh), warm golden hour lighting, emotional and personal. Focus on the human element with cinematic portrait quality.';
+    } else if (prompt.startsWith('Conceptual Objects:')) {
+      intuitionStyle = 'Macro photography, dramatic studio lighting, extreme detail and texture. Premium product photography aesthetic with perfect styling.';
+    } else if (prompt.startsWith('Abstract Atmosphere:')) {
+      intuitionStyle = 'Deep gradients, moody atmospheric textures, dramatic light rays. No specific objects - pure mood and emotion through color and light.';
+    }
+
     // Industry-specific style directives
     const industryStyles: Record<string, string> = {
-      'dental': 'Warm, inviting, bright and clean atmosphere. Soft natural lighting, welcoming mood. Smiling faces, hygiene, comfort.',
+      'dental': 'Warm, inviting, bright and clean atmosphere. Soft natural lighting, welcoming mood. Smiling faces, hygiene, comfort. Never dark or gloomy.',
       'medical': 'Clean, warm, professional medical environment. Soft lighting, trust and care feeling. No cold/dark tones.',
       'healthcare': 'Warm, inviting healthcare setting. Gentle lighting, comfort and trust. Pastel and warm tones.',
       'real_estate': 'Luxury architectural visualization, premium interiors/exteriors. Dramatic lighting, elegant dark tones allowed.',
@@ -27,13 +37,26 @@ serve(async (req) => {
     };
 
     const ind = (industry || '').toLowerCase();
-    const styleHint = Object.entries(industryStyles).find(([k]) => ind.includes(k))?.[1] || 'Ultra premium, photorealistic, cinematic lighting.';
+    const styleHint = Object.entries(industryStyles).find(([k]) => ind.includes(k))?.[1] || '';
 
-    const enhancedPrompt = `Create a stunning, high-quality 16:9 professional presentation slide background image. 
-${prompt}. 
-Style: ${styleHint} Shallow depth of field, professional photography. 
-Color accent hint: ${brandColor || '#E34870'}. 
-Important: No text, no letters, no words, no watermarks, no women. Clean visual only. 4K quality. If humans appear, only Haredi Orthodox Jewish men.`;
+    // Clean the prefix from the prompt
+    const cleanPrompt = prompt
+      .replace(/^Human Connection:\s*/i, '')
+      .replace(/^Conceptual Objects:\s*/i, '')
+      .replace(/^Abstract Atmosphere:\s*/i, '');
+
+    const enhancedPrompt = `Create a stunning, high-quality 16:9 professional presentation slide background image.
+
+Scene: ${cleanPrompt}
+
+${intuitionStyle ? `Creative Direction: ${intuitionStyle}` : ''}
+${styleHint ? `Industry Style: ${styleHint}` : ''}
+
+Technical: Ultra premium quality, cinematic composition, professional photography.
+Color accent hint: ${brandColor || '#E34870'}.
+CRITICAL: No text, no letters, no words, no watermarks, no women, no girls. Clean visual only.
+If humans appear, only Haredi Orthodox Jewish men/boys in dignified settings.
+4K quality, dramatic lighting, shallow depth of field.`;
 
     const models = ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'];
     let imageUrl: string | null = null;
