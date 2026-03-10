@@ -16,7 +16,8 @@ import {
   Clock,
   Image,
   Newspaper,
-  Building2
+  Building2,
+  Palette
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CampaignHistory from './CampaignHistory';
