@@ -555,13 +555,8 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
           {decorBg}
           <div style={{ padding: '100px 150px 100px 120px', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={accentLine(bg)} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: labelColor(bg), letterSpacing: 2 }}>
-                {slide.type === 'methodology' ? 'איך אנחנו עובדים' : 'תהליך העבודה'}
-              </span>
-            </div>
-            <h2 style={{ fontSize: 60, fontWeight: 900, color: safeText(bg), marginBottom: 70, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 60, fontWeight: 900, color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 60 }} />
             <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
               {(slide.steps || []).map((s, i) => (
                 <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
