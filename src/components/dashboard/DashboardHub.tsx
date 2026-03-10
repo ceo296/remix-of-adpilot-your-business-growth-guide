@@ -184,27 +184,27 @@ const DashboardHub = () => {
         <p className="text-muted-foreground">{getYouWord(honorificPreference, 'choose')} אפשרות להמשך</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto px-4">
-        {/* Campaign History Card */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto px-4">
+        {/* New Campaign Card */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100"
-          onClick={() => setCurrentView('history')}
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
+          onClick={() => setCurrentView('new-campaign')}
         >
           <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Layers className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Plus className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-blue-800 mb-2">היסטוריית קמפיינים</h3>
-            <p className="text-sm text-blue-600">
-              צפה בקמפיינים קודמים
+            <h3 className="text-xl font-bold text-violet-800 mb-2">קמפיין חדש</h3>
+            <p className="text-sm text-violet-600">
+              צור קמפיין חדש או העלה חומרים קיימים
             </p>
           </CardContent>
         </Card>
 
-        {/* Campaign Status Card - CENTER */}
+        {/* Campaign Status Card */}
         <Card 
           className={cn(
-            "cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 md:order-none order-first",
+            "cursor-pointer transition-all duration-300 hover:shadow-xl group border-2",
             activeCampaign 
               ? "border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100" 
               : "border-slate-300 bg-gradient-to-br from-slate-50 to-gray-50 hover:from-slate-100 hover:to-gray-100"
@@ -233,18 +233,34 @@ const DashboardHub = () => {
           </CardContent>
         </Card>
 
-        {/* New Campaign Card */}
+        {/* Campaign History Card */}
         <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
-          onClick={() => setCurrentView('new-campaign')}
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100"
+          onClick={() => setCurrentView('history')}
         >
           <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Plus className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Layers className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-violet-800 mb-2">קמפיין חדש</h3>
-            <p className="text-sm text-violet-600">
-              צור קמפיין חדש או העלה חומרים קיימים
+            <h3 className="text-xl font-bold text-blue-800 mb-2">היסטוריית קמפיינים</h3>
+            <p className="text-sm text-blue-600">
+              צפה בקמפיינים קודמים
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Internal Materials Card */}
+        <Card 
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100"
+          onClick={() => handleNewCampaign('internal')}
+        >
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Building2 className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-emerald-800 mb-2">חומרים פנימיים</h3>
+            <p className="text-sm text-emerald-600">
+              מצגות, פרוספקטים וחומרי שיווק
             </p>
           </CardContent>
         </Card>
