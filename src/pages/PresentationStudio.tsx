@@ -448,36 +448,41 @@ const SlideRenderer = ({
     }
 
     case 'process':
-    case 'methodology':
+    case 'methodology': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
-        <div style={{ ...base, background: '#fafafa' }}>
-          {photo && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
-          <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${dark})` }} />
+        <div style={{ ...base, background: theme === 'minimal' ? '#fafafa' : `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${brandColor}88 100%)` }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.15} />}
+          {photo && theme === 'minimal' && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
+          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${dark})` }} />}
           <div style={{ padding: '100px 150px 100px 120px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>
+              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.85)', letterSpacing: 2 }}>
                 {slide.type === 'methodology' ? 'איך אנחנו עובדים' : 'תהליך העבודה'}
               </span>
             </div>
-            <h2 style={{ fontSize: 60, fontWeight: 900, color: '#111', marginBottom: 70 }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 60, fontWeight: 900, color: safeText(bg), marginBottom: 70, textShadow: textShadow(bg) }}>{slide.title}</h2>
             <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
               {(slide.steps || []).map((s, i) => (
                 <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
                   {i < (slide.steps?.length || 0) - 1 && (
-                    <div style={{ position: 'absolute', top: 35, left: -20, width: 40, height: 3, background: `${brandColor}30` }} />
+                    <div style={{ position: 'absolute', top: 35, left: -20, width: 40, height: 3, background: theme === 'minimal' ? `${brandColor}30` : 'rgba(255,255,255,0.2)' }} />
                   )}
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: `linear-gradient(135deg, ${brandColor}, ${dark})`,
+                    background: theme === 'minimal' ? `linear-gradient(135deg, ${brandColor}, ${dark})` : 'rgba(255,255,255,0.15)',
                     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 28, fontWeight: 900, margin: '0 auto 24px',
-                    boxShadow: `0 6px 25px ${brandColor}30`,
+                    boxShadow: theme === 'minimal' ? `0 6px 25px ${brandColor}30` : '0 6px 25px rgba(0,0,0,0.2)',
+                    border: theme === 'minimal' ? 'none' : '1px solid rgba(255,255,255,0.15)',
+                    backdropFilter: theme !== 'minimal' ? 'blur(6px)' : undefined,
                   }}>
                     {s.number}
                   </div>
-                  <h3 style={{ fontSize: 28, fontWeight: 800, color: '#222', marginBottom: 12 }}>{s.title}</h3>
-                  <p style={{ fontSize: 20, color: '#666', lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
+                  <h3 style={{ fontSize: 28, fontWeight: 800, color: safeText(bg), marginBottom: 12, textShadow: textShadow(bg) }}>{s.title}</h3>
+                  <p style={{ fontSize: 20, color: safeSubtext(bg), lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -485,6 +490,7 @@ const SlideRenderer = ({
           {footer}
         </div>
       );
+    }
 
     case 'testimonial': {
       const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
