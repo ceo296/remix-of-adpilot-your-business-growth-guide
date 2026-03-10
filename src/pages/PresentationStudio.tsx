@@ -293,61 +293,70 @@ const SlideRenderer = ({
     }
 
     case 'about': {
-      const bg: 'dark' | 'light' = 'light';
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
-        <div style={{ ...base, background: '#fff' }}>
-          {/* Split layout: text right, photo left */}
-          {photo && <PhotoBg url={photo} position="left" width="42%" />}
+        <div style={{ ...base, background: theme === 'minimal' ? '#fff' : `linear-gradient(160deg, ${dark} 0%, ${brandColor}cc 50%, ${adjustColor(brandColor, 30)}aa 100%)` }}>
+          {/* Rich background */}
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.25} />}
+          {photo && theme === 'minimal' && <PhotoBg url={photo} position="left" width="42%" />}
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
           {theme !== 'minimal' && (
-            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 80, background: `linear-gradient(180deg, ${brandColor} 0%, ${dark} 100%)` }}>
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '20px 20px' }} />
-            </div>
+            <>
+              <div style={{ position: 'absolute', bottom: -200, left: -100, width: 600, height: 600, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+              <div style={{ position: 'absolute', top: -100, right: -50, width: 400, height: 400, borderRadius: '50%', background: `${light}15` }} />
+            </>
           )}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
-          <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo ? '60%' : '100%', position: 'relative' }}>
+          <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo && theme === 'minimal' ? '60%' : '100%', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 50 }}>
-              <div style={{ width: 60, height: 6, background: brandColor, borderRadius: 3 }} />
-              <span style={{ fontSize: 22, fontWeight: 600, color: brandColor, letterSpacing: 3 }}>אודות</span>
+              <div style={{ width: 60, height: 6, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 22, fontWeight: 600, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.85)', letterSpacing: 3 }}>אודות</span>
             </div>
-            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1 }}>{slide.title}</h2>
-            <p style={{ fontSize: 30, lineHeight: 2, color: safeSubtext(bg), maxWidth: 1200 }}>{slide.body}</p>
+            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <p style={{ fontSize: 30, lineHeight: 2, color: safeSubtext(bg), maxWidth: 1200, textShadow: textShadow(bg) }}>{slide.body}</p>
           </div>
           {footer}
         </div>
       );
     }
 
-    case 'services':
+    case 'services': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
-        <div style={{ ...base, background: '#fafafa' }}>
-          {/* Subtle photo accent */}
-          {photo && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
-          {theme !== 'minimal' && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 8, background: `linear-gradient(90deg, ${brandColor}, ${dark})` }} />}
+        <div style={{ ...base, background: theme === 'minimal' ? '#fafafa' : `linear-gradient(135deg, #0d0d1a 0%, ${dark} 40%, ${brandColor}99 100%)` }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.15} />}
+          {photo && theme === 'minimal' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
+          {theme !== 'minimal' && (
+            <div style={{ position: 'absolute', top: -150, left: -150, width: 500, height: 500, borderRadius: '50%', background: `${brandColor}12` }} />
+          )}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
           <div style={{ padding: '90px 140px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>השירותים שלנו</span>
+              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.85)', letterSpacing: 2 }}>השירותים שלנו</span>
             </div>
-            <h2 style={{ fontSize: 64, fontWeight: 900, color: '#111', marginBottom: 60 }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 60, textShadow: textShadow(bg) }}>{slide.title}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: 24,
                   padding: '30px 36px', borderRadius: 20,
-                  background: '#fff', boxShadow: '0 2px 20px rgba(0,0,0,0.05)',
-                  border: '1px solid #eee',
+                  background: theme === 'minimal' ? '#fff' : 'rgba(255,255,255,0.08)',
+                  boxShadow: theme === 'minimal' ? '0 2px 20px rgba(0,0,0,0.05)' : '0 4px 30px rgba(0,0,0,0.15)',
+                  border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.12)',
+                  backdropFilter: theme !== 'minimal' ? 'blur(8px)' : undefined,
                 }}>
                   <div style={{
                     width: 56, height: 56, borderRadius: 16,
-                    background: `linear-gradient(135deg, ${brandColor}, ${dark})`,
+                    background: theme === 'minimal' ? `linear-gradient(135deg, ${brandColor}, ${dark})` : `rgba(255,255,255,0.15)`,
                     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 24, fontWeight: 800, flexShrink: 0,
-                    boxShadow: `0 4px 15px ${brandColor}30`,
+                    boxShadow: theme === 'minimal' ? `0 4px 15px ${brandColor}30` : '0 4px 15px rgba(0,0,0,0.2)',
                   }}>
                     {String(i + 1).padStart(2, '0')}
                   </div>
-                  <span style={{ fontSize: 28, color: '#222', fontWeight: 600 }}>{b}</span>
+                  <span style={{ fontSize: 28, color: safeSubtext(bg), fontWeight: 600 }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -355,6 +364,7 @@ const SlideRenderer = ({
           {footer}
         </div>
       );
+    }
 
     case 'value_prop': {
       const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
@@ -401,81 +411,78 @@ const SlideRenderer = ({
       );
     }
 
-    case 'stats':
+    case 'stats': {
+      const bg: 'dark' | 'light' = 'dark';
       return (
-        <div style={{ ...base, background: '#fff' }}>
-          {/* Photo in the header band */}
-          <div style={{
-            position: 'absolute', top: 0, right: 0, left: 0, height: 350,
-            overflow: 'hidden',
-          }}>
-            {photo ? (
-              <>
-                <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${photo})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${hexToRgba(brandColor, 0.85)} 0%, ${hexToRgba(dark, 0.9)} 100%)` }} />
-              </>
-            ) : (
-              <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${brandColor} 0%, ${dark} 100%)` }} />
-            )}
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />
-          </div>
-          <svg style={{ position: 'absolute', top: 340, left: 0, width: '100%' }} viewBox="0 0 1920 60" preserveAspectRatio="none">
-            <path d="M0 0 L1920 0 L1920 30 Q960 65 0 30Z" fill={dark} />
-          </svg>
-          <div style={{ position: 'relative', padding: '80px 140px' }}>
+        <div style={{ ...base, background: `linear-gradient(135deg, ${dark} 0%, ${brandColor} 50%, ${adjustColor(brandColor, 40)} 100%)` }}>
+          {photo && <DarkPhotoBg url={photo} opacity={0.2} />}
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />
+          <div style={{ position: 'absolute', bottom: -200, right: -100, width: 600, height: 600, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+          <div style={{ position: 'relative', padding: '100px 140px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
+              <div style={{ width: 50, height: 6, background: '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: 'rgba(255,255,255,0.85)', letterSpacing: 2 }}>נתונים</span>
+            </div>
             <h2 style={{ fontSize: 60, fontWeight: 900, color: '#fff', marginBottom: 10, textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>{slide.title}</h2>
             {slide.subtitle && <p style={{ fontSize: 26, color: 'rgba(255,255,255,0.8)', marginBottom: 60, textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>{slide.subtitle}</p>}
           </div>
-          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 50, padding: '0 140px', marginTop: 40 }}>
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 50, padding: '0 140px', marginTop: -20 }}>
             {(slide.stats || []).map((s, i) => (
               <div key={i} style={{
                 textAlign: 'center', padding: '50px 40px', borderRadius: 24,
-                background: '#fff', boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
-                flex: 1, maxWidth: 350, border: '1px solid #eee',
+                background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)',
+                boxShadow: '0 8px 40px rgba(0,0,0,0.15)',
+                flex: 1, maxWidth: 350, border: '1px solid rgba(255,255,255,0.15)',
               }}>
                 <div style={{
                   fontSize: 72, fontWeight: 900, lineHeight: 1, marginBottom: 12,
-                  color: brandColor,
+                  color: '#fff', textShadow: '0 2px 15px rgba(0,0,0,0.3)',
                 }}>{s.value}</div>
-                <div style={{ fontSize: 22, color: '#666', fontWeight: 500 }}>{s.label}</div>
+                <div style={{ fontSize: 22, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{s.label}</div>
               </div>
             ))}
           </div>
           {footer}
         </div>
       );
+    }
 
     case 'process':
-    case 'methodology':
+    case 'methodology': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
-        <div style={{ ...base, background: '#fafafa' }}>
-          {photo && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
-          <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${dark})` }} />
+        <div style={{ ...base, background: theme === 'minimal' ? '#fafafa' : `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${brandColor}88 100%)` }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.15} />}
+          {photo && theme === 'minimal' && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
+          {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${dark})` }} />}
           <div style={{ padding: '100px 150px 100px 120px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>
+              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.85)', letterSpacing: 2 }}>
                 {slide.type === 'methodology' ? 'איך אנחנו עובדים' : 'תהליך העבודה'}
               </span>
             </div>
-            <h2 style={{ fontSize: 60, fontWeight: 900, color: '#111', marginBottom: 70 }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 60, fontWeight: 900, color: safeText(bg), marginBottom: 70, textShadow: textShadow(bg) }}>{slide.title}</h2>
             <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
               {(slide.steps || []).map((s, i) => (
                 <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
                   {i < (slide.steps?.length || 0) - 1 && (
-                    <div style={{ position: 'absolute', top: 35, left: -20, width: 40, height: 3, background: `${brandColor}30` }} />
+                    <div style={{ position: 'absolute', top: 35, left: -20, width: 40, height: 3, background: theme === 'minimal' ? `${brandColor}30` : 'rgba(255,255,255,0.2)' }} />
                   )}
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: `linear-gradient(135deg, ${brandColor}, ${dark})`,
+                    background: theme === 'minimal' ? `linear-gradient(135deg, ${brandColor}, ${dark})` : 'rgba(255,255,255,0.15)',
                     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 28, fontWeight: 900, margin: '0 auto 24px',
-                    boxShadow: `0 6px 25px ${brandColor}30`,
+                    boxShadow: theme === 'minimal' ? `0 6px 25px ${brandColor}30` : '0 6px 25px rgba(0,0,0,0.2)',
+                    border: theme === 'minimal' ? 'none' : '1px solid rgba(255,255,255,0.15)',
+                    backdropFilter: theme !== 'minimal' ? 'blur(6px)' : undefined,
                   }}>
                     {s.number}
                   </div>
-                  <h3 style={{ fontSize: 28, fontWeight: 800, color: '#222', marginBottom: 12 }}>{s.title}</h3>
-                  <p style={{ fontSize: 20, color: '#666', lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
+                  <h3 style={{ fontSize: 28, fontWeight: 800, color: safeText(bg), marginBottom: 12, textShadow: textShadow(bg) }}>{s.title}</h3>
+                  <p style={{ fontSize: 20, color: safeSubtext(bg), lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -483,6 +490,7 @@ const SlideRenderer = ({
           {footer}
         </div>
       );
+    }
 
     case 'testimonial': {
       const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
@@ -677,34 +685,41 @@ const SlideRenderer = ({
       );
     }
 
-    case 'social_proof':
+    case 'social_proof': {
+      const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
       return (
-        <div style={{ ...base, background: '#fafafa' }}>
-          {photo && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
-          {theme !== 'minimal' && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 8, background: `linear-gradient(90deg, ${brandColor}, ${dark})` }} />}
+        <div style={{ ...base, background: theme === 'minimal' ? '#fafafa' : `linear-gradient(150deg, ${adjustColor(brandColor, -60)} 0%, ${dark} 50%, ${brandColor}bb 100%)` }}>
+          {photo && theme !== 'minimal' && <DarkPhotoBg url={photo} opacity={0.15} />}
+          {photo && theme === 'minimal' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
+          {theme !== 'minimal' && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />}
+          {theme !== 'minimal' && (
+            <div style={{ position: 'absolute', top: -100, left: -100, width: 500, height: 500, borderRadius: '50%', background: `${light}08` }} />
+          )}
           {theme === 'minimal' && <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />}
           <div style={{ padding: '90px 140px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-              <div style={{ width: 50, height: 6, background: brandColor, borderRadius: 3 }} />
-              <span style={{ fontSize: 20, fontWeight: 600, color: brandColor, letterSpacing: 2 }}>למה דווקא אנחנו?</span>
+              <div style={{ width: 50, height: 6, background: theme === 'minimal' ? brandColor : '#fff', borderRadius: 3 }} />
+              <span style={{ fontSize: 20, fontWeight: 600, color: theme === 'minimal' ? brandColor : 'rgba(255,255,255,0.85)', letterSpacing: 2 }}>למה דווקא אנחנו?</span>
             </div>
-            <h2 style={{ fontSize: 64, fontWeight: 900, color: '#111', marginBottom: 60 }}>{slide.title}</h2>
+            <h2 style={{ fontSize: 64, fontWeight: 900, color: safeText(bg), marginBottom: 60, textShadow: textShadow(bg) }}>{slide.title}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: (slide.bullets?.length || 0) > 4 ? '1fr 1fr 1fr' : '1fr 1fr', gap: 28 }}>
               {(slide.bullets || []).map((b, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: 20,
                   padding: '28px 32px', borderRadius: 20,
-                  background: '#fff', boxShadow: '0 2px 20px rgba(0,0,0,0.04)',
-                  border: '1px solid #eee',
+                  background: theme === 'minimal' ? '#fff' : 'rgba(255,255,255,0.08)',
+                  boxShadow: theme === 'minimal' ? '0 2px 20px rgba(0,0,0,0.04)' : '0 4px 25px rgba(0,0,0,0.15)',
+                  border: theme === 'minimal' ? '1px solid #eee' : '1px solid rgba(255,255,255,0.12)',
+                  backdropFilter: theme !== 'minimal' ? 'blur(8px)' : undefined,
                 }}>
                   <div style={{
                     width: 48, height: 48, borderRadius: 14,
-                    background: hexToRgba(brandColor, 0.1),
-                    color: brandColor,
+                    background: theme === 'minimal' ? hexToRgba(brandColor, 0.1) : 'rgba(255,255,255,0.15)',
+                    color: theme === 'minimal' ? brandColor : '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 22, fontWeight: 800, flexShrink: 0,
                   }}>✓</div>
-                  <span style={{ fontSize: 24, color: '#222', fontWeight: 600 }}>{b}</span>
+                  <span style={{ fontSize: 24, color: safeSubtext(bg), fontWeight: 600 }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -712,6 +727,7 @@ const SlideRenderer = ({
           {footer}
         </div>
       );
+    }
 
     case 'target_audience': {
       const bg: 'dark' | 'light' = theme === 'minimal' ? 'light' : 'dark';
@@ -1225,7 +1241,25 @@ const PresentationStudio = () => {
             </div>
           </div>
 
-          <div className="flex-1 bg-muted/30 flex items-center justify-center p-8 overflow-hidden">
+          <div className="flex-1 bg-muted/30 flex items-center justify-center p-8 overflow-hidden relative group">
+            {/* Floating nav arrows */}
+            {activeSlide > 0 && (
+              <button
+                onClick={() => setActiveSlide(prev => prev - 1)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+            {activeSlide < slides.length - 1 && (
+              <button
+                onClick={() => setActiveSlide(prev => prev + 1)}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
             <div className="relative shadow-2xl rounded-lg overflow-hidden" style={{ width: 'min(100%, 960px)', aspectRatio: '16/9' }}>
               <SlideRenderer slide={currentSlide} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={0.5} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={activeSlide} address={address} />
               {currentSlide.imageLoading && !currentSlide.imageUrl && (
@@ -1237,16 +1271,11 @@ const PresentationStudio = () => {
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="flex items-center justify-center gap-4 py-2 bg-card border-t border-border">
-            <Button variant="ghost" size="sm" disabled={activeSlide === 0} onClick={() => setActiveSlide(prev => prev - 1)}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground">{activeSlide + 1} / {slides.length}</span>
-            <Button variant="ghost" size="sm" disabled={activeSlide === slides.length - 1} onClick={() => setActiveSlide(prev => prev + 1)}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
+            {/* Bottom slide counter */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm rounded-full px-4 py-1.5 text-white/80 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {activeSlide + 1} / {slides.length}
+            </div>
           </div>
         </div>
 
