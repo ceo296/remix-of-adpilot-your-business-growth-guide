@@ -136,6 +136,8 @@ const InternalStudio = () => {
   const [paperType, setPaperType] = useState('matte');
   const [cardSize, setCardSize] = useState('90x50');
 
+  const [showBrandingStudio, setShowBrandingStudio] = useState(false);
+
   const currentCategory = TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory);
   const needsContactPicker = selectedCategory === 'business-cards' || selectedCategory === 'letterhead';
 
