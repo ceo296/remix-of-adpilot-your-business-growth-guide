@@ -525,18 +525,20 @@ const SlideRenderer = ({
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 50, padding: '0 140px', marginTop: -20 }}>
             {(slide.stats || []).map((s, i) => (
               <div key={i} style={{
-                textAlign: 'center', padding: '50px 40px', borderRadius: 24,
+                textAlign: 'center', padding: '50px 30px', borderRadius: 24,
                 background: isCreative ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(12px)',
                 boxShadow: '0 8px 40px rgba(0,0,0,0.15)',
-                flex: 1, maxWidth: 350,
+                flex: 1, maxWidth: 400, overflow: 'hidden',
                 border: isCreative ? '2px solid rgba(255,255,255,0.25)' : '1px solid rgba(255,255,255,0.15)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               }}>
                 <div style={{
-                  fontSize: 72, fontWeight: 900, lineHeight: 1, marginBottom: 12,
+                  fontSize: 64, fontWeight: 900, lineHeight: 1, marginBottom: 16,
                   color: '#fff', textShadow: '0 2px 15px rgba(0,0,0,0.3)',
+                  wordBreak: 'keep-all', whiteSpace: 'nowrap',
                 }}>{s.value}</div>
-                <div style={{ fontSize: 22, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>{s.label}</div>
+                <div style={{ fontSize: 22, color: 'rgba(255,255,255,0.75)', fontWeight: 500, wordBreak: 'keep-all' }}>{s.label}</div>
               </div>
             ))}
           </div>
