@@ -160,7 +160,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [phase, setPhase] = useState<StudioPhase>('brief');
   const [briefStep, setBriefStep] = useState(0);
   const [briefData, setBriefData] = useState<BriefData>({
-    businessName: businessName || '', essence: '', differentiator: '', persona: '', audience: '', vision: '', designPreferences: '',
+    businessName: businessName || '', essence: '', subField: '', differentiator: '', persona: '', audience: '', vision: '', designPreferences: '',
   });
   const [generationStep, setGenerationStep] = useState(0);
   const [brandResult, setBrandResult] = useState<BrandResult | null>(null);
