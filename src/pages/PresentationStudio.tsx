@@ -780,7 +780,7 @@ const SlideRenderer = ({
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 180px' }}>
-            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 20, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) })}>{slide.title}</h2>
             <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 30 }} />
             {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: safeSubtext(bg), maxWidth: 1300, textShadow: textShadow(bg) }}>{slide.body}</p>}
             {slide.bullets && (
