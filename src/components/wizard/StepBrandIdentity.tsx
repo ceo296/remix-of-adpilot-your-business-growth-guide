@@ -28,8 +28,12 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
   const [editingColor, setEditingColor] = useState<'primary' | 'secondary' | 'background' | null>(null);
   const [isExtractingColors, setIsExtractingColors] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fontFileInputRef = useRef<HTMLInputElement>(null);
   const hasAttemptedAutoExtract = useRef(false);
   const [detectedFontInfo, setDetectedFontInfo] = useState<{ name: string; confidence: string; isAvailable: boolean } | null>(null);
+  const [isUploadingFont, setIsUploadingFont] = useState(false);
+  const [uploadedPrivateFont, setUploadedPrivateFont] = useState<string | null>(null);
+  const { uploadPrivateFont, getAllFontFamilies, fonts: customFonts } = useCustomFonts();
 
   // Auto-extract colors if logo exists but colors are all default/white
   useEffect(() => {
