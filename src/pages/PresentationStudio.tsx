@@ -232,6 +232,24 @@ const SlideRenderer = ({
 
   const footer = <LogoFooter logoUrl={logoUrl} businessName={businessName} brandColor={brandColor} phone={phone} theme={slide.type === 'cover' ? (isMinimal ? 'minimal' : 'corporate') : theme} />;
 
+  // Typography helpers
+  const titleStyle = (fontSize: number, extra?: React.CSSProperties): React.CSSProperties => ({
+    fontFamily: `"${headerFont}", "${typoConfig.headerFamily}", serif`,
+    fontWeight: typoConfig.headerWeight,
+    lineHeight: typoConfig.headerLineHeight,
+    letterSpacing: typoConfig.headerLetterSpacing,
+    fontSize,
+    ...extra,
+  });
+
+  const bodyStyle = (fontSize: number, extra?: React.CSSProperties): React.CSSProperties => ({
+    fontFamily: `"${bodyFont}", "Assistant", sans-serif`,
+    fontWeight: typoConfig.bodyWeight,
+    lineHeight: typoConfig.bodyLineHeight,
+    fontSize,
+    ...extra,
+  });
+
   // Ensure readable text: always dark text on light bg, white text on dark bg
   const safeText = (bg: 'dark' | 'light') => bg === 'dark' ? '#ffffff' : '#111111';
   const safeSubtext = (bg: 'dark' | 'light') => bg === 'dark' ? 'rgba(255,255,255,0.8)' : '#555555';
