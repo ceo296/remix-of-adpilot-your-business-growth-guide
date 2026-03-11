@@ -572,9 +572,9 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                         <Palette className="w-4 h-4 text-primary" />
                         צבעוניות
                       </h4>
-                      {selectedDirection.colorDescription && (
-                        <p className="text-sm text-muted-foreground mt-1">{selectedDirection.colorDescription}</p>
-                      )}
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {buildColorDescription(selectedDirection.colors)}
+                      </p>
                     </div>
                     {swapSource && (
                       <Button variant="ghost" size="sm" onClick={() => setSwapSource(null)} className="text-xs gap-1">
@@ -582,6 +582,12 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                       </Button>
                     )}
                   </div>
+                  {!swapSource && (
+                    <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
+                      <p>🎨 <strong>לחצו על צבע</strong> ואז על צבע אחר כדי <strong>להחליף ביניהם</strong></p>
+                      <p>🔄 <strong>לחצו על החץ</strong> שמתחת לצבע כדי <strong>לייצר גוון חדש</strong></p>
+                    </div>
+                  )}
                   {swapSource && (
                     <p className="text-sm text-primary font-medium text-center animate-pulse">🔄 לחצו על צבע אחר להחלפת מיקומים</p>
                   )}
