@@ -111,6 +111,8 @@ const AdminDashboard = () => {
         return <AIModelConfigsAdmin />;
       case 'templates':
         return <TemplateEditor />;
+      case 'fonts':
+        return <FontManager />;
       case 'clients':
         return <ClientOverview />;
       case 'branding':
