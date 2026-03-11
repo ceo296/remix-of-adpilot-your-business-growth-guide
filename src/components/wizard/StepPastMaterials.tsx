@@ -427,14 +427,17 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           <div className="flex-1 h-px bg-border"></div>
           <div className="flex items-center gap-2">
             <Layout className="w-5 h-5 text-primary" />
-            <span className="text-base font-bold text-foreground">חומרי פרסום קודמים לניתוח גריד</span>
+            <span className="text-base font-bold text-foreground">העלו חומרי פרסום</span>
           </div>
           <div className="flex-1 h-px bg-border"></div>
         </div>
 
-        <p className="text-center text-sm text-muted-foreground mb-6">
-          העלו מודעה ישנה ונלמד ממנה את הגריד, הפריסה ומיקום הלוגו. ככה נמשיך את הקו שלכם. 
-        </p>
+        <div className="text-center text-sm text-muted-foreground mb-6 space-y-1">
+          <p>מודעות, פרוספקטים, ברושורים — ככל שיותר, יותר טוב!</p>
+          <p className="text-xs text-primary/80 font-medium">
+            🎨 מהצבעים שבחומרים האלו נמשיך את הקו העיצובי שלכם. סמנו מה עדכני ומה ישן.
+          </p>
+        </div>
 
         <input
           ref={fileInputRef}
