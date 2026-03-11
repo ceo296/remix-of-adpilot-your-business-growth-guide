@@ -269,6 +269,7 @@ The icon should be simple enough to work as a standalone favicon.`
       try {
         const logoPrompt = `Create a professional logo for "${businessName || 'Brand'}".
 Business field: ${essence}
+${subField ? `Specific products/services & atmosphere: ${subField}` : ''}
 COLORS: Primary ${dir.colors.primary}, Secondary ${dir.colors.secondary}, Accent ${dir.colors.accent}
 
 LOGO STYLE: ${logoLayout.style.toUpperCase()}
