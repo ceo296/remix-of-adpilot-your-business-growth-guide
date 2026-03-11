@@ -550,8 +550,11 @@ export type Database = {
           file_url: string
           id: string
           is_active: boolean
+          is_private: boolean
           name: string
           name_he: string | null
+          owner_client_profile_id: string | null
+          owner_user_id: string | null
           source: string | null
           style: string
           updated_at: string
@@ -564,8 +567,11 @@ export type Database = {
           file_url: string
           id?: string
           is_active?: boolean
+          is_private?: boolean
           name: string
           name_he?: string | null
+          owner_client_profile_id?: string | null
+          owner_user_id?: string | null
           source?: string | null
           style?: string
           updated_at?: string
@@ -578,14 +584,25 @@ export type Database = {
           file_url?: string
           id?: string
           is_active?: boolean
+          is_private?: boolean
           name?: string
           name_he?: string | null
+          owner_client_profile_id?: string | null
+          owner_user_id?: string | null
           source?: string | null
           style?: string
           updated_at?: string
           weight?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "custom_fonts_owner_client_profile_id_fkey"
+            columns: ["owner_client_profile_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       generated_images: {
         Row: {
