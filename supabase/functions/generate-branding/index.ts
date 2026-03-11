@@ -173,26 +173,57 @@ CRITICAL RULES:
     console.log("Step 2: Generating logos and mockups for each direction...");
 
     const directionResults = [];
+    // 3 distinct logo layout styles - one per direction for variety
+    const logoLayoutStyles = [
+      {
+        style: "typographic",
+        instruction: `PURELY TYPOGRAPHIC logo - absolutely NO icons, NO symbols, NO imagery.
+The entire logo is ONLY the Hebrew letters of "${businessName || 'Brand'}".
+Use creative typography: play with letter weight, spacing, ligatures, or a unique custom letterform style.
+Think of logos like FedEx, Google, or Coca-Cola - the name IS the logo.
+The typography should feel premium, distinctive, and memorable. No clip art, no stock-style icons.`
+      },
+      {
+        style: "icon-integrated",
+        instruction: `A logo where a subtle symbol is CREATIVELY WOVEN INTO the Hebrew letters of "${businessName || 'Brand'}".
+A letter could transform into a relevant object, negative space within letters could form a shape,
+or a stroke could morph into a business-related element related to: ${essence}.
+Think of the FedEx arrow, the Amazon smile, or the Spartan Golf Club logo.
+The icon should be DISCOVERED within the typography, not placed separately. No separate icon floating above text.`
+      },
+      {
+        style: "icon-beside",
+        instruction: `A logo with a clean, modern, ABSTRACT ICON placed to the LEFT of the Hebrew name "${businessName || 'Brand'}".
+The icon should be geometric and abstract - representing ${essence} symbolically (like Apple's apple, Nike's swoosh).
+NOT a literal illustration or clip art. The icon and text should be on the SAME LINE, side by side.
+The icon should be simple enough to work as a standalone favicon.`
+      }
+    ];
+
     for (let i = 0; i < Math.min(directions.length, 3); i++) {
       const dir = directions[i];
-      console.log(`Direction ${i + 1}: ${dir.nameEn} — generating logo...`);
+      const logoLayout = logoLayoutStyles[i];
+      console.log(`Direction ${i + 1}: ${dir.nameEn} — generating ${logoLayout.style} logo...`);
 
-      // Generate logo
       let logoImage = null;
       try {
-        const logoPrompt = `Create a professional logo for a business called "${businessName || 'Brand'}".
+        const logoPrompt = `Create a professional logo for "${businessName || 'Brand'}".
 Business field: ${essence}
-COLOR PALETTE TO USE: Primary ${dir.colors.primary}, Secondary ${dir.colors.secondary}, Accent ${dir.colors.accent}
+COLORS: Primary ${dir.colors.primary}, Secondary ${dir.colors.secondary}, Accent ${dir.colors.accent}
+
+LOGO STYLE: ${logoLayout.style.toUpperCase()}
+${logoLayout.instruction}
+
 DESIGN DIRECTIVE: ${dir.logoDirective}
 
-CRITICAL RULES:
-- The business name "${businessName || 'Brand'}" MUST appear clearly in Hebrew as part of the logo
-- Use ONLY the colors specified above
-- On a clean white background, centered, with generous padding
+RULES:
+- Business name "${businessName || 'Brand'}" MUST appear clearly in Hebrew
+- Use ONLY the specified colors
+- Clean white background, centered, generous padding
 - High resolution, crisp edges, professional quality
-- This must feel premium and sophisticated
-- IRON RULE: Logo icons/symbols MUST represent the actual business field ("${essence}"). NEVER use generic religious items unless the business itself sells religious items.
-- The "Haredi touch" should come ONLY through Hebrew typography style and color palette choices.`;
+- Must feel premium and sophisticated - NOT like stock imagery or clip art
+- NEVER use religious items (scrolls, menorahs) unless the business sells them
+- Haredi touch comes ONLY through Hebrew typography style and color palette`;
 
         const logoData = await aiCall("google/gemini-3.1-flash-image-preview",
           [{ role: "user", content: logoPrompt }], ["image", "text"]);
@@ -201,7 +232,6 @@ CRITICAL RULES:
         console.error(`Logo ${i} error:`, e);
       }
 
-      // Generate only 1 mockup per direction to avoid timeout
       const mockupScenes = dir.mockupScenes || [dir.mockupScene || 'Professional business card on elegant desk'];
       let mockupImage: string | null = null;
       try {
@@ -231,12 +261,12 @@ The mockup must feel luxurious and real.`;
         colorEmotion: dir.colorEmotion || null,
         fonts: dir.fonts,
         logo: logoImage,
+        logoStyle: logoLayout.style,
         mockup: mockupImage,
         mockups: mockupImage ? [mockupImage] : [],
         worldReferences: dir.worldReferences || [],
       });
 
-      // Small delay between directions to avoid rate limits
       if (i < 2) await new Promise(r => setTimeout(r, 500));
     }
 
