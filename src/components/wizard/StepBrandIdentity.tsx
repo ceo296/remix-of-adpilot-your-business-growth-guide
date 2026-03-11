@@ -194,6 +194,39 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
     });
   };
 
+  const handlePrivateFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !detectedFontInfo) return;
+
+    setIsUploadingFont(true);
+    toast.loading('הפונט שלך בידיים טובות (ורק שלך!) 🔒', { id: 'font-upload' });
+
+    try {
+      const font = await uploadPrivateFont(file, detectedFontInfo.name);
+      if (font) {
+        setUploadedPrivateFont(font.family);
+        // Update the brand fonts to use the uploaded font
+        updateData({
+          brand: {
+            headerFont: font.family,
+          },
+        });
+        setDetectedFontInfo(prev => prev ? { ...prev, isAvailable: true } : null);
+        toast.success(
+          `הפונט "${font.name}" הוגדר לשימוש בלעדי ופרטי עבור המותג שלך בלבד. אף לקוח אחר במערכת לא יוכל להשתמש בפונט הזה. 🔒`,
+          { id: 'font-upload', duration: 10000 }
+        );
+      } else {
+        toast.dismiss('font-upload');
+      }
+    } catch (err) {
+      console.error('Private font upload failed:', err);
+      toast.error('שגיאה בהעלאת הפונט', { id: 'font-upload' });
+    } finally {
+      setIsUploadingFont(false);
+    }
+  };
+
   const handleManualExtractColors = async () => {
     if (!data.brand.logo) {
       toast.error('אין לוגו – העלו לוגו קודם');
