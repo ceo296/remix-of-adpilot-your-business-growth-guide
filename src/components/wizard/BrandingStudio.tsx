@@ -27,6 +27,7 @@ interface BrandingStudioProps {
 interface BriefData {
   businessName: string;
   essence: string;
+  subField: string;
   differentiator: string;
   persona: string;
   audience: string;
