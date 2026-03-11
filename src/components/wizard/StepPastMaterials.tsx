@@ -32,7 +32,44 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
   const [showNoMaterialsFlow, setShowNoMaterialsFlow] = useState(false);
   const [validationError, setValidationError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
+  // Generate complementary colors from a base hex color
+  const generateComplementaryColors = (baseHex: string) => {
+    // Convert hex to HSL, then create complementary/analogous colors
+    const r = parseInt(baseHex.slice(1, 3), 16) / 255;
+    const g = parseInt(baseHex.slice(3, 5), 16) / 255;
+    const b = parseInt(baseHex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+      else if (max === g) h = ((b - r) / d + 2) / 6;
+      else h = ((r - g) / d + 4) / 6;
+    }
+    // Create a complementary color (shift hue by ~180°) and analogous
+    const compH = (h + 0.5) % 1;
+    const hslToHex = (hue: number, sat: number, lit: number) => {
+      const hue2rgb = (p: number, q: number, t: number) => {
+        if (t < 0) t += 1; if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+      };
+      const q2 = lit < 0.5 ? lit * (1 + sat) : lit + sat - lit * sat;
+      const p2 = 2 * lit - q2;
+      const r2 = Math.round(hue2rgb(p2, q2, hue + 1/3) * 255);
+      const g2 = Math.round(hue2rgb(p2, q2, hue) * 255);
+      const b2 = Math.round(hue2rgb(p2, q2, hue - 1/3) * 255);
+      return `#${r2.toString(16).padStart(2,'0')}${g2.toString(16).padStart(2,'0')}${b2.toString(16).padStart(2,'0')}`;
+    };
+    const secondary = hslToHex(compH, Math.min(s * 0.8, 0.7), Math.min(l + 0.1, 0.6));
+    updateData({ brand: { colors: { secondary } } });
+    toast.success('צבע משלים נוצר על בסיס הלוגו!', { icon: '🎨' });
+  };
 
   const handleNext = () => {
     const hasService = (data.websiteInsights?.services || []).length > 0;
@@ -427,14 +464,17 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
           <div className="flex-1 h-px bg-border"></div>
           <div className="flex items-center gap-2">
             <Layout className="w-5 h-5 text-primary" />
-            <span className="text-base font-bold text-foreground">חומרי פרסום קודמים לניתוח גריד</span>
+            <span className="text-base font-bold text-foreground">העלו חומרי פרסום</span>
           </div>
           <div className="flex-1 h-px bg-border"></div>
         </div>
 
-        <p className="text-center text-sm text-muted-foreground mb-6">
-          העלו מודעה ישנה ונלמד ממנה את הגריד, הפריסה ומיקום הלוגו. ככה נמשיך את הקו שלכם. 
-        </p>
+        <div className="text-center text-sm text-muted-foreground mb-6 space-y-1">
+          <p>מודעות, פרוספקטים, ברושורים — ככל שיותר, יותר טוב!</p>
+          <p className="text-xs text-primary/80 font-medium">
+            🎨 מהצבעים שבחומרים האלו נמשיך את הקו העיצובי שלכם. סמנו מה עדכני ומה ישן.
+          </p>
+        </div>
 
         <input
           ref={fileInputRef}
@@ -472,17 +512,28 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
                 {data.pastMaterials.map((material) => {
                   const isAnalyzing = analyzingIds.has(material.id);
                   const hasAnalysis = !!material.adAnalysis;
+                  const isRecent = material.isRecent !== false; // default to recent
                   return (
-                    <div key={material.id} className="relative group rounded-xl overflow-hidden border-2 border-border shadow-md" onClick={(e) => e.stopPropagation()}>
+                    <div key={material.id} className={`relative group rounded-xl overflow-hidden border-2 shadow-md transition-all ${isRecent ? 'border-emerald-500/50' : 'border-amber-500/50 opacity-75'}`} onClick={(e) => e.stopPropagation()}>
                       {material.type === 'image' ? (
                         <img src={material.preview} alt={material.name} className="w-full h-36 object-cover" />
                       ) : (
                         <div className="w-full h-36 bg-secondary flex items-center justify-center"><FileText className="w-10 h-10 text-muted-foreground" /></div>
                       )}
-                      <div className="absolute top-2 right-2">
+                      <div className="absolute top-2 right-2 flex gap-1">
                         {isAnalyzing && (<Badge className="bg-primary/90 text-primary-foreground gap-1 animate-pulse"><Loader2 className="h-3 w-3 animate-spin" />מנתח...</Badge>)}
                         {hasAnalysis && !isAnalyzing && (<Badge className="bg-emerald-600 text-white gap-1 cursor-pointer hover:bg-emerald-700" onClick={() => setViewingAnalysis(material)}><Sparkles className="h-3 w-3" />נותח ✓</Badge>)}
                       </div>
+                      {/* Recent/Old toggle */}
+                      <button
+                        onClick={() => {
+                          const updated = data.pastMaterials.map(m => m.id === material.id ? { ...m, isRecent: !isRecent } : m);
+                          updateData({ pastMaterials: updated });
+                        }}
+                        className={`absolute top-2 left-8 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md transition-colors ${isRecent ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}
+                      >
+                        {isRecent ? 'עדכני' : 'ישן'}
+                      </button>
                       {hasAnalysis && !isAnalyzing && (
                         <button onClick={() => setViewingAnalysis(material)} className="absolute inset-0 bg-foreground/0 hover:bg-foreground/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                           <span className="bg-background/90 text-foreground px-3 py-1.5 rounded-lg text-sm font-medium">צפה בניתוח</span>
@@ -519,17 +570,23 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
                 <div className="w-14 h-14 mx-auto rounded-xl bg-amber-400/20 flex items-center justify-center">
                   <AlertTriangle className="w-7 h-7 text-amber-500" />
                 </div>
-                <h4 className="text-lg font-bold text-foreground">אין בעיה! נבנה לכם גריד חדש מאפס</h4>
+                <h4 className="text-lg font-bold text-foreground">אין בעיה! נבנה לכם פלטת צבעים משלימה</h4>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  המערכת תבנה לכם תבנית עיצובית חדשה על בסיס הלוגו, הצבעים, הפונטים וההעדפות שהגדרתם. 
-                  זה אומר שהמודעות הראשונות שלכם יראו מקצועיות אבל לא ימשיכו קו עיצובי קיים.
+                  ניקח את הצבע מהלוגו שלכם ונבנה סביבו צבעים משלימים שייראו מקצועי ומדויק. 
+                  הצבע מהלוגו ישולב תמיד בכל חומר שניצור — בכותרות, בטקסטים, או כאקסנט.
                 </p>
                 <div className="flex justify-center gap-4">
                   <Button variant="default" size="lg" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="w-5 h-5 ml-2" />
                     בעצם יש לי משהו
                   </Button>
-                  <Button variant="outline" size="lg" onClick={handleNext}>
+                  <Button variant="outline" size="lg" onClick={() => {
+                    // Generate complementary colors from logo
+                    if (data.brand.colors.primary && data.brand.colors.primary !== '#FFFFFF' && data.brand.colors.primary !== '') {
+                      generateComplementaryColors(data.brand.colors.primary);
+                    }
+                    handleNext();
+                  }}>
                     מעולה, תבנו לי חדש
                     <ArrowLeft className="w-5 h-5 mr-2" />
                   </Button>
