@@ -184,7 +184,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
     if (isOpen) {
       setPhase('brief');
       setBriefStep(0);
-      setBriefData({ businessName: businessName || '', essence: '', differentiator: '', persona: '', audience: '', vision: '', designPreferences: '' });
+      setBriefData({ businessName: businessName || '', essence: '', subField: '', differentiator: '', persona: '', audience: '', vision: '', designPreferences: '' });
       setBrandResult(null);
       setSelectedDirectionIndex(0);
       setSelectedTaglineIndex(null);
