@@ -474,7 +474,7 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {decorBg}
           <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg), letterSpacing: '-1px' }}>{slide.title}</h2>
+            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
             <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
             {slide.subtitle && <p style={{ fontSize: 26, color: safeMuted(bg), marginBottom: 40, maxWidth: 900 }}>{slide.subtitle}</p>}
             <div style={{
