@@ -421,6 +421,24 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
               <Type className="w-5 h-5 text-primary" />
               הפונטים
             </h3>
+
+            {/* Detected font notice */}
+            {detectedFontInfo && !detectedFontInfo.isAvailable && (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 space-y-1">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <p className="text-sm font-medium text-foreground">
+                    זיהינו: <span className="font-bold">"{detectedFontInfo.name}"</span>
+                  </p>
+                  <Badge variant="outline" className="text-[10px]">
+                    {detectedFontInfo.confidence === 'high' ? 'ביטחון גבוה' : detectedFontInfo.confidence === 'medium' ? 'בינוני' : 'נמוך'}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  פונט זה לא קיים כרגע במערכת (פונט בתשלום). הצענו את החלופה הקרובה ביותר מהפונטים הזמינים.
+                </p>
+              </div>
+            )}
             
             <div className="space-y-6">
               <div className="space-y-3">
@@ -429,17 +447,20 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
                   value={data.brand.headerFont}
                   onValueChange={(value) => handleFontChange('headerFont', value)}
                 >
-                  <SelectTrigger className="h-14 text-base">
+                  <SelectTrigger className="h-14 text-base" style={{ fontFamily: data.brand.headerFont }}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {FONT_OPTIONS.map((font) => (
-                      <SelectItem key={font} value={font} className="text-base py-3">
-                        {font}
+                      <SelectItem key={font} value={font} className="text-base py-3" style={{ fontFamily: font }}>
+                        {FONT_LABELS[font] || font} <span className="text-xs text-muted-foreground mr-2">({font})</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xl font-bold text-foreground" style={{ fontFamily: data.brand.headerFont }}>
+                  דוגמה לכותרת בפונט {FONT_LABELS[data.brand.headerFont] || data.brand.headerFont}
+                </p>
               </div>
 
               <div className="space-y-3">
@@ -448,17 +469,20 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
                   value={data.brand.bodyFont}
                   onValueChange={(value) => handleFontChange('bodyFont', value)}
                 >
-                  <SelectTrigger className="h-14 text-base">
+                  <SelectTrigger className="h-14 text-base" style={{ fontFamily: data.brand.bodyFont }}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {FONT_OPTIONS.map((font) => (
-                      <SelectItem key={font} value={font} className="text-base py-3">
-                        {font}
+                      <SelectItem key={font} value={font} className="text-base py-3" style={{ fontFamily: font }}>
+                        {FONT_LABELS[font] || font} <span className="text-xs text-muted-foreground mr-2">({font})</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-sm text-muted-foreground" style={{ fontFamily: data.brand.bodyFont }}>
+                  דוגמה לטקסט גוף בפונט {FONT_LABELS[data.brand.bodyFont] || data.brand.bodyFont}
+                </p>
               </div>
             </div>
           </CardContent>
