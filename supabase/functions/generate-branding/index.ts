@@ -236,17 +236,28 @@ RULES:
       let mockupImage: string | null = null;
       try {
         console.log(`Direction ${i + 1}: generating mockup...`);
-        const mockupPrompt = `Create a photorealistic mockup visualization for a brand called "${businessName || 'Brand'}".
+        const mockupPrompt = `Create a photorealistic mockup visualization for the brand "${businessName || 'Brand'}".
 Business field: ${essence}
 Scene: ${mockupScenes[0]}
 Brand colors: Primary ${dir.colors.primary}, Secondary ${dir.colors.secondary}, Background ${dir.colors.background}
+
+CRITICAL: The attached image is the EXACT logo for this brand. You MUST place THIS EXACT LOGO (same typography, same colors, same icon/layout) onto the mockup product. 
+Do NOT redesign or reinterpret the logo. Copy it EXACTLY as shown in the attached image onto the product/packaging/item in the scene.
+
 Style: High-end product photography. Elegant lighting, shallow depth of field.
-Show the brand's visual identity (colors, patterns) applied to the physical item.
-NO text or letters in the image - just show the colors and design applied to the object.
-The mockup must feel luxurious and real.`;
+The mockup must feel luxurious and real, with the EXACT logo clearly visible on the product.`;
+
+        // Build message content - include logo image if available
+        const mockupMessageContent: any[] = [{ type: "text", text: mockupPrompt }];
+        if (logoImage) {
+          mockupMessageContent.push({
+            type: "image_url",
+            image_url: { url: logoImage }
+          });
+        }
 
         const mockupData = await aiCall("google/gemini-3.1-flash-image-preview",
-          [{ role: "user", content: mockupPrompt }], ["image", "text"]);
+          [{ role: "user", content: mockupMessageContent }], ["image", "text"]);
         mockupImage = mockupData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
       } catch (e) {
         console.error(`Mockup ${i} error:`, e);
