@@ -542,6 +542,51 @@ export type Database = {
           },
         ]
       }
+      custom_fonts: {
+        Row: {
+          created_at: string
+          family: string
+          file_format: string
+          file_url: string
+          id: string
+          is_active: boolean
+          name: string
+          name_he: string | null
+          source: string | null
+          style: string
+          updated_at: string
+          weight: string
+        }
+        Insert: {
+          created_at?: string
+          family: string
+          file_format?: string
+          file_url: string
+          id?: string
+          is_active?: boolean
+          name: string
+          name_he?: string | null
+          source?: string | null
+          style?: string
+          updated_at?: string
+          weight?: string
+        }
+        Update: {
+          created_at?: string
+          family?: string
+          file_format?: string
+          file_url?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_he?: string | null
+          source?: string | null
+          style?: string
+          updated_at?: string
+          weight?: string
+        }
+        Relationships: []
+      }
       generated_images: {
         Row: {
           created_at: string
