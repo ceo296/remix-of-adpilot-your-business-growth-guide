@@ -9,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { businessName, essence, differentiator, persona, audience, vision, designPreferences } = await req.json();
+    const { businessName, essence, subField, differentiator, persona, audience, vision, designPreferences, refineLogo } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
