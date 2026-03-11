@@ -24,6 +24,7 @@ const TABS = [
   { id: 'brain' as AdminTab, label: 'אימון מערכת AI', icon: Brain },
   { id: 'models' as AdminTab, label: 'מודלים ייעודיים', icon: Cpu },
   { id: 'templates' as AdminTab, label: 'תבניות מודעה', icon: FileCode2 },
+  { id: 'fonts' as AdminTab, label: 'ניהול פונטים', icon: Type },
   { id: 'clients' as AdminTab, label: 'רשימת לקוחות', icon: Users },
   { id: 'branding' as AdminTab, label: 'הזמנות מיתוג', icon: Palette },
   { id: 'proofs' as AdminTab, label: 'הוכחות פרסום', icon: Newspaper },
