@@ -32,7 +32,7 @@ serve(async (req) => {
     const TEXT_FALLBACKS = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
     const IMAGE_FALLBACKS = ["google/gemini-3.1-flash-image-preview", "google/gemini-3-pro-image-preview"];
 
-    const aiCall = async (model: string, messages: any[], modalities?: string[]) => {
+    const aiCall = async (model: string, messages: any[], modalities?: string[], maxTokens?: number) => {
       const fallbacks = modalities ? IMAGE_FALLBACKS : TEXT_FALLBACKS;
       const models = [model, ...fallbacks.filter(m => m !== model)];
       let saw402 = false;
@@ -40,7 +40,7 @@ serve(async (req) => {
 
       for (const m of models) {
         console.log(`Trying model: ${m}`);
-        const result = await aiCallSingle(m, messages, modalities);
+        const result = await aiCallSingle(m, messages, modalities, maxTokens);
         if (!result.error) return result;
 
         console.error(`Model ${m} failed with status ${result.status}`);
