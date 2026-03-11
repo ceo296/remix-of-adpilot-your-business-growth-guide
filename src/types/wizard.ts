@@ -272,6 +272,30 @@ export const FONT_OPTIONS = [
   'Suez One',
 ];
 
+// Map of font display names in Hebrew for UI
+export const FONT_LABELS: Record<string, string> = {
+  'Assistant': 'אסיסטנט',
+  'Heebo': 'חיבו',
+  'Rubik': 'רוביק',
+  'Alef': 'אלף',
+  'David Libre': 'דוד ליברה',
+  'Frank Ruhl Libre': 'פרנק רוהל',
+  'Secular One': 'סקיולר וואן',
+  'Suez One': 'סואץ וואן',
+};
+
+// Mapping of known paid/unavailable fonts to their closest free alternative
+export const FONT_FALLBACKS: Record<string, { alternative: string; note: string }> = {
+  'FB UnicaSansHeb': { alternative: 'Assistant', note: 'פונט בתשלום של FontBit — כרגע לא במערכת' },
+  'UnicaSansHeb': { alternative: 'Assistant', note: 'פונט בתשלום של FontBit — כרגע לא במערכת' },
+  'FB Narkis': { alternative: 'Frank Ruhl Libre', note: 'פונט בתשלום של FontBit — כרגע לא במערכת' },
+  'FB Almoni': { alternative: 'Heebo', note: 'פונט בתשלום של FontBit — כרגע לא במערכת' },
+  'FB Aharoni': { alternative: 'Secular One', note: 'פונט בתשלום של FontBit — כרגע לא במערכת' },
+  'FB Hagilda': { alternative: 'Suez One', note: 'פונט בתשלום של FontBit — כרגע לא במערכת' },
+  'Ploni': { alternative: 'Assistant', note: 'פונט בתשלום — כרגע לא במערכת' },
+  'Kalufa': { alternative: 'Rubik', note: 'פונט בתשלום — כרגע לא במערכת' },
+};
+
 export const REGIONS = [
   'ירושלים',
   'בני ברק',

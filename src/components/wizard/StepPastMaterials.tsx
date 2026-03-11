@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { WizardData, WizardDataUpdate, UploadedMaterial, AdLayoutAnalysis, FONT_OPTIONS } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, UploadedMaterial, AdLayoutAnalysis, FONT_OPTIONS, FONT_LABELS } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -428,10 +428,12 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
               <div className="space-y-2">
                 <label className="text-sm font-bold text-foreground">פונט כותרות</label>
                 <Select value={data.brand.headerFont} onValueChange={(v) => handleFontChange('headerFont', v)}>
-                  <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-12" style={{ fontFamily: data.brand.headerFont }}><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {FONT_OPTIONS.map((font) => (
-                      <SelectItem key={font} value={font}>{font}</SelectItem>
+                      <SelectItem key={font} value={font} style={{ fontFamily: font }}>
+                        {FONT_LABELS[font] || font} <span className="text-xs text-muted-foreground mr-1">({font})</span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -442,10 +444,12 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
               <div className="space-y-2">
                 <label className="text-sm font-bold text-foreground">פונט גוף</label>
                 <Select value={data.brand.bodyFont} onValueChange={(v) => handleFontChange('bodyFont', v)}>
-                  <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-12" style={{ fontFamily: data.brand.bodyFont }}><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {FONT_OPTIONS.map((font) => (
-                      <SelectItem key={font} value={font}>{font}</SelectItem>
+                      <SelectItem key={font} value={font} style={{ fontFamily: font }}>
+                        {FONT_LABELS[font] || font} <span className="text-xs text-muted-foreground mr-1">({font})</span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
