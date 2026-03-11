@@ -534,9 +534,12 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {FONT_OPTIONS.map((font) => (
+                    {getAllFontFamilies().map((font) => (
                       <SelectItem key={font} value={font} className="text-base py-3" style={{ fontFamily: font }}>
                         {FONT_LABELS[font] || font} <span className="text-xs text-muted-foreground mr-2">({font})</span>
+                        {customFonts.some(f => f.family === font && f.is_private) && (
+                          <Lock className="w-3 h-3 inline mr-1 text-green-500" />
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>
