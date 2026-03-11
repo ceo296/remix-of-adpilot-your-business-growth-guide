@@ -321,8 +321,8 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
             <div className="space-y-1">
               <div className="flex items-center gap-2 mb-1">
                 <Star className="w-4 h-4 text-primary fill-primary" />
-                <span className="text-sm font-bold text-foreground">צבע ראשי</span>
-                <span className="text-xs text-muted-foreground">(ישלוט במודעות)</span>
+                <span className="text-sm font-bold text-foreground">צבע לוגו</span>
+                <span className="text-xs text-muted-foreground">(יופיע בכל חומר שניצור)</span>
               </div>
               <div className="flex items-center gap-3">
                 <input

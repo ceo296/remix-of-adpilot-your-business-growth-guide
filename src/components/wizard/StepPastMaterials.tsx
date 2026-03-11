@@ -533,17 +533,23 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
                 <div className="w-14 h-14 mx-auto rounded-xl bg-amber-400/20 flex items-center justify-center">
                   <AlertTriangle className="w-7 h-7 text-amber-500" />
                 </div>
-                <h4 className="text-lg font-bold text-foreground">אין בעיה! נבנה לכם גריד חדש מאפס</h4>
+                <h4 className="text-lg font-bold text-foreground">אין בעיה! נבנה לכם פלטת צבעים משלימה</h4>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  המערכת תבנה לכם תבנית עיצובית חדשה על בסיס הלוגו, הצבעים, הפונטים וההעדפות שהגדרתם. 
-                  זה אומר שהמודעות הראשונות שלכם יראו מקצועיות אבל לא ימשיכו קו עיצובי קיים.
+                  ניקח את הצבע מהלוגו שלכם ונבנה סביבו צבעים משלימים שייראו מקצועי ומדויק. 
+                  הצבע מהלוגו ישולב תמיד בכל חומר שניצור — בכותרות, בטקסטים, או כאקסנט.
                 </p>
                 <div className="flex justify-center gap-4">
                   <Button variant="default" size="lg" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="w-5 h-5 ml-2" />
                     בעצם יש לי משהו
                   </Button>
-                  <Button variant="outline" size="lg" onClick={handleNext}>
+                  <Button variant="outline" size="lg" onClick={() => {
+                    // Generate complementary colors from logo
+                    if (data.brand.colors.primary && data.brand.colors.primary !== '#FFFFFF' && data.brand.colors.primary !== '') {
+                      generateComplementaryColors(data.brand.colors.primary);
+                    }
+                    handleNext();
+                  }}>
                     מעולה, תבנו לי חדש
                     <ArrowLeft className="w-5 h-5 mr-2" />
                   </Button>

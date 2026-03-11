@@ -63,6 +63,7 @@ export interface UploadedMaterial {
   preview: string;
   adAnalysis?: AdLayoutAnalysis;
   isAnalyzing?: boolean;
+  isRecent?: boolean; // true = current design line, false/undefined = old/outdated
 }
 
 export interface CampaignStrategy {
