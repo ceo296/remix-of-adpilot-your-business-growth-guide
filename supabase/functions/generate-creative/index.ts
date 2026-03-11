@@ -294,6 +294,26 @@ serve(async (req) => {
       if (campaignContext.targetGender) campaignSection += `מגדר יעד: ${campaignContext.targetGender}\n`;
     }
 
+    // Typography strategy block
+    const typographyBlock = `
+═══ אסטרטגיית טיפוגרפיה (Typography Strategy 2026) ═══
+
+📋 זוגות פונטים מומלצים לקמפיינים:
+• מכירתי / אקטיבי: כותרות ב-Suez One (400), טקסט ב-Heebo (400). כותרות חזקות ודומיננטיות.
+• טכנולוגי / נקי: כותרות ב-Assistant (800), טקסט ב-Assistant (300). מדרג כולו בפונט אחד.
+• מסורתי / אמין: כותרות ב-Secular One (400), טקסט ב-Heebo (400). משדר יציבות.
+${brandContext?.headerFont ? `\n⚡ פונט המותג: כותרות="${brandContext.headerFont}", גוף="${brandContext.bodyFont || 'Heebo'}". השתמש בו כברירת מחדל.` : ''}
+
+🔒 חוקי Finishing:
+1. CONTRAST IS KING: לעולם אל תשתמש באותו משקל לכותרת ולטקסט. מינימום 300 הפרש.
+2. HAREDI TONE: הטיפוגרפיה חייבת לשדר מכובדות. אסור פונטים ילדותיים או שבורים.
+3. HIERARCHY FIRST: גודל ומשקל הפונט קובעים חשיבות — לא צבע.
+4. LINE-HEIGHT: בכותרות — צפוף (1.05-1.15) ליצירת "גוש" מסר. בגוף — מרווח (1.6-1.8).
+
+═══ בידוד נכסי לקוח ═══
+פונטים פרטיים שהועלו על ידי הלקוח משויכים אליו בלבד. אסור להציע פונט של לקוח X ללקוח Y.
+`;
+
     // Build the full system prompt
     const systemPrompt = `[CORE MISSION] You are a world-class Advertising Art Director and Editorial Photographer specializing in high-end luxury brands for the Haredi (Ultra-Orthodox) Jewish sector. Your goal is to generate ONE single, cohesive, and organic photographic masterpiece.
 
@@ -321,6 +341,7 @@ EMOTIONAL CONNECTION: Focus on the "Story" (e.g., a father and son learning, a m
 - אין להציג תמונות נשים או ילדות כלל (אלא אם התבקש במפורש ויזואלית צנועה ביותר, וגם אז בזהירות רבה)
 - טקסט בעברית בלבד (אם נדרש טקסט, אך עדיף ללא טקסט בתמונה עצמה)
 ${sectorBrainContext}${brandSection}${campaignSection}
+${typographyBlock}
 
 מידע נוסף:
 - סגנון: ${style || 'מודרני ונקי'}

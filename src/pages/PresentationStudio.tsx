@@ -212,13 +212,43 @@ const SlideRenderer = ({
   const isCreative = theme === 'creative';
   const isMinimal = theme === 'minimal';
 
+  // Typography strategy: pick body font and weights based on theme
+  const typoConfig = (() => {
+    if (isMinimal) return { headerFamily: 'Alef', headerWeight: 700, bodyFamily: 'Heebo', bodyWeight: 300, headerLineHeight: 1.2, headerLetterSpacing: '0.15em', bodyLineHeight: 1.8 };
+    if (isCreative) return { headerFamily: 'Frank Ruhl Libre', headerWeight: 700, bodyFamily: 'Assistant', bodyWeight: 300, headerLineHeight: 1.05, headerLetterSpacing: '-0.03em', bodyLineHeight: 1.8 };
+    // corporate / default: elegant-classic
+    return { headerFamily: 'David Libre', headerWeight: 700, bodyFamily: 'Heebo', bodyWeight: 400, headerLineHeight: 1.1, headerLetterSpacing: '0', bodyLineHeight: 1.7 };
+  })();
+
+  // If brand has a custom font, it overrides the header
+  const headerFont = font || typoConfig.headerFamily;
+  const bodyFont = typoConfig.bodyFamily;
+
   const base: React.CSSProperties = {
     width: 1920, height: 1080, transform: `scale(${scale})`, transformOrigin: 'top right',
-    direction: 'rtl', fontFamily: `"${font}", "Assistant", sans-serif`,
+    direction: 'rtl', fontFamily: `"${bodyFont}", "Assistant", sans-serif`,
     position: 'absolute', top: 0, right: 0, overflow: 'hidden',
   };
 
   const footer = <LogoFooter logoUrl={logoUrl} businessName={businessName} brandColor={brandColor} phone={phone} theme={slide.type === 'cover' ? (isMinimal ? 'minimal' : 'corporate') : theme} />;
+
+  // Typography helpers
+  const titleStyle = (fontSize: number, extra?: React.CSSProperties): React.CSSProperties => ({
+    fontFamily: `"${headerFont}", "${typoConfig.headerFamily}", serif`,
+    fontWeight: typoConfig.headerWeight,
+    lineHeight: typoConfig.headerLineHeight,
+    letterSpacing: typoConfig.headerLetterSpacing,
+    fontSize,
+    ...extra,
+  });
+
+  const bodyStyle = (fontSize: number, extra?: React.CSSProperties): React.CSSProperties => ({
+    fontFamily: `"${bodyFont}", "Assistant", sans-serif`,
+    fontWeight: typoConfig.bodyWeight,
+    lineHeight: typoConfig.bodyLineHeight,
+    fontSize,
+    ...extra,
+  });
 
   // Ensure readable text: always dark text on light bg, white text on dark bg
   const safeText = (bg: 'dark' | 'light') => bg === 'dark' ? '#ffffff' : '#111111';
@@ -395,11 +425,10 @@ const SlideRenderer = ({
             {logoUrl && isMinimal && (
               <img src={logoUrl} alt="logo" style={{ height: 60, objectFit: 'contain', marginBottom: 60, alignSelf: 'flex-start' }} />
             )}
-            <h1 style={{
-              fontSize: isMinimal ? 96 : 110, fontWeight: 900,
-              color: safeText(bg), margin: 0, lineHeight: 1.0, letterSpacing: '-3px',
+            <h1 style={titleStyle(isMinimal ? 96 : 110, {
+              color: safeText(bg), margin: 0,
               textShadow: textShadow(bg),
-            }}>
+            })}>
               {slide.title}
             </h1>
             {slide.subtitle && (
@@ -425,9 +454,9 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="42%" />}
           {decorBg}
           <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo && bg === 'light' ? '60%' : '100%', position: 'relative' }}>
-            <h2 style={{ fontSize: 68, fontWeight: 900, color: safeText(bg), marginBottom: 40, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={titleStyle(68, { color: safeText(bg), marginBottom: 40, textShadow: textShadow(bg) })}>{slide.title}</h2>
             <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
-            <p style={{ fontSize: 30, lineHeight: 2, color: safeSubtext(bg), maxWidth: 1200, textShadow: textShadow(bg) }}>{slide.body}</p>
+            <p style={bodyStyle(30, { color: safeSubtext(bg), maxWidth: 1200, textShadow: textShadow(bg) })}>{slide.body}</p>
           </div>
           {footer}
         </div>
@@ -445,7 +474,7 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {decorBg}
           <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg), letterSpacing: '-1px' }}>{slide.title}</h2>
+            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
             <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
             {slide.subtitle && <p style={{ fontSize: 26, color: safeMuted(bg), marginBottom: 40, maxWidth: 900 }}>{slide.subtitle}</p>}
             <div style={{
@@ -490,10 +519,9 @@ const SlideRenderer = ({
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', padding: '100px 150px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{
-              fontSize: 72, fontWeight: 900, color: safeText(bg),
-              marginBottom: 16, lineHeight: 1.1, textShadow: textShadow(bg), letterSpacing: '-1px',
-            }}>{slide.title}</h2>
+            <h2 style={titleStyle(72, {
+              color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg),
+            })}>{slide.title}</h2>
             <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
             {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1100, textShadow: textShadow(bg) }}>{slide.body}</p>}
             <div style={{ display: 'flex', gap: 40, flex: 1, alignItems: 'flex-start' }}>
@@ -528,7 +556,7 @@ const SlideRenderer = ({
           {photo && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', padding: '100px 140px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <h2 style={{ fontSize: 60, fontWeight: 900, color: '#fff', marginBottom: 10, textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>{slide.title}</h2>
+            <h2 style={titleStyle(60, { color: '#fff', marginBottom: 10, textShadow: '0 2px 20px rgba(0,0,0,0.4)' })}>{slide.title}</h2>
             {slide.subtitle && <p style={{ fontSize: 26, color: 'rgba(255,255,255,0.8)', marginBottom: 60, textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>{slide.subtitle}</p>}
           </div>
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 50, padding: '0 140px', marginTop: -20 }}>
@@ -566,7 +594,7 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
           {decorBg}
           <div style={{ padding: '100px 150px 100px 120px', position: 'relative' }}>
-            <h2 style={{ fontSize: 60, fontWeight: 900, color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={titleStyle(60, { color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) })}>{slide.title}</h2>
             <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 60 }} />
             <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
               {(slide.steps || []).map((s, i) => (
@@ -752,7 +780,7 @@ const SlideRenderer = ({
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 180px' }}>
-            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 20, lineHeight: 1.1, textShadow: textShadow(bg) }}>{slide.title}</h2>
+            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) })}>{slide.title}</h2>
             <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 30 }} />
             {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: safeSubtext(bg), maxWidth: 1300, textShadow: textShadow(bg) }}>{slide.body}</p>}
             {slide.bullets && (
@@ -785,7 +813,7 @@ const SlideRenderer = ({
           {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
           {decorBg}
           <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg), letterSpacing: '-1px' }}>{slide.title}</h2>
+            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
             <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
             <div style={{ display: 'flex', gap: 32, flex: 1, alignItems: 'stretch' }}>
               {items.map((b, i) => (
@@ -822,7 +850,7 @@ const SlideRenderer = ({
           {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', padding: '100px 160px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ fontSize: 72, fontWeight: 900, color: safeText(bg), marginBottom: 16, lineHeight: 1.1, textShadow: textShadow(bg), letterSpacing: '-1px' }}>{slide.title}</h2>
+            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
             <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
             {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1000, textShadow: textShadow(bg) }}>{slide.body}</p>}
             <div style={{ display: 'flex', gap: 36, flex: 1, alignItems: 'stretch' }}>
