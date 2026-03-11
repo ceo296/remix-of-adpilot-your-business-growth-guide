@@ -341,6 +341,7 @@ EMOTIONAL CONNECTION: Focus on the "Story" (e.g., a father and son learning, a m
 - אין להציג תמונות נשים או ילדות כלל (אלא אם התבקש במפורש ויזואלית צנועה ביותר, וגם אז בזהירות רבה)
 - טקסט בעברית בלבד (אם נדרש טקסט, אך עדיף ללא טקסט בתמונה עצמה)
 ${sectorBrainContext}${brandSection}${campaignSection}
+${typographyBlock}
 
 מידע נוסף:
 - סגנון: ${style || 'מודרני ונקי'}
