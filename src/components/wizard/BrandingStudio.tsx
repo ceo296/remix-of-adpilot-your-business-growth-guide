@@ -117,6 +117,42 @@ const hslToHex = (h: number, s: number, l: number) => {
   return '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
 };
 
+// Convert hex color to Hebrew color name based on hue/saturation/lightness
+const hexToHebrewName = (hex: string): string => {
+  const [h, s, l] = hexToHsl(hex);
+  if (s < 10) {
+    if (l < 15) return 'שחור';
+    if (l < 35) return 'אפור כהה';
+    if (l < 65) return 'אפור';
+    if (l < 90) return 'אפור בהיר';
+    return 'לבן';
+  }
+  if (l < 12) return 'שחור';
+  if (l > 92) return 'לבן';
+  
+  const shade = l < 35 ? ' כהה' : l > 70 ? ' בהיר' : '';
+  if (h < 15 || h >= 345) return `אדום${shade}`;
+  if (h < 35) return `כתום${shade}`;
+  if (h < 55) return `צהוב${shade}`;
+  if (h < 80) return `ירוק-צהוב${shade}`;
+  if (h < 160) return `ירוק${shade}`;
+  if (h < 190) return `טורקיז${shade}`;
+  if (h < 250) return `כחול${shade}`;
+  if (h < 290) return `סגול${shade}`;
+  if (h < 330) return `ורוד${shade}`;
+  return `אדום${shade}`;
+};
+
+// Build accurate color description from actual hex values
+const buildColorDescription = (colors: { primary: string; secondary: string; accent: string; background?: string; dark?: string }): string => {
+  const names = [
+    hexToHebrewName(colors.primary),
+    hexToHebrewName(colors.secondary),
+    hexToHebrewName(colors.accent),
+  ].filter((v, i, a) => a.indexOf(v) === i); // unique names only
+  return names.join(', ');
+};
+
 export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessName }: BrandingStudioProps) {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<StudioPhase>('brief');
@@ -536,9 +572,9 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                         <Palette className="w-4 h-4 text-primary" />
                         צבעוניות
                       </h4>
-                      {selectedDirection.colorDescription && (
-                        <p className="text-sm text-muted-foreground mt-1">{selectedDirection.colorDescription}</p>
-                      )}
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {buildColorDescription(selectedDirection.colors)}
+                      </p>
                     </div>
                     {swapSource && (
                       <Button variant="ghost" size="sm" onClick={() => setSwapSource(null)} className="text-xs gap-1">
@@ -546,6 +582,12 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                       </Button>
                     )}
                   </div>
+                  {!swapSource && (
+                    <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
+                      <p>🎨 <strong>לחצו על צבע</strong> ואז על צבע אחר כדי <strong>להחליף ביניהם</strong></p>
+                      <p>🔄 <strong>לחצו על החץ</strong> שמתחת לצבע כדי <strong>לייצר גוון חדש</strong></p>
+                    </div>
+                  )}
                   {swapSource && (
                     <p className="text-sm text-primary font-medium text-center animate-pulse">🔄 לחצו על צבע אחר להחלפת מיקומים</p>
                   )}
