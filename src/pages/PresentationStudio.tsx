@@ -425,11 +425,10 @@ const SlideRenderer = ({
             {logoUrl && isMinimal && (
               <img src={logoUrl} alt="logo" style={{ height: 60, objectFit: 'contain', marginBottom: 60, alignSelf: 'flex-start' }} />
             )}
-            <h1 style={{
-              fontSize: isMinimal ? 96 : 110, fontWeight: 900,
-              color: safeText(bg), margin: 0, lineHeight: 1.0, letterSpacing: '-3px',
+            <h1 style={titleStyle(isMinimal ? 96 : 110, {
+              color: safeText(bg), margin: 0,
               textShadow: textShadow(bg),
-            }}>
+            })}>
               {slide.title}
             </h1>
             {slide.subtitle && (
