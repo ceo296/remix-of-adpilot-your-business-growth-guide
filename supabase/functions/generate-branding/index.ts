@@ -199,9 +199,10 @@ CRITICAL RULES:
 - colorEmotion: connect the chosen colors to the emotional response they create
 - mockupScenes: MUST be 3 different scenes. At least 2 must be DIRECTLY related to the business field (e.g., moving company → branded truck, boxes with logo; restaurant → menu card, table setting; real estate → building sign, brochure). The 3rd can be a classic application (business card, storefront, stationery).`;
 
-    const strategyData = await aiCall("google/gemini-2.5-flash", [{ role: "user", content: strategyPrompt }]);
+    const strategyData = await aiCall("google/gemini-2.5-flash", [{ role: "user", content: strategyPrompt }], undefined, 8000);
 
     let strategyText = strategyData.choices?.[0]?.message?.content || "";
+    console.log("Raw strategy length:", strategyText.length);
     strategyText = strategyText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     const jsonStart = strategyText.indexOf('{');
     const jsonEnd = strategyText.lastIndexOf('}');
@@ -216,13 +217,24 @@ CRITICAL RULES:
     try {
       strategy = JSON.parse(strategyText);
     } catch (e) {
-      console.error("Failed to parse strategy JSON:", strategyText.slice(0, 500));
+      console.error("Failed to parse strategy JSON (first 500 chars):", strategyText.slice(0, 500));
+      console.error("Last 200 chars:", strategyText.slice(-200));
+      // Try to fix truncated JSON by closing all open brackets
       try {
         const open = (strategyText.match(/{/g) || []).length;
         const close = (strategyText.match(/}/g) || []).length;
+        const openArr = (strategyText.match(/\[/g) || []).length;
+        const closeArr = (strategyText.match(/]/g) || []).length;
+        // Remove trailing comma if any
+        strategyText = strategyText.replace(/,\s*$/, '');
+        // Remove incomplete string value
+        strategyText = strategyText.replace(/,\s*"[^"]*":\s*"[^"]*$/, '');
+        strategyText = strategyText.replace(/,\s*"[^"]*$/, '');
+        if (openArr > closeArr) strategyText += ']'.repeat(openArr - closeArr);
         if (open > close) strategyText += '}'.repeat(open - close);
         strategy = JSON.parse(strategyText);
       } catch (e2) {
+        console.error("Second parse also failed:", (e2 as Error).message);
         throw new Error("Failed to parse brand strategy");
       }
     }
