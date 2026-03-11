@@ -28,6 +28,7 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
   const [isExtractingColors, setIsExtractingColors] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasAttemptedAutoExtract = useRef(false);
+  const [detectedFontInfo, setDetectedFontInfo] = useState<{ name: string; confidence: string; isAvailable: boolean } | null>(null);
 
   // Auto-extract colors if logo exists but colors are all default/white
   useEffect(() => {
