@@ -573,6 +573,32 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                         </div>
                       )}
                     </div>
+                    
+                    {/* Logo Refinement Feedback */}
+                    {!showLogoFeedback ? (
+                      <Button variant="outline" size="sm" onClick={() => setShowLogoFeedback(true)} className="w-full gap-2 text-xs mt-2">
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        לא מרוצים? שלחו הערה וניצור לוגו חדש
+                      </Button>
+                    ) : (
+                      <div className="space-y-2 mt-3 p-3 rounded-xl bg-muted/50 border border-border">
+                        <p className="text-xs font-medium text-muted-foreground">מה תרצו לשנות בלוגו?</p>
+                        <Textarea
+                          value={logoFeedback}
+                          onChange={(e) => setLogoFeedback(e.target.value)}
+                          placeholder='לדוגמה: "זה לא קשור לתחום שלי, אני צריך משהו יותר ביתי ולא טבעי" או "תעשו בלי אייקון, רק טקסט"'
+                          className="min-h-[70px] text-sm resize-none"
+                          dir="rtl"
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={handleRefineLogo} disabled={!logoFeedback.trim() || isRefiningLogo} className="gap-2 flex-1">
+                            {isRefiningLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                            {isRefiningLogo ? 'יוצרים לוגו חדש...' : 'צרו לוגו חדש'}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setShowLogoFeedback(false); setLogoFeedback(''); }}>ביטול</Button>
+                        </div>
+                      </div>
+                    )}
                   </Card>
 
                   {/* Mockups Carousel */}
