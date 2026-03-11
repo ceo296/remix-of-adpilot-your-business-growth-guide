@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   Database, Brain, Users, LogOut, Menu, X, 
-  Settings, ChevronLeft, Palette, Newspaper, Link2, Cpu, FileCode2
+  Settings, ChevronLeft, Palette, Newspaper, Link2, Cpu, FileCode2, Type
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
