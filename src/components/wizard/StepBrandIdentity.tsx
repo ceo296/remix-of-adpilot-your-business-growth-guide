@@ -460,20 +460,65 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
               הפונטים
             </h3>
 
-            {/* Detected font notice */}
+            {/* Detected font notice — with upload option */}
             {detectedFontInfo && !detectedFontInfo.isAvailable && (
-              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 space-y-1">
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                  <p className="text-sm font-medium text-foreground">
-                    זיהינו: <span className="font-bold">"{detectedFontInfo.name}"</span>
+                  <Sparkles className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                  <p className="text-sm font-bold text-foreground">
+                    זיהינו את הפונט הייחודי שלך! 🔍
                   </p>
                   <Badge variant="outline" className="text-[10px]">
                     {detectedFontInfo.confidence === 'high' ? 'ביטחון גבוה' : detectedFontInfo.confidence === 'medium' ? 'בינוני' : 'נמוך'}
                   </Badge>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  זיהינו את <span className="font-bold text-foreground">"{detectedFontInfo.name}"</span>. 
+                  כרגע אין לנו את קובץ הפונט המדויק במערכת, לכן התאמנו לך פונט חלופי שקרוב אליו מאוד בנראות ובסטייל.
+                </p>
+                <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
+                  <p className="text-sm font-medium text-foreground">
+                    רוצה את ההתאמה המדויקת עם הפונט האישי שלך?
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    פשוט העלה כאן את קובץ הפונט שלך (בפורמט WOFF2, TTF או OTF) ואנחנו נטמיע אותו בבלעדיות עבור המותג שלך.
+                  </p>
+                  <input
+                    ref={fontFileInputRef}
+                    type="file"
+                    accept=".woff2,.woff,.ttf,.otf"
+                    onChange={handlePrivateFontUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => fontFileInputRef.current?.click()}
+                    disabled={isUploadingFont}
+                    className="w-full gap-2"
+                  >
+                    {isUploadingFont ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4" />
+                    )}
+                    {isUploadingFont ? 'מעלה ומגדיר...' : 'העלאת קובץ פונט'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Private font uploaded success */}
+            {uploadedPrivateFont && (
+              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <p className="text-sm font-bold text-foreground">
+                    הפונט הפרטי שלך הוטמע בהצלחה! 🔒
+                  </p>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  פונט זה לא קיים כרגע במערכת (פונט בתשלום). הצענו את החלופה הקרובה ביותר מהפונטים הזמינים.
+                  הפונט "{uploadedPrivateFont}" מוגדר לשימוש בלעדי עבור המותג שלך בלבד. הפרטיות והנכסים המותגיים שלך הם בראש סדר העדיפויות שלנו.
                 </p>
               </div>
             )}
