@@ -126,6 +126,19 @@ const StepBrandIdentity = ({ data, updateData, onNext, onPrev }: StepBrandIdenti
               updates.brand.headerFont = result.fonts.headerFont;
               updates.brand.bodyFont = result.fonts.bodyFont || 'Heebo';
             }
+            // Track detected font info
+            if (result.fonts?.detectedFontName) {
+              setDetectedFontInfo({
+                name: result.fonts.detectedFontName,
+                confidence: result.fonts.fontConfidence || 'low',
+                isAvailable: result.fonts.isDetectedFontAvailable || false,
+              });
+              if (!result.fonts.isDetectedFontAvailable) {
+                const fallback = FONT_FALLBACKS[result.fonts.detectedFontName];
+                const altName = fallback?.alternative || result.fonts.headerFont;
+                toast.info(`זיהינו את הפונט "${result.fonts.detectedFontName}" — לא קיים במערכת כרגע. הצענו "${altName}" כחלופה.`, { duration: 8000 });
+              }
+            }
             updateData(updates);
             const fontMsg = result.fonts?.headerFont ? ` | פונט: ${result.fonts.headerFont}` : '';
             toast.success(`צבעים וזהות חזותית חולצו מהלוגו!${fontMsg}`, { id: 'auto-color-extract' });
