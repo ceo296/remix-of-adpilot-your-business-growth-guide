@@ -475,17 +475,28 @@ const StepPastMaterials = ({ data, updateData, onNext, onPrev }: StepPastMateria
                 {data.pastMaterials.map((material) => {
                   const isAnalyzing = analyzingIds.has(material.id);
                   const hasAnalysis = !!material.adAnalysis;
+                  const isRecent = material.isRecent !== false; // default to recent
                   return (
-                    <div key={material.id} className="relative group rounded-xl overflow-hidden border-2 border-border shadow-md" onClick={(e) => e.stopPropagation()}>
+                    <div key={material.id} className={`relative group rounded-xl overflow-hidden border-2 shadow-md transition-all ${isRecent ? 'border-emerald-500/50' : 'border-amber-500/50 opacity-75'}`} onClick={(e) => e.stopPropagation()}>
                       {material.type === 'image' ? (
                         <img src={material.preview} alt={material.name} className="w-full h-36 object-cover" />
                       ) : (
                         <div className="w-full h-36 bg-secondary flex items-center justify-center"><FileText className="w-10 h-10 text-muted-foreground" /></div>
                       )}
-                      <div className="absolute top-2 right-2">
+                      <div className="absolute top-2 right-2 flex gap-1">
                         {isAnalyzing && (<Badge className="bg-primary/90 text-primary-foreground gap-1 animate-pulse"><Loader2 className="h-3 w-3 animate-spin" />מנתח...</Badge>)}
                         {hasAnalysis && !isAnalyzing && (<Badge className="bg-emerald-600 text-white gap-1 cursor-pointer hover:bg-emerald-700" onClick={() => setViewingAnalysis(material)}><Sparkles className="h-3 w-3" />נותח ✓</Badge>)}
                       </div>
+                      {/* Recent/Old toggle */}
+                      <button
+                        onClick={() => {
+                          const updated = data.pastMaterials.map(m => m.id === material.id ? { ...m, isRecent: !isRecent } : m);
+                          updateData({ pastMaterials: updated });
+                        }}
+                        className={`absolute top-2 left-8 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md transition-colors ${isRecent ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}
+                      >
+                        {isRecent ? 'עדכני' : 'ישן'}
+                      </button>
                       {hasAnalysis && !isAnalyzing && (
                         <button onClick={() => setViewingAnalysis(material)} className="absolute inset-0 bg-foreground/0 hover:bg-foreground/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                           <span className="bg-background/90 text-foreground px-3 py-1.5 rounded-lg text-sm font-medium">צפה בניתוח</span>
