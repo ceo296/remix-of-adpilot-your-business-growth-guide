@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { WizardData, WizardDataUpdate, UploadedMaterial, AdLayoutAnalysis, FONT_OPTIONS } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, UploadedMaterial, AdLayoutAnalysis, FONT_OPTIONS, FONT_LABELS } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
