@@ -364,6 +364,44 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
     setBrandResult({ ...brandResult, directions: newDirections });
   };
 
+  const handleRefineLogo = async () => {
+    if (!brandResult || !selectedDirection || !logoFeedback.trim()) return;
+    setIsRefiningLogo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-branding', {
+        body: {
+          businessName: briefData.businessName,
+          essence: briefData.essence,
+          subField: briefData.subField,
+          refineLogo: {
+            directionIndex: selectedDirectionIndex,
+            feedback: logoFeedback,
+            colors: selectedDirection.colors,
+            mockupScene: selectedDirection.mockups?.[0] ? 'Professional branded product' : undefined,
+          },
+        },
+      });
+      if (error) throw error;
+      if (data?.refinedLogo) {
+        const newDirections = [...brandResult.directions];
+        newDirections[selectedDirectionIndex] = {
+          ...newDirections[selectedDirectionIndex],
+          logo: data.refinedLogo,
+          ...(data.refinedMockup ? { mockup: data.refinedMockup, mockups: [data.refinedMockup] } : {}),
+        };
+        setBrandResult({ ...brandResult, directions: newDirections });
+        toast.success('הלוגו חודש בהצלחה! 🎨');
+        setLogoFeedback('');
+        setShowLogoFeedback(false);
+      }
+    } catch (e) {
+      console.error('Logo refinement error:', e);
+      toast.error('שגיאה בחידוש הלוגו. נסו שוב.');
+    } finally {
+      setIsRefiningLogo(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
