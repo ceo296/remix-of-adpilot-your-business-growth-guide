@@ -227,6 +227,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
       const { data, error } = await supabase.functions.invoke('generate-branding', {
         body: {
           businessName: briefData.businessName, essence: briefData.essence,
+          subField: briefData.subField,
           differentiator: briefData.differentiator, persona: briefData.persona,
           audience: briefData.audience, vision: briefData.vision,
           designPreferences: briefData.designPreferences,
