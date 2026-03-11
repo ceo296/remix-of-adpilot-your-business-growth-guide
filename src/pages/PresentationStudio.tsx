@@ -556,7 +556,7 @@ const SlideRenderer = ({
           {photo && <DarkPhotoBg url={photo} opacity={0.2} />}
           {decorBg}
           <div style={{ position: 'relative', padding: '100px 140px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <h2 style={{ fontSize: 60, fontWeight: 900, color: '#fff', marginBottom: 10, textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>{slide.title}</h2>
+            <h2 style={titleStyle(60, { color: '#fff', marginBottom: 10, textShadow: '0 2px 20px rgba(0,0,0,0.4)' })}>{slide.title}</h2>
             {slide.subtitle && <p style={{ fontSize: 26, color: 'rgba(255,255,255,0.8)', marginBottom: 60, textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>{slide.subtitle}</p>}
           </div>
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', gap: 50, padding: '0 140px', marginTop: -20 }}>
