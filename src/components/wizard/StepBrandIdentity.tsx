@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { WizardData, WizardDataUpdate, FONT_OPTIONS } from '@/types/wizard';
+import { WizardData, WizardDataUpdate, FONT_OPTIONS, FONT_LABELS, FONT_FALLBACKS } from '@/types/wizard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
