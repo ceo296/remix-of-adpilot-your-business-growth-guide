@@ -279,8 +279,9 @@ The icon should be simple enough to work as a standalone favicon.`
       console.log(`Direction ${i + 1}: ${dir.nameEn} — generating ${logoLayout.style} logo...`);
 
       let logoImage = null;
-      try {
-        const logoPrompt = `Create a professional logo for "${businessName || 'Brand'}".
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const logoPrompt = `Create a professional logo for "${businessName || 'Brand'}".
 Business field: ${essence}
 ${subField ? `Specific products/services & atmosphere: ${subField}` : ''}
 COLORS: Primary ${dir.colors.primary}, Secondary ${dir.colors.secondary}, Accent ${dir.colors.accent}
@@ -299,11 +300,14 @@ RULES:
 - NEVER use religious items (scrolls, menorahs) unless the business sells them
 - Haredi touch comes ONLY through Hebrew typography style and color palette`;
 
-        const logoData = await aiCall("google/gemini-3.1-flash-image-preview",
-          [{ role: "user", content: logoPrompt }], ["image", "text"]);
-        logoImage = logoData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
-      } catch (e) {
-        console.error(`Logo ${i} error:`, e);
+          const logoData = await aiCall("google/gemini-3.1-flash-image-preview",
+            [{ role: "user", content: logoPrompt }], ["image", "text"]);
+          logoImage = logoData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+          if (logoImage) break;
+        } catch (e) {
+          console.error(`Logo ${i} attempt ${attempt + 1} error:`, e);
+          if (attempt === 0) await new Promise(r => setTimeout(r, 1000));
+        }
       }
 
       const mockupScenes = dir.mockupScenes || [dir.mockupScene || 'Professional business card on elegant desk'];
