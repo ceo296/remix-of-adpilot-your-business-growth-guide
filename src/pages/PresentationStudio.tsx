@@ -212,9 +212,21 @@ const SlideRenderer = ({
   const isCreative = theme === 'creative';
   const isMinimal = theme === 'minimal';
 
+  // Typography strategy: pick body font and weights based on theme
+  const typoConfig = (() => {
+    if (isMinimal) return { headerFamily: 'Alef', headerWeight: 700, bodyFamily: 'Heebo', bodyWeight: 300, headerLineHeight: 1.2, headerLetterSpacing: '0.15em', bodyLineHeight: 1.8 };
+    if (isCreative) return { headerFamily: 'Frank Ruhl Libre', headerWeight: 700, bodyFamily: 'Assistant', bodyWeight: 300, headerLineHeight: 1.05, headerLetterSpacing: '-0.03em', bodyLineHeight: 1.8 };
+    // corporate / default: elegant-classic
+    return { headerFamily: 'David Libre', headerWeight: 700, bodyFamily: 'Heebo', bodyWeight: 400, headerLineHeight: 1.1, headerLetterSpacing: '0', bodyLineHeight: 1.7 };
+  })();
+
+  // If brand has a custom font, it overrides the header
+  const headerFont = font || typoConfig.headerFamily;
+  const bodyFont = typoConfig.bodyFamily;
+
   const base: React.CSSProperties = {
     width: 1920, height: 1080, transform: `scale(${scale})`, transformOrigin: 'top right',
-    direction: 'rtl', fontFamily: `"${font}", "Assistant", sans-serif`,
+    direction: 'rtl', fontFamily: `"${bodyFont}", "Assistant", sans-serif`,
     position: 'absolute', top: 0, right: 0, overflow: 'hidden',
   };
 
