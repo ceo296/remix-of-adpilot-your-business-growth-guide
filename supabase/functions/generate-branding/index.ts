@@ -9,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { businessName, essence, differentiator, persona, audience, vision, designPreferences } = await req.json();
+    const { businessName, essence, subField, differentiator, persona, audience, vision, designPreferences, refineLogo } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -57,6 +57,65 @@ serve(async (req) => {
       throw new Error("ALL_MODELS_FAILED");
     };
 
+    // ═══════════ REFINE SINGLE LOGO MODE ═══════════
+    if (refineLogo) {
+      console.log("Refine single logo mode:", refineLogo.feedback);
+      const logoLayoutStyles = [
+        { style: "typographic", instruction: `PURELY TYPOGRAPHIC logo - absolutely NO icons, NO symbols, NO imagery. The entire logo is ONLY the Hebrew letters of "${businessName || 'Brand'}". Use creative typography: play with letter weight, spacing, ligatures, or a unique custom letterform style.` },
+        { style: "icon-integrated", instruction: `A logo where a subtle symbol is CREATIVELY WOVEN INTO the Hebrew letters of "${businessName || 'Brand'}". A letter could transform into a relevant object, negative space within letters could form a shape. The icon should be DISCOVERED within the typography.` },
+        { style: "icon-beside", instruction: `A logo with a clean, modern, ABSTRACT ICON placed to the LEFT of the Hebrew name "${businessName || 'Brand'}". The icon should be geometric and abstract - representing ${essence} symbolically.` }
+      ];
+      const logoLayout = logoLayoutStyles[refineLogo.directionIndex % 3];
+      
+      const logoPrompt = `Create a professional logo for "${businessName || 'Brand'}".
+Business field: ${essence}
+${subField ? `Specific products/services & atmosphere: ${subField}` : ''}
+COLORS: Primary ${refineLogo.colors.primary}, Secondary ${refineLogo.colors.secondary}, Accent ${refineLogo.colors.accent}
+
+LOGO STYLE: ${logoLayout.style.toUpperCase()}
+${logoLayout.instruction}
+
+USER FEEDBACK ON PREVIOUS VERSION: "${refineLogo.feedback}"
+Please create a NEW logo that addresses this feedback. The user was not satisfied with the previous version and wants changes based on their notes above.
+
+RULES:
+- Business name "${businessName || 'Brand'}" MUST appear clearly in Hebrew
+- Use ONLY the specified colors
+- Clean white background, centered, generous padding
+- Must feel premium and sophisticated
+- NEVER use religious items unless the business sells them`;
+
+      const logoData = await aiCall("google/gemini-3.1-flash-image-preview",
+        [{ role: "user", content: logoPrompt }], ["image", "text"]);
+      const newLogo = logoData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+
+      // Generate matching mockup with new logo
+      let newMockup: string | null = null;
+      if (newLogo && refineLogo.mockupScene) {
+        try {
+          const mockupPrompt = `Create a photorealistic mockup visualization for the brand "${businessName || 'Brand'}".
+Business field: ${essence}
+Scene: ${refineLogo.mockupScene}
+Brand colors: Primary ${refineLogo.colors.primary}, Secondary ${refineLogo.colors.secondary}
+CRITICAL: The attached image is the EXACT logo. Place THIS EXACT LOGO onto the mockup product. Do NOT redesign it.
+Style: High-end product photography. Elegant lighting, shallow depth of field.`;
+          const mockupContent: any[] = [
+            { type: "text", text: mockupPrompt },
+            { type: "image_url", image_url: { url: newLogo } }
+          ];
+          const mockupData = await aiCall("google/gemini-3.1-flash-image-preview",
+            [{ role: "user", content: mockupContent }], ["image", "text"]);
+          newMockup = mockupData.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+        } catch (e) { console.error("Refined mockup error:", e); }
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        refinedLogo: newLogo,
+        refinedMockup: newMockup,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ═══════════ Step 1: Generate 3 branding directions ═══════════
     console.log("Step 1: Generating 3 branding directions...");
     const strategyPrompt = `You are a world-class branding expert specializing in the Israeli Haredi market.
@@ -65,6 +124,7 @@ Each direction must feel like it came from a different design studio with a tota
 
 Business Name: ${businessName || "Not specified"}
 Core Expertise: ${essence}
+${subField ? `Specific Products/Services & Atmosphere: ${subField}` : ''}
 Differentiator: ${differentiator}
 Brand Persona: ${persona}
 Target Audience: ${audience}
@@ -209,6 +269,7 @@ The icon should be simple enough to work as a standalone favicon.`
       try {
         const logoPrompt = `Create a professional logo for "${businessName || 'Brand'}".
 Business field: ${essence}
+${subField ? `Specific products/services & atmosphere: ${subField}` : ''}
 COLORS: Primary ${dir.colors.primary}, Secondary ${dir.colors.secondary}, Accent ${dir.colors.accent}
 
 LOGO STYLE: ${logoLayout.style.toUpperCase()}

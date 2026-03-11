@@ -27,6 +27,7 @@ interface BrandingStudioProps {
 interface BriefData {
   businessName: string;
   essence: string;
+  subField: string;
   differentiator: string;
   persona: string;
   audience: string;
@@ -81,6 +82,7 @@ type StudioPhase = 'brief' | 'generating' | 'result';
 const BRIEF_STEPS = [
   { key: 'businessName' as const, title: 'שם העסק', question: 'מה שם העסק שלכם?', placeholder: 'לדוגמה: בית חם - עיצוב פנים', icon: Target, minLength: 2 },
   { key: 'essence' as const, title: 'התמחות העסק', question: 'במשפט אחד: מה התמחות העסק ולמה לבחור דווקא בכם?', placeholder: 'לדוגמה: אנחנו מספקים שירותי הובלות מהירות ואמינות עם שירות אישי', icon: Target, minLength: 10 },
+  { key: 'subField' as const, title: 'תחום ואווירה', question: 'תארו את המוצרים/שירותים הספציפיים והאווירה שהמותג משדר', placeholder: 'לדוגמה: סלטים, קוגלים ועופות לשבת — אווירה ביתית וחמה של אמא יהודייה. לא ירקות טבעיים או אוכל בריאות', icon: Eye, minLength: 10 },
   { key: 'differentiator' as const, title: 'הבידול שלכם', question: 'במה אתם שונים מהמתחרים?', placeholder: 'לדוגמה: אנחנו היחידים שמציעים ביטוח מלא ללא תוספת תשלום', icon: Sparkles, minLength: 10 },
   { key: 'audience' as const, title: 'קהל היעד', question: 'מי הקהל האידיאלי שלכם?', placeholder: 'לדוגמה: משפחות צעירות באזור המרכז, גילאי 25-45', icon: Users, minLength: 5 },
   { key: 'designPreferences' as const, title: 'העדפות עיצוב', question: 'איזה צבעים או סגנון מדברים אליכם? (אופציונלי)', placeholder: 'לדוגמה: צבעים חמים, סגנון מודרני ונקי, או "תפתיעו אותי"', icon: Palette, minLength: 3 },
@@ -158,7 +160,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [phase, setPhase] = useState<StudioPhase>('brief');
   const [briefStep, setBriefStep] = useState(0);
   const [briefData, setBriefData] = useState<BriefData>({
-    businessName: businessName || '', essence: '', differentiator: '', persona: '', audience: '', vision: '', designPreferences: '',
+    businessName: businessName || '', essence: '', subField: '', differentiator: '', persona: '', audience: '', vision: '', designPreferences: '',
   });
   const [generationStep, setGenerationStep] = useState(0);
   const [brandResult, setBrandResult] = useState<BrandResult | null>(null);
@@ -174,6 +176,9 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [deepDiveOpen, setDeepDiveOpen] = useState(false);
   const [activeMockupIndex, setActiveMockupIndex] = useState(0);
+  const [logoFeedback, setLogoFeedback] = useState('');
+  const [showLogoFeedback, setShowLogoFeedback] = useState(false);
+  const [isRefiningLogo, setIsRefiningLogo] = useState(false);
   const presentationRef = useRef<HTMLDivElement>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -182,7 +187,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
     if (isOpen) {
       setPhase('brief');
       setBriefStep(0);
-      setBriefData({ businessName: businessName || '', essence: '', differentiator: '', persona: '', audience: '', vision: '', designPreferences: '' });
+      setBriefData({ businessName: businessName || '', essence: '', subField: '', differentiator: '', persona: '', audience: '', vision: '', designPreferences: '' });
       setBrandResult(null);
       setSelectedDirectionIndex(0);
       setSelectedTaglineIndex(null);
@@ -225,6 +230,7 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
       const { data, error } = await supabase.functions.invoke('generate-branding', {
         body: {
           businessName: briefData.businessName, essence: briefData.essence,
+          subField: briefData.subField,
           differentiator: briefData.differentiator, persona: briefData.persona,
           audience: briefData.audience, vision: briefData.vision,
           designPreferences: briefData.designPreferences,
@@ -356,6 +362,44 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
       colors: { ...newDirections[selectedDirectionIndex].colors, [colorKey]: newColor },
     };
     setBrandResult({ ...brandResult, directions: newDirections });
+  };
+
+  const handleRefineLogo = async () => {
+    if (!brandResult || !selectedDirection || !logoFeedback.trim()) return;
+    setIsRefiningLogo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-branding', {
+        body: {
+          businessName: briefData.businessName,
+          essence: briefData.essence,
+          subField: briefData.subField,
+          refineLogo: {
+            directionIndex: selectedDirectionIndex,
+            feedback: logoFeedback,
+            colors: selectedDirection.colors,
+            mockupScene: selectedDirection.mockups?.[0] ? 'Professional branded product' : undefined,
+          },
+        },
+      });
+      if (error) throw error;
+      if (data?.refinedLogo) {
+        const newDirections = [...brandResult.directions];
+        newDirections[selectedDirectionIndex] = {
+          ...newDirections[selectedDirectionIndex],
+          logo: data.refinedLogo,
+          ...(data.refinedMockup ? { mockup: data.refinedMockup, mockups: [data.refinedMockup] } : {}),
+        };
+        setBrandResult({ ...brandResult, directions: newDirections });
+        toast.success('הלוגו חודש בהצלחה! 🎨');
+        setLogoFeedback('');
+        setShowLogoFeedback(false);
+      }
+    } catch (e) {
+      console.error('Logo refinement error:', e);
+      toast.error('שגיאה בחידוש הלוגו. נסו שוב.');
+    } finally {
+      setIsRefiningLogo(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -529,6 +573,32 @@ export function BrandingStudio({ isOpen, onClose, onBrandingComplete, businessNa
                         </div>
                       )}
                     </div>
+                    
+                    {/* Logo Refinement Feedback */}
+                    {!showLogoFeedback ? (
+                      <Button variant="outline" size="sm" onClick={() => setShowLogoFeedback(true)} className="w-full gap-2 text-xs mt-2">
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        לא מרוצים? שלחו הערה וניצור לוגו חדש
+                      </Button>
+                    ) : (
+                      <div className="space-y-2 mt-3 p-3 rounded-xl bg-muted/50 border border-border">
+                        <p className="text-xs font-medium text-muted-foreground">מה תרצו לשנות בלוגו?</p>
+                        <Textarea
+                          value={logoFeedback}
+                          onChange={(e) => setLogoFeedback(e.target.value)}
+                          placeholder='לדוגמה: "זה לא קשור לתחום שלי, אני צריך משהו יותר ביתי ולא טבעי" או "תעשו בלי אייקון, רק טקסט"'
+                          className="min-h-[70px] text-sm resize-none"
+                          dir="rtl"
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={handleRefineLogo} disabled={!logoFeedback.trim() || isRefiningLogo} className="gap-2 flex-1">
+                            {isRefiningLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                            {isRefiningLogo ? 'יוצרים לוגו חדש...' : 'צרו לוגו חדש'}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setShowLogoFeedback(false); setLogoFeedback(''); }}>ביטול</Button>
+                        </div>
+                      </div>
+                    )}
                   </Card>
 
                   {/* Mockups Carousel */}
