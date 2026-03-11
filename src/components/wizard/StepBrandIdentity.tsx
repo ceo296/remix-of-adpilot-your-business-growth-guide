@@ -12,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Upload, Palette, Type, ArrowRight, ArrowLeft, Pencil, FileText, RefreshCw, Loader2, ArrowLeftRight, Star } from 'lucide-react';
+import { Upload, Palette, Type, ArrowRight, ArrowLeft, Pencil, FileText, RefreshCw, Loader2, ArrowLeftRight, Star, AlertCircle } from 'lucide-react';
 import LogoUploadGuidelines from '@/components/shared/LogoUploadGuidelines';
+import { Badge } from '@/components/ui/badge';
 
 interface StepBrandIdentityProps {
   data: WizardData;
