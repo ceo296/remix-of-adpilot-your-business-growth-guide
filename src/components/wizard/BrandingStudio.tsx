@@ -82,7 +82,7 @@ type StudioPhase = 'brief' | 'generating' | 'result';
 const BRIEF_STEPS = [
   { key: 'businessName' as const, title: 'שם העסק', question: 'מה שם העסק שלכם?', placeholder: 'לדוגמה: בית חם - עיצוב פנים', icon: Target, minLength: 2 },
   { key: 'essence' as const, title: 'התמחות העסק', question: 'במשפט אחד: מה התמחות העסק ולמה לבחור דווקא בכם?', placeholder: 'לדוגמה: אנחנו מספקים שירותי הובלות מהירות ואמינות עם שירות אישי', icon: Target, minLength: 10 },
-  { key: 'subField' as const, title: 'תחום ואווירה', question: 'תארו את המוצרים/שירותים הספציפיים והאווירה שהמותג משדר', placeholder: 'לדוגמה: סלטים, קוגלים ועופות לשבת — אווירה ביתית וחמה של אמא יהודייה. לא ירקות טבעיים או אוכל בריאות', icon: Eye, minLength: 10 },
+  { key: 'subField' as const, title: 'תחום ואווירה', question: 'תארו את המוצרים/שירותים הספציפיים והאווירה שהמותג משדר', placeholder: 'תארו בכמה מילים את סוג המוצרים או השירותים והאווירה הכללית', icon: Eye, minLength: 10 },
   { key: 'differentiator' as const, title: 'הבידול שלכם', question: 'במה אתם שונים מהמתחרים?', placeholder: 'לדוגמה: אנחנו היחידים שמציעים ביטוח מלא ללא תוספת תשלום', icon: Sparkles, minLength: 10 },
   { key: 'audience' as const, title: 'קהל היעד', question: 'מי הקהל האידיאלי שלכם?', placeholder: 'לדוגמה: משפחות צעירות באזור המרכז, גילאי 25-45', icon: Users, minLength: 5 },
   { key: 'designPreferences' as const, title: 'העדפות עיצוב', question: 'איזה צבעים או סגנון מדברים אליכם? (אופציונלי)', placeholder: 'לדוגמה: צבעים חמים, סגנון מודרני ונקי, או "תפתיעו אותי"', icon: Palette, minLength: 3 },
