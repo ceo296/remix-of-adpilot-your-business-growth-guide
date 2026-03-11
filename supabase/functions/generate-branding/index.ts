@@ -13,9 +13,10 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const aiCallSingle = async (model: string, messages: any[], modalities?: string[]) => {
+    const aiCallSingle = async (model: string, messages: any[], modalities?: string[], maxTokens?: number) => {
       const body: any = { model, messages };
       if (modalities) body.modalities = modalities;
+      if (maxTokens) body.max_tokens = maxTokens;
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
@@ -31,7 +32,7 @@ serve(async (req) => {
     const TEXT_FALLBACKS = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
     const IMAGE_FALLBACKS = ["google/gemini-3.1-flash-image-preview", "google/gemini-3-pro-image-preview"];
 
-    const aiCall = async (model: string, messages: any[], modalities?: string[]) => {
+    const aiCall = async (model: string, messages: any[], modalities?: string[], maxTokens?: number) => {
       const fallbacks = modalities ? IMAGE_FALLBACKS : TEXT_FALLBACKS;
       const models = [model, ...fallbacks.filter(m => m !== model)];
       let saw402 = false;
@@ -39,7 +40,7 @@ serve(async (req) => {
 
       for (const m of models) {
         console.log(`Trying model: ${m}`);
-        const result = await aiCallSingle(m, messages, modalities);
+        const result = await aiCallSingle(m, messages, modalities, maxTokens);
         if (!result.error) return result;
 
         console.error(`Model ${m} failed with status ${result.status}`);
@@ -198,9 +199,10 @@ CRITICAL RULES:
 - colorEmotion: connect the chosen colors to the emotional response they create
 - mockupScenes: MUST be 3 different scenes. At least 2 must be DIRECTLY related to the business field (e.g., moving company → branded truck, boxes with logo; restaurant → menu card, table setting; real estate → building sign, brochure). The 3rd can be a classic application (business card, storefront, stationery).`;
 
-    const strategyData = await aiCall("google/gemini-2.5-flash", [{ role: "user", content: strategyPrompt }]);
+    const strategyData = await aiCall("google/gemini-2.5-flash", [{ role: "user", content: strategyPrompt }], undefined, 8000);
 
     let strategyText = strategyData.choices?.[0]?.message?.content || "";
+    console.log("Raw strategy length:", strategyText.length);
     strategyText = strategyText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     const jsonStart = strategyText.indexOf('{');
     const jsonEnd = strategyText.lastIndexOf('}');
@@ -215,13 +217,24 @@ CRITICAL RULES:
     try {
       strategy = JSON.parse(strategyText);
     } catch (e) {
-      console.error("Failed to parse strategy JSON:", strategyText.slice(0, 500));
+      console.error("Failed to parse strategy JSON (first 500 chars):", strategyText.slice(0, 500));
+      console.error("Last 200 chars:", strategyText.slice(-200));
+      // Try to fix truncated JSON by closing all open brackets
       try {
         const open = (strategyText.match(/{/g) || []).length;
         const close = (strategyText.match(/}/g) || []).length;
+        const openArr = (strategyText.match(/\[/g) || []).length;
+        const closeArr = (strategyText.match(/]/g) || []).length;
+        // Remove trailing comma if any
+        strategyText = strategyText.replace(/,\s*$/, '');
+        // Remove incomplete string value
+        strategyText = strategyText.replace(/,\s*"[^"]*":\s*"[^"]*$/, '');
+        strategyText = strategyText.replace(/,\s*"[^"]*$/, '');
+        if (openArr > closeArr) strategyText += ']'.repeat(openArr - closeArr);
         if (open > close) strategyText += '}'.repeat(open - close);
         strategy = JSON.parse(strategyText);
       } catch (e2) {
+        console.error("Second parse also failed:", (e2 as Error).message);
         throw new Error("Failed to parse brand strategy");
       }
     }
