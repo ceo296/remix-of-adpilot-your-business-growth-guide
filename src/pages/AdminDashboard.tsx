@@ -15,8 +15,9 @@ import ProofManagement from '@/components/admin/ProofManagement';
 import MediaPortalAdmin from '@/components/admin/MediaPortalAdmin';
 import AIModelConfigsAdmin from '@/components/admin/AIModelConfigsAdmin';
 import TemplateEditor from '@/components/admin/TemplateEditor';
+import FontManager from '@/components/admin/FontManager';
 
-type AdminTab = 'media' | 'brain' | 'models' | 'templates' | 'clients' | 'branding' | 'proofs' | 'portal';
+type AdminTab = 'media' | 'brain' | 'models' | 'templates' | 'fonts' | 'clients' | 'branding' | 'proofs' | 'portal';
 
 const TABS = [
   { id: 'media' as AdminTab, label: 'ערוצי מדיה', icon: Database },
