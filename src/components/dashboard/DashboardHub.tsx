@@ -149,25 +149,6 @@ const DashboardHub = () => {
           </CardContent>
         </Card>
 
-        {/* Branding */}
-        <Card 
-          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-pink-400 bg-gradient-to-br from-pink-50 to-rose-50 hover:from-pink-100 hover:to-rose-100"
-          onClick={() => handleNewCampaign('branding')}
-        >
-          <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg shadow-pink-500/30 flex items-center justify-center mb-4">
-              <Palette className="w-10 h-10 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-pink-800 mb-2">מיתוג</h3>
-            <p className="text-pink-600 mb-3 text-sm">
-              זהות מותגית מלאה
-            </p>
-            <p className="text-xs text-muted-foreground">
-              לוגו, פלטת צבעים וזהות ויזואלית מקצועית
-            </p>
-          </CardContent>
-        </Card>
-
         {/* Internal Materials */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100"
