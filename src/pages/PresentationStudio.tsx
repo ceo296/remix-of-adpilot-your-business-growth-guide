@@ -660,25 +660,26 @@ const SlideRenderer = ({
 
     case 'testimonial': {
       const { background, mode, decorBg } = getSlideBg('testimonial');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.2} />}
           {decorBg}
           <div style={{
-            position: 'absolute', top: 80, right: 120, fontSize: 300, fontWeight: 900, lineHeight: 1,
-            color: isCreative ? hexToRgba(brandColor, 0.12) : isMinimal ? hexToRgba(brandColor, 0.06) : hexToRgba(brandColor, 0.15),
+            position: 'absolute', top: 80, right: 120, fontSize: 300, fontWeight: 900, lineHeight: 1, zIndex: 1,
+            color: hasPhoto ? 'rgba(255,255,255,0.08)' : (isCreative ? hexToRgba(brandColor, 0.12) : isMinimal ? hexToRgba(brandColor, 0.06) : hexToRgba(brandColor, 0.15)),
           }}>״</div>
-          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '100px 180px', maxWidth: 1400 }}>
+          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '100px 180px', maxWidth: 1400, zIndex: 2 }}>
             <p style={{
               fontSize: 42, lineHeight: 1.7, fontWeight: 500, fontStyle: 'italic', marginBottom: 50,
-              color: safeText(bg), textShadow: textShadow(bg),
+              color: safeText(effectiveMode), textShadow: textShadow(effectiveMode),
             }}>
               {slide.body}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 50, height: 4, background: isCreative ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : brandColor, borderRadius: 2 }} />
-              <span style={{ fontSize: 24, color: brandColor, fontWeight: 700 }}>{slide.subtitle}</span>
+              <div style={{ width: 50, height: 4, background: hasPhoto ? 'rgba(255,255,255,0.5)' : (isCreative ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : brandColor), borderRadius: 2 }} />
+              <span style={{ fontSize: 24, color: hasPhoto ? 'rgba(255,255,255,0.8)' : brandColor, fontWeight: 700, textShadow: textShadow(effectiveMode) }}>{slide.subtitle}</span>
             </div>
           </div>
           {footer}
