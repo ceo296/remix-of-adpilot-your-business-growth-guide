@@ -414,9 +414,11 @@ export type Database = {
           past_materials_fonts: Json | null
           personal_red_lines: string[] | null
           primary_color: string | null
+          primary_color_name: string | null
           primary_x_factor: string | null
           quality_signatures: Json | null
           secondary_color: string | null
+          secondary_color_name: string | null
           services: string[] | null
           social_facebook: string | null
           social_instagram: string | null
@@ -465,9 +467,11 @@ export type Database = {
           past_materials_fonts?: Json | null
           personal_red_lines?: string[] | null
           primary_color?: string | null
+          primary_color_name?: string | null
           primary_x_factor?: string | null
           quality_signatures?: Json | null
           secondary_color?: string | null
+          secondary_color_name?: string | null
           services?: string[] | null
           social_facebook?: string | null
           social_instagram?: string | null
@@ -516,9 +520,11 @@ export type Database = {
           past_materials_fonts?: Json | null
           personal_red_lines?: string[] | null
           primary_color?: string | null
+          primary_color_name?: string | null
           primary_x_factor?: string | null
           quality_signatures?: Json | null
           secondary_color?: string | null
+          secondary_color_name?: string | null
           services?: string[] | null
           social_facebook?: string | null
           social_instagram?: string | null
