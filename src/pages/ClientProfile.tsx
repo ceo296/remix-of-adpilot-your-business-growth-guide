@@ -106,6 +106,15 @@ const ClientProfilePage = () => {
       setPersonalRedLines((profile as any).personal_red_lines || []);
       setHonorificPreference(((profile as any).honorific_preference as HonorificType) || 'neutral');
       setSelectedTemplateId(profile.default_template_id || null);
+      // Sync brand colors
+      const rawColors = (profile as any).brand_colors;
+      const colors: BrandColor[] = Array.isArray(rawColors) && rawColors.length > 0
+        ? rawColors
+        : [
+            { hex: profile.primary_color || '#000000', name: (profile as any).primary_color_name || '', number: '' },
+            ...(profile.secondary_color ? [{ hex: profile.secondary_color, name: (profile as any).secondary_color_name || '', number: '' }] : []),
+          ];
+      setBrandColors(colors);
     }
   }, [profile]);
 
