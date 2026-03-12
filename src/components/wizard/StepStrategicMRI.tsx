@@ -238,7 +238,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                     isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-emerald-400/60' : 'hover:scale-[1.01] hover:shadow-xl'
                   }`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-green-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br from-slate-800 via-emerald-900/80 to-slate-800 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
                   <div className="absolute top-0 left-0 w-32 h-32 opacity-20">
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-transparent rounded-full blur-2xl" />
                   </div>
