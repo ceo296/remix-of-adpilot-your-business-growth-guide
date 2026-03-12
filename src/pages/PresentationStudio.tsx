@@ -1300,7 +1300,7 @@ const PresentationStudio = () => {
   };
 
   // Global keyboard navigation for presentation mode
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isPresenting) return;
     const handlePresentationKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsPresenting(false);
