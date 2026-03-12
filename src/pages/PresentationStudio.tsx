@@ -810,24 +810,25 @@ const SlideRenderer = ({
 
     case 'vision': {
       const { background, mode, decorBg } = getSlideBg('vision');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.22} />}
           {decorBg}
-          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 180px' }}>
-            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 30 }} />
-            {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: safeSubtext(bg), maxWidth: 1300, textShadow: textShadow(bg) }}>{slide.body}</p>}
+          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 180px', zIndex: 2 }}>
+            <h2 style={titleStyle(72, { color: safeText(effectiveMode), marginBottom: 20, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 30 }} />
+            {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: safeSubtext(effectiveMode), maxWidth: 1300, textShadow: textShadow(effectiveMode) }}>{slide.body}</p>}
             {slide.bullets && (
               <div style={{ display: 'flex', gap: 40, marginTop: 50 }}>
                 {slide.bullets.map((b, i) => (
                   <div key={i} style={{
                     flex: 1, padding: '30px 28px', textAlign: 'center',
-                    ...getCardStyle(bg),
+                    ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   }}>
                     <div style={{ fontSize: 36, marginBottom: 12 }}>{['🎯', '💡', '🏆', '⭐'][i % 4]}</div>
-                    <span style={{ fontSize: 24, fontWeight: 600, color: safeSubtext(bg) }}>{b}</span>
+                    <span style={{ fontSize: 24, fontWeight: 600, color: safeSubtext(effectiveMode), textShadow: textShadow(effectiveMode) }}>{b}</span>
                   </div>
                 ))}
               </div>
@@ -840,34 +841,33 @@ const SlideRenderer = ({
 
     case 'social_proof': {
       const { background, mode, decorBg } = getSlideBg('social_proof');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       const items = slide.bullets || [];
-      // Magazine-style: staggered card sizes for visual interest
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.18} />}
           {decorBg}
-          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
+          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', zIndex: 2 }}>
+            <h2 style={titleStyle(72, { color: safeText(effectiveMode), marginBottom: 16, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 80, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 50 }} />
             <div style={{ display: 'flex', gap: 32, flex: 1, alignItems: 'stretch' }}>
               {items.map((b, i) => (
                 <div key={i} style={{
                   flex: 1, padding: '36px 28px',
-                  ...getCardStyle(bg),
+                  ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   textAlign: 'center', gap: 20,
                 }}>
                   <div style={{
                     width: 56, height: 56, borderRadius: '50%',
-                    background: isCreative && bg === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.2)',
+                    background: hasPhoto ? 'rgba(255,255,255,0.15)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.2)'),
                     color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 26, fontWeight: 900, flexShrink: 0,
-                    boxShadow: `0 4px 20px ${isDark ? 'rgba(0,0,0,0.3)' : hexToRgba(brandColor, 0.25)}`,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                   }}>✓</div>
-                  <span style={{ fontSize: 24, color: safeSubtext(bg), fontWeight: 600, lineHeight: 1.5 }}>{b}</span>
+                  <span style={{ fontSize: 24, color: safeSubtext(effectiveMode), fontWeight: 600, lineHeight: 1.5, textShadow: textShadow(effectiveMode) }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -879,31 +879,32 @@ const SlideRenderer = ({
 
     case 'target_audience': {
       const { background, mode, decorBg } = getSlideBg('target_audience');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       const items = slide.bullets || [];
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.22} />}
           {decorBg}
-          <div style={{ position: 'relative', padding: '100px 160px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
-            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1000, textShadow: textShadow(bg) }}>{slide.body}</p>}
+          <div style={{ position: 'relative', padding: '100px 160px', height: '100%', display: 'flex', flexDirection: 'column', zIndex: 2 }}>
+            <h2 style={titleStyle(72, { color: safeText(effectiveMode), marginBottom: 16, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 80, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 40 }} />
+            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(effectiveMode), marginBottom: 40, maxWidth: 1000, textShadow: textShadow(effectiveMode) }}>{slide.body}</p>}
             <div style={{ display: 'flex', gap: 36, flex: 1, alignItems: 'stretch' }}>
               {items.map((b, i) => (
                 <div key={i} style={{
                   flex: 1, padding: '40px 28px',
-                  ...getCardStyle(bg),
+                  ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   textAlign: 'center', gap: 16,
                 }}>
                   <div style={{
                     width: 60, height: 60, borderRadius: 18,
-                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.15)}, ${hexToRgba('#ffd93d', 0.1)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    background: hasPhoto ? 'rgba(255,255,255,0.12)' : (isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.15)}, ${hexToRgba('#ffd93d', 0.1)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25)),
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0,
-                    border: isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined,
+                    border: hasPhoto ? '1px solid rgba(255,255,255,0.1)' : (isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined),
                   }}>👤</div>
-                  <span style={{ fontSize: 26, fontWeight: 600, color: safeSubtext(bg), lineHeight: 1.5 }}>{b}</span>
+                  <span style={{ fontSize: 26, fontWeight: 600, color: safeSubtext(effectiveMode), lineHeight: 1.5, textShadow: textShadow(effectiveMode) }}>{b}</span>
                 </div>
               ))}
             </div>
