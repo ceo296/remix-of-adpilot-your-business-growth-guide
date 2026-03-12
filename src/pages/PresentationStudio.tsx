@@ -1098,7 +1098,12 @@ const BriefScreen = ({
               disabled={(!hasProfileData && !brief.trim()) || isLoading}
             >
               {isLoading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />יוצר את המצגת...</>
+                <><Loader2 className="w-5 h-5 animate-spin" />
+                  {generationProgress?.phase === 'images' 
+                    ? `מייצר תמונות... ${generationProgress.current}/${generationProgress.total}`
+                    : 'בונה את השקפים...'
+                  }
+                </>
               ) : (
                 <><Wand2 className="w-5 h-5" />צור מצגת ✨</>
               )}
