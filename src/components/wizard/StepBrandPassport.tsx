@@ -251,14 +251,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
           }
         });
         break;
-      case 'מקבל ההחלטות':
-        updateData({
-          strategicMRI: {
-            ...data.strategicMRI,
-            decisionMaker: editFieldValue,
-          }
-        });
-        break;
       case 'שם העסק':
         updateData({
           brand: {
