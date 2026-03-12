@@ -545,33 +545,34 @@ const SlideRenderer = ({
 
     case 'value_prop': {
       const { background, mode, decorBg } = getSlideBg('value_prop');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       const items = slide.bullets || [];
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.2} />}
           {decorBg}
-          <div style={{ position: 'relative', padding: '100px 150px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ position: 'relative', padding: '100px 150px', height: '100%', display: 'flex', flexDirection: 'column', zIndex: 2 }}>
             <h2 style={titleStyle(72, {
-              color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg),
+              color: safeText(effectiveMode), marginBottom: 16, textShadow: textShadow(effectiveMode),
             })}>{slide.title}</h2>
-            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
-            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1100, textShadow: textShadow(bg) }}>{slide.body}</p>}
+            <div style={{ width: 80, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 50 }} />
+            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(effectiveMode), marginBottom: 40, maxWidth: 1100, textShadow: textShadow(effectiveMode) }}>{slide.body}</p>}
             <div style={{ display: 'flex', gap: 40, flex: 1, alignItems: 'flex-start' }}>
               {items.map((b, i) => (
                 <div key={i} style={{
                   flex: 1, padding: '36px 28px', textAlign: 'center',
-                  ...getCardStyle(bg),
+                  ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
                 }}>
                   <div style={{
                     width: 60, height: 60, borderRadius: '50%',
-                    background: isCreative && bg === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.15)',
+                    background: hasPhoto ? 'rgba(255,255,255,0.15)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.15)'),
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 28, fontWeight: 900, color: '#fff',
-                    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : `0 4px 20px ${hexToRgba(brandColor, 0.3)}`,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                   }}>{String(i + 1).padStart(2, '0')}</div>
-                  <span style={{ fontSize: 26, fontWeight: 600, lineHeight: 1.5, color: safeSubtext(bg), wordBreak: 'keep-all' }}>{b}</span>
+                  <span style={{ fontSize: 26, fontWeight: 600, lineHeight: 1.5, color: safeSubtext(effectiveMode), wordBreak: 'keep-all', textShadow: textShadow(effectiveMode) }}>{b}</span>
                 </div>
               ))}
             </div>
