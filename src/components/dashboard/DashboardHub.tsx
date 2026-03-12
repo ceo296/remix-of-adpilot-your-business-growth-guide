@@ -221,7 +221,7 @@ const DashboardHub = () => {
         <p className="text-muted-foreground">{getYouWord(honorificPreference, 'choose')} אפשרות להמשך</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto px-4">
         {/* New Campaign Card */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
