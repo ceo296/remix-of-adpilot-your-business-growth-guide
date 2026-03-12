@@ -579,22 +579,6 @@ const ClientProfilePage = () => {
                       )}
                     </div>
 
-                    {/* Name */}
-                    <div className="space-y-0.5 flex-1">
-                      <span className="text-[10px] text-muted-foreground">שם הצבע</span>
-                      {isEditing ? (
-                        <Input
-                          value={color.name}
-                          onChange={(e) => setBrandColors(prev => prev.map((c, idx) => idx === i ? { ...c, name: e.target.value } : c))}
-                          placeholder="שם הצבע"
-                          className="h-7 text-xs"
-                          dir="rtl"
-                          maxLength={30}
-                        />
-                      ) : (
-                        <p className="text-xs text-foreground">{color.name || '—'}</p>
-                      )}
-                    </div>
 
                     {/* Number */}
                     <div className="space-y-0.5 shrink-0">

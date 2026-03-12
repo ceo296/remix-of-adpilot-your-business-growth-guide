@@ -157,9 +157,9 @@ const BusinessIdCard = () => {
           {displayColors.map((c, i) => (
             <div key={i} className="flex items-center gap-0.5">
               <div className="w-5 h-5 rounded-full border-2 border-white/60 shadow-sm" style={{ backgroundColor: c.hex }} />
-              {(c.name || c.number) && (
+              {c.number && (
                 <span className="text-[10px] text-white/90 font-medium max-w-[60px] truncate">
-                  {c.name}{c.number ? ` #${c.number}` : ''}
+                  #{c.number}
                 </span>
               )}
             </div>
@@ -216,18 +216,6 @@ const BusinessIdCard = () => {
                   />
                 </div>
 
-                {/* Color name */}
-                <div className="space-y-0.5 flex-1">
-                  <label className="text-[10px] text-muted-foreground">שם הצבע</label>
-                  <Input
-                    value={color.name}
-                    onChange={(e) => updateColor(i, 'name', e.target.value)}
-                    placeholder="שם הצבע"
-                    className="h-7 text-xs"
-                    dir="rtl"
-                    maxLength={30}
-                  />
-                </div>
 
                 {/* Color number (like Tambour) */}
                 <div className="space-y-0.5 shrink-0">
