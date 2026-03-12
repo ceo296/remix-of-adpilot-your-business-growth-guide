@@ -184,12 +184,32 @@ const DashboardHub = () => {
         </Card>
       </div>
 
-      {/* Personal Area Note */}
-      <div className="text-center mt-8 pt-6 border-t border-border max-w-2xl mx-auto">
-        <p className="text-sm text-muted-foreground">
-          💡 <span className="font-medium">טיפ:</span> לאחר יצירת הקמפיין הראשון שלך, האזור האישי יתעדכן עם היסטוריה וסטטוס קמפיינים
-        </p>
-      </div>
+      {/* Personal Area Note or My Materials */}
+      {materialsCount > 0 ? (
+        <div className="text-center mt-6 max-w-3xl mx-auto px-4">
+          <Card 
+            className="cursor-pointer transition-all duration-300 hover:shadow-lg border border-border bg-card hover:bg-accent/5"
+            onClick={() => setCurrentView('my-materials')}
+          >
+            <CardContent className="p-4 flex items-center justify-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shrink-0">
+                <Layers className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-right">
+                <h4 className="text-sm font-semibold text-foreground">החומרים שיצרתי ({materialsCount})</h4>
+                <p className="text-xs text-muted-foreground">מצגות, קריאייטיבים וחומרים נוספים</p>
+              </div>
+              <ArrowLeft className="w-4 h-4 text-muted-foreground mr-auto" />
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="text-center mt-8 pt-6 border-t border-border max-w-2xl mx-auto">
+          <p className="text-sm text-muted-foreground">
+            💡 <span className="font-medium">טיפ:</span> לאחר יצירת הקמפיין הראשון שלך, האזור האישי יתעדכן עם היסטוריה וסטטוס קמפיינים
+          </p>
+        </div>
+      )}
     </div>
   );
 
