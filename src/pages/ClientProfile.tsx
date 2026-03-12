@@ -197,11 +197,15 @@ const ClientProfilePage = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const validColors = brandColors.filter(c => c.hex.trim());
       await updateProfile({
         business_name: businessName,
         logo_url: logoUrl,
-        primary_color: primaryColor,
-        secondary_color: secondaryColor,
+        primary_color: validColors[0]?.hex || primaryColor,
+        secondary_color: validColors[1]?.hex || secondaryColor,
+        brand_colors: validColors,
+        primary_color_name: validColors[0]?.name || null,
+        secondary_color_name: validColors[1]?.name || null,
         x_factors: xFactors,
         competitors: competitors,
         advantage_slider: advantageSlider,
