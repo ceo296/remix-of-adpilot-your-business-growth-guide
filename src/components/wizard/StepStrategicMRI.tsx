@@ -182,8 +182,8 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                     isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-amber-400' : 'hover:scale-[1.01] hover:shadow-xl'
                   }`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br from-amber-900 via-amber-800 to-yellow-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
-                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, rgba(255,215,0,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,215,0,0.2) 0%, transparent 40%)' }} />
+                  <div className={`absolute inset-0 bg-gradient-to-br from-stone-800 via-stone-700 to-stone-800 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, rgba(200,180,150,0.2) 0%, transparent 50%)' }} />
                   <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
                     <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
                       <Crown className={`w-12 h-12 ${isSelected ? 'text-yellow-300' : 'text-yellow-400/60'}`} strokeWidth={1.5} />
