@@ -103,6 +103,19 @@ const DashboardHub = () => {
           setMediaProofs(proofs);
         }
       }
+
+      // Fetch generation logs (materials created)
+      const { data: logs, count: logsCount } = await supabase
+        .from('ai_generation_logs')
+        .select('id, generation_type, media_type, created_at, success', { count: 'exact' })
+        .eq('user_id', user.id)
+        .eq('success', true)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      setMaterialLogs(logs || []);
+      setMaterialsCount(logsCount || 0);
+
       setLoading(false);
     };
 
