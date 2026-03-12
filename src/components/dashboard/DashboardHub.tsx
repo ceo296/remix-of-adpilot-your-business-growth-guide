@@ -768,6 +768,7 @@ const DashboardHub = () => {
       {currentView === 'new-campaign' && renderNewCampaignView()}
       {currentView === 'history' && renderHistoryView()}
       {currentView === 'status' && renderStatusView()}
+      {currentView === 'my-materials' && renderMyMaterialsView()}
     </div>
   );
 };
