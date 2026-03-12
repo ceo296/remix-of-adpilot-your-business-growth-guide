@@ -621,34 +621,34 @@ const SlideRenderer = ({
     case 'process':
     case 'methodology': {
       const { background, mode, decorBg } = getSlideBg(slide.type);
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.18} />}
           {decorBg}
-          <div style={{ padding: '100px 150px 100px 120px', position: 'relative' }}>
-            <h2 style={titleStyle(60, { color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 60 }} />
+          <div style={{ padding: '100px 150px 100px 120px', position: 'relative', zIndex: 2 }}>
+            <h2 style={titleStyle(60, { color: safeText(effectiveMode), marginBottom: 20, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 60 }} />
             <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
               {(slide.steps || []).map((s, i) => (
                 <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
                   {i < (slide.steps?.length || 0) - 1 && (
                     <div style={{
                       position: 'absolute', top: 35, left: -20, width: 40, height: 3,
-                      background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}40, #ff6b6b40)` : isMinimal ? `${brandColor}30` : 'rgba(255,255,255,0.2)',
+                      background: 'rgba(255,255,255,0.2)',
                     }} />
                   )}
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 28, fontWeight: 900, margin: '0 auto 24px',
-                    ...getNumberBadge(bg),
+                    ...getNumberBadge(hasPhoto ? 'dark' : effectiveMode),
                   }}>
                     {s.number}
                   </div>
-                  <h3 style={{ fontSize: 28, fontWeight: 800, color: safeText(bg), marginBottom: 12, textShadow: textShadow(bg) }}>{s.title}</h3>
-                  <p style={{ fontSize: 20, color: safeSubtext(bg), lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
+                  <h3 style={{ fontSize: 28, fontWeight: 800, color: safeText(effectiveMode), marginBottom: 12, textShadow: textShadow(effectiveMode) }}>{s.title}</h3>
+                  <p style={{ fontSize: 20, color: safeSubtext(effectiveMode), lineHeight: 1.6, maxWidth: 300, margin: '0 auto', textShadow: textShadow(effectiveMode) }}>{s.desc}</p>
                 </div>
               ))}
             </div>
