@@ -434,6 +434,79 @@ const DashboardHub = () => {
     </div>
   );
 
+  const MATERIAL_TYPE_LABELS: Record<string, string> = {
+    presentation: '📊 מצגת',
+    creative: '🎨 קריאייטיב',
+    branding: '🏷️ מיתוג',
+    business_card: '💼 כרטיס ביקור',
+    letterhead: '📄 ניירת',
+    image: '🖼️ תמונה',
+    copy: '✍️ קופי',
+    ad: '📰 מודעה',
+  };
+
+  const renderMyMaterialsView = () => (
+    <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+      <Button 
+        variant="ghost" 
+        onClick={() => setCurrentView('main')}
+        className="mb-4"
+      >
+        <ArrowLeft className="w-4 h-4 ml-2" />
+        חזרה
+      </Button>
+
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-foreground mb-2">החומרים שיצרתי</h2>
+        <p className="text-muted-foreground text-sm">{materialsCount} חומרים נוצרו עד כה</p>
+      </div>
+
+      {materialLogs.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {materialLogs.map((log) => {
+            const typeLabel = MATERIAL_TYPE_LABELS[log.generation_type] || MATERIAL_TYPE_LABELS[log.media_type] || '📁 חומר';
+            return (
+              <Card key={log.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-lg">{typeLabel.split(' ')[0]}</span>
+                    <Badge variant="secondary" className="text-[10px]">
+                      {format(new Date(log.created_at), 'd בMMM yyyy', { locale: he })}
+                    </Badge>
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground mb-1">
+                    {typeLabel.split(' ').slice(1).join(' ')}
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    סוג מדיה: {log.media_type}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-muted-foreground">
+          <Layers className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p className="text-sm">עדיין לא נוצרו חומרים</p>
+          <p className="text-xs mt-1">חומרים שתיצור יופיעו כאן</p>
+        </div>
+      )}
+
+      <div className="flex justify-center gap-3 pt-4 border-t border-border">
+        <Button variant="outline" size="sm" onClick={() => navigate('/presentation-studio')} className="gap-1.5">
+          <Sparkles className="w-4 h-4" /> מצגת חדשה
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => handleNewCampaign('internal')} className="gap-1.5">
+          <Building2 className="w-4 h-4" /> חומרים פנימיים
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => handleNewCampaign('create')} className="gap-1.5">
+          <Plus className="w-4 h-4" /> קמפיין חדש
+        </Button>
+      </div>
+    </div>
+  );
+
   const renderStatusView = () => {
     if (!activeCampaign) return null;
 
