@@ -1236,6 +1236,7 @@ const PresentationStudio = () => {
     return () => window.removeEventListener('keydown', handlePresentationKeyDown);
   }, [isPresenting, slides?.length]);
 
+  if (!slides) {
     return (
       <>
         <TopNavbar />
