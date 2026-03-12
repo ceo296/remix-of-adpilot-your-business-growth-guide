@@ -18,6 +18,7 @@ export interface CampaignConfigData {
   campaignStructure: CampaignStructureType | null;
   timing: string;
   mediaChannels: MediaChannel[];
+  decisionMaker: string;
 }
 
 export interface BrandAssetsData {
