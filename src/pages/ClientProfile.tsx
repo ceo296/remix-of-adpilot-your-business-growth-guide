@@ -743,33 +743,6 @@ const ClientProfilePage = () => {
               </div>
             </div>
 
-            <Separator />
-
-            <div>
-              <Label>סוג היתרון</Label>
-              <div className="mt-2">
-                <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                  <span>יתרון פיזי מובהק</span>
-                  <span>יתרון תדמיתי/רגשי</span>
-                </div>
-                {isEditing ? (
-                  <Slider
-                    value={[advantageSlider]}
-                    onValueChange={([value]) => setAdvantageSlider(value)}
-                    max={100}
-                    step={1}
-                    className="w-full"
-                  />
-                ) : (
-                  <div className="h-2 bg-muted rounded-full relative">
-                    <div 
-                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-primary"
-                      style={{ left: `${profile.advantage_slider || 50}%` }}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
           </CardContent>
         </Card>
 
