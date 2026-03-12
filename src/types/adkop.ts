@@ -121,6 +121,7 @@ export const initialAdkopData: AdkopWizardData = {
     campaignStructure: null,
     timing: 'כל השנה',
     mediaChannels: [],
+    decisionMaker: '',
   },
   brand: {
     logoFile: null,
