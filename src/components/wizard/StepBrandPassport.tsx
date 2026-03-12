@@ -780,12 +780,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                   <p className="font-medium text-sm">{data.strategicMRI.endConsumer}</p>
                 </div>
               )}
-              {data.strategicMRI.decisionMaker && (
-                <div className="p-3 rounded-lg bg-secondary/50">
-                  <p className="text-xs text-muted-foreground mb-1">מקבל ההחלטות</p>
-                  <p className="font-medium text-sm">{data.strategicMRI.decisionMaker}</p>
-                </div>
-              )}
             </div>
 
             {/* Competitors */}
