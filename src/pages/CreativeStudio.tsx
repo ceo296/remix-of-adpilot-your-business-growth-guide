@@ -2196,7 +2196,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             {/* Mode Selection Screen - shown first before any wizard steps */}
             {mode === null ? (
               <div className="py-8">
-                <StudioModeToggle value={mode} onChange={setMode} />
+                <StudioModeToggle value={mode} onChange={handleModeSelect} />
               </div>
             ) : mode === 'autopilot' ? (
               /* Autopilot Mode */
