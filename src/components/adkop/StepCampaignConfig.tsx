@@ -99,6 +99,17 @@ const StepCampaignConfig = ({ data, onChange }: Props) => {
           ))}
         </div>
       </div>
+      {/* Decision Maker */}
+      <div className="space-y-2">
+        <Label className="text-base font-semibold">מי מקבל ההחלטות?</Label>
+        <p className="text-sm text-muted-foreground">למי אנחנו פונים במודעה — מי מחליט על הרכישה?</p>
+        <Input
+          value={data.decisionMaker}
+          onChange={(e) => onChange({ ...data, decisionMaker: e.target.value })}
+          placeholder="למשל: האמא, הגבר, מנהל הרכש..."
+          className="h-12 text-base"
+        />
+      </div>
     </div>
   );
 };
