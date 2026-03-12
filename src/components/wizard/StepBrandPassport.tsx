@@ -209,8 +209,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
         if (data.strategicMRI.primaryXFactor === 'brand') return 'הבטחה פרסומית';
         if (data.strategicMRI.primaryXFactor === 'other') return data.strategicMRI.otherXFactor || '';
         return '';
-      case 'מקבל ההחלטות':
-        return data.strategicMRI.decisionMaker || '';
+      case 'שם העסק':
       case 'שם העסק':
         return data.brand.name || '';
       default:
