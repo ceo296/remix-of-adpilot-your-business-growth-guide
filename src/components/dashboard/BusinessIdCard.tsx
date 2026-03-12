@@ -157,9 +157,9 @@ const BusinessIdCard = () => {
           {displayColors.map((c, i) => (
             <div key={i} className="flex items-center gap-0.5">
               <div className="w-5 h-5 rounded-full border-2 border-white/60 shadow-sm" style={{ backgroundColor: c.hex }} />
-              {(c.name || c.number) && (
+              {c.number && (
                 <span className="text-[10px] text-white/90 font-medium max-w-[60px] truncate">
-                  {c.name}{c.number ? ` #${c.number}` : ''}
+                  #{c.number}
                 </span>
               )}
             </div>
