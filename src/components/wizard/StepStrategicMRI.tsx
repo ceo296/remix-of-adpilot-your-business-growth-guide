@@ -214,10 +214,10 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                   <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(150,180,210,0.08) 10px, rgba(150,180,210,0.08) 20px)' }} />
                   <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
                     <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
-                      <Briefcase className={`w-12 h-12 ${isSelected ? 'text-sky-300' : 'text-sky-400/60'}`} strokeWidth={1.5} />
+                      <Briefcase className={`w-12 h-12 ${isSelected ? 'text-sky-300' : 'text-slate-400/60'}`} strokeWidth={1.5} />
                     </div>
                     <h4 className="font-bold text-white text-lg tracking-wide mb-2">מומחה בתחומו</h4>
-                    <p className="text-sm text-blue-100/70 leading-relaxed">אני בונה אמון דרך מקצועיות, איכות וניסיון</p>
+                    <p className="text-sm text-slate-300/70 leading-relaxed">אני בונה אמון דרך מקצועיות, איכות וניסיון</p>
                   </div>
                   {isSelected && (
                     <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-sky-400 flex items-center justify-center shadow-lg">
