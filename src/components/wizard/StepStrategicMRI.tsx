@@ -89,12 +89,18 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
   const toggleXFactor = (factor: XFactorType) => {
     const current = mri.xFactors;
     if (current.includes(factor)) {
+      const remaining = current.filter((f) => f !== factor);
       updateMRI({
-        xFactors: current.filter((f) => f !== factor),
-        primaryXFactor: mri.primaryXFactor === factor ? null : mri.primaryXFactor,
+        xFactors: remaining,
+        primaryXFactor: mri.primaryXFactor === factor ? (remaining[0] || null) : mri.primaryXFactor,
       });
     } else {
-      updateMRI({ xFactors: [...current, factor] });
+      const newFactors = [...current, factor];
+      updateMRI({ 
+        xFactors: newFactors,
+        // Auto-set primary if this is the first factor selected
+        primaryXFactor: mri.primaryXFactor || factor,
+      });
     }
   };
 
