@@ -29,7 +29,7 @@ import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
-type HubView = 'main' | 'new-campaign' | 'history' | 'status';
+type HubView = 'main' | 'new-campaign' | 'history' | 'status' | 'my-materials';
 
 interface CampaignStatus {
   id: string;
@@ -59,6 +59,8 @@ const DashboardHub = () => {
   const [mediaProofs, setMediaProofs] = useState<MediaProof[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasAnyCampaigns, setHasAnyCampaigns] = useState(false);
+  const [materialLogs, setMaterialLogs] = useState<any[]>([]);
+  const [materialsCount, setMaterialsCount] = useState(0);
   
   const userName = profile?.business_name || 'שם';
 
@@ -101,6 +103,19 @@ const DashboardHub = () => {
           setMediaProofs(proofs);
         }
       }
+
+      // Fetch generation logs (materials created)
+      const { data: logs, count: logsCount } = await supabase
+        .from('ai_generation_logs')
+        .select('id, generation_type, media_type, created_at, success', { count: 'exact' })
+        .eq('user_id', user.id)
+        .eq('success', true)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      setMaterialLogs(logs || []);
+      setMaterialsCount(logsCount || 0);
+
       setLoading(false);
     };
 
@@ -169,12 +184,32 @@ const DashboardHub = () => {
         </Card>
       </div>
 
-      {/* Personal Area Note */}
-      <div className="text-center mt-8 pt-6 border-t border-border max-w-2xl mx-auto">
-        <p className="text-sm text-muted-foreground">
-          💡 <span className="font-medium">טיפ:</span> לאחר יצירת הקמפיין הראשון שלך, האזור האישי יתעדכן עם היסטוריה וסטטוס קמפיינים
-        </p>
-      </div>
+      {/* Personal Area Note or My Materials */}
+      {materialsCount > 0 ? (
+        <div className="text-center mt-6 max-w-3xl mx-auto px-4">
+          <Card 
+            className="cursor-pointer transition-all duration-300 hover:shadow-lg border border-border bg-card hover:bg-accent/5"
+            onClick={() => setCurrentView('my-materials')}
+          >
+            <CardContent className="p-4 flex items-center justify-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shrink-0">
+                <Layers className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-right">
+                <h4 className="text-sm font-semibold text-foreground">החומרים שיצרתי ({materialsCount})</h4>
+                <p className="text-xs text-muted-foreground">מצגות, קריאייטיבים וחומרים נוספים</p>
+              </div>
+              <ArrowLeft className="w-4 h-4 text-muted-foreground mr-auto" />
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="text-center mt-8 pt-6 border-t border-border max-w-2xl mx-auto">
+          <p className="text-sm text-muted-foreground">
+            💡 <span className="font-medium">טיפ:</span> לאחר יצירת הקמפיין הראשון שלך, האזור האישי יתעדכן עם היסטוריה וסטטוס קמפיינים
+          </p>
+        </div>
+      )}
     </div>
   );
 
@@ -186,7 +221,7 @@ const DashboardHub = () => {
         <p className="text-muted-foreground">{getYouWord(honorificPreference, 'choose')} אפשרות להמשך</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto px-4">
         {/* New Campaign Card */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
@@ -266,6 +301,24 @@ const DashboardHub = () => {
             </p>
           </CardContent>
         </Card>
+
+        {/* My Materials Card */}
+        {materialsCount > 0 && (
+          <Card 
+            className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100"
+            onClick={() => setCurrentView('my-materials')}
+          >
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <FileUp className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-indigo-800 mb-2">החומרים שלי</h3>
+              <p className="text-sm text-indigo-600">
+                {materialsCount} חומרים שנוצרו
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
@@ -378,6 +431,79 @@ const DashboardHub = () => {
       </Button>
 
       <CampaignHistory />
+    </div>
+  );
+
+  const MATERIAL_TYPE_LABELS: Record<string, string> = {
+    presentation: '📊 מצגת',
+    creative: '🎨 קריאייטיב',
+    branding: '🏷️ מיתוג',
+    business_card: '💼 כרטיס ביקור',
+    letterhead: '📄 ניירת',
+    image: '🖼️ תמונה',
+    copy: '✍️ קופי',
+    ad: '📰 מודעה',
+  };
+
+  const renderMyMaterialsView = () => (
+    <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+      <Button 
+        variant="ghost" 
+        onClick={() => setCurrentView('main')}
+        className="mb-4"
+      >
+        <ArrowLeft className="w-4 h-4 ml-2" />
+        חזרה
+      </Button>
+
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-foreground mb-2">החומרים שיצרתי</h2>
+        <p className="text-muted-foreground text-sm">{materialsCount} חומרים נוצרו עד כה</p>
+      </div>
+
+      {materialLogs.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {materialLogs.map((log) => {
+            const typeLabel = MATERIAL_TYPE_LABELS[log.generation_type] || MATERIAL_TYPE_LABELS[log.media_type] || '📁 חומר';
+            return (
+              <Card key={log.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-lg">{typeLabel.split(' ')[0]}</span>
+                    <Badge variant="secondary" className="text-[10px]">
+                      {format(new Date(log.created_at), 'd בMMM yyyy', { locale: he })}
+                    </Badge>
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground mb-1">
+                    {typeLabel.split(' ').slice(1).join(' ')}
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    סוג מדיה: {log.media_type}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-muted-foreground">
+          <Layers className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p className="text-sm">עדיין לא נוצרו חומרים</p>
+          <p className="text-xs mt-1">חומרים שתיצור יופיעו כאן</p>
+        </div>
+      )}
+
+      <div className="flex justify-center gap-3 pt-4 border-t border-border">
+        <Button variant="outline" size="sm" onClick={() => navigate('/presentation-studio')} className="gap-1.5">
+          <Sparkles className="w-4 h-4" /> מצגת חדשה
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => handleNewCampaign('internal')} className="gap-1.5">
+          <Building2 className="w-4 h-4" /> חומרים פנימיים
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => handleNewCampaign('create')} className="gap-1.5">
+          <Plus className="w-4 h-4" /> קמפיין חדש
+        </Button>
+      </div>
     </div>
   );
 
@@ -642,6 +768,7 @@ const DashboardHub = () => {
       {currentView === 'new-campaign' && renderNewCampaignView()}
       {currentView === 'history' && renderHistoryView()}
       {currentView === 'status' && renderStatusView()}
+      {currentView === 'my-materials' && renderMyMaterialsView()}
     </div>
   );
 };
