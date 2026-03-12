@@ -235,7 +235,7 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 <div
                   onClick={() => updateMRI({ brandPresence: 'active' })}
                   className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
-                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-emerald-400' : 'hover:scale-[1.01] hover:shadow-xl'
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-emerald-400/60' : 'hover:scale-[1.01] hover:shadow-xl'
                   }`}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-green-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
