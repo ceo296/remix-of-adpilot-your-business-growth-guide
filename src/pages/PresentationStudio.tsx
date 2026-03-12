@@ -1121,6 +1121,7 @@ const PresentationStudio = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<PresentationTheme>('corporate');
   const [imagesGenerating, setImagesGenerating] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState<{ phase: string; current: number; total: number } | null>(null);
 
   const brandColor = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#1a1a2e';
