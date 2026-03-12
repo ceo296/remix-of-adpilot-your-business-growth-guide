@@ -37,6 +37,12 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { HonorificType } from '@/types/wizard';
+
+interface BrandColor {
+  hex: string;
+  name: string;
+  number: string;
+}
 import { getGreeting } from '@/lib/honorific-utils';
 
 const X_FACTORS = [
