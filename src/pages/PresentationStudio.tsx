@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -1224,7 +1224,18 @@ const PresentationStudio = () => {
     }
   };
 
-  if (!slides) {
+  // Global keyboard navigation for presentation mode
+  useEffect(() => {
+    if (!isPresenting) return;
+    const handlePresentationKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsPresenting(false);
+      if (e.key === 'ArrowLeft' || e.key === ' ') setActiveSlide(prev => Math.min(prev + 1, (slides?.length || 1) - 1));
+      if (e.key === 'ArrowRight') setActiveSlide(prev => Math.max(prev - 1, 0));
+    };
+    window.addEventListener('keydown', handlePresentationKeyDown);
+    return () => window.removeEventListener('keydown', handlePresentationKeyDown);
+  }, [isPresenting, slides?.length]);
+
     return (
       <>
         <TopNavbar />
@@ -1304,13 +1315,6 @@ const PresentationStudio = () => {
       <div
         className="fixed inset-0 bg-black z-50 flex items-center justify-center cursor-none"
         onClick={() => setActiveSlide(prev => Math.min(prev + 1, slides.length - 1))}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') setIsPresenting(false);
-          if (e.key === 'ArrowLeft' || e.key === ' ') setActiveSlide(prev => Math.min(prev + 1, slides.length - 1));
-          if (e.key === 'ArrowRight') setActiveSlide(prev => Math.max(prev - 1, 0));
-        }}
-        tabIndex={0}
-        autoFocus
       >
         <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
           <SlideRenderer slide={slides[activeSlide]} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={Math.min(window.innerWidth / 1920, window.innerHeight / 1080)} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={activeSlide} address={address} />
