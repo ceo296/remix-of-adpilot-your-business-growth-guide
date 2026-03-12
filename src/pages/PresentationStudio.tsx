@@ -479,16 +479,17 @@ const SlideRenderer = ({
 
     case 'about': {
       const { background, mode, decorBg } = getSlideBg('about');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      // When photo exists: always full-bleed with dark overlay for guaranteed readability
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.25} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="42%" />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.3} />}
           {decorBg}
-          <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo && bg === 'light' ? '60%' : '100%', position: 'relative' }}>
-            <h2 style={titleStyle(68, { color: safeText(bg), marginBottom: 40, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
-            <p style={bodyStyle(30, { color: safeSubtext(bg), maxWidth: 1200, textShadow: textShadow(bg) })}>{slide.body}</p>
+          <div style={{ padding: '120px 180px 120px 140px', position: 'relative', zIndex: 2 }}>
+            <h2 style={titleStyle(68, { color: safeText(effectiveMode), marginBottom: 40, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 40 }} />
+            <p style={bodyStyle(30, { color: safeSubtext(effectiveMode), maxWidth: 1200, textShadow: textShadow(effectiveMode) })}>{slide.body}</p>
           </div>
           {footer}
         </div>
