@@ -730,75 +730,79 @@ const SlideRenderer = ({
 
     case 'contact': {
       const { background, mode, decorBg } = getSlideBg('contact');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.22} />}
           {decorBg}
           <div style={{
             position: 'relative', height: '100%', display: 'flex', flexDirection: 'column',
-            justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 100,
+            justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 100, zIndex: 2,
           }}>
             {logoUrl && (
               <div style={{
                 width: 120, height: 120, borderRadius: 24,
-                background: isCreative ? hexToRgba(brandColor, 0.08) : isMinimal ? '#f5f5f5' : 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(8px)',
+                background: hasPhoto ? 'rgba(255,255,255,0.1)' : (isCreative ? hexToRgba(brandColor, 0.08) : isMinimal ? '#f5f5f5' : 'rgba(255,255,255,0.1)'),
+                backdropFilter: 'blur(12px)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, marginBottom: 40,
-                border: isCreative ? `2px solid ${hexToRgba(brandColor, 0.15)}` : isMinimal ? '1px solid #eee' : '1px solid rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
               }}>
                 <img src={logoUrl} alt="logo" style={{
                   maxHeight: 80, maxWidth: 80, objectFit: 'contain',
-                  filter: isDark ? 'brightness(0) invert(1)' : 'none',
+                  filter: (hasPhoto || isDark) ? 'brightness(0) invert(1)' : 'none',
                 }} />
               </div>
             )}
             <h2 style={{
               fontSize: 80, fontWeight: 900, marginBottom: 20,
-              color: safeText(bg), textShadow: textShadow(bg),
+              color: safeText(effectiveMode), textShadow: textShadow(effectiveMode),
             }}>{slide.title}</h2>
             {slide.body && <p style={{
               fontSize: 28, marginBottom: 50,
-              color: safeSubtext(bg), textShadow: textShadow(bg),
+              color: safeSubtext(effectiveMode), textShadow: textShadow(effectiveMode),
             }}>{slide.body}</p>}
             <div style={{ display: 'flex', gap: 80, marginBottom: 40 }}>
               {phone && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.12)}, ${hexToRgba('#ff6b6b', 0.08)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    background: hasPhoto ? 'rgba(255,255,255,0.12)' : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    backdropFilter: 'blur(8px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 16px', fontSize: 30,
-                    border: isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined,
+                    border: '1px solid rgba(255,255,255,0.1)',
                   }}>📞</div>
-                  <div style={{ fontSize: 18, color: brandColor, marginBottom: 8, fontWeight: 600 }}>טלפון</div>
-                  <div style={{ fontSize: 32, fontWeight: 700, direction: 'ltr', color: safeText(bg), textShadow: textShadow(bg) }}>{phone}</div>
+                  <div style={{ fontSize: 18, color: hasPhoto ? 'rgba(255,255,255,0.7)' : brandColor, marginBottom: 8, fontWeight: 600 }}>טלפון</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, direction: 'ltr', color: safeText(effectiveMode), textShadow: textShadow(effectiveMode) }}>{phone}</div>
                 </div>
               )}
               {email && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.12)}, ${hexToRgba('#ffd93d', 0.1)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    background: hasPhoto ? 'rgba(255,255,255,0.12)' : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    backdropFilter: 'blur(8px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 16px', fontSize: 30,
-                    border: isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined,
+                    border: '1px solid rgba(255,255,255,0.1)',
                   }}>✉️</div>
-                  <div style={{ fontSize: 18, color: brandColor, marginBottom: 8, fontWeight: 600 }}>אימייל</div>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: safeText(bg), textShadow: textShadow(bg) }}>{email}</div>
+                  <div style={{ fontSize: 18, color: hasPhoto ? 'rgba(255,255,255,0.7)' : brandColor, marginBottom: 8, fontWeight: 600 }}>אימייל</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: safeText(effectiveMode), textShadow: textShadow(effectiveMode) }}>{email}</div>
                 </div>
               )}
               {address && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.12)}, ${hexToRgba('#ff6b6b', 0.08)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    background: hasPhoto ? 'rgba(255,255,255,0.12)' : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    backdropFilter: 'blur(8px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 16px', fontSize: 30,
-                    border: isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined,
+                    border: '1px solid rgba(255,255,255,0.1)',
                   }}>📍</div>
-                  <div style={{ fontSize: 18, color: brandColor, marginBottom: 8, fontWeight: 600 }}>כתובת</div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: safeText(bg), textShadow: textShadow(bg) }}>{address}</div>
+                  <div style={{ fontSize: 18, color: hasPhoto ? 'rgba(255,255,255,0.7)' : brandColor, marginBottom: 8, fontWeight: 600 }}>כתובת</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: safeText(effectiveMode), textShadow: textShadow(effectiveMode) }}>{address}</div>
                 </div>
               )}
             </div>
