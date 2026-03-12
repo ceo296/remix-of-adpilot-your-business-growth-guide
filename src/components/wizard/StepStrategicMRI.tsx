@@ -244,10 +244,10 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                   </div>
                   <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
                     <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
-                      <Zap className={`w-12 h-12 ${isSelected ? 'text-emerald-300' : 'text-emerald-400/60'}`} strokeWidth={1.5} />
+                      <Zap className={`w-12 h-12 ${isSelected ? 'text-emerald-300' : 'text-slate-400/60'}`} strokeWidth={1.5} />
                     </div>
                     <h4 className="font-bold text-white text-lg tracking-wide mb-2">שחקן אקטיבי</h4>
-                    <p className="text-sm text-emerald-100/70 leading-relaxed">אני כאן כדי לייצר תוצאות, המודעות שלי צריכות להיות בולטות</p>
+                    <p className="text-sm text-slate-300/70 leading-relaxed">אני כאן כדי לייצר תוצאות, המודעות שלי צריכות להיות בולטות</p>
                   </div>
                   {isSelected && (
                     <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-emerald-400 flex items-center justify-center shadow-lg">
