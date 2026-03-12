@@ -498,18 +498,18 @@ const SlideRenderer = ({
 
     case 'services': {
       const { background, mode, decorBg } = getSlideBg('services');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       const items = slide.bullets || [];
       const useWideLayout = items.length <= 3;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.18} />}
           {decorBg}
-          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
-            {slide.subtitle && <p style={{ fontSize: 26, color: safeMuted(bg), marginBottom: 40, maxWidth: 900 }}>{slide.subtitle}</p>}
+          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', zIndex: 2 }}>
+            <h2 style={titleStyle(72, { color: safeText(effectiveMode), marginBottom: 16, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 80, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 50 }} />
+            {slide.subtitle && <p style={{ fontSize: 26, color: safeMuted(effectiveMode), marginBottom: 40, maxWidth: 900, textShadow: textShadow(effectiveMode) }}>{slide.subtitle}</p>}
             <div style={{
               display: 'grid',
               gridTemplateColumns: useWideLayout ? `repeat(${items.length}, 1fr)` : '1fr 1fr',
@@ -519,7 +519,7 @@ const SlideRenderer = ({
               {items.map((b, i) => (
                 <div key={i} style={{
                   padding: useWideLayout ? '44px 36px' : '30px 36px',
-                  ...getCardStyle(bg),
+                  ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   display: 'flex', flexDirection: useWideLayout ? 'column' : 'row',
                   alignItems: useWideLayout ? 'center' : 'center',
                   gap: useWideLayout ? 20 : 24,
@@ -529,11 +529,11 @@ const SlideRenderer = ({
                     width: useWideLayout ? 64 : 56, height: useWideLayout ? 64 : 56, borderRadius: useWideLayout ? 20 : 16, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: useWideLayout ? 28 : 24, fontWeight: 800,
-                    ...getNumberBadge(bg),
+                    ...getNumberBadge(hasPhoto ? 'dark' : effectiveMode),
                   }}>
                     {String(i + 1).padStart(2, '0')}
                   </div>
-                  <span style={{ fontSize: useWideLayout ? 28 : 26, color: safeSubtext(bg), fontWeight: 600, lineHeight: 1.5, wordBreak: 'keep-all' }}>{b}</span>
+                  <span style={{ fontSize: useWideLayout ? 28 : 26, color: safeSubtext(effectiveMode), fontWeight: 600, lineHeight: 1.5, wordBreak: 'keep-all', textShadow: textShadow(effectiveMode) }}>{b}</span>
                 </div>
               ))}
             </div>
