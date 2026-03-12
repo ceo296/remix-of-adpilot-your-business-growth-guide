@@ -301,6 +301,24 @@ const DashboardHub = () => {
             </p>
           </CardContent>
         </Card>
+
+        {/* My Materials Card */}
+        {materialsCount > 0 && (
+          <Card 
+            className="cursor-pointer transition-all duration-300 hover:shadow-xl group border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100"
+            onClick={() => setCurrentView('my-materials')}
+          >
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <FileUp className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-indigo-800 mb-2">החומרים שלי</h3>
+              <p className="text-sm text-indigo-600">
+                {materialsCount} חומרים שנוצרו
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
