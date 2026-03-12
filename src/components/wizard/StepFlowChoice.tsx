@@ -43,10 +43,10 @@ const StepFlowChoice = ({
           <Zap className="w-12 h-12 text-white" />
         </div>
         <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-          מה נעשה היום{userName ? `, ${userName}` : ''}?
+          מה נעשה היום{brandName ? `, ${brandName}` : ''}?
         </h2>
         <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
-          {brandName ? `נתחיל עם ${brandName} - ` : ''}בחר את המסלול המתאים
+          {userName ? `${userName}, ` : ''}בחר את המסלול המתאים
         </p>
       </div>
 
