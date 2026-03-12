@@ -90,6 +90,7 @@ const ClientProfilePage = () => {
   const [newRedLine, setNewRedLine] = useState('');
   const [availableTemplates, setAvailableTemplates] = useState<{id: string; name: string; description: string | null}[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(profile?.default_template_id || null);
+  const [brandColors, setBrandColors] = useState<BrandColor[]>([]);
   // Sync state when profile loads
   useEffect(() => {
     if (profile) {
