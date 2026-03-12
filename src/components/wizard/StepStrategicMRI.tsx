@@ -192,8 +192,8 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                     <p className="text-sm text-stone-300/70 leading-relaxed">השם שלי מספיק, אני מעדיף עיצוב נקי, מינימליסטי ויוקרתי</p>
                   </div>
                   {isSelected && (
-                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg">
-                      <Check className="w-4 h-4 text-amber-900" />
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-amber-400/80 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-stone-900" />
                     </div>
                   )}
                 </div>
