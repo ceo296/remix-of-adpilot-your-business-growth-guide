@@ -988,12 +988,13 @@ const buildBriefFromProfile = (profile: any): string => {
 
 // ── Brief Screen ──
 const BriefScreen = ({
-  onGenerate, businessName, isLoading, profile,
+  onGenerate, businessName, isLoading, profile, generationProgress,
 }: {
   onGenerate: (brief: string, count: number, theme: PresentationTheme) => void;
   businessName: string;
   isLoading: boolean;
   profile: any;
+  generationProgress?: { phase: string; current: number; total: number } | null;
 }) => {
   const profileBrief = profile ? buildBriefFromProfile(profile) : '';
   const hasProfileData = profileBrief.length > 30;
