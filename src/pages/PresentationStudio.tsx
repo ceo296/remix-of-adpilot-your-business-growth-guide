@@ -988,12 +988,13 @@ const buildBriefFromProfile = (profile: any): string => {
 
 // ── Brief Screen ──
 const BriefScreen = ({
-  onGenerate, businessName, isLoading, profile,
+  onGenerate, businessName, isLoading, profile, generationProgress,
 }: {
   onGenerate: (brief: string, count: number, theme: PresentationTheme) => void;
   businessName: string;
   isLoading: boolean;
   profile: any;
+  generationProgress?: { phase: string; current: number; total: number } | null;
 }) => {
   const profileBrief = profile ? buildBriefFromProfile(profile) : '';
   const hasProfileData = profileBrief.length > 30;
@@ -1097,7 +1098,12 @@ const BriefScreen = ({
               disabled={(!hasProfileData && !brief.trim()) || isLoading}
             >
               {isLoading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />יוצר את המצגת...</>
+                <><Loader2 className="w-5 h-5 animate-spin" />
+                  {generationProgress?.phase === 'images' 
+                    ? `מייצר תמונות... ${generationProgress.current}/${generationProgress.total}`
+                    : 'בונה את השקפים...'
+                  }
+                </>
               ) : (
                 <><Wand2 className="w-5 h-5" />צור מצגת ✨</>
               )}
@@ -1121,6 +1127,7 @@ const PresentationStudio = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<PresentationTheme>('corporate');
   const [imagesGenerating, setImagesGenerating] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState<{ phase: string; current: number; total: number } | null>(null);
 
   const brandColor = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#1a1a2e';
@@ -1168,26 +1175,19 @@ const PresentationStudio = () => {
     try {
       const profileData = profile ? {
         businessName: profile.business_name,
-        phone: profile.contact_phone,
-        email: profile.contact_email,
-        address: profile.contact_address,
-        website: profile.website_url,
-        xFactors: profile.x_factors,
-        targetAudience: profile.target_audience,
-        winningFeature: profile.winning_feature,
-        primaryXFactor: profile.primary_x_factor,
+        phone: profile.contact_phone, email: profile.contact_email,
+        address: profile.contact_address, website: profile.website_url,
+        xFactors: profile.x_factors, targetAudience: profile.target_audience,
+        winningFeature: profile.winning_feature, primaryXFactor: profile.primary_x_factor,
         qualitySignatures: profile.quality_signatures as string[] | undefined,
         successfulCampaigns: profile.successful_campaigns,
-        facebook: profile.social_facebook,
-        instagram: profile.social_instagram,
-        linkedin: profile.social_linkedin,
-        tiktok: profile.social_tiktok,
-        youtube: profile.contact_youtube,
-        openingHours: profile.opening_hours,
-        branches: profile.branches,
-        services: profile.services,
-        industry: '',
+        facebook: profile.social_facebook, instagram: profile.social_instagram,
+        linkedin: profile.social_linkedin, tiktok: profile.social_tiktok,
+        youtube: profile.contact_youtube, openingHours: profile.opening_hours,
+        branches: profile.branches, services: profile.services, industry: '',
       } : undefined;
+
+      setGenerationProgress({ phase: 'text', current: 0, total: 1 });
 
       const { data, error } = await supabase.functions.invoke('generate-presentation', {
         body: { brief, businessName, industry: '', slideCount, theme, profileData },
@@ -1200,25 +1200,48 @@ const PresentationStudio = () => {
         ...s, id: `${Date.now()}-${i}`, imageLoading: !!s.image_prompt,
       }));
 
-      setSlides(generatedSlides);
-      setActiveSlide(0);
-      toast.success(`נוצרו ${generatedSlides.length} שקופיות! מייצר תמונות AI...`);
-
-      // Fire off image generation with staggered batches (2 at a time to avoid rate limits)
+      // Generate ALL images before showing slides to user
       const slidesWithPrompts = generatedSlides
         .map((slide, i) => ({ index: i, prompt: slide.image_prompt }))
         .filter(s => s.prompt);
       
+      const totalImages = slidesWithPrompts.length;
+      let completedImages = 0;
+      setGenerationProgress({ phase: 'images', current: 0, total: totalImages });
+
       const batchSize = 2;
       for (let b = 0; b < slidesWithPrompts.length; b += batchSize) {
         const batch = slidesWithPrompts.slice(b, b + batchSize);
-        await Promise.allSettled(
-          batch.map(s => generateSlideImage(s.index, s.prompt!, generatedSlides))
+        const results = await Promise.allSettled(
+          batch.map(async (s) => {
+            try {
+              const { data: imgData, error: imgError } = await supabase.functions.invoke('generate-slide-image', {
+                body: { prompt: s.prompt, brandColor, industry: profile?.services?.join(', ') || '' },
+              });
+              if (!imgError && imgData?.imageUrl) {
+                generatedSlides[s.index] = { ...generatedSlides[s.index], imageUrl: imgData.imageUrl, imageLoading: false };
+              } else {
+                generatedSlides[s.index] = { ...generatedSlides[s.index], imageLoading: false };
+              }
+            } catch {
+              generatedSlides[s.index] = { ...generatedSlides[s.index], imageLoading: false };
+            } finally {
+              completedImages++;
+              setGenerationProgress({ phase: 'images', current: completedImages, total: totalImages });
+            }
+          })
         );
       }
+
+      // Now show everything at once
+      setSlides([...generatedSlides]);
+      setActiveSlide(0);
+      setGenerationProgress(null);
+      toast.success(`המצגת מוכנה! ${generatedSlides.length} שקופיות נוצרו בהצלחה`);
     } catch (err) {
       console.error(err);
       toast.error('שגיאה ביצירת המצגת. נסה שוב.');
+      setGenerationProgress(null);
     } finally {
       setIsGenerating(false);
     }
@@ -1240,7 +1263,7 @@ const PresentationStudio = () => {
     return (
       <>
         <TopNavbar />
-        <BriefScreen onGenerate={handleGenerate} businessName={businessName} isLoading={isGenerating} profile={profile} />
+        <BriefScreen onGenerate={handleGenerate} businessName={businessName} isLoading={isGenerating} profile={profile} generationProgress={generationProgress} />
       </>
     );
   }
