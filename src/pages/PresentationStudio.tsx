@@ -1200,25 +1200,48 @@ const PresentationStudio = () => {
         ...s, id: `${Date.now()}-${i}`, imageLoading: !!s.image_prompt,
       }));
 
-      setSlides(generatedSlides);
-      setActiveSlide(0);
-      toast.success(`נוצרו ${generatedSlides.length} שקופיות! מייצר תמונות AI...`);
-
-      // Fire off image generation with staggered batches (2 at a time to avoid rate limits)
+      // Generate ALL images before showing slides to user
       const slidesWithPrompts = generatedSlides
         .map((slide, i) => ({ index: i, prompt: slide.image_prompt }))
         .filter(s => s.prompt);
       
+      const totalImages = slidesWithPrompts.length;
+      let completedImages = 0;
+      setGenerationProgress({ phase: 'images', current: 0, total: totalImages });
+
       const batchSize = 2;
       for (let b = 0; b < slidesWithPrompts.length; b += batchSize) {
         const batch = slidesWithPrompts.slice(b, b + batchSize);
-        await Promise.allSettled(
-          batch.map(s => generateSlideImage(s.index, s.prompt!, generatedSlides))
+        const results = await Promise.allSettled(
+          batch.map(async (s) => {
+            try {
+              const { data: imgData, error: imgError } = await supabase.functions.invoke('generate-slide-image', {
+                body: { prompt: s.prompt, brandColor, industry: profile?.services?.join(', ') || '' },
+              });
+              if (!imgError && imgData?.imageUrl) {
+                generatedSlides[s.index] = { ...generatedSlides[s.index], imageUrl: imgData.imageUrl, imageLoading: false };
+              } else {
+                generatedSlides[s.index] = { ...generatedSlides[s.index], imageLoading: false };
+              }
+            } catch {
+              generatedSlides[s.index] = { ...generatedSlides[s.index], imageLoading: false };
+            } finally {
+              completedImages++;
+              setGenerationProgress({ phase: 'images', current: completedImages, total: totalImages });
+            }
+          })
         );
       }
+
+      // Now show everything at once
+      setSlides([...generatedSlides]);
+      setActiveSlide(0);
+      setGenerationProgress(null);
+      toast.success(`המצגת מוכנה! ${generatedSlides.length} שקופיות נוצרו בהצלחה`);
     } catch (err) {
       console.error(err);
       toast.error('שגיאה ביצירת המצגת. נסה שוב.');
+      setGenerationProgress(null);
     } finally {
       setIsGenerating(false);
     }
