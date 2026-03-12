@@ -59,6 +59,8 @@ const DashboardHub = () => {
   const [mediaProofs, setMediaProofs] = useState<MediaProof[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasAnyCampaigns, setHasAnyCampaigns] = useState(false);
+  const [materialLogs, setMaterialLogs] = useState<any[]>([]);
+  const [materialsCount, setMaterialsCount] = useState(0);
   
   const userName = profile?.business_name || 'שם';
 
