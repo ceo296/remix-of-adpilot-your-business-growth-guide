@@ -37,6 +37,12 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { HonorificType } from '@/types/wizard';
+
+interface BrandColor {
+  hex: string;
+  name: string;
+  number: string;
+}
 import { getGreeting } from '@/lib/honorific-utils';
 
 const X_FACTORS = [
@@ -84,6 +90,7 @@ const ClientProfilePage = () => {
   const [newRedLine, setNewRedLine] = useState('');
   const [availableTemplates, setAvailableTemplates] = useState<{id: string; name: string; description: string | null}[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(profile?.default_template_id || null);
+  const [brandColors, setBrandColors] = useState<BrandColor[]>([]);
   // Sync state when profile loads
   useEffect(() => {
     if (profile) {
@@ -99,6 +106,15 @@ const ClientProfilePage = () => {
       setPersonalRedLines((profile as any).personal_red_lines || []);
       setHonorificPreference(((profile as any).honorific_preference as HonorificType) || 'neutral');
       setSelectedTemplateId(profile.default_template_id || null);
+      // Sync brand colors
+      const rawColors = (profile as any).brand_colors;
+      const colors: BrandColor[] = Array.isArray(rawColors) && rawColors.length > 0
+        ? rawColors
+        : [
+            { hex: profile.primary_color || '#000000', name: (profile as any).primary_color_name || '', number: '' },
+            ...(profile.secondary_color ? [{ hex: profile.secondary_color, name: (profile as any).secondary_color_name || '', number: '' }] : []),
+          ];
+      setBrandColors(colors);
     }
   }, [profile]);
 
@@ -181,11 +197,15 @@ const ClientProfilePage = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const validColors = brandColors.filter(c => c.hex.trim());
       await updateProfile({
         business_name: businessName,
         logo_url: logoUrl,
-        primary_color: primaryColor,
-        secondary_color: secondaryColor,
+        primary_color: validColors[0]?.hex || primaryColor,
+        secondary_color: validColors[1]?.hex || secondaryColor,
+        brand_colors: validColors,
+        primary_color_name: validColors[0]?.name || null,
+        secondary_color_name: validColors[1]?.name || null,
         x_factors: xFactors,
         competitors: competitors,
         advantage_slider: advantageSlider,
@@ -506,51 +526,103 @@ const ClientProfilePage = () => {
             <div>
               <div className="flex items-center justify-between gap-3">
                 <Label>צבעי המותג</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExtractColorsFromLogo}
-                  disabled={isExtractingColors || !profile.logo_url}
-                >
-                  <Sparkles className="w-4 h-4 ml-2" />
-                  {isExtractingColors ? 'מחלץ...' : 'חלץ מהלוגו'}
-                </Button>
-              </div>
-              <div className="flex items-center gap-4 mt-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">ראשי:</span>
-                  {isEditing ? (
-                    <input 
-                      type="color" 
-                      value={primaryColor} 
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="w-10 h-10 rounded cursor-pointer"
-                    />
-                  ) : (
-                    <div 
-                      className="w-10 h-10 rounded border border-border" 
-                      style={{ backgroundColor: profile.primary_color || '#ccc' }} 
-                    />
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">משני:</span>
-                  {isEditing ? (
-                    <input 
-                      type="color" 
-                      value={secondaryColor} 
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      className="w-10 h-10 rounded cursor-pointer"
-                    />
-                  ) : (
-                    <div 
-                      className="w-10 h-10 rounded border border-border" 
-                      style={{ backgroundColor: profile.secondary_color || '#ccc' }} 
-                    />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExtractColorsFromLogo}
+                    disabled={isExtractingColors || !profile.logo_url}
+                  >
+                    <Sparkles className="w-4 h-4 ml-2" />
+                    {isExtractingColors ? 'מחלץ...' : 'חלץ מהלוגו'}
+                  </Button>
+                  {isEditing && (
+                    <Button variant="outline" size="sm" onClick={() => setBrandColors(prev => [...prev, { hex: '#888888', name: '', number: '' }])}>
+                      <Plus className="w-3.5 h-3.5 ml-1" />
+                      הוסף צבע
+                    </Button>
                   )}
                 </div>
               </div>
+
+              <div className="space-y-3 mt-3" dir="rtl">
+                {brandColors.map((color, i) => (
+                  <div key={i} className="flex items-center gap-3 bg-muted/30 rounded-lg p-2.5">
+                    {/* Color swatch / picker */}
+                    <div className="relative shrink-0">
+                      <div className="w-10 h-10 rounded-lg border border-border shadow-sm overflow-hidden" style={{ backgroundColor: color.hex }}>
+                        {isEditing && (
+                          <input
+                            type="color"
+                            value={color.hex}
+                            onChange={(e) => setBrandColors(prev => prev.map((c, idx) => idx === i ? { ...c, hex: e.target.value } : c))}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Hex */}
+                    <div className="space-y-0.5 shrink-0">
+                      <span className="text-[10px] text-muted-foreground">קוד צבע</span>
+                      {isEditing ? (
+                        <Input
+                          value={color.hex}
+                          onChange={(e) => setBrandColors(prev => prev.map((c, idx) => idx === i ? { ...c, hex: e.target.value } : c))}
+                          className="h-7 text-xs w-24 font-mono text-center"
+                          dir="ltr"
+                          maxLength={7}
+                        />
+                      ) : (
+                        <p className="text-xs font-mono text-foreground">{color.hex}</p>
+                      )}
+                    </div>
+
+                    {/* Name */}
+                    <div className="space-y-0.5 flex-1">
+                      <span className="text-[10px] text-muted-foreground">שם הצבע</span>
+                      {isEditing ? (
+                        <Input
+                          value={color.name}
+                          onChange={(e) => setBrandColors(prev => prev.map((c, idx) => idx === i ? { ...c, name: e.target.value } : c))}
+                          placeholder='לדוגמה: "כחול רויאל"'
+                          className="h-7 text-xs"
+                          dir="rtl"
+                          maxLength={30}
+                        />
+                      ) : (
+                        <p className="text-xs text-foreground">{color.name || '—'}</p>
+                      )}
+                    </div>
+
+                    {/* Number */}
+                    <div className="space-y-0.5 shrink-0">
+                      <span className="text-[10px] text-muted-foreground">מספר צבע</span>
+                      {isEditing ? (
+                        <Input
+                          value={color.number}
+                          onChange={(e) => setBrandColors(prev => prev.map((c, idx) => idx === i ? { ...c, number: e.target.value } : c))}
+                          placeholder="T-450"
+                          className="h-7 text-xs w-20 font-mono text-center"
+                          dir="ltr"
+                          maxLength={15}
+                        />
+                      ) : (
+                        <p className="text-xs font-mono text-foreground">{color.number || '—'}</p>
+                      )}
+                    </div>
+
+                    {/* Remove */}
+                    {isEditing && brandColors.length > 1 && (
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive shrink-0" onClick={() => setBrandColors(prev => prev.filter((_, idx) => idx !== i))}>
+                        <X className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
               {profile.logo_url?.toLowerCase().endsWith('.pdf') && (
                 <p className="text-xs text-muted-foreground mt-2">הלוגו הוא PDF, לכן כפתור החילוץ מושבת.</p>
               )}
