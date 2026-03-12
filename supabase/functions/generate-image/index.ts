@@ -29,6 +29,19 @@ EMOTIONAL CONNECTION: Focus on the "Story" (e.g., a father and son learning, a m
 [NEGATIVE PROMPT - NEVER SHOW] Text inside the image, invented/fabricated logos, split-screens, multiple panels, clinical/stock-photo look, low-quality CGI, immodest clothing, distorted limbs, messy backgrounds. CRITICAL: Do NOT include religious/ritual objects (menorah, chanukiah, kiddush cup, seder plate, shofar, lulav, etrog, dreidel, Torah scroll) UNLESS the campaign is explicitly tagged for a specific holiday. A dental/real-estate/food ad must NEVER contain religious symbols.
 
 [IRON RULE — LOGO] NEVER invent, design, or generate a new logo. Use ONLY the client's actual logo if attached as an image. If no logo image is attached, leave space empty — do NOT create any logo substitute, symbol, monogram, or emblem.
+
+[IRON RULE — VISUAL QA & ANATOMY]
+- Children MUST look like children: smooth faces, NO facial hair (no mustache, no beard, no stubble). A boy should have a child's face.
+- Hands MUST have exactly 5 fingers, properly proportioned. No extra/missing/fused fingers.
+- Eyes must be symmetrical and natural. No crossed eyes, no misaligned pupils.
+- Food must look appetizing, realistic, and properly textured. No plastic-looking or alien food.
+- If generating a person eating: the food and the person must be proportionally correct, the grip must be natural.
+- SELF-CHECK before finalizing: "Does any element look uncanny, deformed, or embarrassing?" If yes — regenerate that element.
+
+[IRON RULE — LAYOUT GRID]
+- The logo area must be LARGE, PROMINENT, and clearly visible — not a tiny icon in a corner. Treat the logo as a key design element.
+- Follow professional ad grid: headline at top/upper-center, hero visual in center, CTA clearly visible, contact strip with prominent logo at bottom.
+- Study the reference ads from Sector Brain — replicate their grid proportions, logo size, and visual hierarchy.
 `;
 
 // Enhanced style descriptions for better quality
