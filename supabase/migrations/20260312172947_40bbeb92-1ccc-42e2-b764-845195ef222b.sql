@@ -1,0 +1,1 @@
+ALTER TABLE public.client_profiles ADD COLUMN IF NOT EXISTS primary_color_name text DEFAULT NULL, ADD COLUMN IF NOT EXISTS secondary_color_name text DEFAULT NULL;

@@ -129,7 +129,7 @@ const DashboardHub = () => {
         <p className="text-muted-foreground">{getWhatWouldYouLike(honorificPreference)}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto px-4">
         {/* Create Campaign with AI */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
