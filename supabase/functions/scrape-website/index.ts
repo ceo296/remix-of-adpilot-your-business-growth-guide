@@ -49,6 +49,9 @@ serve(async (req) => {
 
     console.log('Scraping URL:', formattedUrl);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 55000);
+
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
       headers: {
@@ -59,9 +62,13 @@ serve(async (req) => {
         url: formattedUrl,
         formats: options?.formats || ['markdown', 'branding'],
         onlyMainContent: false,
-        waitFor: options?.waitFor || 2000,
+        waitFor: options?.waitFor || 5000,
+        timeout: 45000,
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     const data = await response.json();
 
