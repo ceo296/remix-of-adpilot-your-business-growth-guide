@@ -240,7 +240,16 @@ const CreativeStudio = () => {
   
   // Mode state - check URL param for direct access
   const urlMode = searchParams.get('mode');
-  const [mode, setMode] = useState<StudioMode>(urlMode === 'upload' ? 'manual' : null);
+  const [mode, setMode] = useState<StudioMode>(urlMode === 'upload' ? 'upload' : null);
+  
+  const handleModeSelect = (selectedMode: StudioMode) => {
+    if (selectedMode === 'upload') {
+      setMode('manual');
+      setCurrentStep(2); // Skip to asset choice step
+    } else {
+      setMode(selectedMode);
+    }
+  };
   
   // Track if we should skip to asset step (for upload mode)
   const [initializedFromUrl, setInitializedFromUrl] = useState(false);
@@ -2187,7 +2196,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             {/* Mode Selection Screen - shown first before any wizard steps */}
             {mode === null ? (
               <div className="py-8">
-                <StudioModeToggle value={mode} onChange={setMode} />
+                <StudioModeToggle value={mode} onChange={handleModeSelect} />
               </div>
             ) : mode === 'autopilot' ? (
               /* Autopilot Mode */
