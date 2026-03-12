@@ -754,7 +754,7 @@ const ClientProfilePage = () => {
                 <Users className="w-5 h-5 text-primary" />
                 מתחרים
               </CardTitle>
-              <CardDescription>מי מפריע לכם לישון בלילה?</CardDescription>
+              <CardDescription>מי המתחרים המרכזיים שלכם בשוק?</CardDescription>
             </div>
             {!isEditing && (
               <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
