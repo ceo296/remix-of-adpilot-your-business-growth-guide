@@ -1224,7 +1224,18 @@ const PresentationStudio = () => {
     }
   };
 
-  if (!slides) {
+  // Global keyboard navigation for presentation mode
+  useEffect(() => {
+    if (!isPresenting) return;
+    const handlePresentationKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsPresenting(false);
+      if (e.key === 'ArrowLeft' || e.key === ' ') setActiveSlide(prev => Math.min(prev + 1, (slides?.length || 1) - 1));
+      if (e.key === 'ArrowRight') setActiveSlide(prev => Math.max(prev - 1, 0));
+    };
+    window.addEventListener('keydown', handlePresentationKeyDown);
+    return () => window.removeEventListener('keydown', handlePresentationKeyDown);
+  }, [isPresenting, slides?.length]);
+
     return (
       <>
         <TopNavbar />
