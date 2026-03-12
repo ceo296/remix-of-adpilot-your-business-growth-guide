@@ -222,7 +222,7 @@ const BusinessIdCard = () => {
                   <Input
                     value={color.name}
                     onChange={(e) => updateColor(i, 'name', e.target.value)}
-                    placeholder='לדוגמה: "כחול רויאל"'
+                    placeholder="שם הצבע"
                     className="h-7 text-xs"
                     dir="rtl"
                     maxLength={30}

@@ -586,7 +586,7 @@ const ClientProfilePage = () => {
                         <Input
                           value={color.name}
                           onChange={(e) => setBrandColors(prev => prev.map((c, idx) => idx === i ? { ...c, name: e.target.value } : c))}
-                          placeholder='לדוגמה: "כחול רויאל"'
+                          placeholder="שם הצבע"
                           className="h-7 text-xs"
                           dir="rtl"
                           maxLength={30}
