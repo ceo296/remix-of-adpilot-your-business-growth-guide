@@ -186,10 +186,10 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                   <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, rgba(200,180,150,0.2) 0%, transparent 50%)' }} />
                   <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
                     <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
-                      <Crown className={`w-12 h-12 ${isSelected ? 'text-yellow-300' : 'text-yellow-400/60'}`} strokeWidth={1.5} />
+                      <Crown className={`w-12 h-12 ${isSelected ? 'text-amber-300' : 'text-stone-400/60'}`} strokeWidth={1.5} />
                     </div>
                     <h4 className="font-bold text-white text-lg tracking-wide mb-2">מותג מוכר</h4>
-                    <p className="text-sm text-amber-100/70 leading-relaxed">השם שלי מספיק, אני מעדיף עיצוב נקי, מינימליסטי ויוקרתי</p>
+                    <p className="text-sm text-stone-300/70 leading-relaxed">השם שלי מספיק, אני מעדיף עיצוב נקי, מינימליסטי ויוקרתי</p>
                   </div>
                   {isSelected && (
                     <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg">
