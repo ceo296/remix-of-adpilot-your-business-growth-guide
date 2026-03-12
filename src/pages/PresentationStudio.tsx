@@ -95,8 +95,8 @@ const LogoFooter = ({ logoUrl, businessName, brandColor, phone, theme }: {
   );
 };
 
-// ── Photo background helper ──
-const PhotoBg = ({ url, opacity = 0.2, position = 'right', width = '50%' }: {
+// ── Photo background helper ── (Million Dollar quality)
+const PhotoBg = ({ url, opacity = 1, position = 'right', width = '50%' }: {
   url: string; opacity?: number; position?: 'right' | 'left' | 'full'; width?: string;
 }) => {
   if (position === 'full') {
@@ -108,33 +108,46 @@ const PhotoBg = ({ url, opacity = 0.2, position = 'right', width = '50%' }: {
       }} />
     );
   }
+  // Side placement: image fills one side, elegant gradient fade to content area
   return (
     <div style={{
       position: 'absolute', top: 0, bottom: 0,
       [position === 'right' ? 'right' : 'left']: 0,
       width,
-      backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+      overflow: 'hidden',
     }}>
       <div style={{
         position: 'absolute', inset: 0,
+        backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+        opacity,
+      }} />
+      {/* Smooth gradient fade towards text side */}
+      <div style={{
+        position: 'absolute', inset: 0,
         background: position === 'right'
-          ? 'linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 50%, transparent 100%)'
-          : 'linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+          ? 'linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 20%, rgba(255,255,255,0) 50%)'
+          : 'linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 20%, rgba(255,255,255,0) 50%)',
       }} />
     </div>
   );
 };
 
-// Dark photo background with overlay
+// Dark photo background: cinematic overlay with vignette
 const DarkPhotoBg = ({ url, opacity = 0.25 }: { url: string; opacity?: number }) => (
   <>
     <div style={{
       position: 'absolute', inset: 0,
       backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center',
     }} />
+    {/* Dark cinematic overlay */}
     <div style={{
       position: 'absolute', inset: 0,
-      background: `linear-gradient(135deg, rgba(0,0,0,${1 - opacity}) 0%, rgba(0,0,0,${1 - opacity + 0.1}) 100%)`,
+      background: `linear-gradient(160deg, rgba(0,0,0,${1 - opacity}) 0%, rgba(0,0,0,${Math.min(1, 1 - opacity + 0.15)}) 50%, rgba(0,0,0,${Math.min(1, 1 - opacity + 0.25)}) 100%)`,
+    }} />
+    {/* Subtle vignette for cinematic depth */}
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
     }} />
   </>
 );
