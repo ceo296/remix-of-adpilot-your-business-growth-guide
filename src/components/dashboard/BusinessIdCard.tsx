@@ -216,18 +216,6 @@ const BusinessIdCard = () => {
                   />
                 </div>
 
-                {/* Color name */}
-                <div className="space-y-0.5 flex-1">
-                  <label className="text-[10px] text-muted-foreground">שם הצבע</label>
-                  <Input
-                    value={color.name}
-                    onChange={(e) => updateColor(i, 'name', e.target.value)}
-                    placeholder="שם הצבע"
-                    className="h-7 text-xs"
-                    dir="rtl"
-                    maxLength={30}
-                  />
-                </div>
 
                 {/* Color number (like Tambour) */}
                 <div className="space-y-0.5 shrink-0">
