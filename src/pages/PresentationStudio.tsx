@@ -269,31 +269,37 @@ const SlideRenderer = ({
   const safeMuted = (bg: 'dark' | 'light') => bg === 'dark' ? 'rgba(255,255,255,0.55)' : '#999999';
   const textShadow = (bg: 'dark' | 'light') => bg === 'dark' ? '0 2px 20px rgba(0,0,0,0.5)' : 'none';
 
-  // Helper: get slide background and text mode per theme
+  // Helper: get slide background and text mode per theme — Million Dollar quality
   const getSlideBg = (slideType: string): { background: string; mode: 'dark' | 'light'; decorBg: React.ReactNode } => {
     if (isMinimal) {
       return {
-        background: slideType === 'stats' ? '#f5f5f5' : '#fff',
+        background: slideType === 'stats' ? '#f7f7f8' : '#ffffff',
         mode: 'light',
-        decorBg: <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />,
+        decorBg: (
+          <>
+            {/* Subtle brand accent line on right edge */}
+            <div style={{ position: 'absolute', right: 0, top: 0, width: 5, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${adjustColor(brandColor, -30)})` }} />
+            {/* Very subtle geometric accent */}
+            <div style={{ position: 'absolute', bottom: 60, left: 80, width: 120, height: 120, border: `1px solid ${hexToRgba(brandColor, 0.06)}`, borderRadius: '50%' }} />
+          </>
+        ),
       };
     }
     if (isCreative) {
-      // Creative: light/warm backgrounds with bold brand splashes
       const creativeBgs: Record<string, string> = {
         cover: tc.coverBg as string,
-        about: `linear-gradient(160deg, #fff 0%, ${hexToRgba(brandColor, 0.04)} 40%, ${hexToRgba(brandColor, 0.1)} 100%)`,
-        services: `linear-gradient(135deg, ${hexToRgba(brandColor, 0.03)} 0%, #fefefe 30%, ${hexToRgba('#ff6b6b', 0.05)} 70%, ${hexToRgba('#ffd93d', 0.08)} 100%)`,
-        vision: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.06)} 50%, ${hexToRgba(brandColor, 0.12)} 100%)`,
-        value_prop: `linear-gradient(160deg, #fff 0%, ${hexToRgba(brandColor, 0.05)} 100%)`,
-        stats: `linear-gradient(135deg, ${brandColor} 0%, #ff6b6b 40%, #ffd93d 100%)`,
+        about: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.05)} 50%, ${hexToRgba(brandColor, 0.1)} 100%)`,
+        services: `linear-gradient(135deg, #fefefe 0%, ${hexToRgba(brandColor, 0.04)} 40%, ${hexToRgba('#ff6b6b', 0.06)} 100%)`,
+        vision: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.07)} 60%, ${hexToRgba(brandColor, 0.12)} 100%)`,
+        value_prop: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.05)} 100%)`,
+        stats: `linear-gradient(135deg, ${brandColor} 0%, ${adjustColor(brandColor, -30)} 50%, ${dark} 100%)`,
         process: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.06)} 100%)`,
         methodology: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.06)} 100%)`,
-        social_proof: `linear-gradient(160deg, ${hexToRgba(brandColor, 0.04)} 0%, #fefefe 40%, ${hexToRgba('#ffd93d', 0.06)} 100%)`,
-        target_audience: `linear-gradient(135deg, #fff 0%, ${hexToRgba(brandColor, 0.07)} 100%)`,
-        cta: tc.coverBg as string,
+        social_proof: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.05)} 50%, ${hexToRgba('#ffd93d', 0.06)} 100%)`,
+        target_audience: `linear-gradient(135deg, #fefefe 0%, ${hexToRgba(brandColor, 0.07)} 100%)`,
+        cta: `linear-gradient(135deg, ${brandColor} 0%, ${adjustColor(brandColor, -40)} 60%, ${dark} 100%)`,
         contact: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.08)} 100%)`,
-        testimonial: `linear-gradient(160deg, #fff 0%, ${hexToRgba(brandColor, 0.04)} 100%)`,
+        testimonial: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.04)} 100%)`,
       };
       const isCreativeDark = ['cover', 'stats', 'cta'].includes(slideType);
       return {
@@ -301,38 +307,51 @@ const SlideRenderer = ({
         mode: isCreativeDark ? 'dark' : 'light',
         decorBg: (
           <>
-            {!isCreativeDark && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '40px 40px' }} />}
-            {isCreativeDark && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='2' fill='white' opacity='0.08'/%3E%3C/svg%3E")`, backgroundSize: '30px 30px' }} />}
-            <div style={{ position: 'absolute', top: -200, left: -200, width: 600, height: 600, borderRadius: '50%', background: isCreativeDark ? 'rgba(255,255,255,0.06)' : hexToRgba(brandColor, 0.06) }} />
-            <div style={{ position: 'absolute', bottom: -150, right: -150, width: 500, height: 500, borderRadius: '40%', background: isCreativeDark ? 'rgba(255,255,255,0.04)' : hexToRgba('#ffd93d', 0.08), transform: 'rotate(45deg)' }} />
+            {/* Elegant geometric decorations — subtle, not distracting */}
+            {!isCreativeDark && (
+              <>
+                <div style={{ position: 'absolute', top: -60, left: -60, width: 200, height: 200, border: `1px solid ${hexToRgba(brandColor, 0.08)}`, borderRadius: '50%' }} />
+                <div style={{ position: 'absolute', bottom: -40, right: -40, width: 160, height: 160, border: `1px solid ${hexToRgba(brandColor, 0.06)}`, borderRadius: '50%' }} />
+              </>
+            )}
+            {isCreativeDark && (
+              <>
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.05) 0%, transparent 50%)' }} />
+                <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%' }} />
+              </>
+            )}
           </>
         ),
       };
     }
-    // Corporate: dark, professional
+    // Corporate: premium dark with depth
     const corpBgs: Record<string, string> = {
       cover: tc.coverBg as string,
-      about: `linear-gradient(160deg, ${dark} 0%, ${brandColor}cc 50%, ${adjustColor(brandColor, 30)}aa 100%)`,
-      services: `linear-gradient(135deg, #0d0d1a 0%, ${dark} 40%, ${brandColor}99 100%)`,
-      vision: tc.darkSlideBg as string,
-      value_prop: tc.darkSlideBg as string,
-      stats: `linear-gradient(135deg, ${dark} 0%, ${brandColor} 50%, ${adjustColor(brandColor, 40)} 100%)`,
-      process: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${brandColor}88 100%)`,
-      methodology: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${brandColor}88 100%)`,
-      social_proof: `linear-gradient(150deg, ${adjustColor(brandColor, -60)} 0%, ${dark} 50%, ${brandColor}bb 100%)`,
-      target_audience: tc.darkSlideBg as string,
-      cta: `linear-gradient(135deg, ${brandColor} 0%, ${dark} 100%)`,
-      contact: tc.darkSlideBg as string,
-      testimonial: tc.darkSlideBg as string,
+      about: `linear-gradient(160deg, #0a0a1a 0%, ${dark} 40%, ${adjustColor(brandColor, -50)} 100%)`,
+      services: `linear-gradient(135deg, #0a0a1a 0%, ${dark} 50%, ${adjustColor(brandColor, -40)}cc 100%)`,
+      vision: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${adjustColor(brandColor, -40)} 100%)`,
+      value_prop: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 100%)`,
+      stats: `linear-gradient(135deg, ${dark} 0%, ${brandColor} 50%, ${adjustColor(brandColor, 30)} 100%)`,
+      process: `linear-gradient(160deg, #0a0a1a 0%, ${dark} 70%, ${adjustColor(brandColor, -40)}88 100%)`,
+      methodology: `linear-gradient(160deg, #0a0a1a 0%, ${dark} 70%, ${adjustColor(brandColor, -40)}88 100%)`,
+      social_proof: `linear-gradient(150deg, #0a0a1a 0%, ${dark} 60%, ${adjustColor(brandColor, -30)}aa 100%)`,
+      target_audience: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 100%)`,
+      cta: `linear-gradient(135deg, ${brandColor} 0%, ${dark} 70%, #0a0a1a 100%)`,
+      contact: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 100%)`,
+      testimonial: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${adjustColor(brandColor, -40)}66 100%)`,
     };
     return {
-      background: corpBgs[slideType] || tc.darkSlideBg as string,
+      background: corpBgs[slideType] || `linear-gradient(160deg, #0d0d1a 0%, ${dark} 100%)`,
       mode: 'dark',
       decorBg: (
         <>
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />
-          <div style={{ position: 'absolute', bottom: -200, left: -100, width: 600, height: 600, borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
-          {slideType === 'cover' && <div style={{ position: 'absolute', top: -150, left: -150, width: 500, height: 500, borderRadius: '50%', background: `radial-gradient(circle, ${brandColor}30 0%, transparent 70%)` }} />}
+          {/* Subtle dot pattern */}
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px', opacity: 0.5 }} />
+          {/* Elegant geometric rings instead of ugly filled circles */}
+          <div style={{ position: 'absolute', bottom: -100, left: -60, width: 350, height: 350, border: '1px solid rgba(255,255,255,0.04)', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', bottom: -60, left: -20, width: 250, height: 250, border: '1px solid rgba(255,255,255,0.03)', borderRadius: '50%' }} />
+          {/* Subtle radial glow from brand color */}
+          {slideType === 'cover' && <div style={{ position: 'absolute', top: '20%', right: '10%', width: 500, height: 500, background: `radial-gradient(circle, ${hexToRgba(brandColor, 0.08)} 0%, transparent 70%)` }} />}
         </>
       ),
     };
