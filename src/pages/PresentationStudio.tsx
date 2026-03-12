@@ -424,29 +424,28 @@ const SlideRenderer = ({
       const bg = mode;
       return (
         <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.3} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="45%" />}
+          {/* Cover: photo is always full-bleed behind dark overlay for cinematic effect */}
+          {photo && <DarkPhotoBg url={photo} opacity={0.35} />}
           {decorBg}
           {isDark && (
-            <svg style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: 200 }} viewBox="0 0 1920 200" preserveAspectRatio="none">
-              <path d="M0 200 L0 80 Q480 0 960 80 Q1440 160 1920 80 L1920 200Z" fill="rgba(0,0,0,0.15)" />
+            <svg style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: 200, zIndex: 1 }} viewBox="0 0 1920 200" preserveAspectRatio="none">
+              <path d="M0 200 L0 100 Q480 20 960 80 Q1440 140 1920 60 L1920 200Z" fill="rgba(0,0,0,0.2)" />
             </svg>
           )}
           <div style={{
             position: 'relative', height: '100%', display: 'flex', flexDirection: 'column',
-            justifyContent: 'center',
+            justifyContent: 'center', zIndex: 2,
             padding: isMinimal ? '120px 200px' : '100px 160px',
             alignItems: isMinimal ? 'flex-start' : 'center',
             textAlign: isMinimal ? 'right' : 'center',
-            maxWidth: photo && isMinimal ? '60%' : undefined,
           }}>
             {logoUrl && !isMinimal && (
               <div style={{
-                width: 130, height: 130, borderRadius: 24,
-                background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)',
+                width: 130, height: 130, borderRadius: 28,
+                background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: 20, marginBottom: 50,
-                boxShadow: '0 8px 40px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 8px 40px rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.15)',
               }}>
                 <img src={logoUrl} alt="logo" style={{
                   maxHeight: 90, maxWidth: 90, objectFit: 'contain',
@@ -458,19 +457,20 @@ const SlideRenderer = ({
               <img src={logoUrl} alt="logo" style={{ height: 60, objectFit: 'contain', marginBottom: 60, alignSelf: 'flex-start' }} />
             )}
             <h1 style={titleStyle(isMinimal ? 96 : 110, {
-              color: safeText(bg), margin: 0,
-              textShadow: textShadow(bg),
+              color: photo ? '#ffffff' : safeText(bg), margin: 0,
+              textShadow: photo ? '0 4px 30px rgba(0,0,0,0.5), 0 2px 10px rgba(0,0,0,0.3)' : textShadow(bg),
             })}>
               {slide.title}
             </h1>
             {slide.subtitle && (
               <p style={{
                 fontSize: isMinimal ? 32 : 36,
-                color: safeSubtext(bg), marginTop: 24, fontWeight: 400,
-                textShadow: textShadow(bg), maxWidth: 1200,
+                color: photo ? 'rgba(255,255,255,0.85)' : safeSubtext(bg),
+                marginTop: 24, fontWeight: 400,
+                textShadow: photo ? '0 2px 15px rgba(0,0,0,0.4)' : textShadow(bg), maxWidth: 1200,
               }}>{slide.subtitle}</p>
             )}
-            <div style={{ width: 80, height: 4, background: bg === 'dark' ? 'rgba(255,255,255,0.3)' : brandColor, marginTop: 50, borderRadius: 2 }} />
+            <div style={{ width: 80, height: 4, background: photo ? 'rgba(255,255,255,0.4)' : (bg === 'dark' ? 'rgba(255,255,255,0.3)' : brandColor), marginTop: 50, borderRadius: 2 }} />
           </div>
           {footer}
         </div>
