@@ -1,4 +1,5 @@
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -97,6 +98,17 @@ const StepCampaignConfig = ({ data, onChange }: Props) => {
             </label>
           ))}
         </div>
+      </div>
+      {/* Decision Maker */}
+      <div className="space-y-2">
+        <Label className="text-base font-semibold">מי מקבל ההחלטות?</Label>
+        <p className="text-sm text-muted-foreground">למי אנחנו פונים במודעה — מי מחליט על הרכישה?</p>
+        <Input
+          value={data.decisionMaker}
+          onChange={(e) => onChange({ ...data, decisionMaker: e.target.value })}
+          placeholder="למשל: האמא, הגבר, מנהל הרכש..."
+          className="h-12 text-base"
+        />
       </div>
     </div>
   );

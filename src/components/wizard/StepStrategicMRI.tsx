@@ -89,12 +89,18 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
   const toggleXFactor = (factor: XFactorType) => {
     const current = mri.xFactors;
     if (current.includes(factor)) {
+      const remaining = current.filter((f) => f !== factor);
       updateMRI({
-        xFactors: current.filter((f) => f !== factor),
-        primaryXFactor: mri.primaryXFactor === factor ? null : mri.primaryXFactor,
+        xFactors: remaining,
+        primaryXFactor: mri.primaryXFactor === factor ? (remaining[0] || null) : mri.primaryXFactor,
       });
     } else {
-      updateMRI({ xFactors: [...current, factor] });
+      const newFactors = [...current, factor];
+      updateMRI({ 
+        xFactors: newFactors,
+        // Auto-set primary if this is the first factor selected
+        primaryXFactor: mri.primaryXFactor || factor,
+      });
     }
   };
 
@@ -179,21 +185,21 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 <div
                   onClick={() => updateMRI({ brandPresence: 'known' })}
                   className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
-                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-amber-400' : 'hover:scale-[1.01] hover:shadow-xl'
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-amber-400/60' : 'hover:scale-[1.01] hover:shadow-xl'
                   }`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br from-amber-900 via-amber-800 to-yellow-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
-                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, rgba(255,215,0,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,215,0,0.2) 0%, transparent 40%)' }} />
+                  <div className={`absolute inset-0 bg-gradient-to-br from-stone-800 via-stone-700 to-stone-800 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, rgba(200,180,150,0.2) 0%, transparent 50%)' }} />
                   <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
                     <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
-                      <Crown className={`w-12 h-12 ${isSelected ? 'text-yellow-300' : 'text-yellow-400/60'}`} strokeWidth={1.5} />
+                      <Crown className={`w-12 h-12 ${isSelected ? 'text-amber-300' : 'text-stone-400/60'}`} strokeWidth={1.5} />
                     </div>
                     <h4 className="font-bold text-white text-lg tracking-wide mb-2">מותג מוכר</h4>
-                    <p className="text-sm text-amber-100/70 leading-relaxed">השם שלי מספיק, אני מעדיף עיצוב נקי, מינימליסטי ויוקרתי</p>
+                    <p className="text-sm text-stone-300/70 leading-relaxed">השם שלי מספיק, אני מעדיף עיצוב נקי, מינימליסטי ויוקרתי</p>
                   </div>
                   {isSelected && (
-                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg">
-                      <Check className="w-4 h-4 text-amber-900" />
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-amber-400/80 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-stone-900" />
                     </div>
                   )}
                 </div>
@@ -207,21 +213,21 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 <div
                   onClick={() => updateMRI({ brandPresence: 'expert' })}
                   className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
-                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-sky-400' : 'hover:scale-[1.01] hover:shadow-xl'
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-sky-400/60' : 'hover:scale-[1.01] hover:shadow-xl'
                   }`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
-                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(100,180,255,0.05) 10px, rgba(100,180,255,0.05) 20px)' }} />
+                  <div className={`absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(150,180,210,0.08) 10px, rgba(150,180,210,0.08) 20px)' }} />
                   <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
                     <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
-                      <Briefcase className={`w-12 h-12 ${isSelected ? 'text-sky-300' : 'text-sky-400/60'}`} strokeWidth={1.5} />
+                      <Briefcase className={`w-12 h-12 ${isSelected ? 'text-sky-300' : 'text-slate-400/60'}`} strokeWidth={1.5} />
                     </div>
                     <h4 className="font-bold text-white text-lg tracking-wide mb-2">מומחה בתחומו</h4>
-                    <p className="text-sm text-blue-100/70 leading-relaxed">אני בונה אמון דרך מקצועיות, איכות וניסיון</p>
+                    <p className="text-sm text-slate-300/70 leading-relaxed">אני בונה אמון דרך מקצועיות, איכות וניסיון</p>
                   </div>
                   {isSelected && (
-                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-sky-400 flex items-center justify-center shadow-lg">
-                      <Check className="w-4 h-4 text-blue-900" />
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-sky-400/80 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-slate-900" />
                     </div>
                   )}
                 </div>
@@ -235,23 +241,23 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
                 <div
                   onClick={() => updateMRI({ brandPresence: 'active' })}
                   className={`relative rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden group ${
-                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-emerald-400' : 'hover:scale-[1.01] hover:shadow-xl'
+                    isSelected ? 'scale-[1.03] shadow-2xl ring-2 ring-emerald-400/60' : 'hover:scale-[1.01] hover:shadow-xl'
                   }`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-green-900 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br from-slate-800 via-emerald-900/80 to-slate-800 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
                   <div className="absolute top-0 left-0 w-32 h-32 opacity-20">
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-transparent rounded-full blur-2xl" />
                   </div>
                   <div className="relative p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
                     <div className={`mb-4 transition-transform ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`}>
-                      <Zap className={`w-12 h-12 ${isSelected ? 'text-emerald-300' : 'text-emerald-400/60'}`} strokeWidth={1.5} />
+                      <Zap className={`w-12 h-12 ${isSelected ? 'text-emerald-300' : 'text-slate-400/60'}`} strokeWidth={1.5} />
                     </div>
                     <h4 className="font-bold text-white text-lg tracking-wide mb-2">שחקן אקטיבי</h4>
-                    <p className="text-sm text-emerald-100/70 leading-relaxed">אני כאן כדי לייצר תוצאות, המודעות שלי צריכות להיות בולטות</p>
+                    <p className="text-sm text-slate-300/70 leading-relaxed">אני כאן כדי לייצר תוצאות, המודעות שלי צריכות להיות בולטות</p>
                   </div>
                   {isSelected && (
-                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-emerald-400 flex items-center justify-center shadow-lg">
-                      <Check className="w-4 h-4 text-emerald-900" />
+                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-emerald-400/80 flex items-center justify-center shadow-lg">
+                      <Check className="w-4 h-4 text-slate-900" />
                     </div>
                   )}
                 </div>

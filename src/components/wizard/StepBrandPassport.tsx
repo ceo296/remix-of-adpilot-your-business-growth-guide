@@ -191,7 +191,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
     'תחום פעילות': 'תחום פעילות',
     'מתחרים': 'מתחרים',
     'גורם מבדל עיקרי': 'גורם מבדל עיקרי',
-    'מקבל ההחלטות': 'מקבל ההחלטות',
     'שם העסק': 'שם העסק',
     'מיקום מחיר/סגנון': 'מיקום מחיר/סגנון',
   };
@@ -210,8 +209,7 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
         if (data.strategicMRI.primaryXFactor === 'brand') return 'הבטחה פרסומית';
         if (data.strategicMRI.primaryXFactor === 'other') return data.strategicMRI.otherXFactor || '';
         return '';
-      case 'מקבל ההחלטות':
-        return data.strategicMRI.decisionMaker || '';
+      case 'שם העסק':
       case 'שם העסק':
         return data.brand.name || '';
       default:
@@ -250,14 +248,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
           strategicMRI: {
             ...data.strategicMRI,
             otherXFactor: editFieldValue,
-          }
-        });
-        break;
-      case 'מקבל ההחלטות':
-        updateData({
-          strategicMRI: {
-            ...data.strategicMRI,
-            decisionMaker: editFieldValue,
           }
         });
         break;
@@ -788,12 +778,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
                 <div className="p-3 rounded-lg bg-secondary/50">
                   <p className="text-xs text-muted-foreground mb-1">צרכן קצה</p>
                   <p className="font-medium text-sm">{data.strategicMRI.endConsumer}</p>
-                </div>
-              )}
-              {data.strategicMRI.decisionMaker && (
-                <div className="p-3 rounded-lg bg-secondary/50">
-                  <p className="text-xs text-muted-foreground mb-1">מקבל ההחלטות</p>
-                  <p className="font-medium text-sm">{data.strategicMRI.decisionMaker}</p>
                 </div>
               )}
             </div>
