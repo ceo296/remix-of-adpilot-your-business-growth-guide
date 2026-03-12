@@ -29,7 +29,7 @@ import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
-type HubView = 'main' | 'new-campaign' | 'history' | 'status';
+type HubView = 'main' | 'new-campaign' | 'history' | 'status' | 'my-materials';
 
 interface CampaignStatus {
   id: string;
