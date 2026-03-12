@@ -689,36 +689,37 @@ const SlideRenderer = ({
 
     case 'cta': {
       const { background, mode, decorBg } = getSlideBg('cta');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.25} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.3} />}
           {decorBg}
           <div style={{
             position: 'relative', height: '100%', display: 'flex', flexDirection: 'column',
-            justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '100px 200px',
+            justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '100px 200px', zIndex: 2,
           }}>
             <h2 style={{
               fontSize: 80, fontWeight: 900, lineHeight: 1.1, marginBottom: 30,
-              color: safeText(bg), textShadow: textShadow(bg),
+              color: safeText(effectiveMode), textShadow: '0 4px 30px rgba(0,0,0,0.5)',
             }}>{slide.title}</h2>
             {slide.body && <p style={{
               fontSize: 32, maxWidth: 1000, lineHeight: 1.6,
-              color: safeSubtext(bg), textShadow: textShadow(bg),
+              color: safeSubtext(effectiveMode), textShadow: textShadow(effectiveMode),
             }}>{slide.body}</p>}
             <div style={{
               marginTop: 50, padding: '20px 60px', borderRadius: 16,
-              background: bg === 'dark' ? 'rgba(255,255,255,0.2)' : brandColor,
-              backdropFilter: bg === 'dark' ? 'blur(8px)' : undefined,
-              border: bg === 'dark' ? '2px solid rgba(255,255,255,0.3)' : 'none',
-              boxShadow: isCreative ? `0 8px 30px ${hexToRgba(brandColor, 0.3)}` : undefined,
+              background: 'rgba(255,255,255,0.2)',
+              backdropFilter: 'blur(8px)',
+              border: '2px solid rgba(255,255,255,0.3)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
             }}>
               <span style={{ fontSize: 28, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.2)' }}>צרו קשר עוד היום</span>
             </div>
             {phone && (
               <div style={{
                 marginTop: 30, fontSize: 38, fontWeight: 700, direction: 'ltr',
-                color: safeText(bg), textShadow: textShadow(bg), letterSpacing: 2,
+                color: safeText(effectiveMode), textShadow: '0 2px 15px rgba(0,0,0,0.4)', letterSpacing: 2,
               }}>{phone}</div>
             )}
           </div>
