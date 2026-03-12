@@ -95,8 +95,8 @@ const LogoFooter = ({ logoUrl, businessName, brandColor, phone, theme }: {
   );
 };
 
-// ── Photo background helper ──
-const PhotoBg = ({ url, opacity = 0.2, position = 'right', width = '50%' }: {
+// ── Photo background helper ── (Million Dollar quality)
+const PhotoBg = ({ url, opacity = 1, position = 'right', width = '50%' }: {
   url: string; opacity?: number; position?: 'right' | 'left' | 'full'; width?: string;
 }) => {
   if (position === 'full') {
@@ -108,33 +108,46 @@ const PhotoBg = ({ url, opacity = 0.2, position = 'right', width = '50%' }: {
       }} />
     );
   }
+  // Side placement: image fills one side, elegant gradient fade to content area
   return (
     <div style={{
       position: 'absolute', top: 0, bottom: 0,
       [position === 'right' ? 'right' : 'left']: 0,
       width,
-      backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+      overflow: 'hidden',
     }}>
       <div style={{
         position: 'absolute', inset: 0,
+        backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+        opacity,
+      }} />
+      {/* Smooth gradient fade towards text side */}
+      <div style={{
+        position: 'absolute', inset: 0,
         background: position === 'right'
-          ? 'linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 50%, transparent 100%)'
-          : 'linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+          ? 'linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 20%, rgba(255,255,255,0) 50%)'
+          : 'linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 20%, rgba(255,255,255,0) 50%)',
       }} />
     </div>
   );
 };
 
-// Dark photo background with overlay
+// Dark photo background: cinematic overlay with vignette
 const DarkPhotoBg = ({ url, opacity = 0.25 }: { url: string; opacity?: number }) => (
   <>
     <div style={{
       position: 'absolute', inset: 0,
       backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center',
     }} />
+    {/* Dark cinematic overlay */}
     <div style={{
       position: 'absolute', inset: 0,
-      background: `linear-gradient(135deg, rgba(0,0,0,${1 - opacity}) 0%, rgba(0,0,0,${1 - opacity + 0.1}) 100%)`,
+      background: `linear-gradient(160deg, rgba(0,0,0,${1 - opacity}) 0%, rgba(0,0,0,${Math.min(1, 1 - opacity + 0.15)}) 50%, rgba(0,0,0,${Math.min(1, 1 - opacity + 0.25)}) 100%)`,
+    }} />
+    {/* Subtle vignette for cinematic depth */}
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
     }} />
   </>
 );
@@ -256,31 +269,37 @@ const SlideRenderer = ({
   const safeMuted = (bg: 'dark' | 'light') => bg === 'dark' ? 'rgba(255,255,255,0.55)' : '#999999';
   const textShadow = (bg: 'dark' | 'light') => bg === 'dark' ? '0 2px 20px rgba(0,0,0,0.5)' : 'none';
 
-  // Helper: get slide background and text mode per theme
+  // Helper: get slide background and text mode per theme — Million Dollar quality
   const getSlideBg = (slideType: string): { background: string; mode: 'dark' | 'light'; decorBg: React.ReactNode } => {
     if (isMinimal) {
       return {
-        background: slideType === 'stats' ? '#f5f5f5' : '#fff',
+        background: slideType === 'stats' ? '#f7f7f8' : '#ffffff',
         mode: 'light',
-        decorBg: <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: brandColor }} />,
+        decorBg: (
+          <>
+            {/* Subtle brand accent line on right edge */}
+            <div style={{ position: 'absolute', right: 0, top: 0, width: 5, height: '100%', background: `linear-gradient(180deg, ${brandColor}, ${adjustColor(brandColor, -30)})` }} />
+            {/* Very subtle geometric accent */}
+            <div style={{ position: 'absolute', bottom: 60, left: 80, width: 120, height: 120, border: `1px solid ${hexToRgba(brandColor, 0.06)}`, borderRadius: '50%' }} />
+          </>
+        ),
       };
     }
     if (isCreative) {
-      // Creative: light/warm backgrounds with bold brand splashes
       const creativeBgs: Record<string, string> = {
         cover: tc.coverBg as string,
-        about: `linear-gradient(160deg, #fff 0%, ${hexToRgba(brandColor, 0.04)} 40%, ${hexToRgba(brandColor, 0.1)} 100%)`,
-        services: `linear-gradient(135deg, ${hexToRgba(brandColor, 0.03)} 0%, #fefefe 30%, ${hexToRgba('#ff6b6b', 0.05)} 70%, ${hexToRgba('#ffd93d', 0.08)} 100%)`,
-        vision: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.06)} 50%, ${hexToRgba(brandColor, 0.12)} 100%)`,
-        value_prop: `linear-gradient(160deg, #fff 0%, ${hexToRgba(brandColor, 0.05)} 100%)`,
-        stats: `linear-gradient(135deg, ${brandColor} 0%, #ff6b6b 40%, #ffd93d 100%)`,
+        about: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.05)} 50%, ${hexToRgba(brandColor, 0.1)} 100%)`,
+        services: `linear-gradient(135deg, #fefefe 0%, ${hexToRgba(brandColor, 0.04)} 40%, ${hexToRgba('#ff6b6b', 0.06)} 100%)`,
+        vision: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.07)} 60%, ${hexToRgba(brandColor, 0.12)} 100%)`,
+        value_prop: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.05)} 100%)`,
+        stats: `linear-gradient(135deg, ${brandColor} 0%, ${adjustColor(brandColor, -30)} 50%, ${dark} 100%)`,
         process: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.06)} 100%)`,
         methodology: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.06)} 100%)`,
-        social_proof: `linear-gradient(160deg, ${hexToRgba(brandColor, 0.04)} 0%, #fefefe 40%, ${hexToRgba('#ffd93d', 0.06)} 100%)`,
-        target_audience: `linear-gradient(135deg, #fff 0%, ${hexToRgba(brandColor, 0.07)} 100%)`,
-        cta: tc.coverBg as string,
+        social_proof: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.05)} 50%, ${hexToRgba('#ffd93d', 0.06)} 100%)`,
+        target_audience: `linear-gradient(135deg, #fefefe 0%, ${hexToRgba(brandColor, 0.07)} 100%)`,
+        cta: `linear-gradient(135deg, ${brandColor} 0%, ${adjustColor(brandColor, -40)} 60%, ${dark} 100%)`,
         contact: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.08)} 100%)`,
-        testimonial: `linear-gradient(160deg, #fff 0%, ${hexToRgba(brandColor, 0.04)} 100%)`,
+        testimonial: `linear-gradient(160deg, #fefefe 0%, ${hexToRgba(brandColor, 0.04)} 100%)`,
       };
       const isCreativeDark = ['cover', 'stats', 'cta'].includes(slideType);
       return {
@@ -288,38 +307,51 @@ const SlideRenderer = ({
         mode: isCreativeDark ? 'dark' : 'light',
         decorBg: (
           <>
-            {!isCreativeDark && <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '40px 40px' }} />}
-            {isCreativeDark && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='2' fill='white' opacity='0.08'/%3E%3C/svg%3E")`, backgroundSize: '30px 30px' }} />}
-            <div style={{ position: 'absolute', top: -200, left: -200, width: 600, height: 600, borderRadius: '50%', background: isCreativeDark ? 'rgba(255,255,255,0.06)' : hexToRgba(brandColor, 0.06) }} />
-            <div style={{ position: 'absolute', bottom: -150, right: -150, width: 500, height: 500, borderRadius: '40%', background: isCreativeDark ? 'rgba(255,255,255,0.04)' : hexToRgba('#ffd93d', 0.08), transform: 'rotate(45deg)' }} />
+            {/* Elegant geometric decorations — subtle, not distracting */}
+            {!isCreativeDark && (
+              <>
+                <div style={{ position: 'absolute', top: -60, left: -60, width: 200, height: 200, border: `1px solid ${hexToRgba(brandColor, 0.08)}`, borderRadius: '50%' }} />
+                <div style={{ position: 'absolute', bottom: -40, right: -40, width: 160, height: 160, border: `1px solid ${hexToRgba(brandColor, 0.06)}`, borderRadius: '50%' }} />
+              </>
+            )}
+            {isCreativeDark && (
+              <>
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.05) 0%, transparent 50%)' }} />
+                <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%' }} />
+              </>
+            )}
           </>
         ),
       };
     }
-    // Corporate: dark, professional
+    // Corporate: premium dark with depth
     const corpBgs: Record<string, string> = {
       cover: tc.coverBg as string,
-      about: `linear-gradient(160deg, ${dark} 0%, ${brandColor}cc 50%, ${adjustColor(brandColor, 30)}aa 100%)`,
-      services: `linear-gradient(135deg, #0d0d1a 0%, ${dark} 40%, ${brandColor}99 100%)`,
-      vision: tc.darkSlideBg as string,
-      value_prop: tc.darkSlideBg as string,
-      stats: `linear-gradient(135deg, ${dark} 0%, ${brandColor} 50%, ${adjustColor(brandColor, 40)} 100%)`,
-      process: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${brandColor}88 100%)`,
-      methodology: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${brandColor}88 100%)`,
-      social_proof: `linear-gradient(150deg, ${adjustColor(brandColor, -60)} 0%, ${dark} 50%, ${brandColor}bb 100%)`,
-      target_audience: tc.darkSlideBg as string,
-      cta: `linear-gradient(135deg, ${brandColor} 0%, ${dark} 100%)`,
-      contact: tc.darkSlideBg as string,
-      testimonial: tc.darkSlideBg as string,
+      about: `linear-gradient(160deg, #0a0a1a 0%, ${dark} 40%, ${adjustColor(brandColor, -50)} 100%)`,
+      services: `linear-gradient(135deg, #0a0a1a 0%, ${dark} 50%, ${adjustColor(brandColor, -40)}cc 100%)`,
+      vision: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${adjustColor(brandColor, -40)} 100%)`,
+      value_prop: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 100%)`,
+      stats: `linear-gradient(135deg, ${dark} 0%, ${brandColor} 50%, ${adjustColor(brandColor, 30)} 100%)`,
+      process: `linear-gradient(160deg, #0a0a1a 0%, ${dark} 70%, ${adjustColor(brandColor, -40)}88 100%)`,
+      methodology: `linear-gradient(160deg, #0a0a1a 0%, ${dark} 70%, ${adjustColor(brandColor, -40)}88 100%)`,
+      social_proof: `linear-gradient(150deg, #0a0a1a 0%, ${dark} 60%, ${adjustColor(brandColor, -30)}aa 100%)`,
+      target_audience: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 100%)`,
+      cta: `linear-gradient(135deg, ${brandColor} 0%, ${dark} 70%, #0a0a1a 100%)`,
+      contact: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 100%)`,
+      testimonial: `linear-gradient(160deg, #0d0d1a 0%, ${dark} 60%, ${adjustColor(brandColor, -40)}66 100%)`,
     };
     return {
-      background: corpBgs[slideType] || tc.darkSlideBg as string,
+      background: corpBgs[slideType] || `linear-gradient(160deg, #0d0d1a 0%, ${dark} 100%)`,
       mode: 'dark',
       decorBg: (
         <>
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px' }} />
-          <div style={{ position: 'absolute', bottom: -200, left: -100, width: 600, height: 600, borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
-          {slideType === 'cover' && <div style={{ position: 'absolute', top: -150, left: -150, width: 500, height: 500, borderRadius: '50%', background: `radial-gradient(circle, ${brandColor}30 0%, transparent 70%)` }} />}
+          {/* Subtle dot pattern */}
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: tc.dots, backgroundSize: '30px 30px', opacity: 0.5 }} />
+          {/* Elegant geometric rings instead of ugly filled circles */}
+          <div style={{ position: 'absolute', bottom: -100, left: -60, width: 350, height: 350, border: '1px solid rgba(255,255,255,0.04)', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', bottom: -60, left: -20, width: 250, height: 250, border: '1px solid rgba(255,255,255,0.03)', borderRadius: '50%' }} />
+          {/* Subtle radial glow from brand color */}
+          {slideType === 'cover' && <div style={{ position: 'absolute', top: '20%', right: '10%', width: 500, height: 500, background: `radial-gradient(circle, ${hexToRgba(brandColor, 0.08)} 0%, transparent 70%)` }} />}
         </>
       ),
     };
@@ -392,29 +424,28 @@ const SlideRenderer = ({
       const bg = mode;
       return (
         <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.3} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="45%" />}
+          {/* Cover: photo is always full-bleed behind dark overlay for cinematic effect */}
+          {photo && <DarkPhotoBg url={photo} opacity={0.35} />}
           {decorBg}
           {isDark && (
-            <svg style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: 200 }} viewBox="0 0 1920 200" preserveAspectRatio="none">
-              <path d="M0 200 L0 80 Q480 0 960 80 Q1440 160 1920 80 L1920 200Z" fill="rgba(0,0,0,0.15)" />
+            <svg style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: 200, zIndex: 1 }} viewBox="0 0 1920 200" preserveAspectRatio="none">
+              <path d="M0 200 L0 100 Q480 20 960 80 Q1440 140 1920 60 L1920 200Z" fill="rgba(0,0,0,0.2)" />
             </svg>
           )}
           <div style={{
             position: 'relative', height: '100%', display: 'flex', flexDirection: 'column',
-            justifyContent: 'center',
+            justifyContent: 'center', zIndex: 2,
             padding: isMinimal ? '120px 200px' : '100px 160px',
             alignItems: isMinimal ? 'flex-start' : 'center',
             textAlign: isMinimal ? 'right' : 'center',
-            maxWidth: photo && isMinimal ? '60%' : undefined,
           }}>
             {logoUrl && !isMinimal && (
               <div style={{
-                width: 130, height: 130, borderRadius: 24,
-                background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)',
+                width: 130, height: 130, borderRadius: 28,
+                background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: 20, marginBottom: 50,
-                boxShadow: '0 8px 40px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 8px 40px rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.15)',
               }}>
                 <img src={logoUrl} alt="logo" style={{
                   maxHeight: 90, maxWidth: 90, objectFit: 'contain',
@@ -426,19 +457,20 @@ const SlideRenderer = ({
               <img src={logoUrl} alt="logo" style={{ height: 60, objectFit: 'contain', marginBottom: 60, alignSelf: 'flex-start' }} />
             )}
             <h1 style={titleStyle(isMinimal ? 96 : 110, {
-              color: safeText(bg), margin: 0,
-              textShadow: textShadow(bg),
+              color: photo ? '#ffffff' : safeText(bg), margin: 0,
+              textShadow: photo ? '0 4px 30px rgba(0,0,0,0.5), 0 2px 10px rgba(0,0,0,0.3)' : textShadow(bg),
             })}>
               {slide.title}
             </h1>
             {slide.subtitle && (
               <p style={{
                 fontSize: isMinimal ? 32 : 36,
-                color: safeSubtext(bg), marginTop: 24, fontWeight: 400,
-                textShadow: textShadow(bg), maxWidth: 1200,
+                color: photo ? 'rgba(255,255,255,0.85)' : safeSubtext(bg),
+                marginTop: 24, fontWeight: 400,
+                textShadow: photo ? '0 2px 15px rgba(0,0,0,0.4)' : textShadow(bg), maxWidth: 1200,
               }}>{slide.subtitle}</p>
             )}
-            <div style={{ width: 80, height: 4, background: bg === 'dark' ? 'rgba(255,255,255,0.3)' : brandColor, marginTop: 50, borderRadius: 2 }} />
+            <div style={{ width: 80, height: 4, background: photo ? 'rgba(255,255,255,0.4)' : (bg === 'dark' ? 'rgba(255,255,255,0.3)' : brandColor), marginTop: 50, borderRadius: 2 }} />
           </div>
           {footer}
         </div>
@@ -447,16 +479,17 @@ const SlideRenderer = ({
 
     case 'about': {
       const { background, mode, decorBg } = getSlideBg('about');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      // When photo exists: always full-bleed with dark overlay for guaranteed readability
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.25} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="42%" />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.3} />}
           {decorBg}
-          <div style={{ padding: '120px 180px 120px 140px', maxWidth: photo && bg === 'light' ? '60%' : '100%', position: 'relative' }}>
-            <h2 style={titleStyle(68, { color: safeText(bg), marginBottom: 40, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
-            <p style={bodyStyle(30, { color: safeSubtext(bg), maxWidth: 1200, textShadow: textShadow(bg) })}>{slide.body}</p>
+          <div style={{ padding: '120px 180px 120px 140px', position: 'relative', zIndex: 2 }}>
+            <h2 style={titleStyle(68, { color: safeText(effectiveMode), marginBottom: 40, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 40 }} />
+            <p style={bodyStyle(30, { color: safeSubtext(effectiveMode), maxWidth: 1200, textShadow: textShadow(effectiveMode) })}>{slide.body}</p>
           </div>
           {footer}
         </div>
@@ -465,18 +498,18 @@ const SlideRenderer = ({
 
     case 'services': {
       const { background, mode, decorBg } = getSlideBg('services');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       const items = slide.bullets || [];
       const useWideLayout = items.length <= 3;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.18} />}
           {decorBg}
-          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
-            {slide.subtitle && <p style={{ fontSize: 26, color: safeMuted(bg), marginBottom: 40, maxWidth: 900 }}>{slide.subtitle}</p>}
+          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', zIndex: 2 }}>
+            <h2 style={titleStyle(72, { color: safeText(effectiveMode), marginBottom: 16, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 80, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 50 }} />
+            {slide.subtitle && <p style={{ fontSize: 26, color: safeMuted(effectiveMode), marginBottom: 40, maxWidth: 900, textShadow: textShadow(effectiveMode) }}>{slide.subtitle}</p>}
             <div style={{
               display: 'grid',
               gridTemplateColumns: useWideLayout ? `repeat(${items.length}, 1fr)` : '1fr 1fr',
@@ -486,7 +519,7 @@ const SlideRenderer = ({
               {items.map((b, i) => (
                 <div key={i} style={{
                   padding: useWideLayout ? '44px 36px' : '30px 36px',
-                  ...getCardStyle(bg),
+                  ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   display: 'flex', flexDirection: useWideLayout ? 'column' : 'row',
                   alignItems: useWideLayout ? 'center' : 'center',
                   gap: useWideLayout ? 20 : 24,
@@ -496,11 +529,11 @@ const SlideRenderer = ({
                     width: useWideLayout ? 64 : 56, height: useWideLayout ? 64 : 56, borderRadius: useWideLayout ? 20 : 16, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: useWideLayout ? 28 : 24, fontWeight: 800,
-                    ...getNumberBadge(bg),
+                    ...getNumberBadge(hasPhoto ? 'dark' : effectiveMode),
                   }}>
                     {String(i + 1).padStart(2, '0')}
                   </div>
-                  <span style={{ fontSize: useWideLayout ? 28 : 26, color: safeSubtext(bg), fontWeight: 600, lineHeight: 1.5, wordBreak: 'keep-all' }}>{b}</span>
+                  <span style={{ fontSize: useWideLayout ? 28 : 26, color: safeSubtext(effectiveMode), fontWeight: 600, lineHeight: 1.5, wordBreak: 'keep-all', textShadow: textShadow(effectiveMode) }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -512,33 +545,34 @@ const SlideRenderer = ({
 
     case 'value_prop': {
       const { background, mode, decorBg } = getSlideBg('value_prop');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       const items = slide.bullets || [];
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.2} />}
           {decorBg}
-          <div style={{ position: 'relative', padding: '100px 150px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ position: 'relative', padding: '100px 150px', height: '100%', display: 'flex', flexDirection: 'column', zIndex: 2 }}>
             <h2 style={titleStyle(72, {
-              color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg),
+              color: safeText(effectiveMode), marginBottom: 16, textShadow: textShadow(effectiveMode),
             })}>{slide.title}</h2>
-            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
-            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1100, textShadow: textShadow(bg) }}>{slide.body}</p>}
+            <div style={{ width: 80, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 50 }} />
+            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(effectiveMode), marginBottom: 40, maxWidth: 1100, textShadow: textShadow(effectiveMode) }}>{slide.body}</p>}
             <div style={{ display: 'flex', gap: 40, flex: 1, alignItems: 'flex-start' }}>
               {items.map((b, i) => (
                 <div key={i} style={{
                   flex: 1, padding: '36px 28px', textAlign: 'center',
-                  ...getCardStyle(bg),
+                  ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
                 }}>
                   <div style={{
                     width: 60, height: 60, borderRadius: '50%',
-                    background: isCreative && bg === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.15)',
+                    background: hasPhoto ? 'rgba(255,255,255,0.15)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.15)'),
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 28, fontWeight: 900, color: '#fff',
-                    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : `0 4px 20px ${hexToRgba(brandColor, 0.3)}`,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                   }}>{String(i + 1).padStart(2, '0')}</div>
-                  <span style={{ fontSize: 26, fontWeight: 600, lineHeight: 1.5, color: safeSubtext(bg), wordBreak: 'keep-all' }}>{b}</span>
+                  <span style={{ fontSize: 26, fontWeight: 600, lineHeight: 1.5, color: safeSubtext(effectiveMode), wordBreak: 'keep-all', textShadow: textShadow(effectiveMode) }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -587,34 +621,34 @@ const SlideRenderer = ({
     case 'process':
     case 'methodology': {
       const { background, mode, decorBg } = getSlideBg(slide.type);
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="28%" opacity={0.12} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.18} />}
           {decorBg}
-          <div style={{ padding: '100px 150px 100px 120px', position: 'relative' }}>
-            <h2 style={titleStyle(60, { color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 60 }} />
+          <div style={{ padding: '100px 150px 100px 120px', position: 'relative', zIndex: 2 }}>
+            <h2 style={titleStyle(60, { color: safeText(effectiveMode), marginBottom: 20, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 60 }} />
             <div style={{ display: 'flex', gap: 40, justifyContent: 'center' }}>
               {(slide.steps || []).map((s, i) => (
                 <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
                   {i < (slide.steps?.length || 0) - 1 && (
                     <div style={{
                       position: 'absolute', top: 35, left: -20, width: 40, height: 3,
-                      background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}40, #ff6b6b40)` : isMinimal ? `${brandColor}30` : 'rgba(255,255,255,0.2)',
+                      background: 'rgba(255,255,255,0.2)',
                     }} />
                   )}
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 28, fontWeight: 900, margin: '0 auto 24px',
-                    ...getNumberBadge(bg),
+                    ...getNumberBadge(hasPhoto ? 'dark' : effectiveMode),
                   }}>
                     {s.number}
                   </div>
-                  <h3 style={{ fontSize: 28, fontWeight: 800, color: safeText(bg), marginBottom: 12, textShadow: textShadow(bg) }}>{s.title}</h3>
-                  <p style={{ fontSize: 20, color: safeSubtext(bg), lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>{s.desc}</p>
+                  <h3 style={{ fontSize: 28, fontWeight: 800, color: safeText(effectiveMode), marginBottom: 12, textShadow: textShadow(effectiveMode) }}>{s.title}</h3>
+                  <p style={{ fontSize: 20, color: safeSubtext(effectiveMode), lineHeight: 1.6, maxWidth: 300, margin: '0 auto', textShadow: textShadow(effectiveMode) }}>{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -626,25 +660,26 @@ const SlideRenderer = ({
 
     case 'testimonial': {
       const { background, mode, decorBg } = getSlideBg('testimonial');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.2} />}
           {decorBg}
           <div style={{
-            position: 'absolute', top: 80, right: 120, fontSize: 300, fontWeight: 900, lineHeight: 1,
-            color: isCreative ? hexToRgba(brandColor, 0.12) : isMinimal ? hexToRgba(brandColor, 0.06) : hexToRgba(brandColor, 0.15),
+            position: 'absolute', top: 80, right: 120, fontSize: 300, fontWeight: 900, lineHeight: 1, zIndex: 1,
+            color: hasPhoto ? 'rgba(255,255,255,0.08)' : (isCreative ? hexToRgba(brandColor, 0.12) : isMinimal ? hexToRgba(brandColor, 0.06) : hexToRgba(brandColor, 0.15)),
           }}>״</div>
-          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '100px 180px', maxWidth: 1400 }}>
+          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '100px 180px', maxWidth: 1400, zIndex: 2 }}>
             <p style={{
               fontSize: 42, lineHeight: 1.7, fontWeight: 500, fontStyle: 'italic', marginBottom: 50,
-              color: safeText(bg), textShadow: textShadow(bg),
+              color: safeText(effectiveMode), textShadow: textShadow(effectiveMode),
             }}>
               {slide.body}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 50, height: 4, background: isCreative ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : brandColor, borderRadius: 2 }} />
-              <span style={{ fontSize: 24, color: brandColor, fontWeight: 700 }}>{slide.subtitle}</span>
+              <div style={{ width: 50, height: 4, background: hasPhoto ? 'rgba(255,255,255,0.5)' : (isCreative ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : brandColor), borderRadius: 2 }} />
+              <span style={{ fontSize: 24, color: hasPhoto ? 'rgba(255,255,255,0.8)' : brandColor, fontWeight: 700, textShadow: textShadow(effectiveMode) }}>{slide.subtitle}</span>
             </div>
           </div>
           {footer}
@@ -654,36 +689,37 @@ const SlideRenderer = ({
 
     case 'cta': {
       const { background, mode, decorBg } = getSlideBg('cta');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.25} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.3} />}
           {decorBg}
           <div style={{
             position: 'relative', height: '100%', display: 'flex', flexDirection: 'column',
-            justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '100px 200px',
+            justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '100px 200px', zIndex: 2,
           }}>
             <h2 style={{
               fontSize: 80, fontWeight: 900, lineHeight: 1.1, marginBottom: 30,
-              color: safeText(bg), textShadow: textShadow(bg),
+              color: safeText(effectiveMode), textShadow: '0 4px 30px rgba(0,0,0,0.5)',
             }}>{slide.title}</h2>
             {slide.body && <p style={{
               fontSize: 32, maxWidth: 1000, lineHeight: 1.6,
-              color: safeSubtext(bg), textShadow: textShadow(bg),
+              color: safeSubtext(effectiveMode), textShadow: textShadow(effectiveMode),
             }}>{slide.body}</p>}
             <div style={{
               marginTop: 50, padding: '20px 60px', borderRadius: 16,
-              background: bg === 'dark' ? 'rgba(255,255,255,0.2)' : brandColor,
-              backdropFilter: bg === 'dark' ? 'blur(8px)' : undefined,
-              border: bg === 'dark' ? '2px solid rgba(255,255,255,0.3)' : 'none',
-              boxShadow: isCreative ? `0 8px 30px ${hexToRgba(brandColor, 0.3)}` : undefined,
+              background: 'rgba(255,255,255,0.2)',
+              backdropFilter: 'blur(8px)',
+              border: '2px solid rgba(255,255,255,0.3)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
             }}>
               <span style={{ fontSize: 28, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.2)' }}>צרו קשר עוד היום</span>
             </div>
             {phone && (
               <div style={{
                 marginTop: 30, fontSize: 38, fontWeight: 700, direction: 'ltr',
-                color: safeText(bg), textShadow: textShadow(bg), letterSpacing: 2,
+                color: safeText(effectiveMode), textShadow: '0 2px 15px rgba(0,0,0,0.4)', letterSpacing: 2,
               }}>{phone}</div>
             )}
           </div>
@@ -694,75 +730,79 @@ const SlideRenderer = ({
 
     case 'contact': {
       const { background, mode, decorBg } = getSlideBg('contact');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.22} />}
           {decorBg}
           <div style={{
             position: 'relative', height: '100%', display: 'flex', flexDirection: 'column',
-            justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 100,
+            justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 100, zIndex: 2,
           }}>
             {logoUrl && (
               <div style={{
                 width: 120, height: 120, borderRadius: 24,
-                background: isCreative ? hexToRgba(brandColor, 0.08) : isMinimal ? '#f5f5f5' : 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(8px)',
+                background: hasPhoto ? 'rgba(255,255,255,0.1)' : (isCreative ? hexToRgba(brandColor, 0.08) : isMinimal ? '#f5f5f5' : 'rgba(255,255,255,0.1)'),
+                backdropFilter: 'blur(12px)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, marginBottom: 40,
-                border: isCreative ? `2px solid ${hexToRgba(brandColor, 0.15)}` : isMinimal ? '1px solid #eee' : '1px solid rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
               }}>
                 <img src={logoUrl} alt="logo" style={{
                   maxHeight: 80, maxWidth: 80, objectFit: 'contain',
-                  filter: isDark ? 'brightness(0) invert(1)' : 'none',
+                  filter: (hasPhoto || isDark) ? 'brightness(0) invert(1)' : 'none',
                 }} />
               </div>
             )}
             <h2 style={{
               fontSize: 80, fontWeight: 900, marginBottom: 20,
-              color: safeText(bg), textShadow: textShadow(bg),
+              color: safeText(effectiveMode), textShadow: textShadow(effectiveMode),
             }}>{slide.title}</h2>
             {slide.body && <p style={{
               fontSize: 28, marginBottom: 50,
-              color: safeSubtext(bg), textShadow: textShadow(bg),
+              color: safeSubtext(effectiveMode), textShadow: textShadow(effectiveMode),
             }}>{slide.body}</p>}
             <div style={{ display: 'flex', gap: 80, marginBottom: 40 }}>
               {phone && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.12)}, ${hexToRgba('#ff6b6b', 0.08)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    background: hasPhoto ? 'rgba(255,255,255,0.12)' : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    backdropFilter: 'blur(8px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 16px', fontSize: 30,
-                    border: isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined,
+                    border: '1px solid rgba(255,255,255,0.1)',
                   }}>📞</div>
-                  <div style={{ fontSize: 18, color: brandColor, marginBottom: 8, fontWeight: 600 }}>טלפון</div>
-                  <div style={{ fontSize: 32, fontWeight: 700, direction: 'ltr', color: safeText(bg), textShadow: textShadow(bg) }}>{phone}</div>
+                  <div style={{ fontSize: 18, color: hasPhoto ? 'rgba(255,255,255,0.7)' : brandColor, marginBottom: 8, fontWeight: 600 }}>טלפון</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, direction: 'ltr', color: safeText(effectiveMode), textShadow: textShadow(effectiveMode) }}>{phone}</div>
                 </div>
               )}
               {email && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.12)}, ${hexToRgba('#ffd93d', 0.1)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    background: hasPhoto ? 'rgba(255,255,255,0.12)' : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    backdropFilter: 'blur(8px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 16px', fontSize: 30,
-                    border: isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined,
+                    border: '1px solid rgba(255,255,255,0.1)',
                   }}>✉️</div>
-                  <div style={{ fontSize: 18, color: brandColor, marginBottom: 8, fontWeight: 600 }}>אימייל</div>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: safeText(bg), textShadow: textShadow(bg) }}>{email}</div>
+                  <div style={{ fontSize: 18, color: hasPhoto ? 'rgba(255,255,255,0.7)' : brandColor, marginBottom: 8, fontWeight: 600 }}>אימייל</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: safeText(effectiveMode), textShadow: textShadow(effectiveMode) }}>{email}</div>
                 </div>
               )}
               {address && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
                     width: 70, height: 70, borderRadius: 20,
-                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.12)}, ${hexToRgba('#ff6b6b', 0.08)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    background: hasPhoto ? 'rgba(255,255,255,0.12)' : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    backdropFilter: 'blur(8px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 16px', fontSize: 30,
-                    border: isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined,
+                    border: '1px solid rgba(255,255,255,0.1)',
                   }}>📍</div>
-                  <div style={{ fontSize: 18, color: brandColor, marginBottom: 8, fontWeight: 600 }}>כתובת</div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: safeText(bg), textShadow: textShadow(bg) }}>{address}</div>
+                  <div style={{ fontSize: 18, color: hasPhoto ? 'rgba(255,255,255,0.7)' : brandColor, marginBottom: 8, fontWeight: 600 }}>כתובת</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: safeText(effectiveMode), textShadow: textShadow(effectiveMode) }}>{address}</div>
                 </div>
               )}
             </div>
@@ -774,24 +814,25 @@ const SlideRenderer = ({
 
     case 'vision': {
       const { background, mode, decorBg } = getSlideBg('vision');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.22} />}
           {decorBg}
-          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 180px' }}>
-            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 20, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 60, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 30 }} />
-            {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: safeSubtext(bg), maxWidth: 1300, textShadow: textShadow(bg) }}>{slide.body}</p>}
+          <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 180px', zIndex: 2 }}>
+            <h2 style={titleStyle(72, { color: safeText(effectiveMode), marginBottom: 20, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 60, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 30 }} />
+            {slide.body && <p style={{ fontSize: 32, lineHeight: 1.9, color: safeSubtext(effectiveMode), maxWidth: 1300, textShadow: textShadow(effectiveMode) }}>{slide.body}</p>}
             {slide.bullets && (
               <div style={{ display: 'flex', gap: 40, marginTop: 50 }}>
                 {slide.bullets.map((b, i) => (
                   <div key={i} style={{
                     flex: 1, padding: '30px 28px', textAlign: 'center',
-                    ...getCardStyle(bg),
+                    ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   }}>
                     <div style={{ fontSize: 36, marginBottom: 12 }}>{['🎯', '💡', '🏆', '⭐'][i % 4]}</div>
-                    <span style={{ fontSize: 24, fontWeight: 600, color: safeSubtext(bg) }}>{b}</span>
+                    <span style={{ fontSize: 24, fontWeight: 600, color: safeSubtext(effectiveMode), textShadow: textShadow(effectiveMode) }}>{b}</span>
                   </div>
                 ))}
               </div>
@@ -804,34 +845,33 @@ const SlideRenderer = ({
 
     case 'social_proof': {
       const { background, mode, decorBg } = getSlideBg('social_proof');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       const items = slide.bullets || [];
-      // Magazine-style: staggered card sizes for visual interest
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.15} />}
-          {photo && bg === 'light' && <PhotoBg url={photo} position="left" width="30%" opacity={0.15} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.18} />}
           {decorBg}
-          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 50 }} />
+          <div style={{ padding: '90px 140px', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', zIndex: 2 }}>
+            <h2 style={titleStyle(72, { color: safeText(effectiveMode), marginBottom: 16, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 80, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 50 }} />
             <div style={{ display: 'flex', gap: 32, flex: 1, alignItems: 'stretch' }}>
               {items.map((b, i) => (
                 <div key={i} style={{
                   flex: 1, padding: '36px 28px',
-                  ...getCardStyle(bg),
+                  ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   textAlign: 'center', gap: 20,
                 }}>
                   <div style={{
                     width: 56, height: 56, borderRadius: '50%',
-                    background: isCreative && bg === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.2)',
+                    background: hasPhoto ? 'rgba(255,255,255,0.15)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(135deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.2)'),
                     color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 26, fontWeight: 900, flexShrink: 0,
-                    boxShadow: `0 4px 20px ${isDark ? 'rgba(0,0,0,0.3)' : hexToRgba(brandColor, 0.25)}`,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                   }}>✓</div>
-                  <span style={{ fontSize: 24, color: safeSubtext(bg), fontWeight: 600, lineHeight: 1.5 }}>{b}</span>
+                  <span style={{ fontSize: 24, color: safeSubtext(effectiveMode), fontWeight: 600, lineHeight: 1.5, textShadow: textShadow(effectiveMode) }}>{b}</span>
                 </div>
               ))}
             </div>
@@ -843,31 +883,32 @@ const SlideRenderer = ({
 
     case 'target_audience': {
       const { background, mode, decorBg } = getSlideBg('target_audience');
-      const bg = mode;
+      const hasPhoto = !!photo;
+      const effectiveMode = hasPhoto ? 'dark' : mode;
       const items = slide.bullets || [];
       return (
-        <div style={{ ...base, background }}>
-          {photo && bg === 'dark' && <DarkPhotoBg url={photo} opacity={0.2} />}
+        <div style={{ ...base, background: hasPhoto ? '#0a0a1a' : background }}>
+          {hasPhoto && <DarkPhotoBg url={photo!} opacity={0.22} />}
           {decorBg}
-          <div style={{ position: 'relative', padding: '100px 160px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={titleStyle(72, { color: safeText(bg), marginBottom: 16, textShadow: textShadow(bg) })}>{slide.title}</h2>
-            <div style={{ width: 80, height: 5, background: isCreative && bg === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 40 }} />
-            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(bg), marginBottom: 40, maxWidth: 1000, textShadow: textShadow(bg) }}>{slide.body}</p>}
+          <div style={{ position: 'relative', padding: '100px 160px', height: '100%', display: 'flex', flexDirection: 'column', zIndex: 2 }}>
+            <h2 style={titleStyle(72, { color: safeText(effectiveMode), marginBottom: 16, textShadow: textShadow(effectiveMode) })}>{slide.title}</h2>
+            <div style={{ width: 80, height: 5, background: hasPhoto ? 'rgba(255,255,255,0.4)' : (isCreative && effectiveMode === 'light' ? `linear-gradient(90deg, ${brandColor}, #ff6b6b)` : isMinimal ? brandColor : 'rgba(255,255,255,0.3)'), borderRadius: 3, marginBottom: 40 }} />
+            {slide.body && <p style={{ fontSize: 28, lineHeight: 1.8, color: safeSubtext(effectiveMode), marginBottom: 40, maxWidth: 1000, textShadow: textShadow(effectiveMode) }}>{slide.body}</p>}
             <div style={{ display: 'flex', gap: 36, flex: 1, alignItems: 'stretch' }}>
               {items.map((b, i) => (
                 <div key={i} style={{
                   flex: 1, padding: '40px 28px',
-                  ...getCardStyle(bg),
+                  ...getCardStyle(hasPhoto ? 'dark' : effectiveMode),
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   textAlign: 'center', gap: 16,
                 }}>
                   <div style={{
                     width: 60, height: 60, borderRadius: 18,
-                    background: isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.15)}, ${hexToRgba('#ffd93d', 0.1)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25),
+                    background: hasPhoto ? 'rgba(255,255,255,0.12)' : (isCreative ? `linear-gradient(135deg, ${hexToRgba(brandColor, 0.15)}, ${hexToRgba('#ffd93d', 0.1)})` : hexToRgba(brandColor, isMinimal ? 0.1 : 0.25)),
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0,
-                    border: isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined,
+                    border: hasPhoto ? '1px solid rgba(255,255,255,0.1)' : (isCreative ? `1px solid ${hexToRgba(brandColor, 0.2)}` : undefined),
                   }}>👤</div>
-                  <span style={{ fontSize: 26, fontWeight: 600, color: safeSubtext(bg), lineHeight: 1.5 }}>{b}</span>
+                  <span style={{ fontSize: 26, fontWeight: 600, color: safeSubtext(effectiveMode), lineHeight: 1.5, textShadow: textShadow(effectiveMode) }}>{b}</span>
                 </div>
               ))}
             </div>
