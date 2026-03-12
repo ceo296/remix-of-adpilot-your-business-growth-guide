@@ -387,6 +387,7 @@ export type Database = {
           background_color: string | null
           body_font: string | null
           branches: string | null
+          brand_colors: Json | null
           brand_presence: string | null
           business_name: string
           business_photos: Json | null
@@ -440,6 +441,7 @@ export type Database = {
           background_color?: string | null
           body_font?: string | null
           branches?: string | null
+          brand_colors?: Json | null
           brand_presence?: string | null
           business_name: string
           business_photos?: Json | null
@@ -493,6 +495,7 @@ export type Database = {
           background_color?: string | null
           body_font?: string | null
           branches?: string | null
+          brand_colors?: Json | null
           brand_presence?: string | null
           business_name?: string
           business_photos?: Json | null

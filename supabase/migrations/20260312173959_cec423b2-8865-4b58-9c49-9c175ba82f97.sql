@@ -1,0 +1,1 @@
+ALTER TABLE public.client_profiles ADD COLUMN IF NOT EXISTS brand_colors jsonb DEFAULT '[]'::jsonb;
