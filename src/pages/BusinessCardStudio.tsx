@@ -291,9 +291,11 @@ const BusinessCardStudio = () => {
                     {cardData.personName}
                   </div>
                 )}
-                <div style={{ display: 'inline-block', marginTop: '6px', padding: '4px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 700, background: 'rgba(255,255,255,0.2)', color: '#fff', backdropFilter: 'blur(4px)' }}>
-                  {cardData.title}
-                </div>
+                {cardData.title && (
+                  <div style={{ display: 'inline-block', marginTop: '6px', padding: '4px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 700, background: 'rgba(255,255,255,0.2)', color: '#fff', backdropFilter: 'blur(4px)' }}>
+                    {cardData.title}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
