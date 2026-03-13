@@ -46,12 +46,12 @@ const BusinessCardStudio = () => {
   const logoUrl = profile?.logo_url || '';
 
   const [cardData, setCardData] = useState<CardData>({
-    businessName: profile?.business_name || 'שם העסק',
-    title: 'מנכ״ל',
+    businessName: profile?.business_name || '',
+    title: '',
     personName: '',
-    phone: profile?.contact_phone || '054-000-0000',
-    email: profile?.contact_email || 'info@example.com',
-    address: profile?.contact_address || 'בני ברק',
+    phone: profile?.contact_phone || '',
+    email: profile?.contact_email || '',
+    address: profile?.contact_address || '',
     whatsapp: profile?.contact_whatsapp || '',
     website: profile?.website_url || '',
   });

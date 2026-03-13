@@ -66,32 +66,6 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     ]
   },
   {
-    id: 'flyers',
-    name: 'Flyers',
-    nameHe: 'פליירים',
-    description: 'עלונים להפצה ושיווק',
-    icon: FileText,
-    templates: [
-      { id: 'flyer-a5', name: 'A5 קלאסי', description: 'גודל סטנדרטי להפצה', aspectRatio: '1:1.41', popular: true },
-      { id: 'flyer-a4', name: 'A4 מלא', description: 'דף שלם לפרטים מרובים', aspectRatio: '1:1.41' },
-      { id: 'flyer-dl', name: 'DL ארוך', description: 'פורמט צר ואלגנטי', aspectRatio: '1:2.1' },
-      { id: 'flyer-square', name: 'ריבועי', description: 'פורמט מודרני ויחודי', aspectRatio: '1:1' },
-    ]
-  },
-  {
-    id: 'invitations',
-    name: 'Invitations',
-    nameHe: 'הזמנות',
-    description: 'הזמנות לאירועים ושמחות',
-    icon: Calendar,
-    templates: [
-      { id: 'inv-wedding', name: 'חתונה', description: 'הזמנות חתונה מעוצבות', aspectRatio: '5:7', popular: true },
-      { id: 'inv-bar', name: 'בר מצווה', description: 'הזמנות לשמחת בר/בת מצווה', aspectRatio: '5:7' },
-      { id: 'inv-brit', name: 'ברית/שלום זכר', description: 'הזמנות לברית או שלום זכר', aspectRatio: '5:7' },
-      { id: 'inv-event', name: 'אירוע כללי', description: 'הזמנות לכל סוגי האירועים', aspectRatio: '5:7' },
-    ]
-  },
-  {
     id: 'letterhead',
     name: 'Letterhead',
     nameHe: 'נייר מכתבים',
