@@ -373,11 +373,11 @@ const LetterheadStudio = () => {
                 <div className="space-y-2">
                   <div>
                     <Label className="text-xs">שם העסק</Label>
-                    <Input value={letterData.businessName} onChange={e => updateField('businessName', e.target.value)} />
+                    <Input value={letterData.businessName} onChange={e => updateField('businessName', e.target.value)} placeholder="שם העסק" />
                   </div>
                   <div>
                     <Label className="text-xs">כותרת משנה</Label>
-                    <Input value={letterData.subtitle} onChange={e => updateField('subtitle', e.target.value)} placeholder="שירותים מקצועיים" />
+                    <Input value={letterData.subtitle} onChange={e => updateField('subtitle', e.target.value)} placeholder="שירותים מקצועיים (אופציונלי)" />
                   </div>
                 </div>
               </CardContent>
