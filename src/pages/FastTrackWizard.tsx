@@ -249,9 +249,8 @@ const FastTrackWizard = () => {
     
     try {
       const quoteData = getQuoteData();
-      const validationError = getMediaAudienceValidationError();
-      if (validationError) {
-        throw new Error(validationError);
+      if (!selectedPackage) {
+        throw new Error('לא נבחרה חבילת מדיה');
       }
 
       if (!activeProfile?.id) {
