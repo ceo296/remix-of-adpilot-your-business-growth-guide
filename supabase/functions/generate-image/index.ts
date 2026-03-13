@@ -450,10 +450,23 @@ serve(async (req) => {
     const templatePrompt = templateId ? TEMPLATE_PROMPTS[templateId] || '' : '';
     const effectiveVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
     
-    // Brand color instructions
+    // Brand color instructions — STRICT ENFORCEMENT
     let colorInstructions = '';
     if (brandContext?.colors?.primary) {
-      colorInstructions = `MANDATORY BRAND COLORS: Primary=${brandContext.colors.primary}${brandContext.colors.secondary ? `, Secondary=${brandContext.colors.secondary}` : ''}${brandContext.colors.background ? `, Background=${brandContext.colors.background}` : ''}. These colors MUST dominate the design.`;
+      colorInstructions = `
+═══ MANDATORY BRAND COLORS — NON-NEGOTIABLE ═══
+Primary Color: ${brandContext.colors.primary} — This color MUST appear as the DOMINANT accent color in the image.
+${brandContext.colors.secondary ? `Secondary Color: ${brandContext.colors.secondary} — Use as supporting accent, dividers, highlights.` : ''}
+${brandContext.colors.background ? `Background tendency: ${brandContext.colors.background}` : ''}
+
+COLOR ENFORCEMENT RULES:
+1. The primary brand color (${brandContext.colors.primary}) must be CLEARLY VISIBLE and dominant in the composition.
+2. Use it for: color accents, gradient washes, light tinting, rim lighting, colored shadows, background elements.
+3. Do NOT replace brand colors with random colors. A brand with blue (#1E3A5F) must NOT get orange highlights.
+4. The overall color MOOD of the image must harmonize with the brand palette.
+5. If the brand color is warm (reds/oranges/golds) → warm lighting. Cool (blues/greens) → cool lighting.
+═══════════════════════════════════════════════════
+`;
     }
 
     // Sector brain insights
