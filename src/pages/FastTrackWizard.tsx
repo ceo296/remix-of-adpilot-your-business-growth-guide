@@ -591,8 +591,6 @@ const FastTrackWizard = () => {
         onTargetCityChange={setTargetCity}
         selectedPackage={selectedPackage}
         onPackageSelect={setSelectedPackage}
-        onManualMediaSelect={setManualMediaSelection}
-        manualMediaSelection={manualMediaSelection}
         selectedMediaTypes={getFilteredMediaTypes()}
         mediaScope={mediaScope || undefined}
       />
