@@ -122,6 +122,37 @@ async function generateVisualLayer(
 
   const messageContent: any[] = [{ type: "text", text: ART_DIRECTOR_GUIDELINES + "\n\n" + fullPrompt }];
 
+  // ═══ PAST MATERIALS as visual references (HIGHEST priority for brand-follower/visual-refresh) ═══
+  const pastMaterialUrls = brandContext?.pastMaterialUrls || [];
+  const designApproach = brandContext?.designApproach;
+  const shouldUsePastMaterials = pastMaterialUrls.length > 0 && 
+    (designApproach === 'brand-follower' || designApproach === 'visual-refresh');
+  
+  if (shouldUsePastMaterials) {
+    const materialsToInclude = pastMaterialUrls.slice(0, 3); // Max 3 to avoid overloading
+    for (const matUrl of materialsToInclude) {
+      if (matUrl && typeof matUrl === 'string' && !matUrl.startsWith('data:application/pdf')) {
+        console.log("Including PAST MATERIAL as visual reference:", matUrl.substring(0, 80));
+        messageContent.push({
+          type: "image_url",
+          image_url: { url: matUrl }
+        });
+      }
+    }
+    messageContent[0].text = `
+═══ CRITICAL — BRAND CONTINUITY REFERENCE IMAGES ATTACHED (${materialsToInclude.length} images) ═══
+The attached images are the client's EXISTING advertising materials. These are your PRIMARY design reference.
+YOU MUST:
+1. Match the EXACT same grid structure and layout proportions (where is the headline? where is the visual? where is the contact bar?)
+2. Match the same visual DENSITY and STYLE (clean/minimal vs bold/colorful)
+3. Match the same COMPOSITION approach (centered vs asymmetric, photo-driven vs graphic-led)
+4. Match the same COLOR TEMPERATURE and MOOD
+5. The new ad should look like the NEXT AD in the same campaign series
+A viewer should NOT be able to tell a different designer made this ad.
+═══════════════════════════════════════════════════════════════
+\n\n` + messageContent[0].text;
+  }
+
   // Include campaign-specific image if provided (highest priority visual reference)
   const campaignImageUrl = campaignContext?.campaignImageUrl;
   if (campaignImageUrl && !campaignImageUrl.startsWith('data:application/pdf')) {
@@ -151,10 +182,6 @@ async function generateVisualLayer(
 
   // IRON RULE: NEVER send logo to AI image generator
   // The logo is ALWAYS handled by the programmatic HTML overlay (Layer 2)
-  // Sending it to the AI causes: duplicate logos, bad placement, invented logos, white boxes
-  const isPdfLogo = typeof logoUrl === 'string' && (logoUrl.startsWith('data:application/pdf') || logoUrl.toLowerCase().endsWith('.pdf'));
-  
-  // NEVER attach logo to AI — explicitly tell it to leave space empty
   messageContent[0].text = `IRON RULE — LOGO: Do NOT include ANY logo, emblem, symbol, monogram, or brand mark in the image. The brand logo will be added in post-production as a separate layer. Leave the BOTTOM-LEFT corner completely clean and empty. ANY attempt to generate, recreate, or place a logo is a CRITICAL ERROR that ruins the ad.\n\n` + messageContent[0].text;
 
   for (const tryModel of models) {
