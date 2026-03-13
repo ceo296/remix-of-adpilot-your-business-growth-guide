@@ -6,39 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-async function fetchSectorBrainFromDB(holidaySeason?: string | null) {
-  try {
-    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    let holidayExamples: any[] = [];
-    if (holidaySeason && holidaySeason !== 'year_round') {
-      const { data } = await supabase
-        .from('sector_brain_examples')
-        .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
-        .eq('holiday_season', holidaySeason)
-        .limit(50);
-      holidayExamples = data || [];
-    }
-    const generalQuery = supabase
-      .from('sector_brain_examples')
-      .select('name, zone, description, text_content, stream_type, gender_audience, topic_category, holiday_season, media_type, example_type')
-      .limit(50);
-    if (holidaySeason && holidaySeason !== 'year_round') {
-      generalQuery.or(`holiday_season.is.null,holiday_season.eq.year_round`);
-    }
-    const { data: generalData, error } = await generalQuery;
-    if (error) return null;
-    const allExamples = [...holidayExamples, ...(generalData || [])];
-    if (!allExamples.length) return null;
-    const grouped: Record<string, typeof allExamples> = {};
-    for (const item of allExamples) {
-      const zone = item.zone || 'general';
-      if (!grouped[zone]) grouped[zone] = [];
-      grouped[zone].push(item);
-    }
-    return { total_examples: allExamples.length, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped };
-  } catch { return null; }
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -64,44 +31,63 @@ serve(async (req) => {
       throw new Error('No AI API key configured');
     }
 
-    // Fetch sector brain references
-    const sectorBrainData = await fetchSectorBrainFromDB();
-    console.log('[ai-chat] Sector Brain loaded:', sectorBrainData ? `${sectorBrainData.total_examples} examples, zones: ${Object.keys(sectorBrainData.zones).join(', ')}` : 'NONE');
+    // System prompt focused ONLY on system navigation
+    const systemPrompt = `אתה עוזר ניווט במערכת ADKOP - מערכת פרסום חכמה לקהילה החרדית.
 
-    // Build concise sector context
-    let sectorContext = '';
-    if (sectorBrainData) {
-      const summaries: string[] = [];
-      for (const [zone, items] of Object.entries(sectorBrainData.zones as Record<string, any[]>)) {
-        const names = items.slice(0, 10).map((i: any) => `"${i.name}"`).join(', ');
-        summaries.push(`[${zone}]: ${names}`);
-      }
-      sectorContext = `\nרפרנסים מגזריים להתייחסות: ${summaries.join(' | ')}`;
-    }
+תפקידך היחיד הוא לעזור למשתמשים להשתמש במערכת. אתה לא עונה על שאלות כלליות, לא כותב טקסטים פרסומיים, ולא נותן עצות שיווק.
 
-    // Build system prompt based on context
-    const systemPrompt = `אתה עוזר AI חכם למערכת פרסום לקהילה החרדית.
-תפקידך לעזור בכתיבת טקסטים פרסומיים, סלוגנים, רעיונות לקמפיינים, ועצות שיווק.
+אלו הפעולות שהמערכת תומכת בהן ואיך להגיע אליהן:
 
-הנחיות חשובות:
-- כתוב בעברית תקנית ומכובדת
-- התאם את הסגנון לקהל היעד החרדי
-- הימנע מתוכן לא צנוע או לא מתאים
-- היה יצירתי אך מקצועי
-- אם מקבל פרטים על עסק, התאם את ההמלצות אליו
-- השתמש ברפרנסים מגזריים שצורפו כדי לתת עצות מבוססות על דוגמאות אמיתיות
+📋 **מיתוג (אונבורדינג)**
+- נכנסים דרך תהליך ה-Onboarding הראשוני שמופיע אחרי ההרשמה
+- שם מזינים: שם עסק, לוגו, צבעים, פונטים, קהל יעד, מתחרים ועוד
+- אפשר לעדכן פרטים בכל רגע דרך עמוד "פרופיל" בתפריט הצדדי
 
-${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, null, 2)}` : ''}${sectorContext}`;
+🎯 **יצירת קמפיין חדש**
+- לוחצים על "קמפיין חדש" בתפריט הצדדי
+- ממלאים בריף: מה ההצעה, מטרת הפרסומת, טון רגשי, פרטי קשר להצגה
+- אחרי הבריף עוברים לסטודיו היצירתי ליצירת מודעות
+
+🎨 **סטודיו יצירתי**
+- נגיש דרך "סטודיו יצירתי" בתפריט או דרך תהליך הקמפיין
+- שלושה מסלולים: אוטופיילוט (AI יוצר הכל), ידני (בניית בריף מודרך), או העלאת חומר מוכן
+- אפשר לבחור סוג מדיה (מודעה, באנר, שילוט, סושיאל)
+
+📰 **רכישת מדיה**
+- מתוך לוח הבקרה לוחצים "רכישת מדיה" 
+- בוחרים סוגי מדיה (עיתונות, דיגיטל, ווטסאפ וכו')
+- מזינים תקציב ומקבלים הצעת חבילות מותאמות
+- אחרי בחירת חבילה, מקבלים הודעה באזור האישי עם חבילה סופית מפורטת
+
+🏢 **פרופיל עסקי**
+- דרך "פרופיל" בתפריט הצדדי
+- שם אפשר לעדכן: פרטי קשר, צבעים, פונטים, לוגו, רשתות חברתיות ועוד
+
+📊 **לוח בקרה**
+- מציג סיכום: קמפיינים פעילים, סטטוס הזמנות, פעילות אחרונה
+- מכאן אפשר לגשת לכל חלקי המערכת
+
+💼 **כרטיס ביקור ונייר מכתבים**
+- נגיש דרך הסטודיו הפנימי
+- מאפשר יצירת כרטיסי ביקור ונייר מכתבים ממותגים
+
+הנחיות:
+- ענה רק על שאלות שקשורות לשימוש במערכת
+- אם שואלים שאלה כללית שלא קשורה, אמור בנימוס: "אני כאן כדי לעזור לך להשתמש במערכת ADKOP. מה תרצה לעשות במערכת?"
+- תמיד כוון את המשתמש לאן ללחוץ ומה לעשות שלב אחרי שלב
+- כתוב בעברית מכובדת וקצרה
+- השתמש באימוג'ים למראה ידידותי
+
+${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${context.currentPage || 'לא ידוע'}\nשם עסק: ${context.businessName || 'לא ידוע'}` : ''}`;
 
     const allMessages = [
       { role: "system", content: systemPrompt },
       ...messages,
     ];
 
-    // Try Google Gemini API first (non-streaming, convert to SSE)
+    // Try Google Gemini API first
     if (GOOGLE_GEMINI_API_KEY) {
       try {
-        console.log('[ai-chat] Trying Google Gemini API...');
         const geminiMessages = allMessages.filter(m => m.role !== 'system');
         const systemText = allMessages.find(m => m.role === 'system')?.content || '';
         const directResponse = await fetch(
@@ -115,7 +101,7 @@ ${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, nul
                 role: m.role === 'assistant' ? 'model' : 'user',
                 parts: [{ text: m.content }],
               })),
-              generationConfig: { maxOutputTokens: 8192 },
+              generationConfig: { maxOutputTokens: 2048 },
             }),
           }
         );
@@ -124,29 +110,24 @@ ${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, nul
           const data = await directResponse.json();
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
           if (text) {
-            console.log('[ai-chat] Google API succeeded');
             const sseData = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
             return new Response(sseData, {
               headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
             });
           }
-        } else {
-          const errText = await directResponse.text();
-          console.error('[ai-chat] Google API error:', directResponse.status, errText);
         }
       } catch (e) {
-        console.error('[ai-chat] Google API fetch error:', e);
+        console.error('[ai-chat] Google API error:', e);
       }
     }
 
-    // Fallback: Lovable AI Gateway (streaming)
+    // Fallback: Lovable AI Gateway
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: "שירות AI אינו זמין" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log('[ai-chat] Using Lovable Gateway...');
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -157,21 +138,20 @@ ${context ? `מידע על העסק הנוכחי:\n${JSON.stringify(context, nul
         model: "google/gemini-2.5-flash",
         messages: allMessages,
         stream: true,
-        max_completion_tokens: 8192,
+        max_completion_tokens: 2048,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." }), {
+        return new Response(JSON.stringify({ error: "נגמרו הקרדיטים." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }

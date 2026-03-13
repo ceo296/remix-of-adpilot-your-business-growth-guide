@@ -322,7 +322,7 @@ const FastTrackWizard = () => {
   };
 
   const canProceedMedia = () => {
-    return budget > 0 && targetStream && targetGender && (selectedPackage || manualMediaSelection);
+    return budget > 0 && targetStream && targetGender && selectedPackage;
   };
 
   // Render Brief Step — uses the guided StudioBriefStep component
