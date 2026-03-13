@@ -783,6 +783,13 @@ const CreativeStudio = () => {
         ?.map((m: any) => m.adAnalysis)
         ?.slice(0, 3) || [];
 
+      // Extract actual past material image URLs for AI reference
+      const pastMaterialUrls = (clientProfile?.past_materials as any[])
+        ?.filter((m: any) => m.url || m.preview)
+        ?.map((m: any) => m.url || m.preview)
+        ?.filter((url: string) => url && !url.startsWith('data:application/pdf'))
+        ?.slice(0, 3) || [];
+
       const brandContext = clientProfile ? {
         businessName: clientProfile.business_name,
         targetAudience: clientProfile.target_audience,
@@ -796,6 +803,7 @@ const CreativeStudio = () => {
         },
         colorMode: colorSelection.mode,
         pastMaterialsAnalysis,
+        pastMaterialUrls, // Actual image URLs for AI visual reference
         layoutInstructions: buildLayoutInstructions(pastMaterialsAnalysis),
         designApproach: designApproach || null,
         designReference: designReference ? { url: designReference.url, adAnalysis: designReference.adAnalysis } : null,
