@@ -125,11 +125,18 @@ const CATEGORY_WEIGHT: Record<GeneralCategory, number> = {
 };
 
 const MEDIA_TYPE_CATEGORY_MAP: Record<string, GeneralCategory[]> = {
+  // From CreativeStudio media types
   ad: ['national_press', 'local_press', 'magazines', 'women_magazines'],
   banner: ['digital', 'email', 'whatsapp', 'influencers'],
   social: ['digital', 'email', 'whatsapp', 'influencers'],
   billboard: ['outdoor'],
   radio: ['radio'],
+  // From FastTrackWizard media types
+  newspapers: ['national_press', 'local_press', 'magazines', 'women_magazines'],
+  signage: ['outdoor'],
+  digital: ['digital', 'email', 'influencers'],
+  email: ['email'],
+  whatsapp: ['whatsapp'],
 };
 
 const ALL_CATEGORIES: GeneralCategory[] = [
