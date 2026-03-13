@@ -110,8 +110,7 @@ const FastTrackWizard = () => {
   const [targetGender, setTargetGender] = useState('');
   const [targetCity, setTargetCity] = useState('nationwide');
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
-  const [manualMediaSelection, setManualMediaSelection] = useState<any>(null);
-  
+
   // Creative Upload (for media-only mode)
   const [uploadedCreativeUrl, setUploadedCreativeUrl] = useState<string | null>(null);
   const [isUploadingCreative, setIsUploadingCreative] = useState(false);
