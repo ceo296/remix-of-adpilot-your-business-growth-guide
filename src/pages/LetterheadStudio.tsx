@@ -49,13 +49,13 @@ const LetterheadStudio = () => {
   const font = profile?.header_font || 'Heebo, sans-serif';
 
   const [letterData, setLetterData] = useState<LetterData>({
-    businessName: profile?.business_name || 'שם העסק',
-    subtitle: 'שירותים מקצועיים',
-    phone: profile?.contact_phone || '054-000-0000',
-    email: profile?.contact_email || 'info@example.com',
-    address: profile?.contact_address || 'רח׳ הרצל 1, בני ברק',
-    website: profile?.website_url || 'www.example.co.il',
-    letterContent: 'לכבוד,\n\nהריני לאשר כי...\n\nבכבוד רב,',
+    businessName: profile?.business_name || '',
+    subtitle: '',
+    phone: profile?.contact_phone || '',
+    email: profile?.contact_email || '',
+    address: profile?.contact_address || '',
+    website: profile?.website_url || '',
+    letterContent: '',
     date: new Date().toLocaleDateString('he-IL'),
     recipientName: '',
     recipientTitle: '',
@@ -373,11 +373,11 @@ const LetterheadStudio = () => {
                 <div className="space-y-2">
                   <div>
                     <Label className="text-xs">שם העסק</Label>
-                    <Input value={letterData.businessName} onChange={e => updateField('businessName', e.target.value)} />
+                    <Input value={letterData.businessName} onChange={e => updateField('businessName', e.target.value)} placeholder="שם העסק" />
                   </div>
                   <div>
                     <Label className="text-xs">כותרת משנה</Label>
-                    <Input value={letterData.subtitle} onChange={e => updateField('subtitle', e.target.value)} placeholder="שירותים מקצועיים" />
+                    <Input value={letterData.subtitle} onChange={e => updateField('subtitle', e.target.value)} placeholder="שירותים מקצועיים (אופציונלי)" />
                   </div>
                 </div>
               </CardContent>

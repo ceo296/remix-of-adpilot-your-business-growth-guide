@@ -46,12 +46,12 @@ const BusinessCardStudio = () => {
   const logoUrl = profile?.logo_url || '';
 
   const [cardData, setCardData] = useState<CardData>({
-    businessName: profile?.business_name || 'שם העסק',
-    title: 'מנכ״ל',
+    businessName: profile?.business_name || '',
+    title: '',
     personName: '',
-    phone: profile?.contact_phone || '054-000-0000',
-    email: profile?.contact_email || 'info@example.com',
-    address: profile?.contact_address || 'בני ברק',
+    phone: profile?.contact_phone || '',
+    email: profile?.contact_email || '',
+    address: profile?.contact_address || '',
     whatsapp: profile?.contact_whatsapp || '',
     website: profile?.website_url || '',
   });
@@ -291,9 +291,11 @@ const BusinessCardStudio = () => {
                     {cardData.personName}
                   </div>
                 )}
-                <div style={{ display: 'inline-block', marginTop: '6px', padding: '4px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 700, background: 'rgba(255,255,255,0.2)', color: '#fff', backdropFilter: 'blur(4px)' }}>
-                  {cardData.title}
-                </div>
+                {cardData.title && (
+                  <div style={{ display: 'inline-block', marginTop: '6px', padding: '4px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 700, background: 'rgba(255,255,255,0.2)', color: '#fff', backdropFilter: 'blur(4px)' }}>
+                    {cardData.title}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -321,9 +323,11 @@ const BusinessCardStudio = () => {
                 <div style={{ fontSize: '34px', fontWeight: 900, lineHeight: 1.1, marginTop: cardData.personName ? '4px' : 0, color: isDark ? '#fff' : '#222' }}>
                   {cardData.businessName}
                 </div>
-                <div style={{ display: 'inline-block', marginTop: '10px', padding: '5px 18px', borderRadius: '4px', fontSize: '15px', fontWeight: 700, background: isDark ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)` : `${color}15`, color: isDark ? '#fff' : color, border: isDark ? `1px solid rgba(${rgb.r},${rgb.g},${rgb.b},0.4)` : 'none' }}>
-                  {cardData.title}
-                </div>
+                {cardData.title && (
+                  <div style={{ display: 'inline-block', marginTop: '10px', padding: '5px 18px', borderRadius: '4px', fontSize: '15px', fontWeight: 700, background: isDark ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)` : `${color}15`, color: isDark ? '#fff' : color, border: isDark ? `1px solid rgba(${rgb.r},${rgb.g},${rgb.b},0.4)` : 'none' }}>
+                    {cardData.title}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -406,7 +410,7 @@ const BusinessCardStudio = () => {
               </div>
               {cardData.personName && (
                 <div style={{ fontSize: '16px', fontWeight: 500, color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
-                  {cardData.personName} • {cardData.title}
+                  {cardData.personName}{cardData.title ? ` • ${cardData.title}` : ''}
                 </div>
               )}
             </div>
@@ -462,15 +466,15 @@ const BusinessCardStudio = () => {
                 <div className="space-y-2">
                   <div>
                     <Label className="text-xs">שם העסק</Label>
-                    <Input value={cardData.businessName} onChange={e => updateField('businessName', e.target.value)} />
+                    <Input value={cardData.businessName} onChange={e => updateField('businessName', e.target.value)} placeholder="שם העסק" />
                   </div>
                   <div>
                     <Label className="text-xs">שם איש קשר</Label>
-                    <Input value={cardData.personName} onChange={e => updateField('personName', e.target.value)} placeholder="ישראל ישראלי" />
+                    <Input value={cardData.personName} onChange={e => updateField('personName', e.target.value)} placeholder="ישראל ישראלי (אופציונלי)" />
                   </div>
                   <div>
                     <Label className="text-xs">תפקיד</Label>
-                    <Input value={cardData.title} onChange={e => updateField('title', e.target.value)} />
+                    <Input value={cardData.title} onChange={e => updateField('title', e.target.value)} placeholder="מנכ״ל (אופציונלי)" />
                   </div>
                 </div>
               </CardContent>
