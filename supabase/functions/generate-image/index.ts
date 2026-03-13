@@ -180,6 +180,23 @@ A viewer should NOT be able to tell a different designer made this ad.
     messageContent[0].text = `The client has provided ${photosToInclude.length} REAL business/product photos (attached). Draw inspiration from these actual products/settings to create authentic visuals.\n\n` + messageContent[0].text;
   }
 
+  // Include design reference (specific past material selected by user)
+  const designRefUrl = brandContext?.designReference?.url;
+  if (designRefUrl && typeof designRefUrl === 'string' && !designRefUrl.startsWith('data:application/pdf')) {
+    console.log("Including DESIGN REFERENCE image:", designRefUrl.substring(0, 80));
+    messageContent.push({
+      type: "image_url",
+      image_url: { url: designRefUrl }
+    });
+    messageContent[0].text = `
+═══ SPECIFIC DESIGN REFERENCE (HIGHEST PRIORITY) ═══
+The client has selected ONE SPECIFIC past ad (attached) as the PRIMARY reference for this new design.
+REPLICATE its exact grid, layout, color balance, and visual hierarchy as closely as possible.
+This is NOT just inspiration — this is the TEMPLATE to follow.
+═══════════════════════════════════════════════════════
+\n\n` + messageContent[0].text;
+  }
+
   // IRON RULE: NEVER send logo to AI image generator
   // The logo is ALWAYS handled by the programmatic HTML overlay (Layer 2)
   messageContent[0].text = `IRON RULE — LOGO: Do NOT include ANY logo, emblem, symbol, monogram, or brand mark in the image. The brand logo will be added in post-production as a separate layer. Leave the BOTTOM-LEFT corner completely clean and empty. ANY attempt to generate, recreate, or place a logo is a CRITICAL ERROR that ruins the ad.\n\n` + messageContent[0].text;
