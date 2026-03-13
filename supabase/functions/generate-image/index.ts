@@ -122,6 +122,37 @@ async function generateVisualLayer(
 
   const messageContent: any[] = [{ type: "text", text: ART_DIRECTOR_GUIDELINES + "\n\n" + fullPrompt }];
 
+  // ═══ PAST MATERIALS as visual references (HIGHEST priority for brand-follower/visual-refresh) ═══
+  const pastMaterialUrls = brandContext?.pastMaterialUrls || [];
+  const designApproach = brandContext?.designApproach;
+  const shouldUsePastMaterials = pastMaterialUrls.length > 0 && 
+    (designApproach === 'brand-follower' || designApproach === 'visual-refresh');
+  
+  if (shouldUsePastMaterials) {
+    const materialsToInclude = pastMaterialUrls.slice(0, 3); // Max 3 to avoid overloading
+    for (const matUrl of materialsToInclude) {
+      if (matUrl && typeof matUrl === 'string' && !matUrl.startsWith('data:application/pdf')) {
+        console.log("Including PAST MATERIAL as visual reference:", matUrl.substring(0, 80));
+        messageContent.push({
+          type: "image_url",
+          image_url: { url: matUrl }
+        });
+      }
+    }
+    messageContent[0].text = `
+═══ CRITICAL — BRAND CONTINUITY REFERENCE IMAGES ATTACHED (${materialsToInclude.length} images) ═══
+The attached images are the client's EXISTING advertising materials. These are your PRIMARY design reference.
+YOU MUST:
+1. Match the EXACT same grid structure and layout proportions (where is the headline? where is the visual? where is the contact bar?)
+2. Match the same visual DENSITY and STYLE (clean/minimal vs bold/colorful)
+3. Match the same COMPOSITION approach (centered vs asymmetric, photo-driven vs graphic-led)
+4. Match the same COLOR TEMPERATURE and MOOD
+5. The new ad should look like the NEXT AD in the same campaign series
+A viewer should NOT be able to tell a different designer made this ad.
+═══════════════════════════════════════════════════════════════
+\n\n` + messageContent[0].text;
+  }
+
   // Include campaign-specific image if provided (highest priority visual reference)
   const campaignImageUrl = campaignContext?.campaignImageUrl;
   if (campaignImageUrl && !campaignImageUrl.startsWith('data:application/pdf')) {
@@ -149,12 +180,25 @@ async function generateVisualLayer(
     messageContent[0].text = `The client has provided ${photosToInclude.length} REAL business/product photos (attached). Draw inspiration from these actual products/settings to create authentic visuals.\n\n` + messageContent[0].text;
   }
 
+  // Include design reference (specific past material selected by user)
+  const designRefUrl = brandContext?.designReference?.url;
+  if (designRefUrl && typeof designRefUrl === 'string' && !designRefUrl.startsWith('data:application/pdf')) {
+    console.log("Including DESIGN REFERENCE image:", designRefUrl.substring(0, 80));
+    messageContent.push({
+      type: "image_url",
+      image_url: { url: designRefUrl }
+    });
+    messageContent[0].text = `
+═══ SPECIFIC DESIGN REFERENCE (HIGHEST PRIORITY) ═══
+The client has selected ONE SPECIFIC past ad (attached) as the PRIMARY reference for this new design.
+REPLICATE its exact grid, layout, color balance, and visual hierarchy as closely as possible.
+This is NOT just inspiration — this is the TEMPLATE to follow.
+═══════════════════════════════════════════════════════
+\n\n` + messageContent[0].text;
+  }
+
   // IRON RULE: NEVER send logo to AI image generator
   // The logo is ALWAYS handled by the programmatic HTML overlay (Layer 2)
-  // Sending it to the AI causes: duplicate logos, bad placement, invented logos, white boxes
-  const isPdfLogo = typeof logoUrl === 'string' && (logoUrl.startsWith('data:application/pdf') || logoUrl.toLowerCase().endsWith('.pdf'));
-  
-  // NEVER attach logo to AI — explicitly tell it to leave space empty
   messageContent[0].text = `IRON RULE — LOGO: Do NOT include ANY logo, emblem, symbol, monogram, or brand mark in the image. The brand logo will be added in post-production as a separate layer. Leave the BOTTOM-LEFT corner completely clean and empty. ANY attempt to generate, recreate, or place a logo is a CRITICAL ERROR that ruins the ad.\n\n` + messageContent[0].text;
 
   for (const tryModel of models) {
@@ -423,10 +467,23 @@ serve(async (req) => {
     const templatePrompt = templateId ? TEMPLATE_PROMPTS[templateId] || '' : '';
     const effectiveVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
     
-    // Brand color instructions
+    // Brand color instructions — STRICT ENFORCEMENT
     let colorInstructions = '';
     if (brandContext?.colors?.primary) {
-      colorInstructions = `MANDATORY BRAND COLORS: Primary=${brandContext.colors.primary}${brandContext.colors.secondary ? `, Secondary=${brandContext.colors.secondary}` : ''}${brandContext.colors.background ? `, Background=${brandContext.colors.background}` : ''}. These colors MUST dominate the design.`;
+      colorInstructions = `
+═══ MANDATORY BRAND COLORS — NON-NEGOTIABLE ═══
+Primary Color: ${brandContext.colors.primary} — This color MUST appear as the DOMINANT accent color in the image.
+${brandContext.colors.secondary ? `Secondary Color: ${brandContext.colors.secondary} — Use as supporting accent, dividers, highlights.` : ''}
+${brandContext.colors.background ? `Background tendency: ${brandContext.colors.background}` : ''}
+
+COLOR ENFORCEMENT RULES:
+1. The primary brand color (${brandContext.colors.primary}) must be CLEARLY VISIBLE and dominant in the composition.
+2. Use it for: color accents, gradient washes, light tinting, rim lighting, colored shadows, background elements.
+3. Do NOT replace brand colors with random colors. A brand with blue (#1E3A5F) must NOT get orange highlights.
+4. The overall color MOOD of the image must harmonize with the brand palette.
+5. If the brand color is warm (reds/oranges/golds) → warm lighting. Cool (blues/greens) → cool lighting.
+═══════════════════════════════════════════════════
+`;
     }
 
     // Sector brain insights
