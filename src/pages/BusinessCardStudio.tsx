@@ -410,7 +410,7 @@ const BusinessCardStudio = () => {
               </div>
               {cardData.personName && (
                 <div style={{ fontSize: '16px', fontWeight: 500, color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
-                  {cardData.personName} • {cardData.title}
+                  {cardData.personName}{cardData.title ? ` • ${cardData.title}` : ''}
                 </div>
               )}
             </div>
