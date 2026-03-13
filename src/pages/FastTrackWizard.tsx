@@ -235,17 +235,6 @@ const FastTrackWizard = () => {
           price: item.price,
         });
       });
-    } else if (manualMediaSelection) {
-      // Handle manual selection
-      Object.values(manualMediaSelection).forEach((item: any) => {
-        if (item.selected) {
-          mediaItems.push({
-            id: item.id,
-            name: item.name,
-            price: item.price || 0,
-          });
-        }
-      });
     }
 
     return {
@@ -260,9 +249,8 @@ const FastTrackWizard = () => {
     
     try {
       const quoteData = getQuoteData();
-      const validationError = getMediaAudienceValidationError();
-      if (validationError) {
-        throw new Error(validationError);
+      if (!selectedPackage) {
+        throw new Error('לא נבחרה חבילת מדיה');
       }
 
       if (!activeProfile?.id) {
