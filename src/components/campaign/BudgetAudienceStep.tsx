@@ -7,26 +7,44 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { 
-  DollarSign, 
-  Users, 
-  MapPin, 
-  Check, 
+import {
+  DollarSign,
+  Users,
+  MapPin,
+  Check,
   Package,
   Sparkles,
   Star,
   Calendar as CalendarIcon,
   Bell,
-  ChevronDown
+  ChevronDown,
+  AlertTriangle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 
+type MediaScope = 'national' | 'local' | 'both';
+
+type GeneralCategory =
+  | 'national_press'
+  | 'local_press'
+  | 'magazines'
+  | 'women_magazines'
+  | 'digital'
+  | 'whatsapp'
+  | 'email'
+  | 'radio'
+  | 'outdoor'
+  | 'influencers';
+
 interface GeneralPackageItem {
-  category: string;
+  id: string;
+  category: GeneralCategory;
   label: string;
   gender: string;
   count: number;
+  price: number;
+  name: string;
 }
 
 interface GeneralPackage {
@@ -37,8 +55,6 @@ interface GeneralPackage {
   items: GeneralPackageItem[];
   recommended?: boolean;
 }
-
-type MediaScope = 'national' | 'local' | 'both';
 
 interface BudgetAudienceStepProps {
   budget: number;
@@ -55,8 +71,6 @@ interface BudgetAudienceStepProps {
   onTargetCityChange: (value: string) => void;
   selectedPackage: any;
   onPackageSelect: (pkg: any) => void;
-  onManualMediaSelect?: (selection: any) => void;
-  manualMediaSelection?: any;
   selectedMediaTypes?: MediaType[];
   mediaScope?: MediaScope;
 }
@@ -84,8 +98,7 @@ const CITIES = [
   { id: 'elad', label: 'אלעד' },
 ];
 
-// General media category descriptions (no specific outlet names)
-const CATEGORY_LABELS: Record<string, string> = {
+const CATEGORY_LABELS: Record<GeneralCategory, string> = {
   national_press: 'עיתונות ארצית',
   local_press: 'עיתונות מקומית',
   magazines: 'מגזינים',
@@ -96,6 +109,139 @@ const CATEGORY_LABELS: Record<string, string> = {
   radio: 'רדיו',
   outdoor: 'שילוט חוצות',
   influencers: 'משפיענים',
+};
+
+const CATEGORY_WEIGHT: Record<GeneralCategory, number> = {
+  national_press: 1.5,
+  local_press: 1.1,
+  magazines: 1.2,
+  women_magazines: 1.2,
+  digital: 1.25,
+  whatsapp: 1,
+  email: 0.8,
+  radio: 1,
+  outdoor: 1.6,
+  influencers: 1.4,
+};
+
+const MEDIA_TYPE_CATEGORY_MAP: Record<string, GeneralCategory[]> = {
+  ad: ['national_press', 'local_press', 'magazines', 'women_magazines'],
+  banner: ['digital', 'email', 'whatsapp', 'influencers'],
+  social: ['digital', 'email', 'whatsapp', 'influencers'],
+  billboard: ['outdoor'],
+  radio: ['radio'],
+};
+
+const ALL_CATEGORIES: GeneralCategory[] = [
+  'national_press',
+  'local_press',
+  'magazines',
+  'women_magazines',
+  'digital',
+  'whatsapp',
+  'email',
+  'radio',
+  'outdoor',
+  'influencers',
+];
+
+const getAudienceGenderLabel = (targetGender: string) => {
+  if (targetGender === 'women') return 'נשים';
+  if (targetGender === 'men') return 'גברים';
+  if (targetGender === 'family') return 'משפחה';
+  return 'כללי';
+};
+
+const resolveAllowedCategories = ({
+  selectedMediaTypes,
+  mediaScope,
+  targetGender,
+}: {
+  selectedMediaTypes: MediaType[];
+  mediaScope?: MediaScope;
+  targetGender: string;
+}): GeneralCategory[] => {
+  const set = new Set<GeneralCategory>();
+
+  if (!selectedMediaTypes.length) {
+    ALL_CATEGORIES.forEach((c) => set.add(c));
+  } else {
+    selectedMediaTypes.forEach((type) => {
+      const mapped = MEDIA_TYPE_CATEGORY_MAP[type] || [];
+      mapped.forEach((c) => set.add(c));
+    });
+  }
+
+  if (mediaScope === 'national') {
+    set.delete('local_press');
+  }
+  if (mediaScope === 'local') {
+    set.delete('national_press');
+  }
+
+  if (targetGender === 'men') {
+    set.delete('women_magazines');
+  }
+
+  if (targetGender === 'women') {
+    set.delete('magazines');
+  }
+
+  return Array.from(set);
+};
+
+const buildTierItems = ({
+  tierId,
+  tierBudget,
+  categories,
+  targetGender,
+}: {
+  tierId: string;
+  tierBudget: number;
+  categories: GeneralCategory[];
+  targetGender: string;
+}): GeneralPackageItem[] => {
+  if (!categories.length || tierBudget <= 0) return [];
+
+  const weightSum = categories.reduce((sum, cat) => sum + (CATEGORY_WEIGHT[cat] || 1), 0);
+  const genderLabel = getAudienceGenderLabel(targetGender);
+
+  const items = categories.map((category, index) => {
+    const weight = CATEGORY_WEIGHT[category] || 1;
+    const rawPrice = (tierBudget * weight) / Math.max(weightSum, 1);
+    const roundedPrice = Math.max(500, Math.round(rawPrice / 50) * 50);
+
+    const count = roundedPrice >= 4500 ? 3 : roundedPrice >= 2500 ? 2 : 1;
+    const label = CATEGORY_LABELS[category];
+
+    return {
+      id: `${tierId}-${category}-${index}`,
+      category,
+      label,
+      gender: genderLabel,
+      count,
+      price: roundedPrice,
+      name: `${label} (${genderLabel})${count > 1 ? ` ×${count}` : ''}`,
+    };
+  });
+
+  const currentTotal = items.reduce((sum, item) => sum + item.price, 0);
+  const targetTotal = Math.max(1000, Math.round(tierBudget / 50) * 50);
+  const delta = targetTotal - currentTotal;
+
+  if (items.length > 0 && Math.abs(delta) >= 50) {
+    items[0] = {
+      ...items[0],
+      price: Math.max(500, items[0].price + delta),
+    };
+    items[0] = {
+      ...items[0],
+      count: items[0].price >= 4500 ? 3 : items[0].price >= 2500 ? 2 : 1,
+      name: `${items[0].label} (${items[0].gender})${items[0].price >= 2500 ? ` ×${items[0].price >= 4500 ? 3 : 2}` : ''}`,
+    };
+  }
+
+  return items;
 };
 
 export const BudgetAudienceStep = ({
@@ -113,174 +259,107 @@ export const BudgetAudienceStep = ({
   onTargetCityChange,
   selectedPackage,
   onPackageSelect,
+  selectedMediaTypes = [],
+  mediaScope,
 }: BudgetAudienceStepProps) => {
   const [packages, setPackages] = useState<GeneralPackage[]>([]);
   const [packageConfirmed, setPackageConfirmed] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Generate general packages based on budget
   useEffect(() => {
     if (budget > 0 && targetStream && targetGender) {
       generateGeneralPackages();
       setPackageConfirmed(false);
+    } else {
+      setPackages([]);
+      setValidationError(null);
     }
-  }, [budget, targetStream, targetGender, targetCity]);
+  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes]);
 
   const generateGeneralPackages = () => {
-    const isWomen = targetGender === 'women';
-    const isFamily = targetGender === 'family';
+    const allowedCategories = resolveAllowedCategories({
+      selectedMediaTypes,
+      mediaScope,
+      targetGender,
+    });
 
-    // Build category distribution based on budget tiers
-    const buildItems = (totalBudget: number): GeneralPackageItem[] => {
-      const items: GeneralPackageItem[] = [];
+    if (!allowedCategories.length) {
+      setPackages([]);
+      setValidationError('לא נמצאו ערוצי מדיה תואמים לבחירות שלך. עדכן סוג מדיה/קהל יעד.');
+      return;
+    }
 
-      // National press - always if budget allows
-      if (totalBudget >= 3000) {
-        items.push({
-          category: 'national_press',
-          label: 'עיתונות ארצית',
-          gender: isWomen ? 'נשים' : isFamily ? 'משפחה' : 'גברים',
-          count: totalBudget >= 10000 ? 2 : 1,
-        });
-      }
+    setValidationError(null);
 
-      // Local press
-      if (totalBudget >= 2000 && targetCity !== 'nationwide') {
-        items.push({
-          category: 'local_press',
-          label: 'עיתונות מקומית',
-          gender: isFamily ? 'משפחה' : isWomen ? 'נשים' : 'גברים',
-          count: 1,
-        });
-      }
+    const lowerBudget = Math.max(1000, Math.round((budget * 0.85) / 50) * 50);
+    const exactBudget = Math.max(1000, Math.round(budget / 50) * 50);
+    const higherBudget = Math.max(1000, Math.round((budget * 1.15) / 50) * 50);
 
-      // WhatsApp bundles
-      if (totalBudget >= 1500) {
-        items.push({
-          category: 'whatsapp',
-          label: 'חבילות ווטסאפ',
-          gender: isWomen ? 'נשים' : isFamily ? 'משפחה' : 'גברים',
-          count: totalBudget >= 8000 ? 2 : 1,
-        });
-      }
+    const economyItems = buildTierItems({
+      tierId: 'economy',
+      tierBudget: lowerBudget,
+      categories: allowedCategories,
+      targetGender,
+    });
 
-      // Digital
-      if (totalBudget >= 2500) {
-        items.push({
-          category: 'digital',
-          label: 'דיגיטל ואתרים',
-          gender: isFamily ? 'כללי' : isWomen ? 'נשים' : 'גברים',
-          count: totalBudget >= 12000 ? 2 : 1,
-        });
-      }
+    const standardItems = buildTierItems({
+      tierId: 'standard',
+      tierBudget: exactBudget,
+      categories: allowedCategories,
+      targetGender,
+    });
 
-      // Newsletters / Email
-      if (totalBudget >= 4000) {
-        items.push({
-          category: 'email',
-          label: 'ניוזלטרים',
-          gender: isWomen ? 'נשים' : 'גברים',
-          count: 1,
-        });
-      }
+    const premiumItems = buildTierItems({
+      tierId: 'premium',
+      tierBudget: higherBudget,
+      categories: allowedCategories,
+      targetGender,
+    });
 
-      // Women magazines
-      if (isWomen && totalBudget >= 5000) {
-        items.push({
-          category: 'women_magazines',
-          label: 'מגזינים לנשים',
-          gender: 'נשים',
-          count: 1,
-        });
-      }
-
-      // Magazines for family/men
-      if (!isWomen && totalBudget >= 6000) {
-        items.push({
-          category: 'magazines',
-          label: 'מגזינים',
-          gender: isFamily ? 'משפחה' : 'גברים',
-          count: 1,
-        });
-      }
-
-      // Influencers for higher budgets
-      if (totalBudget >= 10000) {
-        items.push({
-          category: 'influencers',
-          label: 'משפיענים',
-          gender: isWomen ? 'נשים' : 'גברים',
-          count: 1,
-        });
-      }
-
-      return items;
-    };
-
-    const economyBudget = Math.round(budget * 0.75);
-    const standardBudget = budget;
-    const premiumBudget = Math.round(budget * 1.3);
-
-    const builtPackages: GeneralPackage[] = [];
-
-    const economyItems = buildItems(economyBudget);
-    if (economyItems.length > 0) {
-      builtPackages.push({
+    const builtPackages: GeneralPackage[] = [
+      {
         id: 'economy',
         name: 'חבילה חסכונית',
-        description: `${economyItems.length} אפיקי מדיה בתקציב מצומצם`,
-        totalPrice: economyBudget,
+        description: 'טווח תקציב נמוך יותר לתחילת קמפיין מדויקת',
+        totalPrice: economyItems.reduce((sum, item) => sum + item.price, 0),
         items: economyItems,
-      });
-    }
-
-    const standardItems = buildItems(standardBudget);
-    if (standardItems.length > 0) {
-      builtPackages.push({
+      },
+      {
         id: 'standard',
-        name: 'חבילה מאוזנת',
-        description: `${standardItems.length} אפיקי מדיה באיזון מושלם`,
-        totalPrice: standardBudget,
-        recommended: true,
+        name: 'חבילה מדויקת',
+        description: 'מותאמת בדיוק לתקציב שהוגדר',
+        totalPrice: standardItems.reduce((sum, item) => sum + item.price, 0),
         items: standardItems,
-      });
-    }
-
-    const premiumItems = buildItems(premiumBudget);
-    if (premiumItems.length > 0) {
-      builtPackages.push({
+        recommended: true,
+      },
+      {
         id: 'premium',
-        name: 'חבילה פרימיום',
-        description: `${premiumItems.length} אפיקי מדיה לחשיפה מקסימלית`,
-        totalPrice: premiumBudget,
+        name: 'חבילה מורחבת',
+        description: 'מעט רחבה יותר לחשיפה חזקה יותר',
+        totalPrice: premiumItems.reduce((sum, item) => sum + item.price, 0),
         items: premiumItems,
-      });
-    }
+      },
+    ].filter((pkg) => pkg.items.length > 0);
 
     setPackages(builtPackages);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('he-IL', { 
-      style: 'currency', 
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat('he-IL', {
+      style: 'currency',
       currency: 'ILS',
-      maximumFractionDigits: 0 
+      maximumFractionDigits: 0,
     }).format(price);
-  };
 
   const handleSelectPackage = (pkg: GeneralPackage) => {
     onPackageSelect(pkg);
     setPackageConfirmed(false);
   };
 
-  const handleConfirmPackage = () => {
-    setPackageConfirmed(true);
-  };
-
   const showPackages = budget > 0 && targetStream && targetGender;
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Campaign Dates */}
       {onStartDateChange && (
         <Card>
           <CardHeader>
@@ -302,12 +381,7 @@ export const BudgetAudienceStep = ({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={onStartDateChange}
-                      initialFocus
-                    />
+                    <Calendar mode="single" selected={startDate} onSelect={onStartDateChange} initialFocus />
                   </PopoverContent>
                 </Popover>
               </div>
@@ -326,7 +400,7 @@ export const BudgetAudienceStep = ({
                       mode="single"
                       selected={endDate}
                       onSelect={onEndDateChange}
-                      disabled={(date) => startDate ? date < startDate : false}
+                      disabled={(date) => (startDate ? date < startDate : false)}
                       initialFocus
                     />
                   </PopoverContent>
@@ -337,7 +411,6 @@ export const BudgetAudienceStep = ({
         </Card>
       )}
 
-      {/* Budget Input */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -361,7 +434,6 @@ export const BudgetAudienceStep = ({
         </CardContent>
       </Card>
 
-      {/* Target Audience */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -371,7 +443,6 @@ export const BudgetAudienceStep = ({
           <CardDescription>בחר את הקהל שאליו מכוון הקמפיין</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Stream Selection */}
           <div>
             <Label className="font-medium mb-3 block">זרם</Label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -381,9 +452,7 @@ export const BudgetAudienceStep = ({
                   type="button"
                   onClick={() => onTargetStreamChange(stream.id)}
                   className={`p-4 rounded-xl border-2 transition-all text-center relative overflow-hidden ${
-                    targetStream === stream.id
-                      ? 'border-primary ring-2 ring-primary/30'
-                      : 'border-border hover:border-primary/50'
+                    targetStream === stream.id ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/50'
                   }`}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${stream.color} opacity-${targetStream === stream.id ? '20' : '10'} transition-opacity`} />
@@ -394,7 +463,6 @@ export const BudgetAudienceStep = ({
             </div>
           </div>
 
-          {/* Gender Selection */}
           <div>
             <Label className="font-medium mb-3 block">מגדר</Label>
             <div className="grid grid-cols-3 gap-3">
@@ -404,9 +472,7 @@ export const BudgetAudienceStep = ({
                   type="button"
                   onClick={() => onTargetGenderChange(gender.id)}
                   className={`p-4 rounded-xl border-2 transition-all text-center relative overflow-hidden ${
-                    targetGender === gender.id
-                      ? 'border-primary ring-2 ring-primary/30'
-                      : 'border-border hover:border-primary/50'
+                    targetGender === gender.id ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/50'
                   }`}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${gender.color} opacity-${targetGender === gender.id ? '20' : '10'} transition-opacity`} />
@@ -417,7 +483,6 @@ export const BudgetAudienceStep = ({
             </div>
           </div>
 
-          {/* City Selection */}
           <div>
             <Label className="font-medium mb-3 block flex items-center gap-2">
               <MapPin className="h-4 w-4" />
@@ -433,8 +498,8 @@ export const BudgetAudienceStep = ({
                     targetCity === city.id
                       ? 'border-primary bg-primary text-primary-foreground'
                       : 'primary' in city && city.primary
-                        ? 'border-primary bg-primary/10 hover:bg-primary/20 font-medium'
-                        : 'border-border hover:border-primary/50'
+                      ? 'border-primary bg-primary/10 hover:bg-primary/20 font-medium'
+                      : 'border-border hover:border-primary/50'
                   }`}
                 >
                   {city.label}
@@ -445,8 +510,16 @@ export const BudgetAudienceStep = ({
         </CardContent>
       </Card>
 
-      {/* Package Suggestions */}
-      {showPackages && !packageConfirmed && (
+      {validationError && (
+        <Card className="border-destructive/40">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+            <p className="text-sm text-foreground">{validationError}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {showPackages && !validationError && !packageConfirmed && (
         <Card className="border-2 border-primary/20">
           <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-center gap-2 mb-2">
@@ -454,18 +527,17 @@ export const BudgetAudienceStep = ({
               <CardTitle className="text-xl">חבילות מדיה מותאמות</CardTitle>
             </div>
             <CardDescription>
-              על בסיס תקציב {formatPrice(budget)} | {STREAMS.find(s => s.id === targetStream)?.label} | {GENDERS.find(g => g.id === targetGender)?.label}
+              על בסיס תקציב {formatPrice(budget)} | {STREAMS.find((s) => s.id === targetStream)?.label} |{' '}
+              {GENDERS.find((g) => g.id === targetGender)?.label}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
               {packages.map((pkg) => (
-                <Card 
+                <Card
                   key={pkg.id}
                   className={`cursor-pointer transition-all hover:shadow-lg relative ${
-                    selectedPackage?.id === pkg.id
-                      ? 'ring-2 ring-primary shadow-lg border-primary'
-                      : 'hover:border-primary/50'
+                    selectedPackage?.id === pkg.id ? 'ring-2 ring-primary shadow-lg border-primary' : 'hover:border-primary/50'
                   } ${pkg.recommended ? 'border-primary/50' : ''}`}
                   onClick={() => handleSelectPackage(pkg)}
                 >
@@ -477,7 +549,7 @@ export const BudgetAudienceStep = ({
                       </Badge>
                     </div>
                   )}
-                  
+
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Package className="h-5 w-5" />
@@ -485,27 +557,28 @@ export const BudgetAudienceStep = ({
                     </CardTitle>
                     <CardDescription>{pkg.description}</CardDescription>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-3">
                     <div className="space-y-2">
-                      {pkg.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between text-sm items-center">
+                      {pkg.items.map((item) => (
+                        <div key={item.id} className="flex justify-between text-sm items-center">
                           <div className="flex items-center gap-2">
                             <span className="text-foreground font-medium">{item.label}</span>
-                            <Badge variant="outline" className="text-xs">{item.gender}</Badge>
+                            <Badge variant="outline" className="text-[10px]">
+                              {item.gender}
+                            </Badge>
                           </div>
-                          {item.count > 1 && (
-                            <span className="text-xs text-muted-foreground">×{item.count}</span>
-                          )}
+                          <div className="text-left">
+                            {item.count > 1 && <div className="text-[10px] text-muted-foreground">×{item.count}</div>}
+                            <div className="font-medium text-primary">{formatPrice(item.price)}</div>
+                          </div>
                         </div>
                       ))}
                     </div>
-                    
+
                     <div className="border-t pt-3 flex justify-between items-center">
-                      <span className="font-bold text-sm">עד</span>
-                      <span className="text-xl font-bold text-primary">
-                        {formatPrice(pkg.totalPrice)}
-                      </span>
+                      <span className="font-bold text-sm">סה"כ משוער</span>
+                      <span className="text-xl font-bold text-primary">{formatPrice(pkg.totalPrice)}</span>
                     </div>
 
                     {selectedPackage?.id === pkg.id && (
@@ -519,10 +592,9 @@ export const BudgetAudienceStep = ({
               ))}
             </div>
 
-            {/* Confirm Button */}
             {selectedPackage && (
               <div className="mt-6 text-center">
-                <Button onClick={handleConfirmPackage} size="lg" className="gap-2">
+                <Button onClick={() => setPackageConfirmed(true)} size="lg" className="gap-2">
                   <Check className="w-5 h-5" />
                   החבילה הזאת נשמעת לי
                 </Button>
@@ -532,7 +604,6 @@ export const BudgetAudienceStep = ({
         </Card>
       )}
 
-      {/* Confirmation Message */}
       {packageConfirmed && selectedPackage && (
         <Card className="border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20">
           <CardContent className="p-8 text-center space-y-4">
@@ -541,21 +612,19 @@ export const BudgetAudienceStep = ({
             </div>
             <h3 className="text-2xl font-bold text-foreground">מעולה! 🎉</h3>
             <p className="text-lg text-muted-foreground max-w-md mx-auto">
-              בחרת את <strong className="text-foreground">{selectedPackage.name}</strong> בתקציב של עד {formatPrice(selectedPackage.totalPrice)}.
+              בחרת את <strong className="text-foreground">{selectedPackage.name}</strong> בתקציב של עד{' '}
+              {formatPrice(selectedPackage.totalPrice)}.
             </p>
             <div className="bg-card border border-border rounded-xl p-4 max-w-md mx-auto">
               <div className="flex items-start gap-3">
                 <Bell className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                 <p className="text-sm text-right text-muted-foreground">
-                  תקבל הודעה באזור האישי שלך בהקדם עם <strong className="text-foreground">חבילה סופית מפורטת</strong> הכוללת שמות מדיה ספציפיים, גדלים ומחירים מדויקים.
+                  תקבל הודעה באזור האישי שלך בהקדם עם <strong className="text-foreground">חבילה סופית מפורטת</strong>{' '}
+                  הכוללת שמות מדיה ספציפיים, גדלים ומחירים מדויקים.
                 </p>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => { setPackageConfirmed(false); }}
-              className="mt-2"
-            >
+            <Button variant="outline" onClick={() => setPackageConfirmed(false)} className="mt-2">
               <ChevronDown className="w-4 h-4 ml-1 rotate-90" />
               חזרה לבחירת חבילה
             </Button>
