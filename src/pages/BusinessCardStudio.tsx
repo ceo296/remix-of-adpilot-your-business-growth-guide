@@ -323,9 +323,11 @@ const BusinessCardStudio = () => {
                 <div style={{ fontSize: '34px', fontWeight: 900, lineHeight: 1.1, marginTop: cardData.personName ? '4px' : 0, color: isDark ? '#fff' : '#222' }}>
                   {cardData.businessName}
                 </div>
-                <div style={{ display: 'inline-block', marginTop: '10px', padding: '5px 18px', borderRadius: '4px', fontSize: '15px', fontWeight: 700, background: isDark ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)` : `${color}15`, color: isDark ? '#fff' : color, border: isDark ? `1px solid rgba(${rgb.r},${rgb.g},${rgb.b},0.4)` : 'none' }}>
-                  {cardData.title}
-                </div>
+                {cardData.title && (
+                  <div style={{ display: 'inline-block', marginTop: '10px', padding: '5px 18px', borderRadius: '4px', fontSize: '15px', fontWeight: 700, background: isDark ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)` : `${color}15`, color: isDark ? '#fff' : color, border: isDark ? `1px solid rgba(${rgb.r},${rgb.g},${rgb.b},0.4)` : 'none' }}>
+                    {cardData.title}
+                  </div>
+                )}
               </div>
             </div>
           )}
