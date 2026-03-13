@@ -260,7 +260,11 @@ const FastTrackWizard = () => {
     
     try {
       const quoteData = getQuoteData();
-      
+      const validationError = getMediaAudienceValidationError();
+      if (validationError) {
+        throw new Error(validationError);
+      }
+
       if (!activeProfile?.id) {
         throw new Error('No active profile');
       }
