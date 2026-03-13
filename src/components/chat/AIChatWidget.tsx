@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Send, X, Loader2, Bot, User } from 'lucide-react';
+import { HelpCircle, Send, X, Loader2, Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLocation } from 'react-router-dom';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -22,12 +23,18 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const enrichedContext = {
+    ...context,
+    currentPage: location.pathname,
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -63,7 +70,7 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
           },
           body: JSON.stringify({
             messages: [...messages, userMessage],
-            context,
+            context: enrichedContext,
           }),
         }
       );
@@ -115,7 +122,7 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
         ...prev,
         { 
           role: 'assistant', 
-          content: error instanceof Error ? error.message : 'שגיאה בתקשורת עם AI' 
+          content: error instanceof Error ? error.message : 'שגיאה בתקשורת' 
         }
       ]);
     } finally {
@@ -130,6 +137,12 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
     }
   };
 
+  const quickQuestions = [
+    'איך יוצרים קמפיין חדש?',
+    'איך קונים מדיה?',
+    'איך מעדכנים את הפרופיל?',
+  ];
+
   return (
     <div className={cn("fixed bottom-24 left-6 z-50", className)}>
       {isOpen ? (
@@ -137,8 +150,8 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
             <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              <span className="font-semibold">עוזר AI</span>
+              <HelpCircle className="h-5 w-5" />
+              <span className="font-semibold">עוזר ניווט</span>
             </div>
             <Button 
               variant="ghost" 
@@ -153,12 +166,23 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
           {/* Messages */}
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {messages.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>שלום! אני העוזר החכם שלך.</p>
-                <p className="text-sm mt-2">
-                  אני יכול לעזור לך עם רעיונות לפרסום, כתיבת טקסטים, ועוד.
+              <div className="text-center py-6">
+                <HelpCircle className="h-12 w-12 mx-auto mb-4 text-primary/40" />
+                <p className="font-medium text-foreground mb-1">צריך עזרה בניווט?</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  אני כאן לעזור לך למצוא את הדרך במערכת
                 </p>
+                <div className="space-y-2">
+                  {quickQuestions.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setInput(q); }}
+                      className="block w-full text-right text-sm px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -179,11 +203,11 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
                       {msg.role === 'user' ? (
                         <User className="h-4 w-4" />
                       ) : (
-                        <Bot className="h-4 w-4" />
+                        <HelpCircle className="h-4 w-4" />
                       )}
                     </div>
                     <div className={cn(
-                      "rounded-lg p-3 max-w-[80%] whitespace-pre-wrap",
+                      "rounded-lg p-3 max-w-[80%] whitespace-pre-wrap text-sm",
                       msg.role === 'user' 
                         ? "bg-primary text-primary-foreground" 
                         : "bg-muted"
@@ -198,7 +222,7 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
                       <Loader2 className="h-4 w-4 animate-spin" />
                     </div>
                     <div className="bg-muted rounded-lg p-3">
-                      <span className="animate-pulse">חושב...</span>
+                      <span className="animate-pulse text-sm">חושב...</span>
                     </div>
                   </div>
                 )}
@@ -213,9 +237,9 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="כתוב הודעה..."
+                placeholder="איך אני עושה...?"
                 disabled={isLoading}
-                className="flex-1"
+                className="flex-1 text-sm"
                 dir="rtl"
               />
               <Button 
@@ -233,8 +257,9 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
           onClick={() => setIsOpen(true)}
           size="lg"
           className="rounded-full h-14 w-14 shadow-lg"
+          title="עזרה בניווט"
         >
-          <MessageCircle className="h-6 w-6" />
+          <HelpCircle className="h-6 w-6" />
         </Button>
       )}
     </div>
