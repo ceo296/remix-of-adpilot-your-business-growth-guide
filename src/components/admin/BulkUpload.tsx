@@ -84,20 +84,18 @@ const FOLDER_TO_HOLIDAY: Record<string, string> = {
 };
 
 // ===== FILE NAME INTELLIGENCE =====
-// Detect topic from file name when folder didn't provide one
+// Detect topic from file name — ORDER MATTERS: specific topics FIRST, fashion LAST
 const FILENAME_TOPIC_HINTS: [RegExp, string][] = [
-  [/נדל["\u0022\u201D]?ן|real.?estate|דירות|פרויקט.*מגורים/i, 'real_estate'],
-  [/אופנ[הת].*ילד|kids.?fashion|בגדי ילדים/i, 'kids_fashion'],
-  [/אופנ[הת].*נש|womens?.?fashion/i, 'womens_fashion'],
-  [/אופנ[הת].*גבר|mens?.?fashion/i, 'mens_fashion'],
+  // Specific topics that may contain "ילדים/נשים/גברים" in non-fashion context
+  [/רפואה|רופא|דוקטור|שיפר|השתלת|רפואי|קליני|בריאות|רפואת/i, 'health'],
+  [/לימודים|סדנ[אה]|קורס|בצלאל|סמינר|חינוך|ישיבה|כולל|תקשורת|אורות|מכללה/i, 'education'],
+  [/נדל["\u0022\u201D]?ן|real.?estate|דירות|פרויקט.*מגורים|נתיב|שכונ/i, 'real_estate'],
   [/מלון|hotel|נופש|צימר|resort/i, 'hotels'],
-  [/רפואה|רופא|דוקטור|שיפר|השתלת|רפואי|קליני|בריאות/i, 'health'],
   [/סלולר|גלקסי|סמסונג|טלפון|אייפון/i, 'cellular'],
   [/ריהוט|רהיט|עיצוב הבית/i, 'furniture'],
   [/מזון|אוכל|מסעדה|קייטרינג/i, 'food'],
   [/ביוטי|טיפוח|קוסמטיקה|יופי/i, 'beauty'],
   [/איפור|מייקאפ|makeup/i, 'makeup'],
-  [/לימודים|סדנ[אה]|קורס|בצלאל|סמינר|חינוך|ישיבה|כולל/i, 'education'],
   [/ביטוח|פיננס|השקעות|משכנתא/i, 'finance'],
   [/אירוע|שמחה|חתונה|בר.?מצווה/i, 'events'],
   [/תכשיט|שעון|כלי כסף/i, 'jewelry'],
@@ -106,6 +104,10 @@ const FILENAME_TOPIC_HINTS: [RegExp, string][] = [
   [/יודאיקה|ספר.?קודש|תורה/i, 'judaica'],
   [/חשמל|אלקטרוני/i, 'electronics'],
   [/מיתוג|branding|לוגו/i, 'branding'],
+  // Fashion — LAST, only match explicit fashion context
+  [/אופנ[הת].*ילד|kids.?fashion|בגדי ילדים/i, 'kids_fashion'],
+  [/אופנ[הת].*נש|womens?.?fashion/i, 'womens_fashion'],
+  [/אופנ[הת].*גבר|mens?.?fashion/i, 'mens_fashion'],
 ];
 
 // Detect media_type from file name + file type
