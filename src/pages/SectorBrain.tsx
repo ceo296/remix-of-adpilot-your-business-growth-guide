@@ -223,10 +223,7 @@ const SectorBrain = () => {
     }
     const data = allData;
 
-    if (error) {
-      console.error('Error loading examples:', error);
-      toast.error('שגיאה בטעינת הדוגמאות');
-    } else if (data) {
+    if (data.length > 0) {
       const guidelinesArr: UploadedAsset[] = [];
       const examplesArr: UploadedAsset[] = [];
       
