@@ -270,6 +270,7 @@ const SectorBrain = () => {
     const byTopic: Record<string, number> = {};
     const byHoliday: Record<string, number> = {};
     const byMedia: Record<string, number> = {};
+    const byCopyType: Record<string, number> = {};
     let untaggedTopic = 0;
     let untaggedHoliday = 0;
 
@@ -288,9 +289,13 @@ const SectorBrain = () => {
       const mt = u.media_type || 'other';
       const groupedMt = TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt;
       byMedia[groupedMt] = (byMedia[groupedMt] || 0) + 1;
+      // Track sub-types within text
+      if (TEXT_MEDIA_TYPES.has(mt)) {
+        byCopyType[mt] = (byCopyType[mt] || 0) + 1;
+      }
     });
 
-    return { byTopic, byHoliday, byMedia, untaggedTopic, untaggedHoliday, total: uploads.length, guidelines: guidelines.length };
+    return { byTopic, byHoliday, byMedia, byCopyType, untaggedTopic, untaggedHoliday, total: uploads.length, guidelines: guidelines.length };
   }, [uploads, guidelines]);
 
   // === Filtered browse ===
