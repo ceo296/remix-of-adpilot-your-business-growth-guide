@@ -274,7 +274,12 @@ const SectorBrain = () => {
           if (u.holiday_season && u.holiday_season !== 'year_round') return false;
         } else if (u.holiday_season !== filterHoliday) return false;
       }
-      if (filterMedia !== 'all' && u.media_type !== filterMedia) return false;
+      if (filterMedia !== 'all') {
+        if (filterMedia === 'text') {
+          // "מלל" filter matches all text-based types
+          if (!TEXT_MEDIA_TYPES.has(u.media_type || '')) return false;
+        } else if (u.media_type !== filterMedia) return false;
+      }
       if (filterType !== 'all' && u.example_type !== filterType) return false;
       return true;
     });
