@@ -2166,6 +2166,30 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             onTemplateChange={setSelectedTemplate}
           />
         );
+      case 8:
+        return (
+          <RadioScriptStep
+            brief={{
+              offer: campaignBrief.offer,
+              adGoal: campaignBrief.adGoal,
+              goal: campaignBrief.goal,
+              emotionalTone: campaignBrief.emotionalTone,
+              priceOrBenefit: campaignBrief.priceOrBenefit,
+              timeLimitText: campaignBrief.timeLimitText,
+            }}
+            brandContext={clientProfile ? {
+              businessName: clientProfile.business_name,
+              targetAudience: clientProfile.target_audience,
+            } : null}
+            targetGender={mediaTargetGender}
+            targetStream={mediaTargetStream}
+            contactPhone={clientProfile?.contact_phone || ''}
+            onComplete={() => {
+              setShowResults(false);
+              setShowMediaSelection(true);
+            }}
+          />
+        );
       default:
         return null;
     }
