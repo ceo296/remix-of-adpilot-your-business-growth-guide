@@ -5,12 +5,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Topic detection from file name
+// Topic detection from file name — ORDER MATTERS: specific topics FIRST, fashion LAST
 const TOPIC_HINTS: [RegExp, string][] = [
-  [/נדל["\u0022\u201D]?ן|real.?estate|דירות|פרויקט.*מגורים|גוד נדל/i, 'real_estate'],
-  [/רפואה|רופא|דוקטור|שיפר|השתל|רפואי|קליני|בריאות|נתי רוקח/i, 'health'],
+  // Specific topics that may contain "ילדים/נשים/גברים" in context
+  [/רפואה|רופא|דוקטור|שיפר|השתל|רפואי|קליני|בריאות|נתי רוקח|רפואת/i, 'health'],
+  [/לימודים|סדנ[אה]|קורס|בצלאל|סמינר|חינוך|ישיבה|כולל|השלוחה|תקשורת|אורות|מכללה/i, 'education'],
+  [/נדל["\u0022\u201D]?ן|real.?estate|דירות|פרויקט.*מגורים|גוד נדל|נתיב|שכונ/i, 'real_estate'],
   [/סלולר|גלקסי|סמסונג|טלפון|אייפון/i, 'cellular'],
-  [/לימודים|סדנ[אה]|קורס|בצלאל|סמינר|חינוך|ישיבה|כולל|השלוחה/i, 'education'],
   [/אקטיב הד/i, 'education'],
   [/ביטוח|פיננס|השקעות|משכנתא/i, 'finance'],
   [/מלון|hotel|נופש|צימר/i, 'hotels'],
@@ -25,6 +26,7 @@ const TOPIC_HINTS: [RegExp, string][] = [
   [/יודאיקה|ספר.?קודש/i, 'judaica'],
   [/חשמל|אלקטרוני/i, 'electronics'],
   [/מיתוג|branding|לוגו/i, 'branding'],
+  // Fashion — LAST, only match explicit fashion context
   [/אופנ[הת].*ילד|kids.?fashion|בגדי ילדים/i, 'kids_fashion'],
   [/אופנ[הת].*נש|womens?.?fashion/i, 'womens_fashion'],
   [/אופנ[הת].*גבר|mens?.?fashion|גוביק/i, 'mens_fashion'],
