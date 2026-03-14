@@ -626,6 +626,13 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
       aspectInstruction = 'IMAGE ORIENTATION: Generate a SQUARE image (1:1 ratio).';
     }
 
+    // Media format-specific instructions
+    const mediaFormatKey = mediaType || (aspectRatio === 'landscape' ? 'banner' : aspectRatio === 'portrait' ? 'ad' : 'social');
+    const mediaFormatInstructions = MEDIA_FORMAT_INSTRUCTIONS[mediaFormatKey] || '';
+    if (mediaFormatInstructions) {
+      console.log(`[Pipeline] Applying media format instructions for: ${mediaFormatKey}`);
+    }
+
     const visualOnlyPrompt = `Generate a VISUALLY STUNNING, AWARD-WINNING advertisement IMAGE with ABSOLUTELY ZERO TEXT AND ZERO LOGOS.
 
 CRITICAL - NO TEXT, NO LOGOS:
