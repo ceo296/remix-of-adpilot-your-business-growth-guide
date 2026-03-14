@@ -38,10 +38,40 @@ EMOTIONAL CONNECTION: Focus on the "Story" (e.g., a father and son learning, a m
 - If generating a person eating: the food and the person must be proportionally correct, the grip must be natural.
 - SELF-CHECK before finalizing: "Does any element look uncanny, deformed, or embarrassing?" If yes — regenerate that element.
 
-[IRON RULE — LAYOUT GRID]
-- The logo area must be LARGE, PROMINENT, and clearly visible — not a tiny icon in a corner. Treat the logo as a key design element.
-- Follow professional ad grid: headline at top/upper-center, hero visual in center, CTA clearly visible, contact strip with prominent logo at bottom.
-- Study the reference ads from Sector Brain — replicate their grid proportions, logo size, and visual hierarchy.
+[IRON RULE — LAYOUT GRID — BASED ON REAL HAREDI AD ANALYSIS]
+The following rules are derived from analyzing hundreds of real Haredi-sector print and digital ads:
+
+=== LOGO ===
+- Logo must occupy 15-25% of ad width — NEVER a tiny icon in a corner.
+- Default position: BOTTOM-LEFT of the contact strip, anchored and prominent.
+- Logo may include a tagline/slogan directly underneath in smaller text.
+- Logo must be in its ORIGINAL brand colors — never recolored to match the ad palette.
+
+=== 3-ZONE AD GRID (top to bottom) ===
+ZONE 1 — HEADLINE / HOOK (top 15-20% of ad):
+  - Main promotional headline (e.g., "קולקציה חדשה", "מבצע חג").
+  - Large, bold typography. Often with a decorative accent or price callout.
+  
+ZONE 2 — HERO VISUAL (center 55-65% of ad):
+  - Product photography, lifestyle scene, or brand imagery.
+  - This is the emotional core — high quality, cinematic.
+  
+ZONE 3 — CONTACT STRIP (bottom 15-25% of ad):
+  - DARK or BRAND-COLORED background bar for contrast and readability.
+  - Logo anchored on LEFT side (for RTL Hebrew layout).
+  - RIGHT side contains: branch locations, phone numbers, website.
+  - Branch listing format: City name in BOLD, then street address in regular weight.
+  - Multiple branches listed HORIZONTALLY separated by bullets (•) or pipes (|).
+  - Phone number: LARGE and clear, often with area code.
+  - Website URL: clean, without "https://".
+  - Opening hours: when present, listed per branch or as a general line.
+
+=== CONTACT DETAILS INCLUSION RULES ===
+- ALWAYS include: business name, phone, at least one address/branch.
+- Include if available: website, WhatsApp, opening hours, additional branches.
+- Branch cities should be listed prominently (e.g., "בני ברק | ירושלים | אשדוד | פתח תקווה").
+- If the business has 3+ branches, list them in a compact horizontal format.
+- If the business has opening hours, show them near the branches.
 `;
 
 // Enhanced style descriptions for better quality
