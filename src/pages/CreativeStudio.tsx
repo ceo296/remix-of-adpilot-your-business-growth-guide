@@ -1464,6 +1464,7 @@ const CreativeStudio = () => {
         engine: engineVersion,
         brandContext,
         campaignContext,
+        mediaType: mediaTypes.includes('all') ? (concept.mediaType || 'ad') : (mediaTypes[0] || null),
         topicCategory: detectedTopic,
         holidaySeason: selectedHoliday || null,
         aspectRatio,
