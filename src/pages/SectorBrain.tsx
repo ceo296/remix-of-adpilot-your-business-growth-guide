@@ -34,16 +34,19 @@ interface UploadedAsset {
   is_general_guideline?: boolean;
 }
 
-type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio';
+type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio' | 'copy' | 'ad_copy' | 'radio_script' | 'banner_copy' | 'strategy' | 'brief' | 'article' | 'landing_page' | 'video_script' | 'sales_script' | 'flyer_copy' | 'prospectus' | 'contract' | 'survey' | 'greeting';
 type ExampleType = 'good' | 'bad';
 type StreamType = 'hasidic' | 'litvish' | 'general' | 'sephardic';
 type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'youth' | 'classic';
 type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_internet' | 'electronics' | 'hotels' | 'mens_fashion' | 'kids_fashion' | 'womens_fashion' | 'wigs' | 'makeup' | 'education' | 'health' | 'finance' | 'events' | 'judaica' | 'toys' | 'furniture' | 'jewelry' | 'branding' | 'other';
 type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round';
 
-const MEDIA_TYPES: { id: MediaType; label: string; icon: React.ElementType }[] = [
+// Text-based media types that should be grouped under "מלל"
+const TEXT_MEDIA_TYPES = new Set(['text', 'copy', 'ad_copy', 'radio_script', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus', 'contract', 'survey', 'greeting']);
+
+const MEDIA_TYPES: { id: string; label: string; icon: React.ElementType }[] = [
   { id: 'ads', label: 'מודעות', icon: Newspaper },
-  { id: 'text', label: 'מלל', icon: FileText },
+  { id: 'text', label: 'מלל (קופי)', icon: FileText },
   { id: 'video', label: 'וידאו', icon: Video },
   { id: 'signage', label: 'שילוט', icon: RectangleHorizontal },
   { id: 'promo', label: 'קד"מ', icon: Megaphone },
@@ -89,6 +92,24 @@ const TOPIC_LABELS: Record<TopicCategory, string> = {
   jewelry: 'תכשיטים ושעונים',
   branding: 'מיתוג',
   other: 'אחר',
+};
+
+const COPY_TYPE_LABELS: Record<string, string> = {
+  copy: 'קופי',
+  ad_copy: 'קופי מודעה',
+  radio_script: 'תשדיר רדיו',
+  banner_copy: 'קופי באנר',
+  strategy: 'אסטרטגיה',
+  brief: 'בריף',
+  article: 'כתבה',
+  landing_page: 'דף נחיתה',
+  video_script: 'סטוריבורד',
+  sales_script: 'תסריט שיחה',
+  flyer_copy: 'פלאייר',
+  prospectus: 'פרוספקט',
+  contract: 'חוזה',
+  survey: 'שאלון',
+  greeting: 'ברכה',
 };
 
 const HOLIDAY_LABELS: Record<HolidaySeason, string> = {
@@ -249,8 +270,10 @@ const SectorBrain = () => {
       } else {
         untaggedHoliday++;
       }
+      // Group text-based types under 'text' for stats
       const mt = u.media_type || 'other';
-      byMedia[mt] = (byMedia[mt] || 0) + 1;
+      const groupedMt = TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt;
+      byMedia[groupedMt] = (byMedia[groupedMt] || 0) + 1;
     });
 
     return { byTopic, byHoliday, byMedia, untaggedTopic, untaggedHoliday, total: uploads.length, guidelines: guidelines.length };
@@ -269,7 +292,12 @@ const SectorBrain = () => {
           if (u.holiday_season && u.holiday_season !== 'year_round') return false;
         } else if (u.holiday_season !== filterHoliday) return false;
       }
-      if (filterMedia !== 'all' && u.media_type !== filterMedia) return false;
+      if (filterMedia !== 'all') {
+        if (filterMedia === 'text') {
+          // "מלל" filter matches all text-based types
+          if (!TEXT_MEDIA_TYPES.has(u.media_type || '')) return false;
+        } else if (u.media_type !== filterMedia) return false;
+      }
       if (filterType !== 'all' && u.example_type !== filterType) return false;
       return true;
     });
@@ -936,7 +964,7 @@ const SectorBrain = () => {
                               )}
                               {upload.media_type && (
                                 <Badge variant="outline" className="text-[10px] py-0">
-                                  {MEDIA_TYPES.find(m => m.id === upload.media_type)?.label}
+                                  {MEDIA_TYPES.find(m => m.id === upload.media_type)?.label || COPY_TYPE_LABELS[upload.media_type as string] || upload.media_type}
                                 </Badge>
                               )}
                             </div>
@@ -1037,7 +1065,7 @@ const SectorBrain = () => {
                               key={m.id}
                               variant={activeMediaType === m.id ? 'default' : 'outline'}
                               size="sm"
-                              onClick={() => setActiveMediaType(m.id)}
+                              onClick={() => setActiveMediaType(m.id as MediaType)}
                               className="gap-1"
                             >
                               <Icon className="h-3.5 w-3.5" /> {m.label}
