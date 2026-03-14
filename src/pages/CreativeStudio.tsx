@@ -26,6 +26,7 @@ import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/
 import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaTypeStep';
 import { StudioDesignApproachStep, DesignApproach, PastMaterialReference } from '@/components/studio/StudioDesignApproachStep';
 import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
+import { RadioScriptStep } from '@/components/studio/RadioScriptStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
 import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor';
@@ -142,6 +143,8 @@ const getStepTitles = (mediaTypes: MediaType[], assetChoice: string | null) => {
     'קופי',             // 4 - copy input (for has-copy flow)
     'סגנון עיצובי',     // 5 - style
     'תיאור ותוכן',      // 6 - prompt
+    '',                 // 7 - design approach
+    'סטודיו רדיו',      // 8 - radio script
   ];
 };
 
@@ -555,10 +558,10 @@ const CreativeStudio = () => {
   }, [activeCustomTemplate?.id]);
 
   const getSteps = () => {
-    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach
+    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (isOnlyRadio) {
-      return [0, 1, 6]; // Brief, MediaType, Prompt (for script)
+      return [0, 1, 8]; // Brief, MediaType, Radio Script
     }
     if (assetChoice === 'full-campaign') {
       return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
@@ -615,6 +618,7 @@ const CreativeStudio = () => {
       case 5: return style !== null;
       case 6: return visualPrompt.trim().length > 0;
       case 7: return designApproach !== null;
+      case 8: return true; // Radio step manages its own flow
       default: return false;
     }
   };
@@ -676,9 +680,9 @@ const CreativeStudio = () => {
   const handleNext = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     
-    // Special navigation for radio - skip to prompt
+    // Special navigation for radio - go to radio script step
     if (currentStep === 1 && isOnlyRadio) {
-      setCurrentStep(6);
+      setCurrentStep(8);
       return;
     }
     
@@ -698,7 +702,7 @@ const CreativeStudio = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     
     // Special back navigation for radio
-    if (currentStep === 6 && isOnlyRadio) {
+    if (currentStep === 8 && isOnlyRadio) {
       setCurrentStep(1);
       return;
     }
@@ -2165,6 +2169,30 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             onTemplateChange={setSelectedTemplate}
           />
         );
+      case 8:
+        return (
+          <RadioScriptStep
+            brief={{
+              offer: campaignBrief.offer,
+              adGoal: campaignBrief.adGoal,
+              goal: campaignBrief.goal,
+              emotionalTone: campaignBrief.emotionalTone,
+              priceOrBenefit: campaignBrief.priceOrBenefit,
+              timeLimitText: campaignBrief.timeLimitText,
+            }}
+            brandContext={clientProfile ? {
+              businessName: clientProfile.business_name,
+              targetAudience: clientProfile.target_audience,
+            } : null}
+            targetGender={mediaTargetGender}
+            targetStream={mediaTargetStream}
+            contactPhone={clientProfile?.contact_phone || ''}
+            onComplete={() => {
+              setShowResults(false);
+              setShowMediaSelection(true);
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -2300,7 +2328,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   {renderStep()}
                 </div>
 
-                {/* Navigation */}
+                {/* Navigation - hidden for radio step which manages its own flow */}
+                {currentStep !== 8 && (
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
                   <Button
                     variant="outline"
@@ -2356,6 +2385,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                     </Button>
                   )}
                 </div>
+                )}
               </div>
             )}
           </div>
