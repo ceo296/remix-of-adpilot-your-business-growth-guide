@@ -913,7 +913,7 @@ const SectorBrain = () => {
                       </div>
                       <div>
                         <Label className="text-xs text-muted-foreground mb-1 block">סוג מדיה</Label>
-                        <Select value={filterMedia} onValueChange={setFilterMedia}>
+                        <Select value={filterMedia} onValueChange={(v) => { setFilterMedia(v); if (v !== 'text') setFilterCopyType('all'); }}>
                           <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">הכל</SelectItem>
@@ -923,6 +923,25 @@ const SectorBrain = () => {
                           </SelectContent>
                         </Select>
                       </div>
+                      {filterMedia === 'text' && (
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">סוג קופי</Label>
+                          <Select value={filterCopyType} onValueChange={setFilterCopyType}>
+                            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">כל סוגי המלל ({stats.byMedia['text'] || 0})</SelectItem>
+                              {Object.entries(stats.byCopyType)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([key, count]) => (
+                                  <SelectItem key={key} value={key}>
+                                    {COPY_TYPE_LABELS[key] || key} ({count})
+                                  </SelectItem>
+                                ))
+                              }
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                       <div>
                         <Label className="text-xs text-muted-foreground mb-1 block">סוג דוגמה</Label>
                         <Select value={filterType} onValueChange={setFilterType}>
