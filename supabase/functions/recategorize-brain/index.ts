@@ -32,7 +32,7 @@ const TOPIC_HINTS: [RegExp, string][] = [
 
 // Media type detection from file name (for text files)
 const MEDIA_HINTS: [RegExp, string][] = [
-  [/תשדיר|ג\'ינגל|תוכנית רדיו/i, 'radio_script'],
+  [/תשדיר|ג\'ינגל|תוכנית רדיו|^רדיו /i, 'radio_script'],
   [/מודעה|מודעת|מלל למודע|אופציות.*מודע|קופי|טקסט.*מודע/i, 'ad_copy'],
   [/באנר|banner/i, 'banner_copy'],
   [/אסטרטגי|strategy|מבט אסטרטגי/i, 'strategy'],
