@@ -252,8 +252,10 @@ const SectorBrain = () => {
       } else {
         untaggedHoliday++;
       }
+      // Group text-based types under 'text' for stats
       const mt = u.media_type || 'other';
-      byMedia[mt] = (byMedia[mt] || 0) + 1;
+      const groupedMt = TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt;
+      byMedia[groupedMt] = (byMedia[groupedMt] || 0) + 1;
     });
 
     return { byTopic, byHoliday, byMedia, untaggedTopic, untaggedHoliday, total: uploads.length, guidelines: guidelines.length };
