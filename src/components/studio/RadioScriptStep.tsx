@@ -50,6 +50,8 @@ interface RadioScriptStepProps {
   targetStream?: string;
   contactPhone?: string;
   onComplete?: () => void;
+  clientProfileId?: string;
+  campaignId?: string;
 }
 
 export const RadioScriptStep = ({
