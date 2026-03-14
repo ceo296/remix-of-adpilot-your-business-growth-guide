@@ -34,16 +34,19 @@ interface UploadedAsset {
   is_general_guideline?: boolean;
 }
 
-type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio';
+type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio' | 'copy' | 'ad_copy' | 'radio_script' | 'banner_copy' | 'strategy' | 'brief' | 'article' | 'landing_page' | 'video_script' | 'sales_script' | 'flyer_copy' | 'prospectus' | 'contract' | 'survey' | 'greeting';
 type ExampleType = 'good' | 'bad';
 type StreamType = 'hasidic' | 'litvish' | 'general' | 'sephardic';
 type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'youth' | 'classic';
 type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_internet' | 'electronics' | 'hotels' | 'mens_fashion' | 'kids_fashion' | 'womens_fashion' | 'wigs' | 'makeup' | 'education' | 'health' | 'finance' | 'events' | 'judaica' | 'toys' | 'furniture' | 'jewelry' | 'branding' | 'other';
 type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round';
 
-const MEDIA_TYPES: { id: MediaType; label: string; icon: React.ElementType }[] = [
+// Text-based media types that should be grouped under "מלל"
+const TEXT_MEDIA_TYPES = new Set(['text', 'copy', 'ad_copy', 'radio_script', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus', 'contract', 'survey', 'greeting']);
+
+const MEDIA_TYPES: { id: string; label: string; icon: React.ElementType }[] = [
   { id: 'ads', label: 'מודעות', icon: Newspaper },
-  { id: 'text', label: 'מלל', icon: FileText },
+  { id: 'text', label: 'מלל (קופי)', icon: FileText },
   { id: 'video', label: 'וידאו', icon: Video },
   { id: 'signage', label: 'שילוט', icon: RectangleHorizontal },
   { id: 'promo', label: 'קד"מ', icon: Megaphone },
