@@ -62,6 +62,7 @@ interface GeneratedImage {
 }
 
 interface ClientProfile {
+  id?: string;
   business_name: string;
   target_audience: string | null;
   end_consumer: string | null;
