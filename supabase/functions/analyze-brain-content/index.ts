@@ -118,14 +118,11 @@ serve(async (req) => {
 
     const linksRes = await supabase.from('sector_brain_links').select('*').order('created_at', { ascending: false }).limit(50);
 
-    if (examplesRes.error) {
-      console.error('Error fetching examples:', examplesRes.error);
-    }
     if (linksRes.error) {
       console.error('Error fetching links:', linksRes.error);
     }
 
-    const examples = examplesRes.data || [];
+    const examples = allExamples;
     const links = linksRes.data || [];
 
     // Fetch content from links
