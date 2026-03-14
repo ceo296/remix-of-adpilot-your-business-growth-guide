@@ -127,6 +127,8 @@ export const RadioScriptStep = ({
 
       if (error) throw error;
 
+      let savedAudioUrl: string | null = null;
+
       if (ttsResult?.audioAvailable && ttsResult?.audioBase64) {
         const binaryStr = atob(ttsResult.audioBase64);
         const bytes = new Uint8Array(binaryStr.length);
@@ -139,6 +141,26 @@ export const RadioScriptStep = ({
         toast.success('הקריינות מוכנה! 🎙️');
       } else {
         toast.info(ttsResult?.message || 'קריינות אינה זמינה כרגע');
+      }
+
+      // Save to database
+      const script = data?.scripts.find(s => s.id === selectedScriptId);
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user && script) {
+        await supabase.from('radio_scripts' as any).insert({
+          user_id: userData.user.id,
+          client_profile_id: clientProfileId || null,
+          campaign_id: campaignId || null,
+          script_title: script.title,
+          script_text: editedScript,
+          script_with_nikud: script.scriptWithNikud || null,
+          voice_direction: data?.voiceDirection || null,
+          duration: script.duration || null,
+          voice_notes: script.voiceNotes || null,
+          audio_url: savedAudioUrl,
+          status: 'completed',
+        } as any);
+        toast.success('התסריט נשמר בהצלחה!');
       }
 
       setPhase('complete');
