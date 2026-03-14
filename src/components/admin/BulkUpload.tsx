@@ -1,9 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
-import { Upload, FolderUp, Loader2, CheckCircle2, AlertCircle, X, FileImage, Pause, Play } from 'lucide-react';
+import { Upload, FolderUp, Loader2, CheckCircle2, AlertCircle, X, FileImage, Pause, Play, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { pdfToImages } from '@/lib/pdf-utils';
@@ -162,7 +164,7 @@ async function processInBatches<T>(
   await Promise.all(workers);
 }
 
-const CONCURRENT_UPLOADS = 5;
+const CONCURRENT_UPLOADS_DEFAULT = 10;
 
 const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
   const [isSplitting, setIsSplitting] = useState(false);
@@ -172,6 +174,10 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
   const [progress, setProgress] = useState(0);
   const [completed, setCompleted] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
+  const [splitPdfs, setSplitPdfs] = useState(false);
+  const [concurrency, setConcurrency] = useState(CONCURRENT_UPLOADS_DEFAULT);
+  const [uploadSpeed, setUploadSpeed] = useState(0); // files per second
+  const uploadStartTimeRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const pauseRef = useRef(false);
 
@@ -194,7 +200,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
       }
       const { topic, mediaType, holiday } = detectCategory(folderName);
       
-      if (isPdf) {
+      if (isPdf && splitPdfs) {
         pdfFiles.push({ file, folderName, topic, mediaType, holiday });
       } else {
         newFiles.push({ file, folderName, topic, mediaType, holiday, status: 'pending' });
@@ -206,7 +212,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
       setFiles(prev => [...prev, ...newFiles]);
     }
 
-    // Split PDFs into individual pages
+    // Split PDFs into individual pages (only if toggle is on)
     if (pdfFiles.length > 0) {
       setIsSplitting(true);
       toast.info(`מפרק ${pdfFiles.length} קבצי PDF לעמודים בודדים...`);
@@ -217,7 +223,6 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           const pageImages = await pdfToImages(arrayBuffer, { scale: 2 });
           
           const pdfPageFiles: BulkFile[] = pageImages.map((dataUrl, pageIdx) => {
-            // Convert data URL to Blob
             const byteString = atob(dataUrl.split(',')[1]);
             const ab = new ArrayBuffer(byteString.length);
             const ia = new Uint8Array(ab);
@@ -244,7 +249,6 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           toast.success(`${pdfItem.file.name}: ${pageImages.length} עמודים חולצו`);
         } catch (err) {
           console.error('PDF split error:', err);
-          // Fallback: add as single file
           setFiles(prev => [...prev, { 
             file: pdfItem.file, folderName: pdfItem.folderName, 
             topic: pdfItem.topic, mediaType: pdfItem.mediaType, 
@@ -316,6 +320,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
     setIsPaused(false);
     pauseRef.current = false;
     setErrorCount(0);
+    uploadStartTimeRef.current = Date.now();
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -384,6 +389,9 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
 
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done' } : f));
         doneCount++;
+        // Track speed
+        const elapsed = (Date.now() - uploadStartTimeRef.current) / 1000;
+        if (elapsed > 0) setUploadSpeed(Math.round(doneCount / elapsed * 10) / 10);
       } catch (err: any) {
         console.error('Upload error:', err);
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'error', errorMsg: err?.message || 'שגיאה' } : f));
@@ -395,7 +403,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
       setProgress(Math.round(((doneCount + errCount) / total) * 100));
     };
 
-    await processInBatches(pendingIndexes, CONCURRENT_UPLOADS, uploadOne, controller.signal);
+    await processInBatches(pendingIndexes, concurrency, uploadOne, controller.signal);
 
     setIsUploading(false);
     abortRef.current = null;
@@ -428,11 +436,35 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           <FolderUp className="h-5 w-5 text-primary" />
           העלאה מרובה — Bulk Upload
         </CardTitle>
-        <CardDescription>
-          גררו תיקיות שלמות או בחרו קבצים מרובים. שם התיקייה ישמש לסיווג אוטומטי. תומך בהעלאת מאות קבצים.
+        <CardDescription className="text-xs">
+          גררו תיקיות שלמות או בחרו קבצים מרובים. שם התיקייה ישמש לסיווג אוטומטי. מותאם ל-1000+ קבצים.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Settings */}
+        <div className="flex flex-wrap items-center gap-4 text-sm bg-muted/50 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <Switch id="split-pdfs" checked={splitPdfs} onCheckedChange={setSplitPdfs} disabled={isUploading} />
+            <Label htmlFor="split-pdfs" className="text-xs cursor-pointer">פרק PDF לעמודים</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Zap className="w-3.5 h-3.5 text-primary" />
+            <Label className="text-xs">מקביליות:</Label>
+            {[5, 10, 15].map(n => (
+              <Button
+                key={n}
+                size="sm"
+                variant={concurrency === n ? 'default' : 'outline'}
+                className="h-6 px-2 text-xs"
+                disabled={isUploading}
+                onClick={() => setConcurrency(n)}
+              >
+                {n}
+              </Button>
+            ))}
+          </div>
+        </div>
+        
         {/* Drop zone */}
         <div
           onDrop={handleDrop}
@@ -574,7 +606,10 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{doneCount + errFiles} / {files.length} ({progress}%)</span>
                   {isUploading && (
-                    <span>{CONCURRENT_UPLOADS} העלאות מקבילות</span>
+                    <span>
+                      {concurrency} מקבילות | {uploadSpeed > 0 ? `${uploadSpeed} קבצים/שנייה` : '...'}
+                      {uploadSpeed > 0 && pendingCount > 0 && ` | ~${Math.ceil(pendingCount / uploadSpeed)} שניות נותרו`}
+                    </span>
                   )}
                 </div>
               </div>
