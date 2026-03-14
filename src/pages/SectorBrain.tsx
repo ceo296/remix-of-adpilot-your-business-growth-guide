@@ -876,8 +876,8 @@ const SectorBrain = () => {
                     <div className="flex items-center gap-2 mb-3">
                       <Filter className="h-4 w-4 text-primary" />
                       <span className="text-sm font-medium">סינון דוגמאות</span>
-                      {(filterTopic !== 'all' || filterHoliday !== 'all' || filterMedia !== 'all' || filterType !== 'all') && (
-                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setFilterTopic('all'); setFilterHoliday('all'); setFilterMedia('all'); setFilterType('all'); }}>
+                      {(filterTopic !== 'all' || filterHoliday !== 'all' || filterMedia !== 'all' || filterType !== 'all' || filterCopyType !== 'all') && (
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setFilterTopic('all'); setFilterHoliday('all'); setFilterMedia('all'); setFilterCopyType('all'); setFilterType('all'); }}>
                           נקה הכל
                         </Button>
                       )}
