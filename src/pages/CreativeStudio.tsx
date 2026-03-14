@@ -1163,38 +1163,45 @@ const CreativeStudio = () => {
   };
 
   // Feedback handlers
-  const handleSubmitFeedback = async () => {
-    if (!feedbackText.trim()) {
+  const handleSubmitFeedback = async (componentFeedbacks?: { component: AdComponent; text: string }[]) => {
+    // Support both legacy (single textarea) and new component-level feedback
+    const corrections: { type: string; text: string }[] = [];
+
+    if (componentFeedbacks && componentFeedbacks.length > 0) {
+      // New component-level feedback
+      for (const fb of componentFeedbacks) {
+        corrections.push({ type: fb.component, text: fb.text });
+      }
+    } else if (feedbackText.trim()) {
+      // Legacy single textarea
+      corrections.push({ type: feedbackType || 'general', text: feedbackText.trim() });
+    } else {
       toast.error('נא להזין פירוט');
       return;
     }
+
+    setPendingCorrections(prev => [...prev, ...corrections]);
     
-    // Store correction as separate context — do NOT pollute the visual/text prompts
-    const newCorrection = {
-      type: feedbackType || 'general',
-      text: feedbackText.trim(),
-    };
-    setPendingCorrections(prev => [...prev, newCorrection]);
-    
-    // Save correction as a pending creative rule (insight) for admin approval
-    // This ensures recurring corrections become permanent rules for ALL future creatives
+    // Save corrections as pending creative rules
     try {
-      const correctionText = feedbackText.trim();
       const targetInfo = selectedSketchIds.length > 0 
         ? `(סקיצות: ${selectedSketchIds.join(', ')})` 
         : '(כל הסקיצות)';
-      const correctionContent = `[תיקון קריאייטיב] ${correctionText} ${targetInfo}`;
       
-      await supabase.from('sector_brain_insights').insert({
-        insight_type: 'creative_correction',
-        content: correctionContent,
-        is_active: false, // Pending admin approval
-      });
+      for (const corr of corrections) {
+        const correctionContent = `[תיקון ${corr.type}] ${corr.text} ${targetInfo}`;
+        await supabase.from('sector_brain_insights').insert({
+          insight_type: 'creative_correction',
+          content: correctionContent,
+          is_active: false,
+        });
+      }
     } catch (e) {
       console.warn('Failed to save correction as insight:', e);
     }
     
-    toast.info('מייצר סקיצות מתוקנות... 🎨');
+    const partCount = corrections.length;
+    toast.info(`מייצר סקיצות מתוקנות (${partCount} ${partCount === 1 ? 'תיקון' : 'תיקונים'})... 🎨`);
     
     // Reset feedback UI
     setFeedbackMode('none');
@@ -1202,7 +1209,7 @@ const CreativeStudio = () => {
     setFeedbackType(null);
     setSelectedSketchIds([]);
     
-    // Regenerate — corrections will be passed as separate field to the edge function
+    // Regenerate
     await handleGenerate();
   };
 
