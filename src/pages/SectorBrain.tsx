@@ -318,12 +318,14 @@ const SectorBrain = () => {
         } else if (u.holiday_season !== filterHoliday) return false;
       }
       if (filterMedia !== 'all') {
+        const mt = u.media_type || 'other';
+        const groupedMt = MEDIA_TYPE_GROUP[mt] || (TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt);
         if (filterMedia === 'text') {
           // "מלל" filter matches all text-based types
-          if (!TEXT_MEDIA_TYPES.has(u.media_type || '')) return false;
+          if (!TEXT_MEDIA_TYPES.has(mt)) return false;
           // Sub-filter by copy type
-          if (filterCopyType !== 'all' && u.media_type !== filterCopyType) return false;
-        } else if (u.media_type !== filterMedia) return false;
+          if (filterCopyType !== 'all' && mt !== filterCopyType) return false;
+        } else if (groupedMt !== filterMedia) return false;
       }
       if (filterType !== 'all' && u.example_type !== filterType) return false;
       return true;
