@@ -1049,6 +1049,10 @@ const SectorBrain = () => {
                                 <ZoomIn className="h-5 w-5 text-white" />
                               </div>
                             </div>
+                          ) : upload.type === 'audio' && upload.file_path ? (
+                            <div className="w-16 h-16 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                              <Radio className="h-6 w-6 text-primary" />
+                            </div>
                           ) : (
                             <div className="w-16 h-16 rounded bg-muted flex items-center justify-center shrink-0">
                               <FileText className="h-6 w-6 text-muted-foreground" />
