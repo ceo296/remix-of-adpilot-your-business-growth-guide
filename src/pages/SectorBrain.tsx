@@ -246,7 +246,7 @@ const SectorBrain = () => {
         const asset: UploadedAsset = {
           id: item.id,
           name: item.name,
-          type: isText ? 'text' : (isImage ? 'image' : 'document'),
+          type: isText ? 'text' : (isAudio ? 'audio' : (isImage ? 'image' : 'document')),
           example_type: exampleType,
           media_type: (item.media_type as MediaType) || null,
           file_path: item.file_path,
