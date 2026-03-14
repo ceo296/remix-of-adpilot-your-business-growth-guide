@@ -659,7 +659,6 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
             {/* Folder list */}
             <div className="max-h-64 overflow-y-auto space-y-2">
               {Object.entries(groupedByFolder).map(([folder, { files: folderFiles }]) => {
-                const firstFile = folderFiles[0];
                 const folderDone = folderFiles.filter(f => f.status === 'done').length;
                 const folderErr = folderFiles.filter(f => f.status === 'error').length;
                 const folderUploading = folderFiles.filter(f => f.status === 'uploading').length;
@@ -667,25 +666,28 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                   ? Math.round(((folderDone + folderErr) / folderFiles.length) * 100) 
                   : 0;
                 
+                // Group by media type within folder
+                const mediaTypes = [...new Set(folderFiles.map(f => f.mediaType))];
+                const topics = [...new Set(folderFiles.map(f => f.topic).filter(Boolean))];
+                
                 return (
                   <div key={folder} className="bg-card border border-border rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-sm">{folder}</span>
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <Badge variant="secondary" className="text-xs">
                           {folderFiles.length} קבצים
-                          {folderFiles.some(f => f.originalPdfName) && ` (מתוך PDF)`}
                         </Badge>
-                        {firstFile.topic && (
-                          <Badge variant="outline" className="text-xs text-primary">
-                            {TOPIC_LABELS[firstFile.topic] || firstFile.topic}
+                        {topics.map(t => (
+                          <Badge key={t} variant="outline" className="text-xs text-primary">
+                            {TOPIC_LABELS[t!] || t}
                           </Badge>
-                        )}
-                        {firstFile.holiday && (
-                          <Badge variant="outline" className="text-xs">
-                            {firstFile.holiday}
+                        ))}
+                        {mediaTypes.filter(m => m !== 'ads').map(m => (
+                          <Badge key={m} variant="outline" className="text-xs bg-accent/50">
+                            {MEDIA_TYPE_LABELS[m] || m}
                           </Badge>
-                        )}
+                        ))}
                         {folderDone === folderFiles.length && folderDone > 0 && (
                           <CheckCircle2 className="w-4 h-4 text-green-500" />
                         )}
