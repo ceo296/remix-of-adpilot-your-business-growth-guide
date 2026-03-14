@@ -322,7 +322,7 @@ const SectorBrain = () => {
       if (filterType !== 'all' && u.example_type !== filterType) return false;
       return true;
     });
-  }, [uploads, filterTopic, filterHoliday, filterMedia, filterType]);
+  }, [uploads, filterTopic, filterHoliday, filterMedia, filterCopyType, filterType]);
 
   // === Upload handlers ===
   const handleAddText = async () => {
