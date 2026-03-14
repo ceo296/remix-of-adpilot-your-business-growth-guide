@@ -749,7 +749,10 @@ const SectorBrain = () => {
                           );
                         })}
                         {stats.untaggedTopic > 0 && (
-                          <div className="flex items-center gap-3 opacity-60">
+                          <div
+                            className="flex items-center gap-3 opacity-60 cursor-pointer hover:bg-muted/50 rounded-lg p-1 -m-1 transition-colors hover:opacity-100"
+                            onClick={() => { setFilterTopic('untagged'); setActiveTab('browse'); }}
+                          >
                             <span className="text-sm w-32 text-right shrink-0">ללא תיוג</span>
                             <div className="flex-1 bg-muted rounded-full h-6 overflow-hidden">
                               <div
@@ -759,12 +762,7 @@ const SectorBrain = () => {
                                 <span className="text-xs font-bold">{stats.untaggedTopic}</span>
                               </div>
                             </div>
-                            <Button
-                              variant="ghost" size="sm" className="h-7 px-2"
-                              onClick={() => { setFilterTopic('untagged'); setActiveTab('browse'); }}
-                            >
-                              <Eye className="h-3 w-3" />
-                            </Button>
+                            <Eye className="h-3.5 w-3.5 text-muted-foreground" />
                           </div>
                         )}
                       </div>
