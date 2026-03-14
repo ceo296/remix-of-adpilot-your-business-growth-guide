@@ -1105,7 +1105,7 @@ const SectorBrain = () => {
                       </CardHeader>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <CardContent><BulkUpload onUploadComplete={loadExamples} /></CardContent>
+                      <CardContent><BulkUpload onUploadComplete={() => { loadExamples(); generateAllInsights(); }} /></CardContent>
                     </CollapsibleContent>
                   </Card>
                 </Collapsible>
