@@ -94,6 +94,24 @@ const TOPIC_LABELS: Record<TopicCategory, string> = {
   other: 'אחר',
 };
 
+const COPY_TYPE_LABELS: Record<string, string> = {
+  copy: 'קופי',
+  ad_copy: 'קופי מודעה',
+  radio_script: 'תשדיר רדיו',
+  banner_copy: 'קופי באנר',
+  strategy: 'אסטרטגיה',
+  brief: 'בריף',
+  article: 'כתבה',
+  landing_page: 'דף נחיתה',
+  video_script: 'סטוריבורד',
+  sales_script: 'תסריט שיחה',
+  flyer_copy: 'פלאייר',
+  prospectus: 'פרוספקט',
+  contract: 'חוזה',
+  survey: 'שאלון',
+  greeting: 'ברכה',
+};
+
 const HOLIDAY_LABELS: Record<HolidaySeason, string> = {
   year_round: 'כל השנה',
   pesach: 'פסח',
