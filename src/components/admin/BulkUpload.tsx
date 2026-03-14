@@ -165,6 +165,7 @@ async function processInBatches<T>(
 const CONCURRENT_UPLOADS = 5;
 
 const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
+  const [isSplitting, setIsSplitting] = useState(false);
   const [files, setFiles] = useState<BulkFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
