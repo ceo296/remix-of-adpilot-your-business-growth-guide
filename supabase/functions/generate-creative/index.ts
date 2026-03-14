@@ -339,9 +339,27 @@ PEOPLE: If characters are present, they must be strictly authentic to the Haredi
 - Women/Girls: Strictly modest (Tzniut). High necklines, long sleeves (past elbows), skirts past knees, refined and elegant hair/wigs (Sheitels) or head-coverings.
 ENVIRONMENT: Upscale, clean, and prestigious Jewish homes or professional settings.
 
-[COMPOSITION FOR ADS]
-NEGATIVE SPACE: Always ensure 30% of the frame is "clean" (blurred background or empty wall) to allow for professional Hebrew typography to be overlaid later.
-EMOTIONAL CONNECTION: Focus on the "Story" (e.g., a father and son learning, a mother’s calm, the prestige of a product) rather than just "displaying an item."
+[COMPOSITION FOR ADS — BASED ON REAL HAREDI AD ANALYSIS]
+=== 3-ZONE AD GRID (top to bottom) ===
+ZONE 1 — HEADLINE / HOOK (top 15-20%): Main promotional headline, large bold typography.
+ZONE 2 — HERO VISUAL (center 55-65%): Product photography or lifestyle scene. Cinematic quality.
+ZONE 3 — CONTACT STRIP (bottom 15-25%): Dark or brand-colored bar. Logo on LEFT (RTL), contact details on RIGHT.
+  - Branch cities in BOLD, separated by bullets or pipes.
+  - Phone number LARGE and clear. Website clean (no https://).
+  - Opening hours near branches if available.
+
+=== LOGO RULES ===
+- Logo must occupy 15-25% of ad width — NEVER a tiny icon.
+- Position: bottom-left of contact strip, prominent and anchored.
+- Logo in ORIGINAL brand colors — never recolored.
+
+=== CONTACT DETAILS IN ADS ===
+- ALWAYS include: business name, phone, at least one address/branch.
+- Include if available: website, WhatsApp, opening hours, additional branches.
+- If 3+ branches, list cities horizontally (e.g., "בני ברק | ירושלים | אשדוד").
+
+NEGATIVE SPACE: Ensure 30% of the frame is clean for Hebrew typography overlay.
+EMOTIONAL CONNECTION: Focus on story, not just product display.
 
 [NEGATIVE PROMPT - NEVER SHOW] Text inside the image, invented/fabricated logos, split-screens, multiple panels, clinical/stock-photo look, low-quality CGI, immodest clothing, non-Haredi religious symbols, distorted limbs, messy backgrounds.
 
