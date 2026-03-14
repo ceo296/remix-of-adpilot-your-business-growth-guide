@@ -42,7 +42,13 @@ type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_
 type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round';
 
 // Text-based media types that should be grouped under "מלל"
-const TEXT_MEDIA_TYPES = new Set(['text', 'copy', 'ad_copy', 'radio_script', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus', 'contract', 'survey', 'greeting']);
+const TEXT_MEDIA_TYPES = new Set(['text', 'copy', 'ad_copy', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus', 'contract', 'survey', 'greeting']);
+
+// Media types that should be grouped under a parent category for stats
+const MEDIA_TYPE_GROUP: Record<string, string> = {
+  radio_script: 'radio',
+  video_script: 'video',
+};
 
 const MEDIA_TYPES: { id: string; label: string; icon: React.ElementType }[] = [
   { id: 'ads', label: 'מודעות', icon: Newspaper },
@@ -285,9 +291,9 @@ const SectorBrain = () => {
       } else {
         untaggedHoliday++;
       }
-      // Group text-based types under 'text' for stats
+      // Group media types for stats
       const mt = u.media_type || 'other';
-      const groupedMt = TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt;
+      const groupedMt = MEDIA_TYPE_GROUP[mt] || (TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt);
       byMedia[groupedMt] = (byMedia[groupedMt] || 0) + 1;
       // Track sub-types within text
       if (TEXT_MEDIA_TYPES.has(mt)) {
@@ -312,12 +318,14 @@ const SectorBrain = () => {
         } else if (u.holiday_season !== filterHoliday) return false;
       }
       if (filterMedia !== 'all') {
+        const mt = u.media_type || 'other';
+        const groupedMt = MEDIA_TYPE_GROUP[mt] || (TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt);
         if (filterMedia === 'text') {
           // "מלל" filter matches all text-based types
-          if (!TEXT_MEDIA_TYPES.has(u.media_type || '')) return false;
+          if (!TEXT_MEDIA_TYPES.has(mt)) return false;
           // Sub-filter by copy type
-          if (filterCopyType !== 'all' && u.media_type !== filterCopyType) return false;
-        } else if (u.media_type !== filterMedia) return false;
+          if (filterCopyType !== 'all' && mt !== filterCopyType) return false;
+        } else if (groupedMt !== filterMedia) return false;
       }
       if (filterType !== 'all' && u.example_type !== filterType) return false;
       return true;
