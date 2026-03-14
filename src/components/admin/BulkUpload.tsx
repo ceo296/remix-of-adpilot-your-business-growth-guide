@@ -441,6 +441,30 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Settings */}
+        <div className="flex flex-wrap items-center gap-4 text-sm bg-muted/50 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <Switch id="split-pdfs" checked={splitPdfs} onCheckedChange={setSplitPdfs} disabled={isUploading} />
+            <Label htmlFor="split-pdfs" className="text-xs cursor-pointer">פרק PDF לעמודים</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Zap className="w-3.5 h-3.5 text-primary" />
+            <Label className="text-xs">מקביליות:</Label>
+            {[5, 10, 15].map(n => (
+              <Button
+                key={n}
+                size="sm"
+                variant={concurrency === n ? 'default' : 'outline'}
+                className="h-6 px-2 text-xs"
+                disabled={isUploading}
+                onClick={() => setConcurrency(n)}
+              >
+                {n}
+              </Button>
+            ))}
+          </div>
+        </div>
+        
         {/* Drop zone */}
         <div
           onDrop={handleDrop}
