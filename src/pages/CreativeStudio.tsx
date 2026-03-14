@@ -338,6 +338,7 @@ const CreativeStudio = () => {
   const [adaptedCreatives, setAdaptedCreatives] = useState<AdaptedCreative[]>([]);
   const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
   const [showPipeline, setShowPipeline] = useState(false);
+  const [showAutopilotRadio, setShowAutopilotRadio] = useState(false);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
