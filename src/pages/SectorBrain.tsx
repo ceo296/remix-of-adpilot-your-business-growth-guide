@@ -681,6 +681,16 @@ const SectorBrain = () => {
                 <span className="text-xs bg-primary/20 rounded-full px-1.5 mr-1">{describeProgress.remaining}</span>
               )}
             </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={generateAllInsights} 
+              disabled={isGeneratingInsights}
+              title="יצירת תובנות אוטומטית מכל החומרים ושמירה לסוכנים"
+            >
+              {isGeneratingInsights ? <Loader2 className="h-4 w-4 ml-1 animate-spin" /> : <Brain className="h-4 w-4 ml-1" />}
+              {isGeneratingInsights ? 'מייצר תובנות...' : 'ייצר תובנות'}
+            </Button>
             <Button variant="outline" size="sm" onClick={loadExamples} disabled={isLoading}>
               <RefreshCw className={cn("h-4 w-4 ml-1", isLoading && "animate-spin")} />
               רענן
