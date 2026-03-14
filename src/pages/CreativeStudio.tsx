@@ -2325,7 +2325,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   {renderStep()}
                 </div>
 
-                {/* Navigation */}
+                {/* Navigation - hidden for radio step which manages its own flow */}
+                {currentStep !== 8 && (
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
                   <Button
                     variant="outline"
@@ -2381,6 +2382,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                     </Button>
                   )}
                 </div>
+                )}
               </div>
             )}
           </div>
