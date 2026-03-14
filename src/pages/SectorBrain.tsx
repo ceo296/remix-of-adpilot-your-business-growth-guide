@@ -291,9 +291,9 @@ const SectorBrain = () => {
       } else {
         untaggedHoliday++;
       }
-      // Group text-based types under 'text' for stats
+      // Group media types for stats
       const mt = u.media_type || 'other';
-      const groupedMt = TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt;
+      const groupedMt = MEDIA_TYPE_GROUP[mt] || (TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt);
       byMedia[groupedMt] = (byMedia[groupedMt] || 0) + 1;
       // Track sub-types within text
       if (TEXT_MEDIA_TYPES.has(mt)) {
