@@ -1092,6 +1092,15 @@ const SectorBrain = () => {
                             {upload.text_content && (
                               <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{upload.text_content}</p>
                             )}
+                            {upload.type === 'audio' && upload.file_path && (
+                              <audio 
+                                controls 
+                                preload="none"
+                                className="w-full h-7 mt-2"
+                                src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${upload.file_path}`}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            )}
                           </div>
                           <button onClick={(e) => { e.stopPropagation(); requestDelete(upload.id, upload.file_path, upload.name); }} className="text-muted-foreground hover:text-destructive shrink-0">
                             <Trash2 className="h-3.5 w-3.5" />
