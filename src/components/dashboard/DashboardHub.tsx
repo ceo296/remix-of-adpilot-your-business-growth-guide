@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RadioScriptsGallery } from './RadioScriptsGallery';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +18,8 @@ import {
   Image,
   Newspaper,
   Building2,
-  Palette
+  Palette,
+  Radio
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CampaignHistory from './CampaignHistory';
@@ -29,7 +31,7 @@ import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
-type HubView = 'main' | 'new-campaign' | 'history' | 'status' | 'my-materials';
+type HubView = 'main' | 'new-campaign' | 'history' | 'status' | 'my-materials' | 'radio-scripts';
 
 interface CampaignStatus {
   id: string;
@@ -493,7 +495,10 @@ const DashboardHub = () => {
         </div>
       )}
 
-      <div className="flex justify-center gap-3 pt-4 border-t border-border">
+      <div className="flex flex-wrap justify-center gap-3 pt-4 border-t border-border">
+        <Button variant="outline" size="sm" onClick={() => setCurrentView('radio-scripts')} className="gap-1.5">
+          <Radio className="w-4 h-4" /> תסריטי רדיו
+        </Button>
         <Button variant="outline" size="sm" onClick={() => navigate('/presentation-studio')} className="gap-1.5">
           <Sparkles className="w-4 h-4" /> מצגת חדשה
         </Button>
@@ -769,6 +774,19 @@ const DashboardHub = () => {
       {currentView === 'history' && renderHistoryView()}
       {currentView === 'status' && renderStatusView()}
       {currentView === 'my-materials' && renderMyMaterialsView()}
+      {currentView === 'radio-scripts' && (
+        <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+          <Button variant="ghost" onClick={() => setCurrentView('my-materials')} className="mb-4">
+            <ArrowLeft className="w-4 h-4 ml-2" />
+            חזרה לחומרים
+          </Button>
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-2">תסריטי רדיו</h2>
+            <p className="text-muted-foreground text-sm">כל הספוטים שיצרת</p>
+          </div>
+          <RadioScriptsGallery />
+        </div>
+      )}
     </div>
   );
 };

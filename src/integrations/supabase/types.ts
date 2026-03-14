@@ -1106,6 +1106,72 @@ export type Database = {
         }
         Relationships: []
       }
+      radio_scripts: {
+        Row: {
+          audio_url: string | null
+          campaign_id: string | null
+          client_profile_id: string | null
+          created_at: string
+          duration: string | null
+          id: string
+          script_text: string
+          script_title: string
+          script_with_nikud: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          voice_direction: Json | null
+          voice_notes: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          campaign_id?: string | null
+          client_profile_id?: string | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          script_text: string
+          script_title: string
+          script_with_nikud?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          voice_direction?: Json | null
+          voice_notes?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          campaign_id?: string | null
+          client_profile_id?: string | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          script_text?: string
+          script_title?: string
+          script_with_nikud?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          voice_direction?: Json | null
+          voice_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "radio_scripts_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "radio_scripts_client_profile_id_fkey"
+            columns: ["client_profile_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sector_brain_examples: {
         Row: {
           created_at: string
