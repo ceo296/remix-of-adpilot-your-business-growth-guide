@@ -282,6 +282,16 @@ serve(async (req) => {
       if (brandContext.secondaryColor) brandSection += `צבע משני: ${brandContext.secondaryColor}\n`;
       if (brandContext.targetAudience) brandSection += `קהל יעד: ${brandContext.targetAudience}\n`;
       if (brandContext.xFactors?.length) brandSection += `גורמי X: ${brandContext.xFactors.join(', ')}\n`;
+      
+      // Contact details for the contact strip
+      brandSection += `\n--- פרטי קשר למודעה ---\n`;
+      if (brandContext.phone) brandSection += `טלפון: ${brandContext.phone}\n`;
+      if (brandContext.whatsapp) brandSection += `וואטסאפ: ${brandContext.whatsapp}\n`;
+      if (brandContext.email) brandSection += `אימייל: ${brandContext.email}\n`;
+      if (brandContext.address) brandSection += `כתובת ראשית: ${brandContext.address}\n`;
+      if (brandContext.branches) brandSection += `סניפים: ${brandContext.branches}\n`;
+      if (brandContext.websiteUrl) brandSection += `אתר: ${brandContext.websiteUrl}\n`;
+      if (brandContext.openingHours) brandSection += `שעות פתיחה: ${brandContext.openingHours}\n`;
     }
 
     // Add campaign context if provided
