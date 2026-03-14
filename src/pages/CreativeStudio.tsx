@@ -866,6 +866,7 @@ const CreativeStudio = () => {
             dimensions: selectedTemplate?.dimensions || null,
             brandContext,
             campaignContext,
+            mediaType: mediaTypes[0] || null,
             topicCategory: detectedTopic,
             holidaySeason: selectedHoliday || null,
             aspectRatio,
