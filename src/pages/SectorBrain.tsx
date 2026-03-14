@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp, Sparkles, RefreshCw, Filter, BarChart3, Calendar, Tag, Eye, FolderOpen, ZoomIn } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -374,7 +375,15 @@ const SectorBrain = () => {
     } catch (error) { toast.error('לא ניתן להדביק. נסה להעתיק תמונה ללוח'); }
   }, [activeMediaType, selectedExampleType, selectedStream, selectedGender, selectedTopic, selectedHoliday]);
 
-  const removeUpload = async (id: string, filePath?: string) => {
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; filePath?: string; name: string } | null>(null);
+
+  const requestDelete = (id: string, filePath?: string, name?: string) => {
+    setDeleteConfirm({ id, filePath, name: name || 'פריט' });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    const { id, filePath } = deleteConfirm;
     if (filePath && filePath !== '' && filePath !== 'guideline' && filePath !== 'general-guideline') {
       await supabase.storage.from('sector-brain').remove([filePath]);
     }
@@ -383,6 +392,7 @@ const SectorBrain = () => {
     setUploads(prev => prev.filter(u => u.id !== id));
     setGuidelines(prev => prev.filter(g => g.id !== id));
     toast.success('נמחק בהצלחה');
+    setDeleteConfirm(null);
   };
 
   const handleAddGuideline = async () => {
@@ -952,7 +962,7 @@ const SectorBrain = () => {
                               <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{upload.text_content}</p>
                             )}
                           </div>
-                          <button onClick={(e) => { e.stopPropagation(); removeUpload(upload.id, upload.file_path); }} className="text-muted-foreground hover:text-destructive shrink-0">
+                          <button onClick={(e) => { e.stopPropagation(); requestDelete(upload.id, upload.file_path, upload.name); }} className="text-muted-foreground hover:text-destructive shrink-0">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -1135,7 +1145,7 @@ const SectorBrain = () => {
                           <div key={g.id} className="flex items-start gap-2 p-2 bg-amber-50/50 dark:bg-amber-950/20 rounded border border-amber-200/50">
                             <Lightbulb className="h-3 w-3 text-amber-500 mt-1 shrink-0" />
                             <p className="flex-1 text-xs">{g.text_content}</p>
-                            <button onClick={() => removeUpload(g.id)} className="text-muted-foreground hover:text-destructive">
+                            <button onClick={() => requestDelete(g.id, undefined, g.text_content?.substring(0, 30))} className="text-muted-foreground hover:text-destructive">
                               <Trash2 className="h-3 w-3" />
                             </button>
                           </div>
@@ -1367,6 +1377,25 @@ const SectorBrain = () => {
           ) : null}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>אישור מחיקה</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח שברצונך למחוק את "{deleteConfirm?.name}"?
+              <br />פעולה זו לא ניתנת לביטול.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse gap-2">
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              מחק
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
