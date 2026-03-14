@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { pdfToImages } from '@/lib/pdf-utils';
 
 // Auto-map folder names to topic categories
 const FOLDER_TO_TOPIC: Record<string, string> = {
@@ -110,8 +111,13 @@ interface BulkFile {
   topic: string | null;
   mediaType: string;
   holiday: string | null;
-  status: 'pending' | 'uploading' | 'done' | 'error';
+  status: 'pending' | 'uploading' | 'done' | 'error' | 'splitting';
   errorMsg?: string;
+  // For PDF pages split into individual images
+  pdfPageBlob?: Blob;
+  pdfPageIndex?: number;
+  pdfTotalPages?: number;
+  originalPdfName?: string;
 }
 
 interface BulkUploadProps {
@@ -159,6 +165,7 @@ async function processInBatches<T>(
 const CONCURRENT_UPLOADS = 5;
 
 const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
+  const [isSplitting, setIsSplitting] = useState(false);
   const [files, setFiles] = useState<BulkFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -168,8 +175,10 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
   const abortRef = useRef<AbortController | null>(null);
   const pauseRef = useRef(false);
 
-  const processFiles = (fileList: FileList) => {
+  const processFiles = async (fileList: FileList) => {
     const newFiles: BulkFile[] = [];
+    const pdfFiles: { file: File; folderName: string; topic: string | null; mediaType: string; holiday: string | null }[] = [];
+
     for (const file of Array.from(fileList)) {
       const isImage = file.type.startsWith('image/');
       const isPdf = file.type === 'application/pdf';
@@ -184,12 +193,73 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         folderName = parts.length > 1 ? parts[parts.length - 2] : '';
       }
       const { topic, mediaType, holiday } = detectCategory(folderName);
-      newFiles.push({ file, folderName, topic, mediaType, holiday, status: 'pending' });
+      
+      if (isPdf) {
+        pdfFiles.push({ file, folderName, topic, mediaType, holiday });
+      } else {
+        newFiles.push({ file, folderName, topic, mediaType, holiday, status: 'pending' });
+      }
     }
-    setFiles(prev => [...prev, ...newFiles]);
+
+    // Add non-PDF files immediately
     if (newFiles.length > 0) {
-      const folderCount = new Set(newFiles.map(f => f.folderName)).size;
-      toast.success(`${newFiles.length} קבצים נוספו מ-${folderCount} תיקיות`);
+      setFiles(prev => [...prev, ...newFiles]);
+    }
+
+    // Split PDFs into individual pages
+    if (pdfFiles.length > 0) {
+      setIsSplitting(true);
+      toast.info(`מפרק ${pdfFiles.length} קבצי PDF לעמודים בודדים...`);
+      
+      for (const pdfItem of pdfFiles) {
+        try {
+          const arrayBuffer = await pdfItem.file.arrayBuffer();
+          const pageImages = await pdfToImages(arrayBuffer, { scale: 2 });
+          
+          const pdfPageFiles: BulkFile[] = pageImages.map((dataUrl, pageIdx) => {
+            // Convert data URL to Blob
+            const byteString = atob(dataUrl.split(',')[1]);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let j = 0; j < byteString.length; j++) ia[j] = byteString.charCodeAt(j);
+            const blob = new Blob([ab], { type: 'image/png' });
+            
+            const baseName = pdfItem.file.name.replace(/\.pdf$/i, '');
+            const pageFile = new File([blob], `${baseName}_page${pageIdx + 1}.png`, { type: 'image/png' });
+            
+            return {
+              file: pageFile,
+              folderName: pdfItem.folderName,
+              topic: pdfItem.topic,
+              mediaType: pdfItem.mediaType,
+              holiday: pdfItem.holiday,
+              status: 'pending' as const,
+              pdfPageIndex: pageIdx + 1,
+              pdfTotalPages: pageImages.length,
+              originalPdfName: pdfItem.file.name,
+            };
+          });
+
+          setFiles(prev => [...prev, ...pdfPageFiles]);
+          toast.success(`${pdfItem.file.name}: ${pageImages.length} עמודים חולצו`);
+        } catch (err) {
+          console.error('PDF split error:', err);
+          // Fallback: add as single file
+          setFiles(prev => [...prev, { 
+            file: pdfItem.file, folderName: pdfItem.folderName, 
+            topic: pdfItem.topic, mediaType: pdfItem.mediaType, 
+            holiday: pdfItem.holiday, status: 'pending' 
+          }]);
+          toast.warning(`${pdfItem.file.name}: לא ניתן לפרק, יועלה כקובץ שלם`);
+        }
+      }
+      setIsSplitting(false);
+    }
+
+    const totalAdded = newFiles.length + pdfFiles.length;
+    if (totalAdded > 0) {
+      const folderCount = new Set([...newFiles, ...pdfFiles].map(f => f.folderName)).size;
+      toast.success(`${totalAdded} קבצים נוספו מ-${folderCount} תיקיות`);
     }
   };
 
@@ -466,6 +536,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary" className="text-xs">
                           {folderFiles.length} קבצים
+                          {folderFiles.some(f => f.originalPdfName) && ` (מתוך PDF)`}
                         </Badge>
                         {firstFile.topic && (
                           <Badge variant="outline" className="text-xs text-primary">
@@ -523,6 +594,12 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                   </Button>
                 </>
               ) : (
+                isSplitting ? (
+                  <Button disabled className="w-full gap-2" size="lg">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    מפרק קבצי PDF לעמודים...
+                  </Button>
+                ) : (
                 <Button
                   onClick={startUpload}
                   disabled={pendingCount === 0 && errFiles === 0}
@@ -534,6 +611,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                     ? `נסה שוב ${errFiles} קבצים שנכשלו`
                     : `העלה ${pendingCount + errFiles} קבצים`}
                 </Button>
+                )
               )}
             </div>
           </div>
