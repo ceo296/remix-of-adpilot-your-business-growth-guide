@@ -234,8 +234,12 @@ function detectCategory(folderName: string, fileName: string, fileType: string):
   // Media type from file name - especially for text files
   const isTextFile = fileType.includes('word') || fileType.includes('msword') 
     || fileName.endsWith('.docx') || fileName.endsWith('.doc') || fileName.endsWith('.txt');
+  const isAudioFile = fileType.startsWith('audio/') 
+    || /\.(mp3|wav|m4a|ogg|aac|flac|wma)$/i.test(fileName);
   
-  if (isTextFile) {
+  if (isAudioFile) {
+    mediaType = 'radio_script';
+  } else if (isTextFile) {
     // Default text files to 'copy' unless we find something more specific
     mediaType = 'copy';
     for (const [regex, val] of FILENAME_MEDIA_HINTS) {
