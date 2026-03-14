@@ -593,6 +593,12 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                   </Button>
                 </>
               ) : (
+                isSplitting ? (
+                  <Button disabled className="w-full gap-2" size="lg">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    מפרק קבצי PDF לעמודים...
+                  </Button>
+                ) : (
                 <Button
                   onClick={startUpload}
                   disabled={pendingCount === 0 && errFiles === 0}
@@ -604,6 +610,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                     ? `נסה שוב ${errFiles} קבצים שנכשלו`
                     : `העלה ${pendingCount + errFiles} קבצים`}
                 </Button>
+                )
               )}
             </div>
           </div>
