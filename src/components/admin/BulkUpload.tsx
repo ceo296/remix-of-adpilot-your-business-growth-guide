@@ -171,7 +171,12 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
   const processFiles = (fileList: FileList) => {
     const newFiles: BulkFile[] = [];
     for (const file of Array.from(fileList)) {
-      if (!file.type.startsWith('image/') && !file.type.startsWith('application/pdf')) continue;
+      const isImage = file.type.startsWith('image/');
+      const isPdf = file.type === 'application/pdf';
+      const isWord = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+        || file.type === 'application/msword'
+        || file.name.endsWith('.docx') || file.name.endsWith('.doc');
+      if (!isImage && !isPdf && !isWord) continue;
       let folderName = '';
       const relativePath = (file as any).webkitRelativePath || '';
       if (relativePath) {
@@ -371,7 +376,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
               </Button>
               <input
                 type="file"
-                accept="image/*,application/pdf"
+                accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 multiple
                 onChange={handleFileSelect}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
