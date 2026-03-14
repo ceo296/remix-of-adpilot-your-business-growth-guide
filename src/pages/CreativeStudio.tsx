@@ -677,9 +677,9 @@ const CreativeStudio = () => {
   const handleNext = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     
-    // Special navigation for radio - skip to prompt
+    // Special navigation for radio - go to radio script step
     if (currentStep === 1 && isOnlyRadio) {
-      setCurrentStep(6);
+      setCurrentStep(8);
       return;
     }
     
