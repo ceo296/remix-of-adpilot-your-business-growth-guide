@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { pdfToImages } from '@/lib/pdf-utils';
 
 // Auto-map folder names to topic categories
 const FOLDER_TO_TOPIC: Record<string, string> = {
