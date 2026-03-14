@@ -236,7 +236,8 @@ const SectorBrain = () => {
       
       data.forEach(item => {
         const isText = item.file_type === 'text';
-        const isImage = !isText && item.file_type?.startsWith('image/');
+        const isAudio = !isText && (item.file_type?.startsWith('audio/') || /\.(mp3|wav|m4a|ogg|aac|flac|wma)$/i.test(item.name));
+        const isImage = !isText && !isAudio && item.file_type?.startsWith('image/');
         let exampleType: ExampleType = (item.example_type as ExampleType) || 'good';
         if (!item.example_type) {
           exampleType = item.zone === 'redlines' ? 'bad' : 'good';
