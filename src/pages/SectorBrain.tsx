@@ -236,7 +236,7 @@ const SectorBrain = () => {
       
       data.forEach(item => {
         const isText = item.file_type === 'text';
-        const isAudio = !isText && (item.file_type?.startsWith('audio/') || /\.(mp3|wav|m4a|ogg|aac|flac|wma)$/i.test(item.name));
+        const isAudio = !isText && (item.file_type?.startsWith('audio/') || item.media_type === 'radio_script' || /\.(mp3|wav|m4a|ogg|aac|flac|wma|mp4|mpeg)$/i.test(item.name));
         const isImage = !isText && !isAudio && item.file_type?.startsWith('image/');
         let exampleType: ExampleType = (item.example_type as ExampleType) || 'good';
         if (!item.example_type) {
