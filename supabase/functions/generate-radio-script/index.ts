@@ -116,8 +116,8 @@ ${brief?.timeLimitText ? `מגבלת זמן: ${brief.timeLimitText}` : ""}
     }
 
     if (!geminiSuccess) {
-      const key = LOVABLE_KEY || GEMINI_KEY;
-      if (!key) throw new Error("No AI API key configured");
+      const GATEWAY_KEY = LOVABLE_KEY;
+      if (!GATEWAY_KEY) throw new Error("No AI API key configured for fallback");
 
       const gatewayRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
