@@ -21,7 +21,7 @@ import BulkUpload from '@/components/admin/BulkUpload';
 interface UploadedAsset {
   id: string;
   name: string;
-  type: 'image' | 'document' | 'text';
+  type: 'image' | 'document' | 'text' | 'audio';
   example_type: 'good' | 'bad';
   media_type: MediaType | null;
   preview?: string;
