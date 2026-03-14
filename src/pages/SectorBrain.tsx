@@ -152,6 +152,7 @@ const SectorBrain = () => {
   const [filterTopic, setFilterTopic] = useState<string>('all');
   const [filterHoliday, setFilterHoliday] = useState<string>('all');
   const [filterMedia, setFilterMedia] = useState<string>('all');
+  const [filterCopyType, setFilterCopyType] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
 
   // AI Insights
