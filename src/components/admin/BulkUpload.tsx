@@ -299,7 +299,9 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
       const isWord = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
         || file.type === 'application/msword'
         || file.name.endsWith('.docx') || file.name.endsWith('.doc');
-      if (!isImage && !isPdf && !isWord) continue;
+      const isAudio = file.type.startsWith('audio/') 
+        || /\.(mp3|wav|m4a|ogg|aac|flac|wma)$/i.test(file.name);
+      if (!isImage && !isPdf && !isWord && !isAudio) continue;
       let folderName = '';
       const relativePath = (file as any).webkitRelativePath || '';
       if (relativePath) {
