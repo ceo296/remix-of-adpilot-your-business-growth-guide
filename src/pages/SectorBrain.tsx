@@ -202,15 +202,28 @@ const SectorBrain = () => {
 
   const loadExamples = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('sector_brain_examples')
-      .select('*')
-      .order('created_at', { ascending: false });
+    // Fetch all records (bypass 1000-row default limit) using pagination
+    let allData: any[] = [];
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data, error } = await supabase
+        .from('sector_brain_examples')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(from, from + pageSize - 1);
+      if (error) {
+        console.error('Error loading examples:', error);
+        toast.error('שגיאה בטעינת הדוגמאות');
+        break;
+      }
+      if (data) allData = [...allData, ...data];
+      if (!data || data.length < pageSize) break;
+      from += pageSize;
+    }
+    const data = allData;
 
-    if (error) {
-      console.error('Error loading examples:', error);
-      toast.error('שגיאה בטעינת הדוגמאות');
-    } else if (data) {
+    if (data.length > 0) {
       const guidelinesArr: UploadedAsset[] = [];
       const examplesArr: UploadedAsset[] = [];
       
