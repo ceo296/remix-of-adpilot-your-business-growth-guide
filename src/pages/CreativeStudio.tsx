@@ -2089,6 +2089,13 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       } else {
         toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
+
+      // For 360° campaigns, also trigger radio script generation
+      const includes360 = mediaTypes.includes('all');
+      if (includes360) {
+        setShowAutopilotRadio(true);
+        toast.info('מייצר גם ספוט רדיו לקמפיין 360°... 🎙️');
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error('שגיאה ביצירת התמונות');
