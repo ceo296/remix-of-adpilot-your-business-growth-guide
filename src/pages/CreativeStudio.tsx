@@ -27,6 +27,7 @@ import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaT
 import { StudioDesignApproachStep, DesignApproach, PastMaterialReference } from '@/components/studio/StudioDesignApproachStep';
 import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
 import { RadioScriptStep } from '@/components/studio/RadioScriptStep';
+import { ComponentFeedbackPicker, type AdComponent } from '@/components/studio/ComponentFeedbackPicker';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
 import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor';
