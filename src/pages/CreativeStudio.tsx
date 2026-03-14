@@ -143,6 +143,8 @@ const getStepTitles = (mediaTypes: MediaType[], assetChoice: string | null) => {
     'קופי',             // 4 - copy input (for has-copy flow)
     'סגנון עיצובי',     // 5 - style
     'תיאור ותוכן',      // 6 - prompt
+    '',                 // 7 - design approach
+    'סטודיו רדיו',      // 8 - radio script
   ];
 };
 
