@@ -21,7 +21,7 @@ import BulkUpload from '@/components/admin/BulkUpload';
 interface UploadedAsset {
   id: string;
   name: string;
-  type: 'image' | 'document' | 'text';
+  type: 'image' | 'document' | 'text' | 'audio';
   example_type: 'good' | 'bad';
   media_type: MediaType | null;
   preview?: string;
@@ -236,7 +236,8 @@ const SectorBrain = () => {
       
       data.forEach(item => {
         const isText = item.file_type === 'text';
-        const isImage = !isText && item.file_type?.startsWith('image/');
+        const isAudio = !isText && (item.file_type?.startsWith('audio/') || /\.(mp3|wav|m4a|ogg|aac|flac|wma)$/i.test(item.name));
+        const isImage = !isText && !isAudio && item.file_type?.startsWith('image/');
         let exampleType: ExampleType = (item.example_type as ExampleType) || 'good';
         if (!item.example_type) {
           exampleType = item.zone === 'redlines' ? 'bad' : 'good';
@@ -245,7 +246,7 @@ const SectorBrain = () => {
         const asset: UploadedAsset = {
           id: item.id,
           name: item.name,
-          type: isText ? 'text' : (isImage ? 'image' : 'document'),
+          type: isText ? 'text' : (isAudio ? 'audio' : (isImage ? 'image' : 'document')),
           example_type: exampleType,
           media_type: (item.media_type as MediaType) || null,
           file_path: item.file_path,
@@ -1048,6 +1049,10 @@ const SectorBrain = () => {
                                 <ZoomIn className="h-5 w-5 text-white" />
                               </div>
                             </div>
+                          ) : upload.type === 'audio' && upload.file_path ? (
+                            <div className="w-16 h-16 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                              <Radio className="h-6 w-6 text-primary" />
+                            </div>
                           ) : (
                             <div className="w-16 h-16 rounded bg-muted flex items-center justify-center shrink-0">
                               <FileText className="h-6 w-6 text-muted-foreground" />
@@ -1086,6 +1091,15 @@ const SectorBrain = () => {
                             </div>
                             {upload.text_content && (
                               <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{upload.text_content}</p>
+                            )}
+                            {upload.type === 'audio' && upload.file_path && (
+                              <audio 
+                                controls 
+                                preload="none"
+                                className="w-full h-7 mt-2"
+                                src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sector-brain/${upload.file_path}`}
+                                onClick={(e) => e.stopPropagation()}
+                              />
                             )}
                           </div>
                           <button onClick={(e) => { e.stopPropagation(); requestDelete(upload.id, upload.file_path, upload.name); }} className="text-muted-foreground hover:text-destructive shrink-0">

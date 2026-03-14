@@ -234,8 +234,12 @@ function detectCategory(folderName: string, fileName: string, fileType: string):
   // Media type from file name - especially for text files
   const isTextFile = fileType.includes('word') || fileType.includes('msword') 
     || fileName.endsWith('.docx') || fileName.endsWith('.doc') || fileName.endsWith('.txt');
+  const isAudioFile = fileType.startsWith('audio/') 
+    || /\.(mp3|wav|m4a|ogg|aac|flac|wma)$/i.test(fileName);
   
-  if (isTextFile) {
+  if (isAudioFile) {
+    mediaType = 'radio_script';
+  } else if (isTextFile) {
     // Default text files to 'copy' unless we find something more specific
     mediaType = 'copy';
     for (const [regex, val] of FILENAME_MEDIA_HINTS) {
@@ -299,7 +303,9 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
       const isWord = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
         || file.type === 'application/msword'
         || file.name.endsWith('.docx') || file.name.endsWith('.doc');
-      if (!isImage && !isPdf && !isWord) continue;
+      const isAudio = file.type.startsWith('audio/') 
+        || /\.(mp3|wav|m4a|ogg|aac|flac|wma)$/i.test(file.name);
+      if (!isImage && !isPdf && !isWord && !isAudio) continue;
       let folderName = '';
       const relativePath = (file as any).webkitRelativePath || '';
       if (relativePath) {
@@ -480,7 +486,6 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         // If it's a Word file, extract text in the background
         const isWord = item.file.name.endsWith('.docx') || item.file.name.endsWith('.doc');
         if (isWord && dbData?.id) {
-          // Fire and forget - don't block the upload
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.access_token) {
             fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-docx`, {
@@ -492,6 +497,27 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
               },
               body: JSON.stringify({ file_path: fileName, record_id: dbData.id }),
             }).catch(err => console.warn('Text extraction failed:', err));
+          }
+        }
+
+        // If it's an audio file, transcribe in the background
+        const isAudio = item.file.type?.startsWith('audio/') 
+          || /\.(mp3|wav|m4a|ogg|aac|flac|wma)$/i.test(item.file.name);
+        if (isAudio && dbData?.id) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              },
+              body: JSON.stringify({ file_path: fileName, record_id: dbData.id }),
+            }).then(async (res) => {
+              if (res.ok) console.log('Audio transcribed:', item.file.name);
+              else console.warn('Audio transcription failed:', await res.text());
+            }).catch(err => console.warn('Audio transcription failed:', err));
           }
         }
 
