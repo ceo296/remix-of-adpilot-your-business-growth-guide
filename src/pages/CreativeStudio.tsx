@@ -449,7 +449,7 @@ const CreativeStudio = () => {
 
       const { data: profiles } = await supabase
         .from('client_profiles')
-        .select('business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, past_materials_fonts, business_photos, default_template_id')
+        .select('id, business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, past_materials_fonts, business_photos, default_template_id')
         .eq('user_id', user.id)
         .eq('is_agency_profile', false)
         .eq('onboarding_completed', true)
