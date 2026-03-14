@@ -58,7 +58,28 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
         example_type: e.example_type,
         topic: e.topic_category,
       }));
-    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, imageExamples, guidelines, insights, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
+
+    // Group text examples by copy type for intelligent retrieval
+    const TEXT_TYPES = new Set(['text', 'copy', 'ad_copy', 'radio_script', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus']);
+    const COPY_TYPE_LABELS: Record<string, string> = {
+      ad_copy: 'קופי מודעות', radio_script: 'תשדירי רדיו', banner_copy: 'קופי באנרים',
+      strategy: 'אסטרטגיות', brief: 'בריפים', article: 'כתבות יח"צ',
+      landing_page: 'דפי נחיתה', video_script: 'סטוריבורדים', sales_script: 'תסריטי שיחה',
+      flyer_copy: 'פלאיירים', prospectus: 'פרוספקטים', copy: 'קופי כללי', text: 'טקסט כללי',
+    };
+    const copyByType: Record<string, { name: string; text: string; topic?: string }[]> = {};
+    for (const item of allExamples) {
+      if (item.text_content && TEXT_TYPES.has(item.media_type || '')) {
+        const mt = item.media_type || 'copy';
+        if (!copyByType[mt]) copyByType[mt] = [];
+        copyByType[mt].push({ name: item.name, text: item.text_content.substring(0, 500), topic: item.topic_category });
+      }
+    }
+    const copyTypeSummary = Object.entries(copyByType).map(([type, items]) => 
+      `${COPY_TYPE_LABELS[type] || type} (${items.length} דוגמאות)`
+    ).join(', ');
+
+    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, imageExamples, guidelines, insights, copyByType, copyTypeSummary, summary: Object.entries(grouped).map(([z, items]) => `${z}: ${items.length} דוגמאות`).join(', ') };
   } catch { return null; }
 }
 
