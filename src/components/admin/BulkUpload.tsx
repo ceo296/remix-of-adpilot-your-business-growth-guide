@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { Upload, FolderUp, Loader2, CheckCircle2, AlertCircle, X, FileImage } from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
+import { Upload, FolderUp, Loader2, CheckCircle2, AlertCircle, X, FileImage, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -54,7 +54,6 @@ const FOLDER_TO_TOPIC: Record<string, string> = {
   'branding': 'branding',
 };
 
-// Auto-map folder names to media types
 const FOLDER_TO_MEDIA: Record<string, string> = {
   'באנרים מופלשים': 'ads',
   'באנרים סטטיים': 'ads',
@@ -68,7 +67,6 @@ const FOLDER_TO_MEDIA: Record<string, string> = {
   'קדמ': 'promo',
 };
 
-// Auto-map folder names to holiday/season
 const FOLDER_TO_HOLIDAY: Record<string, string> = {
   'מודעות בין המצרים': 'bein_hazmanim',
   'בין הזמנים': 'bein_hazmanim',
@@ -113,6 +111,7 @@ interface BulkFile {
   mediaType: string;
   holiday: string | null;
   status: 'pending' | 'uploading' | 'done' | 'error';
+  errorMsg?: string;
 }
 
 interface BulkUploadProps {
@@ -121,80 +120,77 @@ interface BulkUploadProps {
 
 function detectCategory(folderName: string): { topic: string | null; mediaType: string; holiday: string | null } {
   const normalized = folderName.trim();
-  
   let topic: string | null = null;
   let mediaType = 'ads';
   let holiday: string | null = null;
 
-  // Check topic
   for (const [key, value] of Object.entries(FOLDER_TO_TOPIC)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      topic = value;
-      break;
-    }
+    if (normalized.includes(key) || key.includes(normalized)) { topic = value; break; }
   }
-
-  // Check media type
   for (const [key, value] of Object.entries(FOLDER_TO_MEDIA)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      mediaType = value;
-      break;
-    }
+    if (normalized.includes(key) || key.includes(normalized)) { mediaType = value; break; }
   }
-
-  // Check holiday
   for (const [key, value] of Object.entries(FOLDER_TO_HOLIDAY)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      holiday = value;
-      break;
-    }
+    if (normalized.includes(key) || key.includes(normalized)) { holiday = value; break; }
   }
 
   return { topic, mediaType, holiday };
 }
 
+// Concurrency limiter
+async function processInBatches<T>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T) => Promise<void>,
+  signal?: AbortSignal,
+) {
+  let index = 0;
+  const workers = Array.from({ length: concurrency }, async () => {
+    while (index < items.length) {
+      if (signal?.aborted) return;
+      const current = index++;
+      if (current >= items.length) return;
+      await fn(items[current]);
+    }
+  });
+  await Promise.all(workers);
+}
+
+const CONCURRENT_UPLOADS = 5;
+
 const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
   const [files, setFiles] = useState<BulkFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [completed, setCompleted] = useState(0);
+  const [errorCount, setErrorCount] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+  const pauseRef = useRef(false);
 
   const processFiles = (fileList: FileList) => {
     const newFiles: BulkFile[] = [];
-    
     for (const file of Array.from(fileList)) {
       if (!file.type.startsWith('image/') && !file.type.startsWith('application/pdf')) continue;
-
-      // Extract folder name from webkitRelativePath or use filename
       let folderName = '';
       const relativePath = (file as any).webkitRelativePath || '';
       if (relativePath) {
         const parts = relativePath.split('/');
-        // Use the immediate parent folder
         folderName = parts.length > 1 ? parts[parts.length - 2] : '';
       }
-
       const { topic, mediaType, holiday } = detectCategory(folderName);
-
-      newFiles.push({
-        file,
-        folderName,
-        topic,
-        mediaType,
-        holiday,
-        status: 'pending',
-      });
+      newFiles.push({ file, folderName, topic, mediaType, holiday, status: 'pending' });
     }
-
     setFiles(prev => [...prev, ...newFiles]);
     if (newFiles.length > 0) {
-      toast.success(`${newFiles.length} קבצים נוספו מ-${new Set(newFiles.map(f => f.folderName)).size} תיקיות`);
+      const folderCount = new Set(newFiles.map(f => f.folderName)).size;
+      toast.success(`${newFiles.length} קבצים נוספו מ-${folderCount} תיקיות`);
     }
   };
 
   const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) processFiles(e.target.files);
-    e.target.value = ''; // Reset to allow re-selecting same folder
+    e.target.value = '';
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,35 +211,66 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
     setFiles([]);
     setProgress(0);
     setCompleted(0);
+    setErrorCount(0);
+  };
+
+  const togglePause = () => {
+    pauseRef.current = !pauseRef.current;
+    setIsPaused(pauseRef.current);
+  };
+
+  const cancelUpload = () => {
+    abortRef.current?.abort();
+    setIsUploading(false);
+    setIsPaused(false);
+    pauseRef.current = false;
+    toast.info('ההעלאה בוטלה');
   };
 
   const startUpload = async () => {
-    const pendingFiles = files.map((f, i) => ({ ...f, originalIndex: i })).filter(f => f.status === 'pending' || f.status === 'error');
-    if (pendingFiles.length === 0) {
+    const pendingIndexes = files
+      .map((f, i) => ({ ...f, idx: i }))
+      .filter(f => f.status === 'pending' || f.status === 'error');
+
+    if (pendingIndexes.length === 0) {
       toast.info('כל הקבצים כבר הועלו בהצלחה!');
       return;
     }
+
     setIsUploading(true);
-    setCompleted(0);
-    setProgress(0);
+    setIsPaused(false);
+    pauseRef.current = false;
+    setErrorCount(0);
 
-    let done = 0;
-    const total = pendingFiles.length;
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-    for (const pf of pendingFiles) {
-      const i = pf.originalIndex;
+    let doneCount = files.filter(f => f.status === 'done').length;
+    let errCount = 0;
+    const total = files.length;
+
+    const uploadOne = async (item: { idx: number; file: File; folderName: string; topic: string | null; mediaType: string; holiday: string | null }) => {
+      if (controller.signal.aborted) return;
+
+      // Wait while paused
+      while (pauseRef.current && !controller.signal.aborted) {
+        await new Promise(r => setTimeout(r, 200));
+      }
+      if (controller.signal.aborted) return;
+
+      const i = item.idx;
       setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'uploading' } : f));
 
       try {
-        const safeName = pf.file.name.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, '_').replace(/^[-_]+/, '') || 'file';
-        const ext = pf.file.name.split('.').pop() || 'png';
+        const safeName = item.file.name.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, '_').replace(/^[-_]+/, '') || 'file';
+        const ext = item.file.name.split('.').pop() || 'png';
         const sanitizedName = safeName.includes('.') ? safeName : `${safeName}.${ext}`;
-        const fileName = `bulk/${pf.mediaType}/${Date.now()}-${sanitizedName}`;
-        const originalName = pf.file.name;
+        const fileName = `bulk/${item.mediaType}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${sanitizedName}`;
+        const originalName = item.file.name;
+
         const { error: uploadError } = await supabase.storage
           .from('sector-brain')
-          .upload(fileName, pf.file);
-
+          .upload(fileName, item.file);
         if (uploadError) throw uploadError;
 
         const { error: dbError } = await supabase
@@ -252,38 +279,52 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
             zone: 'fame',
             name: originalName,
             file_path: fileName,
-            file_type: pf.file.type,
-            media_type: pf.mediaType,
+            file_type: item.file.type,
+            media_type: item.mediaType,
             example_type: 'good',
-            topic_category: pf.topic,
-            holiday_season: pf.holiday,
+            topic_category: item.topic,
+            holiday_season: item.holiday,
           });
-
         if (dbError) throw dbError;
 
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done' } : f));
-      } catch (err) {
+        doneCount++;
+      } catch (err: any) {
         console.error('Upload error:', err);
-        setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'error' } : f));
+        setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'error', errorMsg: err?.message || 'שגיאה' } : f));
+        errCount++;
+        setErrorCount(errCount);
       }
 
-      done++;
-      setCompleted(done);
-      setProgress(Math.round((done / total) * 100));
-    }
+      setCompleted(doneCount);
+      setProgress(Math.round(((doneCount + errCount) / total) * 100));
+    };
+
+    await processInBatches(pendingIndexes, CONCURRENT_UPLOADS, uploadOne, controller.signal);
 
     setIsUploading(false);
-    toast.success(`${done} קבצים הועלו בהצלחה!`);
+    abortRef.current = null;
+
+    if (errCount > 0) {
+      toast.warning(`הועלו ${doneCount} קבצים, ${errCount} נכשלו. לחץ "העלה" שוב לנסות מחדש.`);
+    } else {
+      toast.success(`כל ${doneCount} הקבצים הועלו בהצלחה! 🎉`);
+    }
     onUploadComplete();
   };
 
   // Group files by folder
-  const groupedByFolder = files.reduce<Record<string, BulkFile[]>>((acc, f) => {
+  const groupedByFolder = files.reduce<Record<string, { files: BulkFile[]; indices: number[] }>>((acc, f, i) => {
     const key = f.folderName || 'ללא תיקייה';
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(f);
+    if (!acc[key]) acc[key] = { files: [], indices: [] };
+    acc[key].files.push(f);
+    acc[key].indices.push(i);
     return acc;
   }, {});
+
+  const pendingCount = files.filter(f => f.status === 'pending').length;
+  const doneCount = files.filter(f => f.status === 'done').length;
+  const errFiles = files.filter(f => f.status === 'error').length;
 
   return (
     <Card className="border-primary/30 bg-primary/5">
@@ -293,11 +334,11 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           העלאה מרובה — Bulk Upload
         </CardTitle>
         <CardDescription>
-          גררו תיקיות שלמות או בחרו קבצים מרובים. שם התיקייה ישמש לסיווג אוטומטי.
+          גררו תיקיות שלמות או בחרו קבצים מרובים. שם התיקייה ישמש לסיווג אוטומטי. תומך בהעלאת מאות קבצים.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Drop zone + buttons */}
+        {/* Drop zone */}
         <div
           onDrop={handleDrop}
           onDragOver={e => e.preventDefault()}
@@ -305,7 +346,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         >
           <Upload className="w-10 h-10 mx-auto text-primary mb-3" />
           <p className="font-medium text-foreground mb-1">גררו קבצים או תיקיות לכאן</p>
-          <p className="text-sm text-muted-foreground mb-4">ניתן לבחור תיקייה אחת בכל פעם — התיקיות מצטברות ברשימה</p>
+          <p className="text-sm text-muted-foreground mb-4">ניתן לבחור מספר תיקיות — הכל מצטבר ברשימה</p>
           
           <div className="flex gap-3 justify-center">
             <div className="relative">
@@ -315,7 +356,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
               </Button>
               <input
                 type="file"
-                // @ts-ignore - webkitdirectory is non-standard
+                // @ts-ignore
                 webkitdirectory=""
                 directory=""
                 multiple
@@ -339,43 +380,65 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           </div>
         </div>
 
-        {/* File summary by folder */}
+        {/* File summary */}
         {files.length > 0 && (
           <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{files.length} קבצים מוכנים</span>
-              <Button variant="ghost" size="sm" onClick={clearAll} className="text-muted-foreground">
-                <X className="w-4 h-4 mr-1" /> נקה הכל
-              </Button>
-              <span className="text-sm font-medium">{files.length} קבצים מ-{Object.keys(groupedByFolder).length} תיקיות</span>
-              <div className="relative">
-                <Button variant="outline" size="sm" className="gap-2 border-primary text-primary">
-                  <FolderUp className="w-4 h-4" />
-                  הוסף תיקייה נוספת
-                </Button>
-                <input
-                  type="file"
-                  // @ts-ignore
-                  webkitdirectory=""
-                  directory=""
-                  multiple
-                  onChange={handleFolderSelect}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
+            {/* Summary bar */}
+            <div className="flex flex-wrap justify-between items-center gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">{files.length} קבצים</span>
+                <span className="text-xs text-muted-foreground">מ-{Object.keys(groupedByFolder).length} תיקיות</span>
+                {doneCount > 0 && (
+                  <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-400">
+                    <CheckCircle2 className="w-3 h-3 mr-1" /> {doneCount} הצליחו
+                  </Badge>
+                )}
+                {errFiles > 0 && (
+                  <Badge variant="secondary" className="text-xs bg-destructive/20 text-destructive">
+                    <AlertCircle className="w-3 h-3 mr-1" /> {errFiles} נכשלו
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {!isUploading && (
+                  <Button variant="ghost" size="sm" onClick={clearAll} className="text-muted-foreground">
+                    <X className="w-4 h-4 mr-1" /> נקה הכל
+                  </Button>
+                )}
+                <div className="relative">
+                  <Button variant="outline" size="sm" className="gap-2 border-primary text-primary">
+                    <FolderUp className="w-4 h-4" />
+                    הוסף תיקייה
+                  </Button>
+                  <input
+                    type="file"
+                    // @ts-ignore
+                    webkitdirectory=""
+                    directory=""
+                    multiple
+                    onChange={handleFolderSelect}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </div>
               </div>
             </div>
 
+            {/* Folder list */}
             <div className="max-h-64 overflow-y-auto space-y-2">
-              {Object.entries(groupedByFolder).map(([folder, folderFiles]) => {
+              {Object.entries(groupedByFolder).map(([folder, { files: folderFiles }]) => {
                 const firstFile = folderFiles[0];
-                const doneCount = folderFiles.filter(f => f.status === 'done').length;
-                const errorCount = folderFiles.filter(f => f.status === 'error').length;
+                const folderDone = folderFiles.filter(f => f.status === 'done').length;
+                const folderErr = folderFiles.filter(f => f.status === 'error').length;
+                const folderUploading = folderFiles.filter(f => f.status === 'uploading').length;
+                const folderProgress = folderFiles.length > 0 
+                  ? Math.round(((folderDone + folderErr) / folderFiles.length) * 100) 
+                  : 0;
                 
                 return (
                   <div key={folder} className="bg-card border border-border rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-sm">{folder}</span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary" className="text-xs">
                           {folderFiles.length} קבצים
                         </Badge>
@@ -389,48 +452,65 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                             {firstFile.holiday}
                           </Badge>
                         )}
-                        {doneCount === folderFiles.length && (
+                        {folderDone === folderFiles.length && folderDone > 0 && (
                           <CheckCircle2 className="w-4 h-4 text-green-500" />
                         )}
-                        {errorCount > 0 && (
-                          <AlertCircle className="w-4 h-4 text-destructive" />
+                        {folderErr > 0 && (
+                          <span className="text-xs text-destructive">{folderErr} שגיאות</span>
+                        )}
+                        {folderUploading > 0 && (
+                          <Loader2 className="w-4 h-4 text-primary animate-spin" />
                         )}
                       </div>
                     </div>
+                    {isUploading && folderProgress > 0 && folderProgress < 100 && (
+                      <Progress value={folderProgress} className="h-1 mt-1" />
+                    )}
                   </div>
                 );
               })}
             </div>
 
-            {/* Progress bar */}
-            {isUploading && (
+            {/* Overall progress */}
+            {(isUploading || doneCount > 0) && (
               <div className="space-y-2">
-                <Progress value={progress} className="h-2" />
-                <p className="text-xs text-muted-foreground text-center">
-                  {completed} / {files.length} — {progress}%
-                </p>
+                <Progress value={progress} className="h-3" />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{doneCount + errFiles} / {files.length} ({progress}%)</span>
+                  {isUploading && (
+                    <span>{CONCURRENT_UPLOADS} העלאות מקבילות</span>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Upload button */}
-            <Button
-              onClick={startUpload}
-              disabled={isUploading || files.length === 0}
-              className="w-full gap-2"
-              size="lg"
-            >
+            {/* Action buttons */}
+            <div className="flex gap-2">
               {isUploading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  מעלה...
+                  <Button onClick={togglePause} variant="outline" className="gap-2 flex-1">
+                    {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                    {isPaused ? 'המשך' : 'השהה'}
+                  </Button>
+                  <Button onClick={cancelUpload} variant="destructive" className="gap-2 flex-1">
+                    <X className="w-4 h-4" />
+                    בטל
+                  </Button>
                 </>
               ) : (
-                <>
+                <Button
+                  onClick={startUpload}
+                  disabled={pendingCount === 0 && errFiles === 0}
+                  className="w-full gap-2"
+                  size="lg"
+                >
                   <Upload className="w-4 h-4" />
-                  העלה {files.length} קבצים
-                </>
+                  {errFiles > 0 && pendingCount === 0
+                    ? `נסה שוב ${errFiles} קבצים שנכשלו`
+                    : `העלה ${pendingCount + errFiles} קבצים`}
+                </Button>
               )}
-            </Button>
+            </div>
           </div>
         )}
       </CardContent>
