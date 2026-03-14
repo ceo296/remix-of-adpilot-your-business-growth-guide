@@ -774,6 +774,19 @@ const DashboardHub = () => {
       {currentView === 'history' && renderHistoryView()}
       {currentView === 'status' && renderStatusView()}
       {currentView === 'my-materials' && renderMyMaterialsView()}
+      {currentView === 'radio-scripts' && (
+        <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+          <Button variant="ghost" onClick={() => setCurrentView('my-materials')} className="mb-4">
+            <ArrowLeft className="w-4 h-4 ml-2" />
+            חזרה לחומרים
+          </Button>
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-2">תסריטי רדיו</h2>
+            <p className="text-muted-foreground text-sm">כל הספוטים שיצרת</p>
+          </div>
+          <RadioScriptsGallery />
+        </div>
+      )}
     </div>
   );
 };
