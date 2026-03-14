@@ -1145,7 +1145,7 @@ const SectorBrain = () => {
                           <div key={g.id} className="flex items-start gap-2 p-2 bg-amber-50/50 dark:bg-amber-950/20 rounded border border-amber-200/50">
                             <Lightbulb className="h-3 w-3 text-amber-500 mt-1 shrink-0" />
                             <p className="flex-1 text-xs">{g.text_content}</p>
-                            <button onClick={() => removeUpload(g.id)} className="text-muted-foreground hover:text-destructive">
+                            <button onClick={() => requestDelete(g.id, undefined, g.text_content?.substring(0, 30))} className="text-muted-foreground hover:text-destructive">
                               <Trash2 className="h-3 w-3" />
                             </button>
                           </div>
