@@ -582,7 +582,10 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{doneCount + errFiles} / {files.length} ({progress}%)</span>
                   {isUploading && (
-                    <span>{CONCURRENT_UPLOADS} העלאות מקבילות</span>
+                    <span>
+                      {concurrency} מקבילות | {uploadSpeed > 0 ? `${uploadSpeed} קבצים/שנייה` : '...'}
+                      {uploadSpeed > 0 && pendingCount > 0 && ` | ~${Math.ceil(pendingCount / uploadSpeed)} שניות נותרו`}
+                    </span>
                   )}
                 </div>
               </div>
