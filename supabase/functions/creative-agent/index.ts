@@ -390,6 +390,24 @@ serve(async (req) => {
       if (sectorBrainData.insights?.length) {
         contextBlock += `\n=== תובנות AI מהמאגר ===\n${sectorBrainData.insights.join('\n\n')}\n`;
       }
+      // Inject copy examples by type — so the agent uses the right reference per media
+      if (sectorBrainData.copyByType && Object.keys(sectorBrainData.copyByType).length > 0) {
+        contextBlock += `\n=== דוגמאות קופי לפי סוג מדיה (${sectorBrainData.copyTypeSummary || ''}) ===\n`;
+        const COPY_LABELS: Record<string, string> = {
+          ad_copy: 'קופי מודעות', radio_script: 'תשדירי רדיו', banner_copy: 'קופי באנרים',
+          strategy: 'אסטרטגיות', brief: 'בריפים', article: 'כתבות יח"צ',
+          landing_page: 'דפי נחיתה', video_script: 'סטוריבורדים', copy: 'קופי כללי',
+        };
+        for (const [type, examples] of Object.entries(sectorBrainData.copyByType)) {
+          const label = COPY_LABELS[type] || type;
+          const items = (examples as any[]).slice(0, 5);
+          contextBlock += `\n--- ${label} (${(examples as any[]).length} דוגמאות) ---\n`;
+          for (const ex of items) {
+            contextBlock += `[${ex.name}]: ${ex.text}\n`;
+          }
+        }
+        contextBlock += `\nהוראה: כשאתה כותב קופי למודעה — למד מדוגמאות "קופי מודעות". כשכותב תשדיר — למד מ"תשדירי רדיו". התאם את הסגנון לסוג המדיה.\n`;
+      }
     }
 
     const messages: Array<{role: string; content: string}> = [

@@ -330,6 +330,22 @@ serve(async (req) => {
       if (sectorBrainData.insights?.length) {
         contextBlock += `\n=== תובנות AI מהמאגר — למד מהם! ===\n${sectorBrainData.insights.join('\n\n')}\n`;
       }
+      // Inject copy examples by type for visual+text integration
+      if (sectorBrainData.copyByType && Object.keys(sectorBrainData.copyByType).length > 0) {
+        contextBlock += `\n=== דוגמאות קופי לפי סוג — לשילוב בעיצוב ===\n`;
+        const COPY_LABELS: Record<string, string> = {
+          ad_copy: 'קופי מודעות', radio_script: 'תשדירי רדיו', banner_copy: 'קופי באנרים',
+          article: 'כתבות יח"צ', copy: 'קופי כללי',
+        };
+        for (const [type, examples] of Object.entries(sectorBrainData.copyByType)) {
+          const label = COPY_LABELS[type] || type;
+          const items = (examples as any[]).slice(0, 3);
+          contextBlock += `--- ${label} ---\n`;
+          for (const ex of items) {
+            contextBlock += `[${ex.name}]: ${ex.text?.substring(0, 300)}\n`;
+          }
+        }
+      }
     }
 
     // Holiday anti-mixing rules
