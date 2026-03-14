@@ -70,6 +70,50 @@ const TEMPLATE_PROMPTS: Record<string, string> = {
   'social-story': 'Vertical story format for Instagram/WhatsApp. Full-screen immersive design, swipe-up CTA area at bottom, bold vertical composition.',
 };
 
+// Media format-specific generation instructions (used when mediaType is passed)
+const MEDIA_FORMAT_INSTRUCTIONS: Record<string, string> = {
+  'banner': `
+MEDIA FORMAT: WEB BANNER / DIGITAL AD
+- Generate a WIDE HORIZONTAL image optimized for digital screens (leaderboard or rectangle banner format).
+- Use VIVID RGB colors suitable for screen display (not CMYK print tones).
+- Design must be SCROLL-STOPPING: bold focal point, high contrast, immediately readable composition.
+- The visual must work at SMALL SIZES — avoid tiny details that disappear when scaled down.
+- Keep the composition clean and MINIMAL — banners have limited real estate.
+- Leave clear horizontal zones for headline text overlay on the left/right side.
+- Think: Google Display Ads, web banners, WhatsApp status bars.
+`,
+  'billboard': `
+MEDIA FORMAT: OUTDOOR BILLBOARD / STREET SIGNAGE
+- Generate a WIDE PANORAMIC image (16:9 or wider) for LARGE-FORMAT outdoor display.
+- Design must be LEGIBLE FROM 50+ METERS: ultra-bold composition, maximum contrast, minimal elements.
+- Use NO MORE THAN 3-5 visual elements total — billboards are consumed in 3 seconds while driving.
+- MASSIVE subject: fill 70%+ of frame with the hero visual. Nothing tiny or detailed.
+- Colors must be HIGH CONTRAST and WEATHER-VISIBLE: works in direct sunlight and at night.
+- DRAMATIC SCALE: the visual should feel monumental, grand, and imposing.
+- The composition should feel like a CINEMA SCREEN — epic, wide, immersive.
+- MOCKUP CONTEXT: Imagine this displayed on a large outdoor billboard on an urban street. The design should feel powerful and contextually appropriate for outdoor advertising.
+- Leave a BOLD, PROMINENT zone for a very short headline (3-5 words max for billboard readability).
+`,
+  'social': `
+MEDIA FORMAT: SOCIAL MEDIA POST (SQUARE 1:1)
+- Generate a SQUARE image optimized for Instagram/Facebook/WhatsApp feed posts.
+- Design must be THUMB-STOPPING: immediately engaging when scrolling through a feed.
+- Use TRENDY aesthetics: modern gradients, lifestyle photography, aspirational compositions.
+- The visual should invite ENGAGEMENT — shareworthy, relatable, visually striking.
+- Instagram-quality photography: natural light feel, warm tones, lifestyle context.
+- Leave strategic space for text overlay that doesn't obscure the main subject.
+`,
+  'ad': `
+MEDIA FORMAT: PRINT ADVERTISEMENT (NEWSPAPER/MAGAZINE)
+- Generate a TALL PORTRAIT image for print media (approximately 3:4 ratio).
+- Use PRINT-OPTIMIZED colors: rich, deep tones that reproduce well in CMYK print.
+- Design follows EDITORIAL AD conventions: clear visual hierarchy, professional grid structure.
+- Think full-page magazine advertisements: luxurious, detailed, high-production-value photography.
+- PREMIUM PRINT QUALITY: fine textures, subtle gradients, editorial photography standards.
+- Structure: headline zone at top, hero visual center, contact/logo bar at bottom.
+`,
+};
+
 // Media type to config mapping
 const MEDIA_TYPE_MAP: Record<string, string> = {
   'newspaper': 'print_ads',
@@ -582,6 +626,13 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
       aspectInstruction = 'IMAGE ORIENTATION: Generate a SQUARE image (1:1 ratio).';
     }
 
+    // Media format-specific instructions
+    const mediaFormatKey = mediaType || (aspectRatio === 'landscape' ? 'banner' : aspectRatio === 'portrait' ? 'ad' : 'social');
+    const mediaFormatInstructions = MEDIA_FORMAT_INSTRUCTIONS[mediaFormatKey] || '';
+    if (mediaFormatInstructions) {
+      console.log(`[Pipeline] Applying media format instructions for: ${mediaFormatKey}`);
+    }
+
     const visualOnlyPrompt = `Generate a VISUALLY STUNNING, AWARD-WINNING advertisement IMAGE with ABSOLUTELY ZERO TEXT AND ZERO LOGOS.
 
 CRITICAL - NO TEXT, NO LOGOS:
@@ -631,6 +682,7 @@ ${headlinePosition === 'bottom' ? `
 - The subject should be CLOSE, LARGE, and COMMANDING — not tiny in the middle of empty space
 
 ${aspectInstruction}
+${mediaFormatInstructions}
 
 VISUAL CONCEPT: ${effectiveVisualPrompt}
 STYLE: ${styleDesc}
