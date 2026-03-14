@@ -83,42 +83,46 @@ ${brief?.timeLimitText ? `מגבלת זמן: ${brief.timeLimitText}` : ""}
 }`;
 
     let result: any;
+    let rawText = '';
 
+    // Try Gemini first, then fallback to Lovable Gateway
+    let geminiSuccess = false;
     if (GEMINI_KEY) {
-      const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              { role: "user", parts: [{ text: systemPrompt + "\n\n" + userPrompt }] },
-            ],
-            generationConfig: { temperature: 0.8, maxOutputTokens: 4000 },
-          }),
+      try {
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                { role: "user", parts: [{ text: systemPrompt + "\n\n" + userPrompt }] },
+              ],
+              generationConfig: { temperature: 0.8, maxOutputTokens: 4000 },
+            }),
+          }
+        );
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          geminiSuccess = true;
+        } else {
+          console.warn("Gemini failed, falling back to Gateway:", geminiRes.status);
         }
-      );
-
-      if (!geminiRes.ok) {
-        const errText = await geminiRes.text();
-        console.error("Gemini error:", geminiRes.status, errText);
-        throw new Error(`Gemini API error: ${geminiRes.status}`);
+      } catch (e) {
+        console.warn("Gemini error, falling back to Gateway:", e);
       }
+    }
 
-      const geminiData = await geminiRes.json();
-      const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      
-      // Extract JSON from response
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("No JSON found in AI response");
-      
-      result = JSON.parse(jsonMatch[0]);
-    } else {
-      // Fallback to Lovable AI Gateway
+    if (!geminiSuccess) {
+      const GATEWAY_KEY = LOVABLE_KEY;
+      if (!GATEWAY_KEY) throw new Error("No AI API key configured for fallback");
+
       const gatewayRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_KEY}`,
+          Authorization: `Bearer ${GATEWAY_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -147,11 +151,13 @@ ${brief?.timeLimitText ? `מגבלת זמן: ${brief.timeLimitText}` : ""}
       }
 
       const gatewayData = await gatewayRes.json();
-      const rawText = gatewayData.choices?.[0]?.message?.content || "";
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("No JSON found in AI response");
-      result = JSON.parse(jsonMatch[0]);
+      rawText = gatewayData.choices?.[0]?.message?.content || "";
     }
+
+    // Extract JSON from response
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found in AI response");
+    result = JSON.parse(jsonMatch[0]);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
