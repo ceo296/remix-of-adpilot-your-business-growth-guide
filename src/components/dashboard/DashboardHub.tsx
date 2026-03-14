@@ -495,7 +495,10 @@ const DashboardHub = () => {
         </div>
       )}
 
-      <div className="flex justify-center gap-3 pt-4 border-t border-border">
+      <div className="flex flex-wrap justify-center gap-3 pt-4 border-t border-border">
+        <Button variant="outline" size="sm" onClick={() => setCurrentView('radio-scripts')} className="gap-1.5">
+          <Radio className="w-4 h-4" /> תסריטי רדיו
+        </Button>
         <Button variant="outline" size="sm" onClick={() => navigate('/presentation-studio')} className="gap-1.5">
           <Sparkles className="w-4 h-4" /> מצגת חדשה
         </Button>
