@@ -376,7 +376,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
               </Button>
               <input
                 type="file"
-                accept="image/*,application/pdf"
+                accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 multiple
                 onChange={handleFileSelect}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
