@@ -2204,6 +2204,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             targetGender={mediaTargetGender}
             targetStream={mediaTargetStream}
             contactPhone={clientProfile?.contact_phone || ''}
+            clientProfileId={clientProfile?.id}
             onComplete={() => {
               setShowResults(false);
               setShowMediaSelection(true);
