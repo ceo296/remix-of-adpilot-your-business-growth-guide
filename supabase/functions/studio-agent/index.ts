@@ -58,7 +58,19 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
         example_type: e.example_type,
         topic: e.topic_category,
       }));
-    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, imageExamples, guidelines, insights };
+
+    // Group text examples by copy type for intelligent retrieval
+    const TEXT_TYPES = new Set(['text', 'copy', 'ad_copy', 'radio_script', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus']);
+    const copyByType: Record<string, { name: string; text: string; topic?: string }[]> = {};
+    for (const item of allExamples) {
+      if (item.text_content && TEXT_TYPES.has(item.media_type || '')) {
+        const mt = item.media_type || 'copy';
+        if (!copyByType[mt]) copyByType[mt] = [];
+        copyByType[mt].push({ name: item.name, text: item.text_content.substring(0, 500), topic: item.topic_category });
+      }
+    }
+
+    return { total_examples: allExamples.length, topic_specific_count: topicExamples.length, topic: topicCategory || null, holiday_specific_count: holidayExamples.length, holiday: holidaySeason || null, zones: grouped, imageExamples, guidelines, insights, copyByType };
   } catch { return null; }
 }
 
@@ -317,6 +329,22 @@ serve(async (req) => {
       }
       if (sectorBrainData.insights?.length) {
         contextBlock += `\n=== תובנות AI מהמאגר — למד מהם! ===\n${sectorBrainData.insights.join('\n\n')}\n`;
+      }
+      // Inject copy examples by type for visual+text integration
+      if (sectorBrainData.copyByType && Object.keys(sectorBrainData.copyByType).length > 0) {
+        contextBlock += `\n=== דוגמאות קופי לפי סוג — לשילוב בעיצוב ===\n`;
+        const COPY_LABELS: Record<string, string> = {
+          ad_copy: 'קופי מודעות', radio_script: 'תשדירי רדיו', banner_copy: 'קופי באנרים',
+          article: 'כתבות יח"צ', copy: 'קופי כללי',
+        };
+        for (const [type, examples] of Object.entries(sectorBrainData.copyByType)) {
+          const label = COPY_LABELS[type] || type;
+          const items = (examples as any[]).slice(0, 3);
+          contextBlock += `--- ${label} ---\n`;
+          for (const ex of items) {
+            contextBlock += `[${ex.name}]: ${ex.text?.substring(0, 300)}\n`;
+          }
+        }
       }
     }
 
