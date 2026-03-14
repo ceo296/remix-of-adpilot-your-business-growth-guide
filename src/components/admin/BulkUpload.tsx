@@ -436,8 +436,8 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           <FolderUp className="h-5 w-5 text-primary" />
           העלאה מרובה — Bulk Upload
         </CardTitle>
-        <CardDescription>
-          גררו תיקיות שלמות או בחרו קבצים מרובים. שם התיקייה ישמש לסיווג אוטומטי. תומך בהעלאת מאות קבצים.
+        <CardDescription className="text-xs">
+          גררו תיקיות שלמות או בחרו קבצים מרובים. שם התיקייה ישמש לסיווג אוטומטי. מותאם ל-1000+ קבצים.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
