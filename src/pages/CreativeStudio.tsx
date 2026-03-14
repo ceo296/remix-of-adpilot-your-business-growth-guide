@@ -699,7 +699,7 @@ const CreativeStudio = () => {
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     
     // Special back navigation for radio
-    if (currentStep === 6 && isOnlyRadio) {
+    if (currentStep === 8 && isOnlyRadio) {
       setCurrentStep(1);
       return;
     }
