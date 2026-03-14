@@ -122,7 +122,7 @@ ${brief?.timeLimitText ? `מגבלת זמן: ${brief.timeLimitText}` : ""}
       const gatewayRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${key}`,
+          Authorization: `Bearer ${GATEWAY_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
