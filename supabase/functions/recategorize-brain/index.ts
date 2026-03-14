@@ -106,13 +106,25 @@ Deno.serve(async (req) => {
       let changed = false;
 
       // Re-detect topic from file name
+      let topicDetected = false;
       for (const [regex, val] of TOPIC_HINTS) {
         if (regex.test(fn)) {
           if (newTopic !== val) {
             newTopic = val;
             changed = true;
           }
+          topicDetected = true;
           break;
+        }
+      }
+      // If no topic detected from filename and current topic seems wrong
+      // (e.g. article about health stuck in kids_fashion), clear it
+      if (!topicDetected && newTopic) {
+        // Keep topic only if it's a fashion category that could come from folder name
+        // For text files (articles, copy etc.), clear suspicious topic assignments
+        if (isTextFile) {
+          newTopic = null;
+          changed = true;
         }
       }
 
