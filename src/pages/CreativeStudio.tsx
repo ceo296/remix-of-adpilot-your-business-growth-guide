@@ -27,6 +27,7 @@ import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaT
 import { StudioDesignApproachStep, DesignApproach, PastMaterialReference } from '@/components/studio/StudioDesignApproachStep';
 import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
 import { RadioScriptStep } from '@/components/studio/RadioScriptStep';
+import { ComponentFeedbackPicker, type AdComponent } from '@/components/studio/ComponentFeedbackPicker';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
 import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor';
@@ -1162,38 +1163,45 @@ const CreativeStudio = () => {
   };
 
   // Feedback handlers
-  const handleSubmitFeedback = async () => {
-    if (!feedbackText.trim()) {
+  const handleSubmitFeedback = async (componentFeedbacks?: { component: AdComponent; text: string }[]) => {
+    // Support both legacy (single textarea) and new component-level feedback
+    const corrections: { type: string; text: string }[] = [];
+
+    if (componentFeedbacks && componentFeedbacks.length > 0) {
+      // New component-level feedback
+      for (const fb of componentFeedbacks) {
+        corrections.push({ type: fb.component, text: fb.text });
+      }
+    } else if (feedbackText.trim()) {
+      // Legacy single textarea
+      corrections.push({ type: feedbackType || 'general', text: feedbackText.trim() });
+    } else {
       toast.error('נא להזין פירוט');
       return;
     }
+
+    setPendingCorrections(prev => [...prev, ...corrections]);
     
-    // Store correction as separate context — do NOT pollute the visual/text prompts
-    const newCorrection = {
-      type: feedbackType || 'general',
-      text: feedbackText.trim(),
-    };
-    setPendingCorrections(prev => [...prev, newCorrection]);
-    
-    // Save correction as a pending creative rule (insight) for admin approval
-    // This ensures recurring corrections become permanent rules for ALL future creatives
+    // Save corrections as pending creative rules
     try {
-      const correctionText = feedbackText.trim();
       const targetInfo = selectedSketchIds.length > 0 
         ? `(סקיצות: ${selectedSketchIds.join(', ')})` 
         : '(כל הסקיצות)';
-      const correctionContent = `[תיקון קריאייטיב] ${correctionText} ${targetInfo}`;
       
-      await supabase.from('sector_brain_insights').insert({
-        insight_type: 'creative_correction',
-        content: correctionContent,
-        is_active: false, // Pending admin approval
-      });
+      for (const corr of corrections) {
+        const correctionContent = `[תיקון ${corr.type}] ${corr.text} ${targetInfo}`;
+        await supabase.from('sector_brain_insights').insert({
+          insight_type: 'creative_correction',
+          content: correctionContent,
+          is_active: false,
+        });
+      }
     } catch (e) {
       console.warn('Failed to save correction as insight:', e);
     }
     
-    toast.info('מייצר סקיצות מתוקנות... 🎨');
+    const partCount = corrections.length;
+    toast.info(`מייצר סקיצות מתוקנות (${partCount} ${partCount === 1 ? 'תיקון' : 'תיקונים'})... 🎨`);
     
     // Reset feedback UI
     setFeedbackMode('none');
@@ -1201,7 +1209,7 @@ const CreativeStudio = () => {
     setFeedbackType(null);
     setSelectedSketchIds([]);
     
-    // Regenerate — corrections will be passed as separate field to the edge function
+    // Regenerate
     await handleGenerate();
   };
 
@@ -2633,99 +2641,49 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                       </Card>
                     )}
 
-                    {/* Feedback Type Selection - Copy vs Visual (after sketch selected) */}
-                    {feedbackMode === 'small-fixes' && selectedSketchIds.length > 0 && !feedbackType && (
-                      <Card className="p-5 max-w-2xl mx-auto animate-fade-in">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-lg">איפה נדרש התיקון?</h3>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setFeedbackMode('none');
-                                setFeedbackText('');
-                                setSelectedSketchIds([]);
-                              }}
-                            >
-                              ביטול
-                            </Button>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {selectedSketchIds.length === generatedImages.filter(img => img.status !== 'rejected').length
-                              ? '📌 תיקון על כל הסקיצות'
-                              : `📌 תיקון על סקיצה ${generatedImages.findIndex(img => img.id === selectedSketchIds[0]) + 1}`}
-                          </p>
-                          <div className="grid grid-cols-2 gap-4">
-                            <Button
-                              variant="outline"
-                              size="lg"
-                              onClick={() => setFeedbackType('copy')}
-                              className="flex flex-col h-auto py-6 gap-2 border-2 hover:border-primary hover:bg-primary/5"
-                            >
-                              <Type className="h-8 w-8 text-primary" />
-                              <span className="font-bold">הקופי / המלל</span>
-                              <span className="text-xs text-muted-foreground">כותרות, טקסטים, ניסוחים</span>
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="lg"
-                              onClick={() => setFeedbackType('visual')}
-                              className="flex flex-col h-auto py-6 gap-2 border-2 hover:border-primary hover:bg-primary/5"
-                            >
-                              <ImageIcon className="h-8 w-8 text-primary" />
-                              <span className="font-bold">הוויזואל / העיצוב</span>
-                              <span className="text-xs text-muted-foreground">תמונות, צבעים, פריסה</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
+                    {/* Component-Level Feedback Picker (after sketch selected) */}
+                    {feedbackMode === 'small-fixes' && selectedSketchIds.length > 0 && (
+                      <ComponentFeedbackPicker
+                        sketchLabel={
+                          selectedSketchIds.length === generatedImages.filter(img => img.status !== 'rejected').length
+                            ? 'כל הסקיצות'
+                            : `סקיצה ${generatedImages.findIndex(img => img.id === selectedSketchIds[0]) + 1}`
+                        }
+                        onSubmit={(feedbacks) => handleSubmitFeedback(feedbacks)}
+                        onCancel={() => {
+                          setFeedbackMode('none');
+                          setFeedbackText('');
+                          setFeedbackType(null);
+                          setSelectedSketchIds([]);
+                        }}
+                      />
                     )}
 
-                    {/* Feedback Text Area - appears after selecting type or for another-round */}
-                    {(feedbackMode === 'another-round' || (feedbackMode === 'small-fixes' && feedbackType)) && (
+                    {/* Another Round - general feedback textarea */}
+                    {feedbackMode === 'another-round' && (
                       <Card className="p-5 max-w-2xl mx-auto animate-fade-in">
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-lg">
-                              {feedbackMode === 'another-round' 
-                                ? 'מה היית רוצה לשנות בסבב הבא?' 
-                                : feedbackType === 'copy' 
-                                  ? 'מה לתקן בקופי/מלל?' 
-                                  : 'מה לתקן בוויזואל/עיצוב?'}
-                            </h3>
+                            <h3 className="font-bold text-lg">מה היית רוצה לשנות בסבב הבא?</h3>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => {
                                 setFeedbackMode('none');
                                 setFeedbackText('');
-                                setFeedbackType(null);
-                                setSelectedSketchIds([]);
                               }}
                             >
                               ביטול
                             </Button>
                           </div>
-                          {feedbackType && (
-                            <Badge variant="secondary" className="mb-2">
-                              {feedbackType === 'copy' ? '📝 תיקון קופי' : '🎨 תיקון וויזואל'}
-                            </Badge>
-                          )}
                           <Textarea
                             value={feedbackText}
                             onChange={(e) => setFeedbackText(e.target.value)}
-                            placeholder={
-                              feedbackMode === 'another-round'
-                                ? 'פרט מה לא התחבר, מה חשוב להדגיש יותר...'
-                                : feedbackType === 'copy'
-                                  ? 'פרט את התיקונים בטקסט - כותרות, ניסוחים, מסרים...'
-                                  : 'פרט את התיקונים בעיצוב - צבעים, תמונות, פריסה...'
-                            }
+                            placeholder="פרט מה לא התחבר, מה חשוב להדגיש יותר..."
                             className="min-h-[120px] text-right"
                             dir="rtl"
                           />
-                          <Button onClick={handleSubmitFeedback} className="w-full">
+                          <Button onClick={() => handleSubmitFeedback()} className="w-full" disabled={!feedbackText.trim()}>
                             שלח
                           </Button>
                         </div>
