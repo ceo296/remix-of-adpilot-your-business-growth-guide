@@ -99,20 +99,30 @@ serve(async (req) => {
     
     console.log(`Analyzing content for insight type: ${insightType}`);
 
-    // Fetch all examples and links
-    const [examplesRes, linksRes] = await Promise.all([
-      supabase.from('sector_brain_examples').select('*').order('created_at', { ascending: false }).limit(200),
-      supabase.from('sector_brain_links').select('*').order('created_at', { ascending: false }).limit(50),
-    ]);
-
-    if (examplesRes.error) {
-      console.error('Error fetching examples:', examplesRes.error);
+    // Fetch ALL examples with pagination (no limit)
+    let allExamples: any[] = [];
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data: page, error: pageError } = await supabase
+        .from('sector_brain_examples')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(from, from + pageSize - 1);
+      if (pageError) { console.error('Pagination error:', pageError); break; }
+      if (page) allExamples = [...allExamples, ...page];
+      if (!page || page.length < pageSize) break;
+      from += pageSize;
     }
+    console.log(`Fetched ${allExamples.length} total examples from DB`);
+
+    const linksRes = await supabase.from('sector_brain_links').select('*').order('created_at', { ascending: false }).limit(50);
+
     if (linksRes.error) {
       console.error('Error fetching links:', linksRes.error);
     }
 
-    const examples = examplesRes.data || [];
+    const examples = allExamples;
     const links = linksRes.data || [];
 
     // Fetch content from links

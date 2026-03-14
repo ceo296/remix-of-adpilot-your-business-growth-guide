@@ -560,6 +560,49 @@ const SectorBrain = () => {
     }
   };
 
+  // Auto-generate all insights in batch
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
+  
+  const generateAllInsights = async () => {
+    setIsGeneratingInsights(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) { toast.error('יש להתחבר מחדש'); setIsGeneratingInsights(false); return; }
+      
+      toast.info('🧠 מייצר תובנות מכל החומרים... זה יכול לקחת כדקה');
+      
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-brain-insights`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({}),
+      });
+      
+      if (!response.ok) {
+        if (response.status === 429) toast.error('הגעת למגבלת בקשות. נסה שוב בעוד כמה דקות.');
+        else if (response.status === 402) toast.error('נגמרו הקרדיטים.');
+        else toast.error('שגיאה ביצירת תובנות');
+        return;
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        toast.success(`✅ נוצרו ${result.insights_saved} תובנות מ-${result.total_examples} חומרים! הסוכנים מעודכנים.`);
+        loadInsightsCount();
+      } else {
+        toast.error('שגיאה: ' + (result.error || 'לא ידוע'));
+      }
+    } catch (error) {
+      console.error('Generate insights error:', error);
+      toast.error('שגיאה ביצירת תובנות');
+    } finally {
+      setIsGeneratingInsights(false);
+    }
+  };
+
   // Auto-describe images
   const [isDescribing, setIsDescribing] = useState(false);
   const [describeProgress, setDescribeProgress] = useState<{ processed: number; remaining: number } | null>(null);
@@ -637,6 +680,16 @@ const SectorBrain = () => {
               {describeProgress && describeProgress.remaining > 0 && (
                 <span className="text-xs bg-primary/20 rounded-full px-1.5 mr-1">{describeProgress.remaining}</span>
               )}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={generateAllInsights} 
+              disabled={isGeneratingInsights}
+              title="יצירת תובנות אוטומטית מכל החומרים ושמירה לסוכנים"
+            >
+              {isGeneratingInsights ? <Loader2 className="h-4 w-4 ml-1 animate-spin" /> : <Brain className="h-4 w-4 ml-1" />}
+              {isGeneratingInsights ? 'מייצר תובנות...' : 'ייצר תובנות'}
             </Button>
             <Button variant="outline" size="sm" onClick={loadExamples} disabled={isLoading}>
               <RefreshCw className={cn("h-4 w-4 ml-1", isLoading && "animate-spin")} />
@@ -1062,7 +1115,7 @@ const SectorBrain = () => {
                       </CardHeader>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <CardContent><BulkUpload onUploadComplete={loadExamples} /></CardContent>
+                      <CardContent><BulkUpload onUploadComplete={() => { loadExamples(); generateAllInsights(); }} /></CardContent>
                     </CollapsibleContent>
                   </Card>
                 </Collapsible>
