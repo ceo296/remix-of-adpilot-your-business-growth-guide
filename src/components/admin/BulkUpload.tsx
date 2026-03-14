@@ -371,7 +371,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         >
           <Upload className="w-10 h-10 mx-auto text-primary mb-3" />
           <p className="font-medium text-foreground mb-1">גררו קבצים או תיקיות לכאן</p>
-          <p className="text-sm text-muted-foreground mb-4">ניתן לבחור מספר תיקיות — הכל מצטבר ברשימה</p>
+          <p className="text-sm text-muted-foreground mb-4">ניתן לבחור תיקיות אחת אחרי השנייה — הכל מצטבר ברשימה אוטומטית ✨</p>
           
           <div className="flex gap-3 justify-center">
             <div className="relative">
