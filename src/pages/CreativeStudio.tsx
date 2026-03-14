@@ -556,10 +556,10 @@ const CreativeStudio = () => {
   }, [activeCustomTemplate?.id]);
 
   const getSteps = () => {
-    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach
+    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     if (isOnlyRadio) {
-      return [0, 1, 6]; // Brief, MediaType, Prompt (for script)
+      return [0, 1, 8]; // Brief, MediaType, Radio Script
     }
     if (assetChoice === 'full-campaign') {
       return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
