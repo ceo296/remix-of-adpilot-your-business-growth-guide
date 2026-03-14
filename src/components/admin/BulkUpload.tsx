@@ -171,7 +171,12 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
   const processFiles = (fileList: FileList) => {
     const newFiles: BulkFile[] = [];
     for (const file of Array.from(fileList)) {
-      if (!file.type.startsWith('image/') && !file.type.startsWith('application/pdf')) continue;
+      const isImage = file.type.startsWith('image/');
+      const isPdf = file.type === 'application/pdf';
+      const isWord = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+        || file.type === 'application/msword'
+        || file.name.endsWith('.docx') || file.name.endsWith('.doc');
+      if (!isImage && !isPdf && !isWord) continue;
       let folderName = '';
       const relativePath = (file as any).webkitRelativePath || '';
       if (relativePath) {
