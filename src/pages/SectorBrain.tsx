@@ -962,7 +962,7 @@ const SectorBrain = () => {
                               <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{upload.text_content}</p>
                             )}
                           </div>
-                          <button onClick={(e) => { e.stopPropagation(); removeUpload(upload.id, upload.file_path); }} className="text-muted-foreground hover:text-destructive shrink-0">
+                          <button onClick={(e) => { e.stopPropagation(); requestDelete(upload.id, upload.file_path, upload.name); }} className="text-muted-foreground hover:text-destructive shrink-0">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
