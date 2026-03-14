@@ -374,7 +374,15 @@ const SectorBrain = () => {
     } catch (error) { toast.error('לא ניתן להדביק. נסה להעתיק תמונה ללוח'); }
   }, [activeMediaType, selectedExampleType, selectedStream, selectedGender, selectedTopic, selectedHoliday]);
 
-  const removeUpload = async (id: string, filePath?: string) => {
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; filePath?: string; name: string } | null>(null);
+
+  const requestDelete = (id: string, filePath?: string, name?: string) => {
+    setDeleteConfirm({ id, filePath, name: name || 'פריט' });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    const { id, filePath } = deleteConfirm;
     if (filePath && filePath !== '' && filePath !== 'guideline' && filePath !== 'general-guideline') {
       await supabase.storage.from('sector-brain').remove([filePath]);
     }
@@ -383,6 +391,7 @@ const SectorBrain = () => {
     setUploads(prev => prev.filter(u => u.id !== id));
     setGuidelines(prev => prev.filter(g => g.id !== id));
     toast.success('נמחק בהצלחה');
+    setDeleteConfirm(null);
   };
 
   const handleAddGuideline = async () => {
