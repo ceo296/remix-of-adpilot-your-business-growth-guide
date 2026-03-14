@@ -1047,7 +1047,7 @@ const SectorBrain = () => {
                               key={m.id}
                               variant={activeMediaType === m.id ? 'default' : 'outline'}
                               size="sm"
-                              onClick={() => setActiveMediaType(m.id)}
+                              onClick={() => setActiveMediaType(m.id as MediaType)}
                               className="gap-1"
                             >
                               <Icon className="h-3.5 w-3.5" /> {m.label}
