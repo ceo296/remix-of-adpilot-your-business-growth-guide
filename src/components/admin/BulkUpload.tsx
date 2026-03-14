@@ -536,6 +536,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary" className="text-xs">
                           {folderFiles.length} קבצים
+                          {folderFiles.some(f => f.originalPdfName) && ` (מתוך PDF)`}
                         </Badge>
                         {firstFile.topic && (
                           <Badge variant="outline" className="text-xs text-primary">
