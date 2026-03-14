@@ -200,7 +200,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
       }
       const { topic, mediaType, holiday } = detectCategory(folderName);
       
-      if (isPdf) {
+      if (isPdf && splitPdfs) {
         pdfFiles.push({ file, folderName, topic, mediaType, holiday });
       } else {
         newFiles.push({ file, folderName, topic, mediaType, holiday, status: 'pending' });
@@ -212,7 +212,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
       setFiles(prev => [...prev, ...newFiles]);
     }
 
-    // Split PDFs into individual pages
+    // Split PDFs into individual pages (only if toggle is on)
     if (pdfFiles.length > 0) {
       setIsSplitting(true);
       toast.info(`מפרק ${pdfFiles.length} קבצי PDF לעמודים בודדים...`);
@@ -223,7 +223,6 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           const pageImages = await pdfToImages(arrayBuffer, { scale: 2 });
           
           const pdfPageFiles: BulkFile[] = pageImages.map((dataUrl, pageIdx) => {
-            // Convert data URL to Blob
             const byteString = atob(dataUrl.split(',')[1]);
             const ab = new ArrayBuffer(byteString.length);
             const ia = new Uint8Array(ab);
@@ -250,7 +249,6 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           toast.success(`${pdfItem.file.name}: ${pageImages.length} עמודים חולצו`);
         } catch (err) {
           console.error('PDF split error:', err);
-          // Fallback: add as single file
           setFiles(prev => [...prev, { 
             file: pdfItem.file, folderName: pdfItem.folderName, 
             topic: pdfItem.topic, mediaType: pdfItem.mediaType, 
