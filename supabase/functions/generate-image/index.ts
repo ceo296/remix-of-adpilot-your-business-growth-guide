@@ -682,6 +682,7 @@ ${headlinePosition === 'bottom' ? `
 - The subject should be CLOSE, LARGE, and COMMANDING — not tiny in the middle of empty space
 
 ${aspectInstruction}
+${mediaFormatInstructions}
 
 VISUAL CONCEPT: ${effectiveVisualPrompt}
 STYLE: ${styleDesc}
