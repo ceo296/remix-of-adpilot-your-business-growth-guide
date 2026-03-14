@@ -111,8 +111,13 @@ interface BulkFile {
   topic: string | null;
   mediaType: string;
   holiday: string | null;
-  status: 'pending' | 'uploading' | 'done' | 'error';
+  status: 'pending' | 'uploading' | 'done' | 'error' | 'splitting';
   errorMsg?: string;
+  // For PDF pages split into individual images
+  pdfPageBlob?: Blob;
+  pdfPageIndex?: number;
+  pdfTotalPages?: number;
+  originalPdfName?: string;
 }
 
 interface BulkUploadProps {
