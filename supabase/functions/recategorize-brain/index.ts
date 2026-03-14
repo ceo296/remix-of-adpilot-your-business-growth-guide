@@ -73,13 +73,22 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get all records
-    const { data: records, error } = await supabase
-      .from('sector_brain_examples')
-      .select('id, name, file_type, topic_category, media_type, holiday_season')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
+    // Fetch ALL records with pagination (bypass 1000 limit)
+    let allRecords: any[] = [];
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data: page, error: pageError } = await supabase
+        .from('sector_brain_examples')
+        .select('id, name, file_type, topic_category, media_type, holiday_season')
+        .order('created_at', { ascending: false })
+        .range(from, from + pageSize - 1);
+      if (pageError) throw pageError;
+      if (page) allRecords = [...allRecords, ...page];
+      if (!page || page.length < pageSize) break;
+      from += pageSize;
+    }
+    const records = allRecords;
 
     let updated = 0;
     let changes: { id: string; name: string; oldTopic: string | null; newTopic: string | null; oldMedia: string | null; newMedia: string | null }[] = [];
