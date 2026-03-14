@@ -616,6 +616,7 @@ const CreativeStudio = () => {
       case 5: return style !== null;
       case 6: return visualPrompt.trim().length > 0;
       case 7: return designApproach !== null;
+      case 8: return true; // Radio step manages its own flow
       default: return false;
     }
   };
