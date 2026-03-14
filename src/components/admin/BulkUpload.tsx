@@ -164,7 +164,7 @@ async function processInBatches<T>(
   await Promise.all(workers);
 }
 
-const CONCURRENT_UPLOADS = 5;
+const CONCURRENT_UPLOADS_DEFAULT = 10;
 
 const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
   const [isSplitting, setIsSplitting] = useState(false);
@@ -174,6 +174,10 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
   const [progress, setProgress] = useState(0);
   const [completed, setCompleted] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
+  const [splitPdfs, setSplitPdfs] = useState(false);
+  const [concurrency, setConcurrency] = useState(CONCURRENT_UPLOADS_DEFAULT);
+  const [uploadSpeed, setUploadSpeed] = useState(0); // files per second
+  const uploadStartTimeRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const pauseRef = useRef(false);
 
