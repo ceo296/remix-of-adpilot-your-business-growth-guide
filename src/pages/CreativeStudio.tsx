@@ -26,6 +26,7 @@ import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/
 import { StudioMediaTypeStep, MediaType } from '@/components/studio/StudioMediaTypeStep';
 import { StudioDesignApproachStep, DesignApproach, PastMaterialReference } from '@/components/studio/StudioDesignApproachStep';
 import { StudioCopyStep, CopyChoice } from '@/components/studio/StudioCopyStep';
+import { RadioScriptStep } from '@/components/studio/RadioScriptStep';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { TextOverlayEditor } from '@/components/studio/TextOverlayEditor';
 import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor';
