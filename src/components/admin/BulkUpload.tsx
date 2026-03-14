@@ -278,19 +278,39 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
           .upload(fileName, item.file);
         if (uploadError) throw uploadError;
 
-        const { error: dbError } = await supabase
+        const { data: dbData, error: dbError } = await supabase
           .from('sector_brain_examples')
           .insert({
             zone: 'fame',
             name: originalName,
             file_path: fileName,
-            file_type: item.file.type,
+            file_type: item.file.type || (item.file.name.endsWith('.docx') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'application/octet-stream'),
             media_type: item.mediaType,
             example_type: 'good',
             topic_category: item.topic,
             holiday_season: item.holiday,
-          });
+          })
+          .select('id')
+          .single();
         if (dbError) throw dbError;
+
+        // If it's a Word file, extract text in the background
+        const isWord = item.file.name.endsWith('.docx') || item.file.name.endsWith('.doc');
+        if (isWord && dbData?.id) {
+          // Fire and forget - don't block the upload
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-docx`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              },
+              body: JSON.stringify({ file_path: fileName, record_id: dbData.id }),
+            }).catch(err => console.warn('Text extraction failed:', err));
+          }
+        }
 
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done' } : f));
         doneCount++;
