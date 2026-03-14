@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move, Radio } from 'lucide-react';
 import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
 import { matchTemplateFromAnalysis, buildLayoutInstructions } from '@/lib/template-matcher';
 import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
@@ -338,6 +338,7 @@ const CreativeStudio = () => {
   const [adaptedCreatives, setAdaptedCreatives] = useState<AdaptedCreative[]>([]);
   const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
   const [showPipeline, setShowPipeline] = useState(false);
+  const [showAutopilotRadio, setShowAutopilotRadio] = useState(false);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
@@ -2088,6 +2089,13 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       } else {
         toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
+
+      // For 360° campaigns, also trigger radio script generation
+      const includes360 = mediaTypes.includes('all');
+      if (includes360) {
+        setShowAutopilotRadio(true);
+        toast.info('מייצר גם ספוט רדיו לקמפיין 360°... 🎙️');
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error('שגיאה ביצירת התמונות');
@@ -2575,6 +2583,38 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                     </Card>
                   ))}
                 </div>
+
+                {/* Radio Script Section for 360° campaigns */}
+                {showAutopilotRadio && (
+                  <div className="mt-10 pt-8 border-t-2 border-primary/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-purple-500/30 flex items-center justify-center">
+                        <Radio className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">ספוט רדיו</h3>
+                        <p className="text-sm text-muted-foreground">חלק מקמפיין 360° שלך</p>
+                      </div>
+                    </div>
+                    <RadioScriptStep
+                      brief={{
+                        offer: campaignBrief.offer,
+                        adGoal: campaignBrief.adGoal,
+                        goal: campaignBrief.goal,
+                        emotionalTone: campaignBrief.emotionalTone,
+                        priceOrBenefit: campaignBrief.priceOrBenefit,
+                        timeLimitText: campaignBrief.timeLimitText,
+                      }}
+                      brandContext={clientProfile ? {
+                        businessName: clientProfile.business_name,
+                        targetAudience: clientProfile.target_audience,
+                      } : null}
+                      targetGender={mediaTargetGender}
+                      targetStream={mediaTargetStream}
+                      contactPhone={clientProfile?.contact_phone || ''}
+                    />
+                  </div>
+                )}
 
                 {/* Feedback Section */}
                 {!isGenerating && generatedImages.some(img => img.status === 'approved' || img.status === 'needs-review') && (
