@@ -83,6 +83,61 @@ const FOLDER_TO_HOLIDAY: Record<string, string> = {
   'אלול': 'rosh_hashana',
 };
 
+// ===== FILE NAME INTELLIGENCE =====
+// Detect topic from file name when folder didn't provide one
+const FILENAME_TOPIC_HINTS: [RegExp, string][] = [
+  [/נדל["\u0022\u201D]?ן|real.?estate|דירות|פרויקט.*מגורים/i, 'real_estate'],
+  [/אופנ[הת].*ילד|kids.?fashion|בגדי ילדים/i, 'kids_fashion'],
+  [/אופנ[הת].*נש|womens?.?fashion/i, 'womens_fashion'],
+  [/אופנ[הת].*גבר|mens?.?fashion/i, 'mens_fashion'],
+  [/מלון|hotel|נופש|צימר|resort/i, 'hotels'],
+  [/רפואה|רופא|דוקטור|שיפר|השתלת|רפואי|קליני|בריאות/i, 'health'],
+  [/סלולר|גלקסי|סמסונג|טלפון|אייפון/i, 'cellular'],
+  [/ריהוט|רהיט|עיצוב הבית/i, 'furniture'],
+  [/מזון|אוכל|מסעדה|קייטרינג/i, 'food'],
+  [/ביוטי|טיפוח|קוסמטיקה|יופי/i, 'beauty'],
+  [/איפור|מייקאפ|makeup/i, 'makeup'],
+  [/לימודים|סדנ[אה]|קורס|בצלאל|סמינר|חינוך|ישיבה|כולל/i, 'education'],
+  [/ביטוח|פיננס|השקעות|משכנתא/i, 'finance'],
+  [/אירוע|שמחה|חתונה|בר.?מצווה/i, 'events'],
+  [/תכשיט|שעון|כלי כסף/i, 'jewelry'],
+  [/פאה|פאות|שיער/i, 'wigs'],
+  [/צעצוע|משחק/i, 'toys'],
+  [/יודאיקה|ספר.?קודש|תורה/i, 'judaica'],
+  [/חשמל|אלקטרוני/i, 'electronics'],
+  [/מיתוג|branding|לוגו/i, 'branding'],
+];
+
+// Detect media_type from file name + file type
+const FILENAME_MEDIA_HINTS: [RegExp, string][] = [
+  [/תשדיר|ג\'ינגל|רדיו|תוכנית רדיו/i, 'radio_script'],
+  [/מודעה|מודעת|מלל למודע|אופציות.*מודע|קופי|טקסט.*מודע|copy/i, 'ad_copy'],
+  [/באנר|banner/i, 'banner_copy'],
+  [/אסטרטגי|strategy|מבט אסטרטגי/i, 'strategy'],
+  [/בריף|brief|תדריך/i, 'brief'],
+  [/כתבה|כתבות|מאמר|טור|article/i, 'article'],
+  [/דף נחיתה|landing/i, 'landing_page'],
+  [/סטוריבורד|storyboard|סרטון/i, 'video_script'],
+  [/תסריט שיחה|סקריפט שיחה/i, 'sales_script'],
+  [/הסכם|חוזה|contract/i, 'contract'],
+  [/שאלון|survey/i, 'survey'],
+  [/ברכה|greeting/i, 'greeting'],
+  [/פלאייר|flyer|פליירים/i, 'flyer_copy'],
+  [/פרוספקט|prospectus|קטלוג/i, 'prospectus'],
+];
+
+// Holiday detection from file name
+const FILENAME_HOLIDAY_HINTS: [RegExp, string][] = [
+  [/פסח|pesach/i, 'pesach'],
+  [/חנוכה|chanuk/i, 'chanukah'],
+  [/פורים|purim/i, 'purim'],
+  [/סוכות|sukkot/i, 'sukkot'],
+  [/שבועות|shavuot/i, 'shavuot'],
+  [/ראש השנה|rosh.?hashana/i, 'rosh_hashana'],
+  [/אלול|elul/i, 'rosh_hashana'],
+  [/בין הזמנים|בין המצרים/i, 'bein_hazmanim'],
+];
+
 const TOPIC_LABELS: Record<string, string> = {
   real_estate: 'נדל"ן',
   beauty: 'ביוטי',
@@ -104,7 +159,31 @@ const TOPIC_LABELS: Record<string, string> = {
   furniture: 'ריהוט',
   jewelry: 'תכשיטים',
   wigs: 'פאות',
+  branding: 'מיתוג',
   other: 'אחר',
+};
+
+const MEDIA_TYPE_LABELS: Record<string, string> = {
+  ads: 'מודעות',
+  ad_copy: 'קופי מודעה',
+  radio_script: 'תשדיר רדיו',
+  banner_copy: 'קופי באנר',
+  strategy: 'אסטרטגיה',
+  brief: 'בריף',
+  article: 'כתבה',
+  landing_page: 'דף נחיתה',
+  video_script: 'סטוריבורד/וידאו',
+  sales_script: 'תסריט שיחה',
+  flyer_copy: 'פלאייר',
+  prospectus: 'פרוספקט',
+  signage: 'שילוט',
+  radio: 'רדיו',
+  video: 'וידאו',
+  promo: 'קדמ',
+  copy: 'קופי',
+  contract: 'חוזה',
+  survey: 'שאלון',
+  greeting: 'ברכה',
 };
 
 interface BulkFile {
@@ -115,7 +194,6 @@ interface BulkFile {
   holiday: string | null;
   status: 'pending' | 'uploading' | 'done' | 'error' | 'splitting';
   errorMsg?: string;
-  // For PDF pages split into individual images
   pdfPageBlob?: Blob;
   pdfPageIndex?: number;
   pdfTotalPages?: number;
@@ -126,12 +204,13 @@ interface BulkUploadProps {
   onUploadComplete: () => void;
 }
 
-function detectCategory(folderName: string): { topic: string | null; mediaType: string; holiday: string | null } {
+function detectCategory(folderName: string, fileName: string, fileType: string): { topic: string | null; mediaType: string; holiday: string | null } {
   const normalized = folderName.trim();
   let topic: string | null = null;
   let mediaType = 'ads';
   let holiday: string | null = null;
 
+  // 1. Try folder name first
   for (const [key, value] of Object.entries(FOLDER_TO_TOPIC)) {
     if (normalized.includes(key) || key.includes(normalized)) { topic = value; break; }
   }
@@ -140,6 +219,33 @@ function detectCategory(folderName: string): { topic: string | null; mediaType: 
   }
   for (const [key, value] of Object.entries(FOLDER_TO_HOLIDAY)) {
     if (normalized.includes(key) || key.includes(normalized)) { holiday = value; break; }
+  }
+
+  // 2. Override/enrich from file name (smarter detection)
+  const fn = fileName.toLowerCase();
+  
+  // Topic from file name - always try, override generic folder match
+  for (const [regex, val] of FILENAME_TOPIC_HINTS) {
+    if (regex.test(fn)) { topic = val; break; }
+  }
+
+  // Media type from file name - especially for text files
+  const isTextFile = fileType.includes('word') || fileType.includes('msword') 
+    || fileName.endsWith('.docx') || fileName.endsWith('.doc') || fileName.endsWith('.txt');
+  
+  if (isTextFile) {
+    // Default text files to 'copy' unless we find something more specific
+    mediaType = 'copy';
+    for (const [regex, val] of FILENAME_MEDIA_HINTS) {
+      if (regex.test(fn)) { mediaType = val; break; }
+    }
+  }
+
+  // Holiday from file name
+  if (!holiday) {
+    for (const [regex, val] of FILENAME_HOLIDAY_HINTS) {
+      if (regex.test(fn)) { holiday = val; break; }
+    }
   }
 
   return { topic, mediaType, holiday };
@@ -198,7 +304,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         const parts = relativePath.split('/');
         folderName = parts.length > 1 ? parts[parts.length - 2] : '';
       }
-      const { topic, mediaType, holiday } = detectCategory(folderName);
+      const { topic, mediaType, holiday } = detectCategory(folderName, file.name, file.type);
       
       if (isPdf && splitPdfs) {
         pdfFiles.push({ file, folderName, topic, mediaType, holiday });
@@ -553,7 +659,6 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
             {/* Folder list */}
             <div className="max-h-64 overflow-y-auto space-y-2">
               {Object.entries(groupedByFolder).map(([folder, { files: folderFiles }]) => {
-                const firstFile = folderFiles[0];
                 const folderDone = folderFiles.filter(f => f.status === 'done').length;
                 const folderErr = folderFiles.filter(f => f.status === 'error').length;
                 const folderUploading = folderFiles.filter(f => f.status === 'uploading').length;
@@ -561,25 +666,28 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
                   ? Math.round(((folderDone + folderErr) / folderFiles.length) * 100) 
                   : 0;
                 
+                // Group by media type within folder
+                const mediaTypes = [...new Set(folderFiles.map(f => f.mediaType))];
+                const topics = [...new Set(folderFiles.map(f => f.topic).filter(Boolean))];
+                
                 return (
                   <div key={folder} className="bg-card border border-border rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-sm">{folder}</span>
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <Badge variant="secondary" className="text-xs">
                           {folderFiles.length} קבצים
-                          {folderFiles.some(f => f.originalPdfName) && ` (מתוך PDF)`}
                         </Badge>
-                        {firstFile.topic && (
-                          <Badge variant="outline" className="text-xs text-primary">
-                            {TOPIC_LABELS[firstFile.topic] || firstFile.topic}
+                        {topics.map(t => (
+                          <Badge key={t} variant="outline" className="text-xs text-primary">
+                            {TOPIC_LABELS[t!] || t}
                           </Badge>
-                        )}
-                        {firstFile.holiday && (
-                          <Badge variant="outline" className="text-xs">
-                            {firstFile.holiday}
+                        ))}
+                        {mediaTypes.filter(m => m !== 'ads').map(m => (
+                          <Badge key={m} variant="outline" className="text-xs bg-accent/50">
+                            {MEDIA_TYPE_LABELS[m] || m}
                           </Badge>
-                        )}
+                        ))}
                         {folderDone === folderFiles.length && folderDone > 0 && (
                           <CheckCircle2 className="w-4 h-4 text-green-500" />
                         )}
