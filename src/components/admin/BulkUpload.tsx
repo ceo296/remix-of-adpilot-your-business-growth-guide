@@ -304,7 +304,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         const parts = relativePath.split('/');
         folderName = parts.length > 1 ? parts[parts.length - 2] : '';
       }
-      const { topic, mediaType, holiday } = detectCategory(folderName);
+      const { topic, mediaType, holiday } = detectCategory(folderName, file.name, file.type);
       
       if (isPdf && splitPdfs) {
         pdfFiles.push({ file, folderName, topic, mediaType, holiday });
