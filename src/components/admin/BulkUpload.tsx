@@ -400,7 +400,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
       setProgress(Math.round(((doneCount + errCount) / total) * 100));
     };
 
-    await processInBatches(pendingIndexes, CONCURRENT_UPLOADS, uploadOne, controller.signal);
+    await processInBatches(pendingIndexes, concurrency, uploadOne, controller.signal);
 
     setIsUploading(false);
     abortRef.current = null;
