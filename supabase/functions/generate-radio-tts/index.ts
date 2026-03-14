@@ -15,75 +15,74 @@ serve(async (req) => {
     if (!script) throw new Error("Missing script text");
 
     const GEMINI_KEY = Deno.env.get("GOOGLE_GEMINI_API_KEY");
-    if (!GEMINI_KEY) throw new Error("GOOGLE_GEMINI_API_KEY is not configured");
+    const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    // Use Gemini TTS via the multimodal API
-    // Build voice style instruction for the model
     const voiceInstruction = buildVoiceInstruction(voiceDirection);
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
+    // Try Gemini TTS first
+    let audioPart: any = null;
+    if (GEMINI_KEY) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
                 {
-                  text: `${voiceInstruction}\n\nPlease read the following Hebrew radio advertisement script aloud with proper pronunciation, intonation, and emotion:\n\n${script}`,
+                  role: "user",
+                  parts: [
+                    {
+                      text: `${voiceInstruction}\n\nPlease read the following Hebrew radio advertisement script aloud with proper pronunciation, intonation, and emotion:\n\n${script}`,
+                    },
+                  ],
                 },
               ],
-            },
-          ],
-          generationConfig: {
-            responseModalities: ["AUDIO"],
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: {
-                  voiceName: selectVoice(voiceDirection),
+              generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                  voiceConfig: {
+                    prebuiltVoiceConfig: {
+                      voiceName: selectVoice(voiceDirection),
+                    },
+                  },
                 },
               },
-            },
-          },
-        }),
-      }
-    );
+            }),
+          }
+        );
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Gemini TTS error:", response.status, errText);
-      throw new Error(`Gemini TTS API error: ${response.status}`);
+        if (response.ok) {
+          const data = await response.json();
+          audioPart = data.candidates?.[0]?.content?.parts?.find(
+            (p: any) => p.inlineData?.mimeType?.startsWith("audio/")
+          );
+        } else {
+          console.warn("Gemini TTS failed:", response.status);
+        }
+      } catch (e) {
+        console.warn("Gemini TTS error:", e);
+      }
     }
 
-    const data = await response.json();
-    
-    // Extract audio data from response
-    const audioPart = data.candidates?.[0]?.content?.parts?.find(
-      (p: any) => p.inlineData?.mimeType?.startsWith("audio/")
-    );
-
-    if (!audioPart?.inlineData) {
-      // Fallback: if Gemini doesn't return audio, return text-only
-      console.warn("No audio returned from Gemini TTS, returning text-only");
+    if (audioPart?.inlineData) {
       return new Response(
         JSON.stringify({ 
-          audioAvailable: false, 
-          message: "קריינות אינה זמינה כרגע. התסריט מוכן כטקסט." 
+          audioAvailable: true,
+          audioBase64: audioPart.inlineData.data,
+          mimeType: audioPart.inlineData.mimeType,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const audioBase64 = audioPart.inlineData.data;
-    const mimeType = audioPart.inlineData.mimeType;
-
+    // Fallback: no audio available
+    console.warn("No audio from Gemini TTS, returning text-only");
     return new Response(
       JSON.stringify({ 
-        audioAvailable: true,
-        audioBase64,
-        mimeType,
+        audioAvailable: false, 
+        message: "קריינות אינה זמינה כרגע. התסריט מוכן כטקסט." 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
