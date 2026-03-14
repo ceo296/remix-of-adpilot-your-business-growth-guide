@@ -152,6 +152,7 @@ const SectorBrain = () => {
   const [filterTopic, setFilterTopic] = useState<string>('all');
   const [filterHoliday, setFilterHoliday] = useState<string>('all');
   const [filterMedia, setFilterMedia] = useState<string>('all');
+  const [filterCopyType, setFilterCopyType] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
 
   // AI Insights
@@ -269,6 +270,7 @@ const SectorBrain = () => {
     const byTopic: Record<string, number> = {};
     const byHoliday: Record<string, number> = {};
     const byMedia: Record<string, number> = {};
+    const byCopyType: Record<string, number> = {};
     let untaggedTopic = 0;
     let untaggedHoliday = 0;
 
@@ -287,9 +289,13 @@ const SectorBrain = () => {
       const mt = u.media_type || 'other';
       const groupedMt = TEXT_MEDIA_TYPES.has(mt) ? 'text' : mt;
       byMedia[groupedMt] = (byMedia[groupedMt] || 0) + 1;
+      // Track sub-types within text
+      if (TEXT_MEDIA_TYPES.has(mt)) {
+        byCopyType[mt] = (byCopyType[mt] || 0) + 1;
+      }
     });
 
-    return { byTopic, byHoliday, byMedia, untaggedTopic, untaggedHoliday, total: uploads.length, guidelines: guidelines.length };
+    return { byTopic, byHoliday, byMedia, byCopyType, untaggedTopic, untaggedHoliday, total: uploads.length, guidelines: guidelines.length };
   }, [uploads, guidelines]);
 
   // === Filtered browse ===
@@ -309,12 +315,14 @@ const SectorBrain = () => {
         if (filterMedia === 'text') {
           // "מלל" filter matches all text-based types
           if (!TEXT_MEDIA_TYPES.has(u.media_type || '')) return false;
+          // Sub-filter by copy type
+          if (filterCopyType !== 'all' && u.media_type !== filterCopyType) return false;
         } else if (u.media_type !== filterMedia) return false;
       }
       if (filterType !== 'all' && u.example_type !== filterType) return false;
       return true;
     });
-  }, [uploads, filterTopic, filterHoliday, filterMedia, filterType]);
+  }, [uploads, filterTopic, filterHoliday, filterMedia, filterCopyType, filterType]);
 
   // === Upload handlers ===
   const handleAddText = async () => {
@@ -868,8 +876,8 @@ const SectorBrain = () => {
                     <div className="flex items-center gap-2 mb-3">
                       <Filter className="h-4 w-4 text-primary" />
                       <span className="text-sm font-medium">סינון דוגמאות</span>
-                      {(filterTopic !== 'all' || filterHoliday !== 'all' || filterMedia !== 'all' || filterType !== 'all') && (
-                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setFilterTopic('all'); setFilterHoliday('all'); setFilterMedia('all'); setFilterType('all'); }}>
+                      {(filterTopic !== 'all' || filterHoliday !== 'all' || filterMedia !== 'all' || filterType !== 'all' || filterCopyType !== 'all') && (
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setFilterTopic('all'); setFilterHoliday('all'); setFilterMedia('all'); setFilterCopyType('all'); setFilterType('all'); }}>
                           נקה הכל
                         </Button>
                       )}
@@ -905,7 +913,7 @@ const SectorBrain = () => {
                       </div>
                       <div>
                         <Label className="text-xs text-muted-foreground mb-1 block">סוג מדיה</Label>
-                        <Select value={filterMedia} onValueChange={setFilterMedia}>
+                        <Select value={filterMedia} onValueChange={(v) => { setFilterMedia(v); if (v !== 'text') setFilterCopyType('all'); }}>
                           <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">הכל</SelectItem>
@@ -915,6 +923,25 @@ const SectorBrain = () => {
                           </SelectContent>
                         </Select>
                       </div>
+                      {filterMedia === 'text' && (
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">סוג קופי</Label>
+                          <Select value={filterCopyType} onValueChange={setFilterCopyType}>
+                            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">כל סוגי המלל ({stats.byMedia['text'] || 0})</SelectItem>
+                              {Object.entries(stats.byCopyType)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([key, count]) => (
+                                  <SelectItem key={key} value={key}>
+                                    {COPY_TYPE_LABELS[key] || key} ({count})
+                                  </SelectItem>
+                                ))
+                              }
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                       <div>
                         <Label className="text-xs text-muted-foreground mb-1 block">סוג דוגמה</Label>
                         <Select value={filterType} onValueChange={setFilterType}>
