@@ -946,7 +946,7 @@ const SectorBrain = () => {
                               )}
                               {upload.media_type && (
                                 <Badge variant="outline" className="text-[10px] py-0">
-                                  {MEDIA_TYPES.find(m => m.id === upload.media_type)?.label}
+                                  {MEDIA_TYPES.find(m => m.id === upload.media_type)?.label || COPY_TYPE_LABELS[upload.media_type as string] || upload.media_type}
                                 </Badge>
                               )}
                             </div>
