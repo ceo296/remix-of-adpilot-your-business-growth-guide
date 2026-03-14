@@ -320,6 +320,7 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
     setIsPaused(false);
     pauseRef.current = false;
     setErrorCount(0);
+    uploadStartTimeRef.current = Date.now();
 
     const controller = new AbortController();
     abortRef.current = controller;
