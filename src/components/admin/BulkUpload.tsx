@@ -482,7 +482,6 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
         // If it's a Word file, extract text in the background
         const isWord = item.file.name.endsWith('.docx') || item.file.name.endsWith('.doc');
         if (isWord && dbData?.id) {
-          // Fire and forget - don't block the upload
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.access_token) {
             fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-docx`, {
@@ -494,6 +493,27 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
               },
               body: JSON.stringify({ file_path: fileName, record_id: dbData.id }),
             }).catch(err => console.warn('Text extraction failed:', err));
+          }
+        }
+
+        // If it's an audio file, transcribe in the background
+        const isAudio = item.file.type?.startsWith('audio/') 
+          || /\.(mp3|wav|m4a|ogg|aac|flac|wma)$/i.test(item.file.name);
+        if (isAudio && dbData?.id) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              },
+              body: JSON.stringify({ file_path: fileName, record_id: dbData.id }),
+            }).then(async (res) => {
+              if (res.ok) console.log('Audio transcribed:', item.file.name);
+              else console.warn('Audio transcription failed:', await res.text());
+            }).catch(err => console.warn('Audio transcription failed:', err));
           }
         }
 
