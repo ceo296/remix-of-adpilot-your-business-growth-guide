@@ -389,6 +389,9 @@ const BulkUpload = ({ onUploadComplete }: BulkUploadProps) => {
 
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done' } : f));
         doneCount++;
+        // Track speed
+        const elapsed = (Date.now() - uploadStartTimeRef.current) / 1000;
+        if (elapsed > 0) setUploadSpeed(Math.round(doneCount / elapsed * 10) / 10);
       } catch (err: any) {
         console.error('Upload error:', err);
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'error', errorMsg: err?.message || 'שגיאה' } : f));
