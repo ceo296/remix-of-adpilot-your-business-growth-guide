@@ -2584,6 +2584,38 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   ))}
                 </div>
 
+                {/* Radio Script Section for 360° campaigns */}
+                {showAutopilotRadio && (
+                  <div className="mt-10 pt-8 border-t-2 border-primary/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-purple-500/30 flex items-center justify-center">
+                        <Radio className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">ספוט רדיו</h3>
+                        <p className="text-sm text-muted-foreground">חלק מקמפיין 360° שלך</p>
+                      </div>
+                    </div>
+                    <RadioScriptStep
+                      brief={{
+                        offer: campaignBrief.offer,
+                        adGoal: campaignBrief.adGoal,
+                        goal: campaignBrief.goal,
+                        emotionalTone: campaignBrief.emotionalTone,
+                        priceOrBenefit: campaignBrief.priceOrBenefit,
+                        timeLimitText: campaignBrief.timeLimitText,
+                      }}
+                      brandContext={clientProfile ? {
+                        businessName: clientProfile.business_name,
+                        targetAudience: clientProfile.target_audience,
+                      } : null}
+                      targetGender={mediaTargetGender}
+                      targetStream={mediaTargetStream}
+                      contactPhone={clientProfile?.contact_phone || ''}
+                    />
+                  </div>
+                )}
+
                 {/* Feedback Section */}
                 {!isGenerating && generatedImages.some(img => img.status === 'approved' || img.status === 'needs-review') && (
                   <div className="mt-8 space-y-4">
