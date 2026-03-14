@@ -61,6 +61,8 @@ export const RadioScriptStep = ({
   targetStream = '',
   contactPhone = '',
   onComplete,
+  clientProfileId,
+  campaignId,
 }: RadioScriptStepProps) => {
   const [phase, setPhase] = useState<Phase>('generating');
   const [data, setData] = useState<RadioScriptData | null>(null);
