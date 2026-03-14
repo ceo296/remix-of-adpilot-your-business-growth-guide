@@ -315,6 +315,8 @@ const SectorBrain = () => {
         if (filterMedia === 'text') {
           // "מלל" filter matches all text-based types
           if (!TEXT_MEDIA_TYPES.has(u.media_type || '')) return false;
+          // Sub-filter by copy type
+          if (filterCopyType !== 'all' && u.media_type !== filterCopyType) return false;
         } else if (u.media_type !== filterMedia) return false;
       }
       if (filterType !== 'all' && u.example_type !== filterType) return false;
