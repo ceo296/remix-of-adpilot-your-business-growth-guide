@@ -22,7 +22,9 @@ import {
   MapPin,
   MessageCircle,
   Globe,
-  Clock
+  Clock,
+  PartyPopper,
+  Newspaper
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
