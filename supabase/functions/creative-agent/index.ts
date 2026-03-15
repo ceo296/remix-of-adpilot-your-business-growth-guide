@@ -331,11 +331,24 @@ serve(async (req) => {
     }
 
     if (brandContext) {
-      contextBlock += `\n=== נכסי מותג ===\n`;
-      if (brandContext.businessName) contextBlock += `שם: ${brandContext.businessName}\n`;
-      if (brandContext.primaryColor) contextBlock += `צבע ראשי: ${brandContext.primaryColor}\n`;
-      if (brandContext.secondaryColor) contextBlock += `צבע משני: ${brandContext.secondaryColor}\n`;
-      if (brandContext.xFactors?.length) contextBlock += `גורמי X: ${brandContext.xFactors.join(', ')}\n`;
+      contextBlock += `\n=== תעודת זהות מותגית מלאה (Brand Identity Card) ===\n`;
+      if (brandContext.businessName) contextBlock += `שם העסק: ${brandContext.businessName}\n`;
+      if (brandContext.targetAudience) contextBlock += `קהל יעד: ${brandContext.targetAudience}\n`;
+      if (brandContext.endConsumer) contextBlock += `הצרכן הסופי: ${brandContext.endConsumer}\n`;
+      if (brandContext.decisionMaker) contextBlock += `מקבל ההחלטה: ${brandContext.decisionMaker}\n`;
+      if (brandContext.primaryXFactor) contextBlock += `בידול עיקרי (X-Factor): ${brandContext.primaryXFactor}\n`;
+      if (brandContext.winningFeature) contextBlock += `תכונה מנצחת: ${brandContext.winningFeature}\n`;
+      if (brandContext.xFactors?.length) contextBlock += `בידולים נוספים: ${brandContext.xFactors.join(', ')}\n`;
+      if (brandContext.services?.length) contextBlock += `שירותים/מוצרים: ${brandContext.services.join(', ')}\n`;
+      if (brandContext.competitors?.length) contextBlock += `מתחרים (להתבדל מהם!): ${brandContext.competitors.join(', ')}\n`;
+      if (brandContext.advantageType) contextBlock += `סוג יתרון: ${brandContext.advantageType}\n`;
+      if (brandContext.audienceTone) contextBlock += `טון פנייה לקהל: ${brandContext.audienceTone}\n`;
+      if (brandContext.brandPresence) contextBlock += `רמת נוכחות מותג: ${brandContext.brandPresence}\n`;
+      if (brandContext.honorificPreference) contextBlock += `סגנון פנייה (לשון כבוד): ${brandContext.honorificPreference}\n`;
+      if (brandContext.personalRedLines?.length) contextBlock += `קווים אדומים אישיים (אסור!): ${brandContext.personalRedLines.join('; ')}\n`;
+      if (brandContext.successfulCampaigns?.length) contextBlock += `קמפיינים מוצלחים בעבר (חזור על האנרגיה הזו): ${brandContext.successfulCampaigns.join('; ')}\n`;
+      if (brandContext.colors?.primary) contextBlock += `צבע ראשי: ${brandContext.colors.primary}\n`;
+      if (brandContext.colors?.secondary) contextBlock += `צבע משני: ${brandContext.colors.secondary}\n`;
       if (brandContext.businessPhotoUrls?.length) {
         contextBlock += `\n📸 ללקוח יש ${brandContext.businessPhotoUrls.length} תמונות עסק/מוצר אמיתיות. הקריאייטיב צריך להתחשב במוצרים/סביבה האמיתיים ולא להמציא ויזואל מנותק.\n`;
       }
@@ -345,6 +358,8 @@ serve(async (req) => {
       if (brandContext.contactWhatsapp) contextBlock += `וואטסאפ: ${brandContext.contactWhatsapp}\n`;
       if (brandContext.contactEmail) contextBlock += `מייל: ${brandContext.contactEmail}\n`;
       if (brandContext.contactAddress) contextBlock += `כתובת: ${brandContext.contactAddress}\n`;
+      if (brandContext.websiteUrl) contextBlock += `אתר: ${brandContext.websiteUrl}\n`;
+      if (brandContext.branches) contextBlock += `סניפים: ${brandContext.branches}\n`;
       contextBlock += `הנחיה: כלול את פרטי הקשר הרלוונטיים ב-CTA ובגריד התחתון של כל קונספט. הטלפון הוא החשוב ביותר.\n`;
     }
 
