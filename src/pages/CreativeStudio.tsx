@@ -2120,13 +2120,14 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
 
-      // For 360° campaigns, also trigger radio script generation
+      // For 360° campaigns, also trigger radio, article, and banner generation
       const includes360 = mediaTypes.includes('all');
       if (includes360) {
+        // Radio
         setShowAutopilotRadio(true);
         toast.info('מייצר גם ספוט רדיו לקמפיין 360°... 🎙️');
 
-        // Also generate article for 360°
+        // Article
         setShowAutopilotArticle(true);
         setIsGeneratingArticle(true);
         supabase.functions.invoke('generate-internal-material', {
@@ -2155,6 +2156,20 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             toast.success('כתבה פרסומית נוצרה! 📰');
           }
         }).catch(() => {}).finally(() => setIsGeneratingArticle(false));
+
+        // Banner — generate a landscape version using the same concept
+        setShowAutopilotBanner(true);
+        setIsGeneratingBanner(true);
+        toast.info('מייצר באנר דיגיטלי לקמפיין 360°... 🖥️');
+        generateImageForConcept(selectedConcept, 99, brandContext, campaignContext, 'banner')
+          .then((bannerUrl) => {
+            if (bannerUrl) {
+              setAutopilotBannerUrl(bannerUrl);
+              toast.success('באנר דיגיטלי נוצר! 🖥️');
+            }
+          })
+          .catch(() => {})
+          .finally(() => setIsGeneratingBanner(false));
       }
     } catch (error) {
       console.error('Error:', error);
