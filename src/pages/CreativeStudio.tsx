@@ -99,6 +99,8 @@ interface ClientProfile {
   quality_signatures: any[] | null;
   honorific_preference: string | null;
   website_url: string | null;
+  branches: string | null;
+  opening_hours: string | null;
 }
 
 interface CustomTemplate {
@@ -245,6 +247,14 @@ function detectTopicCategory(text: string): string | null {
     if (keywords.some(kw => lower.includes(kw))) return topic;
   }
   return null;
+}
+
+function sanitizeVisualPrompt(prompt: string): string {
+  return (prompt || '')
+    .replace(/\[(?:Visual\s*approach|Design\s*approach)[^\]]*\]/gi, '')
+    .replace(/\b(CONTACT\s*DETAILS(?:\s*DARK)?|BOTTOM-LEFT|TOP-RIGHT|BRANCH\s*LOCATIONS?|PHONE\s*NUMBERS?|LOGO\s*ZONE)\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 const CreativeStudio = () => {
@@ -489,7 +499,7 @@ const CreativeStudio = () => {
 
       const { data: profiles } = await supabase
         .from('client_profiles')
-        .select('id, business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, past_materials_fonts, business_photos, default_template_id, services, competitors, audience_tone, brand_presence, personal_red_lines, successful_campaigns, quality_signatures, honorific_preference, website_url')
+        .select('id, business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, past_materials_fonts, business_photos, default_template_id, services, competitors, audience_tone, brand_presence, personal_red_lines, successful_campaigns, quality_signatures, honorific_preference, website_url, branches, opening_hours')
         .eq('user_id', user.id)
         .eq('is_agency_profile', false)
         .eq('onboarding_completed', true)
@@ -803,54 +813,13 @@ const CreativeStudio = () => {
       const results: GeneratedImage[] = [];
       
       // Generate 4 variations
-      // Build brand context for AI - use campaign color selection if set
-      const colorSelection = campaignBrief.colorSelection;
-      const effectiveColors = {
-        primary: colorSelection.mode === 'swapped' 
-          ? colorSelection.primaryColor || clientProfile?.secondary_color 
-          : clientProfile?.primary_color,
-        secondary: colorSelection.mode === 'swapped' 
-          ? colorSelection.secondaryColor || clientProfile?.primary_color 
-          : clientProfile?.secondary_color,
-        background: colorSelection.backgroundColor || clientProfile?.background_color,
+      const brandContext = buildBrandContext();
+      const effectiveColors = brandContext?.colors || {
+        primary: clientProfile?.primary_color || null,
+        secondary: clientProfile?.secondary_color || null,
+        background: clientProfile?.background_color || null,
       };
-
-      // Extract ad layout analysis from past materials
-      const pastMaterialsAnalysis = (clientProfile?.past_materials as any[])
-        ?.filter((m: any) => m.adAnalysis)
-        ?.map((m: any) => m.adAnalysis)
-        ?.slice(0, 3) || [];
-
-      // Extract actual past material image URLs for AI reference
-      const pastMaterialUrls = (clientProfile?.past_materials as any[])
-        ?.filter((m: any) => m.url || m.preview)
-        ?.map((m: any) => m.url || m.preview)
-        ?.filter((url: string) => url && !url.startsWith('data:application/pdf'))
-        ?.slice(0, 3) || [];
-
-      const brandContext = clientProfile ? {
-        businessName: clientProfile.business_name,
-        targetAudience: clientProfile.target_audience,
-        primaryXFactor: clientProfile.primary_x_factor,
-        winningFeature: clientProfile.winning_feature,
-        xFactors: clientProfile.x_factors,
-        colors: effectiveColors,
-        fonts: {
-          header: clientProfile.header_font,
-          body: clientProfile.body_font,
-        },
-        colorMode: colorSelection.mode,
-        pastMaterialsAnalysis,
-        pastMaterialUrls, // Actual image URLs for AI visual reference
-        layoutInstructions: buildLayoutInstructions(pastMaterialsAnalysis),
-        designApproach: designApproach || null,
-        designReference: designReference ? { url: designReference.url, adAnalysis: designReference.adAnalysis } : null,
-        // Contact info for the edge function to use in textMeta
-        contactPhone: clientProfile.contact_phone || '',
-        contactEmail: clientProfile.contact_email || '',
-        contactAddress: clientProfile.contact_address || '',
-        contactWhatsapp: clientProfile.contact_whatsapp || '',
-      } : null;
+      const sanitizedVisualPrompt = sanitizeVisualPrompt(visualPrompt);
 
       // Resolve PDF logo to PNG if needed
       const resolvedLogo = await getResolvedLogoUrl();
@@ -888,7 +857,7 @@ const CreativeStudio = () => {
         
         const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
-            visualPrompt,
+            visualPrompt: sanitizedVisualPrompt || visualPrompt,
             textPrompt: textPrompt || null,
             style: style || 'ultra-realistic',
             engine: engineVersion,
@@ -901,7 +870,7 @@ const CreativeStudio = () => {
             topicCategory: detectedTopic,
             holidaySeason: selectedHoliday || null,
             aspectRatio,
-            designApproach: designApproach || null,
+            designApproach: designApproach || (brandContext as any)?.designApproach || null,
             corrections: pendingCorrections.length > 0 ? pendingCorrections : undefined,
             variationIndex: i,
             headlinePosition: headlinePositions[i],
