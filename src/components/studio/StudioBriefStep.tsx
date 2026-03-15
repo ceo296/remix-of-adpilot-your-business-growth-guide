@@ -117,12 +117,15 @@ export interface BrandColors {
   background_color?: string | null;
 }
 
+export type BriefCampaignScope = 'full-campaign' | 'has-visual' | 'has-copy' | null;
+
 interface StudioBriefStepProps {
   value: CampaignBrief;
   onChange: (brief: CampaignBrief) => void;
   businessName?: string;
   contactInfo?: ContactInfo;
   brandColors?: BrandColors;
+  campaignScope?: BriefCampaignScope;
 }
 
 // Map adGoal to legacy CampaignGoal for backward compat
