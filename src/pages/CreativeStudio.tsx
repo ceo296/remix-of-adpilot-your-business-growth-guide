@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move, Radio, Newspaper } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move, Radio, Newspaper, Monitor } from 'lucide-react';
 import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
 import { matchTemplateFromAnalysis, buildLayoutInstructions } from '@/lib/template-matcher';
 import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
