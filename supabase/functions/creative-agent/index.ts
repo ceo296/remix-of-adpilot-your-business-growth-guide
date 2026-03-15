@@ -331,16 +331,19 @@ serve(async (req) => {
     }
 
     if (brandContext) {
-      contextBlock += `\n=== תעודת זהות מותגית מלאה (Brand Identity Card) ===\n`;
+      contextBlock += `\n=== תעודת זהות מותגית (Brand DNA — רקע אסטרטגי בלבד!) ===\n`;
+      contextBlock += `⚠️ חשוב מאוד: המידע הבא הוא רקע אסטרטגי בלבד. הוא משמש להבנת הטון, הבידול והערכים של העסק.\n`;
+      contextBlock += `❌ אסור לשפוך את תוכן התעודת זהות לתוך הקופי! אסור לרשום רשימת שירותים, x-factors, או מתחרים במודעה.\n`;
+      contextBlock += `✅ המודעה חייבת להתבסס אך ורק על הבריף של הקמפיין (campaignContext.offer). תעודת הזהות עוזרת לך להבין את הטון והזווית — לא את התוכן.\n\n`;
       if (brandContext.businessName) contextBlock += `שם העסק: ${brandContext.businessName}\n`;
       if (brandContext.targetAudience) contextBlock += `קהל יעד: ${brandContext.targetAudience}\n`;
       if (brandContext.endConsumer) contextBlock += `הצרכן הסופי: ${brandContext.endConsumer}\n`;
       if (brandContext.decisionMaker) contextBlock += `מקבל ההחלטה: ${brandContext.decisionMaker}\n`;
-      if (brandContext.primaryXFactor) contextBlock += `בידול עיקרי (X-Factor): ${brandContext.primaryXFactor}\n`;
-      if (brandContext.winningFeature) contextBlock += `תכונה מנצחת: ${brandContext.winningFeature}\n`;
-      if (brandContext.xFactors?.length) contextBlock += `בידולים נוספים: ${brandContext.xFactors.join(', ')}\n`;
-      if (brandContext.services?.length) contextBlock += `שירותים/מוצרים: ${brandContext.services.join(', ')}\n`;
-      if (brandContext.competitors?.length) contextBlock += `מתחרים (להתבדל מהם!): ${brandContext.competitors.join(', ')}\n`;
+      if (brandContext.primaryXFactor) contextBlock += `בידול עיקרי (לטון ולזווית — לא לציטוט ישיר!): ${brandContext.primaryXFactor}\n`;
+      if (brandContext.winningFeature) contextBlock += `תכונה מנצחת (להשראה — לא לכתיבה ישירה!): ${brandContext.winningFeature}\n`;
+      if (brandContext.xFactors?.length) contextBlock += `בידולים נוספים (רקע — לא לרשימה במודעה!): ${brandContext.xFactors.join(', ')}\n`;
+      if (brandContext.services?.length) contextBlock += `שירותים/מוצרים של העסק (רקע כללי — הזכר רק מה שמופיע בבריף!): ${brandContext.services.join(', ')}\n`;
+      if (brandContext.competitors?.length) contextBlock += `מתחרים (להתבדל בטון — לא להזכיר בשמם!): ${brandContext.competitors.join(', ')}\n`;
       if (brandContext.advantageType) contextBlock += `סוג יתרון: ${brandContext.advantageType}\n`;
       if (brandContext.audienceTone) contextBlock += `טון פנייה לקהל: ${brandContext.audienceTone}\n`;
       if (brandContext.brandPresence) contextBlock += `רמת נוכחות מותג: ${brandContext.brandPresence}\n`;
@@ -364,7 +367,7 @@ serve(async (req) => {
         contextBlock += `\n📸 ללקוח יש ${brandContext.businessPhotoUrls.length} תמונות עסק/מוצר אמיתיות. הקריאייטיב צריך להתחשב במוצרים/סביבה האמיתיים ולא להמציא ויזואל מנותק.\n`;
       }
       // Contact details for including in concepts
-      contextBlock += `\n=== פרטי קשר של העסק (לשילוב בקונספטים) ===\n`;
+      contextBlock += `\n=== פרטי קשר של העסק (לשילוב בגריד תחתון בלבד — לא בקופי!) ===\n`;
       if (brandContext.contactPhone) contextBlock += `טלפון: ${brandContext.contactPhone}\n`;
       if (brandContext.contactWhatsapp) contextBlock += `וואטסאפ: ${brandContext.contactWhatsapp}\n`;
       if (brandContext.contactEmail) contextBlock += `מייל: ${brandContext.contactEmail}\n`;
@@ -375,17 +378,18 @@ serve(async (req) => {
     }
 
     if (campaignContext) {
-      contextBlock += `\n=== הקשר קמפיין ===\n`;
+      contextBlock += `\n=== בריף הקמפיין — זה ורק זה מה שמופיע במודעה! ===\n`;
+      contextBlock += `⚠️ חוק ברזל עליון: הקופי, הכותרת, והוויזואל נגזרים אך ורק מהבריף הבא.\n`;
+      contextBlock += `❌ אסור לייבא מידע מתעודת הזהות שלא מופיע בבריף (למשל: רשימת שירותים, בידולים, מתחרים).\n`;
+      contextBlock += `✅ תעודת הזהות משמשת רק להבנת הטון, הזווית והאישיות של המותג.\n\n`;
       if (campaignContext.offer) {
-        contextBlock += `\n🔴🔴🔴 בריף מלא מהלקוח — קרא כל מילה! 🔴🔴🔴\n${campaignContext.offer}\n`;
-        contextBlock += `\nהוראה קריטית — חלץ ושלב את כל הפרטים הבאים:\n`;
-        contextBlock += `1. כל סוגי הטיפולים/שירותים/מוצרים/מנות שהלקוח מציע\n`;
-        contextBlock += `2. מחירים, הנחות, חבילות, מבצעים, הטבות יומיות\n`;
-        contextBlock += `3. יתרון מרכזי / USP שהלקוח מדגיש\n`;
-        contextBlock += `4. פרטים ספציפיים שחשובים ללקוח\n`;
-        contextBlock += `5. שעות פעילות, ימים מיוחדים, תנאים מיוחדים\n`;
-        contextBlock += `כלול לפחות 3-4 פרטים ספציפיים מהבריף בכל קונספט.\n`;
-        contextBlock += `אם הלקוח מזכיר הטבות יומיות/מבצעים/מחירים — הם חייבים להופיע בקופי!\n`;
+        contextBlock += `🔴 הבריף המלא מהלקוח:\n${campaignContext.offer}\n\n`;
+        contextBlock += `הוראה: חלץ מהבריף את הפרטים הספציפיים הבאים ושלב אותם:\n`;
+        contextBlock += `1. מחירים, הנחות, מבצעים, הטבות שמוזכרים בבריף\n`;
+        contextBlock += `2. יתרון מרכזי שהלקוח מדגיש בבריף\n`;
+        contextBlock += `3. פרטים ספציפיים שהלקוח כתב בבריף\n`;
+        contextBlock += `אם הלקוח מזכיר הטבות/מבצעים/מחירים בבריף — הם חייבים להופיע בקופי!\n`;
+        contextBlock += `אם הלקוח לא ציין משהו בבריף — אל תמציא ואל תייבא מתעודת הזהות!\n`;
       }
       if (campaignContext.priceOrBenefit) {
         contextBlock += `\n💰 מחיר/הטבה ספציפית מהבריף: "${campaignContext.priceOrBenefit}" — חובה לשלב בקופי!\n`;
