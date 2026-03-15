@@ -720,13 +720,7 @@ const CreativeStudio = () => {
       return;
     }
     
-    // For has-copy: skip upload (step 3) and go to copy input (step 4)
-    if (currentStep === 2 && assetChoice === 'has-copy') {
-      setCurrentStep(4);
-      return;
-    }
-    
-    // Normal progression
+    // Normal progression using steps array
     if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
     }
