@@ -814,6 +814,11 @@ const CreativeStudio = () => {
       
       // Generate 4 variations
       const brandContext = buildBrandContext();
+      const effectiveColors = brandContext?.colors || {
+        primary: clientProfile?.primary_color || null,
+        secondary: clientProfile?.secondary_color || null,
+        background: clientProfile?.background_color || null,
+      };
       const sanitizedVisualPrompt = sanitizeVisualPrompt(visualPrompt);
 
       // Resolve PDF logo to PNG if needed
