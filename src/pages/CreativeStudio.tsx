@@ -2721,7 +2721,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   </div>
                 )}
 
-                {!isGenerating && generatedImages.some(img => img.status === 'approved' || img.status === 'needs-review') && (
+                {!isGenerating && generatedImages.length > 0 && (
                   <div className="mt-8 space-y-4">
                     {/* Feedback Buttons */}
                     {feedbackMode === 'none' && !showApproveSelection && (
