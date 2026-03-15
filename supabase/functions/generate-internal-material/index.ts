@@ -147,6 +147,102 @@ ${catalogTopic ? `נושא הקטלוג: ${catalogTopic}` : ''}
           }
         }
       };
+    } else if (type === 'greeting') {
+      const greetingOccasion = extraContext?.occasion || 'general';
+      const recipientName = extraContext?.recipientName || '';
+      
+      const occasionMap: Record<string, string> = {
+        'rosh-hashana': 'ראש השנה — שנה טובה ומתוקה',
+        'sukkot': 'סוכות — חג סוכות שמח',
+        'chanukah': 'חנוכה — חג אורים שמח',
+        'purim': 'פורים — פורים שמח',
+        'pesach': 'פסח — חג פסח כשר ושמח',
+        'shavuot': 'שבועות — חג שבועות שמח',
+        'wedding': 'חתונה — מזל טוב',
+        'bar-mitzvah': 'בר מצווה — מזל טוב',
+        'birthday': 'יום הולדת — יום הולדת שמח',
+        'general': 'ברכה כללית',
+      };
+
+      toolName = 'generate_greeting_content';
+      systemPrompt = `אתה כותב ברכות מקצועיות בעברית עבור עסקים. צור ברכה ממותגת ל${occasionMap[greetingOccasion] || 'אירוע'}.
+${profileBlock}
+${recipientName ? `הנמען: ${recipientName}` : 'ברכה כללית ללקוחות/שותפים'}
+הנחיות:
+- כתוב בשפה חמה ומכבדת
+- הברכה צריכה לשלב את שם העסק בצורה טבעית
+- טון: חגיגי, אישי, מקצועי
+- אורך: 2-4 משפטים — לא ארוך מדי
+- כותרת קצרה וקולעת (2-4 מילים)
+- אם זה חג — התייחס למהות החג
+- אם זו חתונה/בר מצווה — ברכה מרגשת ואישית`;
+      toolDef = {
+        type: "function",
+        function: {
+          name: toolName,
+          description: "Generate professional branded greeting",
+          parameters: {
+            type: "object",
+            properties: {
+              headline: { type: "string", description: "כותרת הברכה (2-4 מילים)" },
+              greetingText: { type: "string", description: "טקסט הברכה המלא" },
+              closingLine: { type: "string", description: "שורת סיום/חתימה" },
+            },
+            required: ["headline", "greetingText", "closingLine"],
+            additionalProperties: false
+          }
+        }
+      };
+    } else if (type === 'article') {
+      const articleStyle = extraContext?.articleStyle || 'product';
+      const articleTopic = extraContext?.articleTopic || '';
+      const targetLength = extraContext?.targetLength || 'medium';
+      
+      const styleMap: Record<string, string> = {
+        'product': 'כתבת מוצר/שירות — מציגה יתרונות, תועלות ופרטים',
+        'story': 'כתבת סיפור — מספרת את סיפור העסק/היזם בצורה מעניינת',
+        'expert': 'כתבת מומחה — מאמר מקצועי שמבסס סמכות בתחום',
+        'seasonal': 'כתבה עונתית — תוכן מותאם לעונה או חג',
+      };
+      const lengthMap: Record<string, string> = {
+        'short': '200-300 מילים',
+        'medium': '400-600 מילים',
+        'long': '700-1000 מילים',
+      };
+
+      toolName = 'generate_article_content';
+      systemPrompt = `אתה כתב תוכן שיווקי מקצועי בעברית למגזר החרדי. צור ${styleMap[articleStyle] || 'כתבה'}.
+${profileBlock}
+${articleTopic ? `נושא הכתבה: ${articleTopic}` : ''}
+אורך מבוקש: ${lengthMap[targetLength] || '400-600 מילים'}
+הנחיות:
+- כתוב בסגנון עיתונאי-שיווקי (advertorial) — נקרא כמו כתבה אבל משווק את העסק
+- כותרת מושכת עם הוק חזק
+- כותרת משנה שמרחיבה
+- פסקאות קצרות וברורות
+- ציטוט אחד לפחות (מבעל העסק או לקוח)
+- לא "מודעתי" מדי — צריך להרגיש כמו תוכן עיתונאי
+- CTA עדין בסוף — לא מכירתי אגרסיבי
+- אל תמציא פרטים שלא סופקו`;
+      toolDef = {
+        type: "function",
+        function: {
+          name: toolName,
+          description: "Generate professional advertorial article",
+          parameters: {
+            type: "object",
+            properties: {
+              headline: { type: "string", description: "כותרת ראשית" },
+              subheadline: { type: "string", description: "כותרת משנה" },
+              body: { type: "string", description: "גוף הכתבה המלא" },
+              pullQuote: { type: "string", description: "ציטוט מרכזי" },
+              callToAction: { type: "string", description: "קריאה לפעולה עדינה" },
+            },
+            required: ["headline", "subheadline", "body", "pullQuote", "callToAction"],
+            additionalProperties: false
+          }
+        }
+      };
     } else {
       throw new Error(`Unknown material type: ${type}`);
     }
