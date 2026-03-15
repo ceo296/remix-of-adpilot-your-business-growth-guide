@@ -1141,6 +1141,11 @@ const CreativeStudio = () => {
     setFeedbackType(null);
     setShowFormatAdaptation(false);
     setAdaptedCreatives([]);
+    setShowAutopilotRadio(false);
+    setShowAutopilotArticle(false);
+    setShowAutopilotBanner(false);
+    setAutopilotArticle(null);
+    setAutopilotBannerUrl(null);
   };
 
   // Quote handling functions
