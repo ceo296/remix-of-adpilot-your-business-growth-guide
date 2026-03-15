@@ -390,6 +390,9 @@ const CreativeStudio = () => {
   const [showAutopilotArticle, setShowAutopilotArticle] = useState(false);
   const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string } | null>(null);
   const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
+  const [showAutopilotBanner, setShowAutopilotBanner] = useState(false);
+  const [autopilotBannerUrl, setAutopilotBannerUrl] = useState<string | null>(null);
+  const [isGeneratingBanner, setIsGeneratingBanner] = useState(false);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
