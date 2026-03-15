@@ -100,7 +100,7 @@ serve(async (req) => {
 
     // Sector brain context - fetched for greeting & article types
     let sectorContext = '';
-    const needsSectorBrain = ['greeting', 'article'].includes(type);
+    const needsSectorBrain = ['greeting', 'article', 'email', 'whatsapp'].includes(type);
     
     if (needsSectorBrain) {
       const [references, guidelines, insights] = await Promise.all([
