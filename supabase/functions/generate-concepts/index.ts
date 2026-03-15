@@ -399,16 +399,21 @@ ${isTimeLimited && timeLimitText ? `⏰ מוגבל בזמן! יש להדגיש: 
 
 ${genderDirective}
 
+=== רקע אסטרטגי על העסק (Brand DNA — להבנת הטון והזווית בלבד!) ===
+⚠️ המידע הבא הוא רקע אסטרטגי. אסור לשפוך אותו לתוך הקופי!
+❌ אסור לרשום רשימת שירותים, בידולים, או מתחרים במודעה עצמה.
+✅ המודעה מתבססת אך ורק על הבריף (CAMPAIGN BRIEF). הרקע עוזר לך להבין את הטון, הזווית והבידול — לא את התוכן.
+
 Business Name: ${profile.business_name || 'עסק כללי'}
 Target Audience: ${profile.target_audience || 'משפחות חרדיות'}
-Main X-Factor/Unique Selling Point: ${profile.primary_x_factor || 'איכות ושירות'}
-Winning Feature: ${profile.winning_feature || 'מקצועיות'}
+Main X-Factor (for tone/angle — NOT for pasting!): ${profile.primary_x_factor || 'איכות ושירות'}
+Winning Feature (strategic background): ${profile.winning_feature || 'מקצועיות'}
 Advantage Type: ${profile.advantage_type || 'שירות'}
-All X-Factors: ${profile.x_factors?.join(', ') || 'איכות, מחיר, שירות'}
 Brand Presence: ${profile.brand_presence || 'לא הוגדר'}
-${profile.services?.length ? `Services: ${profile.services.join(', ')}` : ''}
-${profile.competitors?.length ? `Competitors (differentiate!): ${profile.competitors.join(', ')}` : ''}
+${profile.services?.length ? `Services (background — only mention what appears in the brief!): ${profile.services.join(', ')}` : ''}
+${profile.competitors?.length ? `Competitors (differentiate in tone — never mention by name!): ${profile.competitors.join(', ')}` : ''}
 ${profile.personal_red_lines?.length ? `RED LINES (NEVER do): ${profile.personal_red_lines.join('; ')}` : ''}
+=== סוף רקע אסטרטגי ===
 
 ${guidedBriefSection}
 
