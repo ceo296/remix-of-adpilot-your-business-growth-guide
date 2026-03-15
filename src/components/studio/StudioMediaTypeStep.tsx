@@ -130,16 +130,17 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
   const getInfoMessage = () => {
     if (value.length === 0) return null;
     if (value.includes('all')) {
-      return '💡 קמפיין 360° - נתחיל מיצירת מודעה מאסטר, ולאחר אישורך נתאים אותה לכל שאר הפלטפורמות.';
+      return '💡 קמפיין 360° - נייצר מודעה, באנר, תשדיר רדיו, כתבה פרסומית, מייל ומסר לוואטסאפ — הכל מתואם ואחיד.';
     }
     if (value.length === 1) {
       const type = value[0];
       switch (type) {
         case 'ad': return '💡 נתמקד ביצירת מודעה מושלמת לפרסום בעיתונות ובמגזינים.';
         case 'radio': return '💡 ניצור לך תסריט ספוט רדיו מותאם לקהל היעד שלך.';
-        case 'billboard': return '💡 נעצב שלט חוצות בולט ומרשים שייתפס מרחוק.';
-        case 'social': return '💡 ניצור תוכן מושך לרשתות חברתיות, וואטסאפ וניוזלטר שיניע לפעולה.';
         case 'banner': return '💡 נעצב באנר דיגיטלי בממדים המתאימים לפלטפורמות המובילות.';
+        case 'email': return '💡 ניצור מייל מעוצב עם כותרת, גוף טקסט והנעה לפעולה.';
+        case 'whatsapp': return '💡 ניצור מודעה מותאמת + קופי קצר וקליט לשיתוף בוואטסאפ.';
+        case 'article': return '💡 נכתוב כתבה פרסומית (Advertorial) מקצועית ומעוררת עניין.';
         default: return null;
       }
     }
