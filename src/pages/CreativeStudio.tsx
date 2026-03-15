@@ -99,6 +99,8 @@ interface ClientProfile {
   quality_signatures: any[] | null;
   honorific_preference: string | null;
   website_url: string | null;
+  branches: string | null;
+  opening_hours: string | null;
 }
 
 interface CustomTemplate {
