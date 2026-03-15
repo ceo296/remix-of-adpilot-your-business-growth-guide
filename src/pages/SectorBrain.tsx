@@ -612,6 +612,83 @@ const SectorBrain = () => {
     }
   };
 
+  // Batch transcribe radio scripts
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcribeProgress, setTranscribeProgress] = useState<{ done: number; total: number } | null>(null);
+
+  const handleBatchTranscribe = async () => {
+    setIsTranscribing(true);
+    setTranscribeProgress(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) { toast.error('יש להתחבר מחדש'); setIsTranscribing(false); return; }
+
+      // Find untranscribed audio records
+      const { data: records, error } = await supabase
+        .from('sector_brain_examples')
+        .select('id, name, file_path, file_type, media_type')
+        .eq('media_type', 'radio_script')
+        .eq('is_general_guideline', false)
+        .or('text_content.is.null,text_content.eq.')
+        .order('created_at');
+
+      if (error) throw error;
+
+      const audioRecords = (records || []).filter(r =>
+        /\.(mp3|wav|m4a|ogg|aac|flac|mp4|mpeg)$/i.test(r.file_path)
+      );
+
+      if (audioRecords.length === 0) {
+        toast.info('כל התשדירים כבר תומללו ✓');
+        setIsTranscribing(false);
+        return;
+      }
+
+      toast.info(`🎙️ מתמלל ${audioRecords.length} תשדירים... זה יכול לקחת כמה דקות`);
+      setTranscribeProgress({ done: 0, total: audioRecords.length });
+
+      let successCount = 0;
+      for (let i = 0; i < audioRecords.length; i++) {
+        const record = audioRecords[i];
+        try {
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ file_path: record.file_path, record_id: record.id }),
+          });
+
+          if (response.ok) {
+            successCount++;
+          } else if (response.status === 429) {
+            toast.warning('מגבלת בקשות — ממתין 30 שניות...');
+            await new Promise(r => setTimeout(r, 30000));
+            i--; // retry
+            continue;
+          } else {
+            console.warn(`Transcription failed for ${record.name}:`, await response.text());
+          }
+        } catch (err) {
+          console.warn(`Transcription error for ${record.name}:`, err);
+        }
+        setTranscribeProgress({ done: i + 1, total: audioRecords.length });
+        // Rate limit delay
+        if (i < audioRecords.length - 1) await new Promise(r => setTimeout(r, 3000));
+      }
+
+      toast.success(`✅ תומללו ${successCount} מתוך ${audioRecords.length} תשדירים`);
+      loadExamples();
+    } catch (error) {
+      console.error('Batch transcribe error:', error);
+      toast.error('שגיאה בתמלול אוטומטי');
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
   // Auto-describe images
   const [isDescribing, setIsDescribing] = useState(false);
   const [describeProgress, setDescribeProgress] = useState<{ processed: number; remaining: number } | null>(null);
@@ -689,6 +766,16 @@ const SectorBrain = () => {
               {describeProgress && describeProgress.remaining > 0 && (
                 <span className="text-xs bg-primary/20 rounded-full px-1.5 mr-1">{describeProgress.remaining}</span>
               )}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleBatchTranscribe} 
+              disabled={isTranscribing}
+              title="תמלול אוטומטי של כל תשדירי הרדיו שעדיין לא תומללו"
+            >
+              {isTranscribing ? <Loader2 className="h-4 w-4 ml-1 animate-spin" /> : <Radio className="h-4 w-4 ml-1" />}
+              {isTranscribing ? `מתמלל ${transcribeProgress ? `${transcribeProgress.done}/${transcribeProgress.total}` : '...'}` : 'תמלל רדיו'}
             </Button>
             <Button 
               variant="outline" 
