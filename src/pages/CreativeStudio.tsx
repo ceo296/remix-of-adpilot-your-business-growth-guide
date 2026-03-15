@@ -2113,7 +2113,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               phone: clientProfile?.contact_phone,
               email: clientProfile?.contact_email,
               address: clientProfile?.contact_address,
-              website: clientProfile?.website_url,
+              website: '',
               xFactors: clientProfile?.x_factors,
               targetAudience: clientProfile?.target_audience,
               winningFeature: clientProfile?.winning_feature,
