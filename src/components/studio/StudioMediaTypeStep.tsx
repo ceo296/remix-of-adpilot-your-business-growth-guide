@@ -8,12 +8,13 @@ import {
   Layers,
   Megaphone,
   Check,
-  RectangleHorizontal,
-  Share2
+  Mail,
+  MessageCircle,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type MediaType = 'ad' | 'radio' | 'banner' | 'billboard' | 'social' | 'all';
+export type MediaType = 'ad' | 'radio' | 'banner' | 'email' | 'whatsapp' | 'article' | 'all';
 
 export interface MediaTypeSelection {
   types: MediaType[];
@@ -35,15 +36,6 @@ const MEDIA_OPTIONS: {
   shadowColor: string;
 }[] = [
   { 
-    id: 'radio', 
-    label: 'רדיו', 
-    description: 'ספוט פרסומי לשידור בתחנות רדיו', 
-    icon: Radio,
-    tags: ['אודיו', 'ספוטים'],
-    gradient: 'from-violet-500 to-purple-600',
-    shadowColor: 'shadow-purple-500/30'
-  },
-  { 
     id: 'ad', 
     label: 'מודעות', 
     description: 'פרסום בעיתונות, מגזינים ועלוני קהילה', 
@@ -62,20 +54,38 @@ const MEDIA_OPTIONS: {
     shadowColor: 'shadow-teal-500/30'
   },
   { 
-    id: 'billboard', 
-    label: 'שלטי חוצות', 
-    description: 'שילוט חוצות, ביגבורד ושלטים בתחנות אוטובוס', 
-    icon: RectangleHorizontal,
-    tags: ['חוצות', 'OOH'],
+    id: 'radio', 
+    label: 'תשדיר רדיו', 
+    description: 'ספוט פרסומי לשידור בתחנות רדיו', 
+    icon: Radio,
+    tags: ['אודיו', 'ספוטים'],
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-purple-500/30'
+  },
+  { 
+    id: 'email', 
+    label: 'מיילים', 
+    description: 'דיוור אלקטרוני מעוצב עם הנעה לפעולה', 
+    icon: Mail,
+    tags: ['דיוור', 'ניוזלטר'],
     gradient: 'from-orange-500 to-amber-500',
     shadowColor: 'shadow-amber-500/30'
   },
   { 
-    id: 'social', 
-    label: 'סושיאל מדיה', 
-    description: 'פוסטים לרשתות חברתיות, וואטסאפ וניוזלטר', 
-    icon: Share2,
-    tags: ['דיגיטלי', 'וירלי'],
+    id: 'whatsapp', 
+    label: 'וואטסאפ', 
+    description: 'מודעה מותאמת + קופי קצר לשיתוף בוואטסאפ', 
+    icon: MessageCircle,
+    tags: ['וירלי', 'מסרים'],
+    gradient: 'from-green-500 to-emerald-600',
+    shadowColor: 'shadow-green-500/30'
+  },
+  { 
+    id: 'article', 
+    label: 'כתבה פרסומית', 
+    description: 'כתבת תוכן שיווקית (Advertorial) למגזינים ואתרים', 
+    icon: FileText,
+    tags: ['תוכן', 'PR'],
     gradient: 'from-pink-500 to-rose-500',
     shadowColor: 'shadow-rose-500/30'
   },
