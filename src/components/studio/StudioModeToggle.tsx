@@ -1,4 +1,4 @@
-import { Wand2, Check, Image, Type, AlertTriangle, Camera } from 'lucide-react';
+import { Check, Image, Type, Camera, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 
@@ -17,22 +17,31 @@ const SCOPE_OPTIONS = [
     id: 'full' as CampaignScope,
     title: 'תעשו לי הכל',
     description: 'ויז\'ואל + קופי — מההתחלה ועד הסוף',
-    Icon: Wand2,
-    badge: 'מומלץ ✨',
+    Icon: Sparkles,
+    colorClass: 'border-primary/60 bg-primary/5',
+    selectedColorClass: 'border-primary bg-primary/10 ring-2 ring-primary/30',
+    iconBg: 'bg-primary text-primary-foreground',
+    iconBgHover: 'group-hover:bg-primary/20 group-hover:text-primary',
   },
   {
     id: 'visual-only' as CampaignScope,
     title: 'צריך רק ויז\'ואל',
     description: 'יש לי את הטקסטים — תיצרו לי עיצוב',
     Icon: Image,
-    badge: null,
+    colorClass: 'border-emerald-500/40 bg-emerald-500/5',
+    selectedColorClass: 'border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/30',
+    iconBg: 'bg-emerald-500 text-white',
+    iconBgHover: 'group-hover:bg-emerald-500/20 group-hover:text-emerald-500',
   },
   {
     id: 'copy-only' as CampaignScope,
     title: 'צריך רק טקסטים',
     description: 'יש לי תמונה/הדמיה — תכתבו לי קופי שמוכר',
     Icon: Type,
-    badge: null,
+    colorClass: 'border-amber-500/40 bg-amber-500/5',
+    selectedColorClass: 'border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/30',
+    iconBg: 'bg-amber-500 text-white',
+    iconBgHover: 'group-hover:bg-amber-500/20 group-hover:text-amber-500',
   },
 ];
 
@@ -40,15 +49,15 @@ const SCOPE_OPTIONS = [
 const IMAGE_CRITICAL_INDUSTRIES = ['real_estate', 'food', 'jewelry', 'furniture', 'hotels', 'electronics', 'toys', 'wigs', 'beauty'];
 
 const INDUSTRY_NUDGE_TEXT: Record<string, string> = {
-  real_estate: '💡 בנדל"ן כמעט תמיד צריך הדמיות או צילום אמיתי של הפרויקט — יש לך תמונות להעלות?',
-  food: '💡 במזון חשוב להראות את המנה/המוצר — יש לך צילומי אוכל להעלות?',
-  jewelry: '💡 תכשיטים נמכרים מהעין — יש לך צילומי מוצר להעלות?',
+  real_estate: '💡 בנדל"ן כמעט תמיד צריך הדמיות או צילום אמיתי — יש לך תמונות להעלות?',
+  food: '💡 במזון חשוב להראות את המנה/המוצר — יש לך צילומי אוכל?',
+  jewelry: '💡 תכשיטים נמכרים מהעין — יש לך צילומי מוצר?',
   furniture: '💡 ריהוט חייב להיראות — יש לך תמונות מוצר או הדמיות?',
-  hotels: '💡 מלון/נופש — תמונות אמיתיות של החדרים והאווירה עושות את ההבדל!',
-  electronics: '💡 אלקטרוניקה — תמונת מוצר אמיתית תמיד עדיפה על הדמיה',
-  toys: '💡 צעצועים — הראו את המוצר בפעולה! יש לכם תמונות?',
-  wigs: '💡 פאות — תמונות אמיתיות של התוצאה עושות הבדל עצום',
-  beauty: '💡 יופי/טיפוח — תמונת לפני/אחרי או מוצר אמיתי תמיד מוכרת יותר',
+  hotels: '💡 תמונות אמיתיות של החדרים עושות את ההבדל!',
+  electronics: '💡 תמונת מוצר אמיתית תמיד עדיפה על הדמיה',
+  toys: '💡 הראו את המוצר בפעולה! יש לכם תמונות?',
+  wigs: '💡 תמונות אמיתיות של התוצאה עושות הבדל עצום',
+  beauty: '💡 תמונת לפני/אחרי או מוצר אמיתי תמיד מוכרת יותר',
 };
 
 export const StudioModeToggle = ({ value, onChange, onScopeSelect, detectedIndustry }: StudioModeToggleProps) => {
@@ -57,7 +66,6 @@ export const StudioModeToggle = ({ value, onChange, onScopeSelect, detectedIndus
 
   const isImageCritical = detectedIndustry && IMAGE_CRITICAL_INDUSTRIES.includes(detectedIndustry);
 
-  // Show nudge when selecting full or visual-only for image-critical industries
   useEffect(() => {
     if (isImageCritical && (selectedScope === 'full' || selectedScope === 'visual-only')) {
       setShowIndustryNudge(true);
@@ -68,19 +76,14 @@ export const StudioModeToggle = ({ value, onChange, onScopeSelect, detectedIndus
 
   const handleScopeClick = (scope: CampaignScope) => {
     setSelectedScope(scope);
-    if (onScopeSelect) {
-      onScopeSelect(scope);
-    }
+    onScopeSelect?.(scope);
 
-    // Map scope to mode + asset choice
     if (scope === 'full') {
       onChange('autopilot');
     } else if (scope === 'visual-only') {
-      // User has copy, needs visual
-      onChange('manual');
+      onChange('manual'); // has copy, needs visual
     } else if (scope === 'copy-only') {
-      // User has visual, needs copy
-      onChange('upload');
+      onChange('upload'); // has visual, needs copy
     }
   };
 
@@ -94,7 +97,7 @@ export const StudioModeToggle = ({ value, onChange, onScopeSelect, detectedIndus
 
       {/* Selection Cards */}
       <div className="flex flex-col gap-4">
-        {SCOPE_OPTIONS.map(({ id, title, description, Icon, badge }) => {
+        {SCOPE_OPTIONS.map(({ id, title, description, Icon, colorClass, selectedColorClass, iconBg, iconBgHover }) => {
           const isSelected = selectedScope === id;
           return (
             <button
@@ -102,17 +105,13 @@ export const StudioModeToggle = ({ value, onChange, onScopeSelect, detectedIndus
               onClick={() => handleScopeClick(id)}
               className={cn(
                 "relative flex items-center gap-5 p-6 rounded-2xl border-2 transition-all duration-300 text-right group",
-                isSelected
-                  ? "border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20"
-                  : "border-border bg-card hover:border-primary/50 hover:shadow-md"
+                isSelected ? `${selectedColorClass} shadow-lg` : `${colorClass} hover:shadow-md`
               )}
             >
               {/* Icon */}
               <div className={cn(
                 "w-14 h-14 rounded-xl flex items-center justify-center shrink-0 transition-all",
-                isSelected
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                isSelected ? `${iconBg} shadow-md` : `bg-muted text-muted-foreground ${iconBgHover}`
               )}>
                 <Icon className="h-7 w-7" />
               </div>
@@ -129,29 +128,22 @@ export const StudioModeToggle = ({ value, onChange, onScopeSelect, detectedIndus
                   <Check className="h-4 w-4 text-white" />
                 </div>
               )}
-
-              {/* Badge */}
-              {badge && (
-                <span className="absolute -top-3 right-6 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
-                  {badge}
-                </span>
-              )}
             </button>
           );
         })}
       </div>
 
-      {/* Industry-specific nudge for image-critical sectors */}
+      {/* Industry-specific nudge */}
       {showIndustryNudge && detectedIndustry && (
         <div className="mt-6 p-4 rounded-xl border-2 border-amber-500/30 bg-amber-500/10 animate-fade-in">
           <div className="flex items-start gap-3">
             <Camera className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
             <div className="flex-1 text-right">
               <p className="text-sm font-medium text-foreground leading-relaxed">
-                {INDUSTRY_NUDGE_TEXT[detectedIndustry] || '💡 בתחום שלך, תמונות אמיתיות של המוצר תמיד מוכרות יותר'}
+                {INDUSTRY_NUDGE_TEXT[detectedIndustry] || '💡 בתחום שלך, תמונות אמיתיות תמיד מוכרות יותר'}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                גם אם בחרת שנעשה הכל — אפשר להעלות תמונת מוצר ואנחנו נשלב אותה בעיצוב
+                גם אם בחרת שנעשה הכל — אפשר להעלות תמונת מוצר ונשלב אותה
               </p>
             </div>
           </div>
