@@ -249,6 +249,14 @@ function detectTopicCategory(text: string): string | null {
   return null;
 }
 
+function sanitizeVisualPrompt(prompt: string): string {
+  return (prompt || '')
+    .replace(/\[(?:Visual\s*approach|Design\s*approach)[^\]]*\]/gi, '')
+    .replace(/\b(CONTACT\s*DETAILS(?:\s*DARK)?|BOTTOM-LEFT|TOP-RIGHT|BRANCH\s*LOCATIONS?|PHONE\s*NUMBERS?|LOGO\s*ZONE)\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 const CreativeStudio = () => {
   const [searchParams] = useSearchParams();
   
