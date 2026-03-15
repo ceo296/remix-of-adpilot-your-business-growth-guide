@@ -117,12 +117,15 @@ export interface BrandColors {
   background_color?: string | null;
 }
 
+export type BriefCampaignScope = 'full-campaign' | 'has-visual' | 'has-copy' | null;
+
 interface StudioBriefStepProps {
   value: CampaignBrief;
   onChange: (brief: CampaignBrief) => void;
   businessName?: string;
   contactInfo?: ContactInfo;
   brandColors?: BrandColors;
+  campaignScope?: BriefCampaignScope;
 }
 
 // Map adGoal to legacy CampaignGoal for backward compat
@@ -158,7 +161,28 @@ const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.El
   { id: 'remember-me', label: 'יזכרו אותי', icon: Brain, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30', selectedBg: 'bg-violet-500/20', selectedBorder: 'border-violet-400', selectedRing: 'ring-violet-400/50', selectedShadow: 'shadow-violet-500/40' },
 ];
 
-export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors }: StudioBriefStepProps) => {
+const SCOPE_CONTEXT: Record<string, { icon: React.ElementType; label: string; description: string; colorClass: string }> = {
+  'full-campaign': {
+    icon: Sparkles,
+    label: 'קמפיין מלא — ויז\'ואל + קופי',
+    description: 'נייצר לך הכל מאפס. ספר לנו מה אתה רוצה להשיג ואנחנו ניצור את העיצוב והטקסטים.',
+    colorClass: 'border-primary/40 bg-primary/5 text-primary',
+  },
+  'has-visual': {
+    icon: Type,
+    label: 'רק טקסטים — יש לך ויז\'ואל',
+    description: 'תעלה את התמונה בשלב הבא. עכשיו ספר לנו על הקמפיין כדי שנכתוב קופי מדויק.',
+    colorClass: 'border-amber-500/40 bg-amber-500/5 text-amber-600',
+  },
+  'has-copy': {
+    icon: ImagePlus,
+    label: 'רק ויז\'ואל — יש לך טקסטים',
+    description: 'תדביק את הטקסטים בשלב הבא. עכשיו ספר לנו על הקמפיין כדי שנעצב בול.',
+    colorClass: 'border-emerald-500/40 bg-emerald-500/5 text-emerald-600',
+  },
+};
+
+export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors, campaignScope }: StudioBriefStepProps) => {
   const campaignImageInputRef = useRef<HTMLInputElement>(null);
   const [isEnhancing, setIsEnhancing] = useState(false);
   
@@ -344,6 +368,23 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Scope context banner */}
+      {campaignScope && SCOPE_CONTEXT[campaignScope] && (() => {
+        const ctx = SCOPE_CONTEXT[campaignScope];
+        const Icon = ctx.icon;
+        return (
+          <div className={cn("flex items-center gap-4 p-4 rounded-xl border-2", ctx.colorClass)} dir="rtl">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-background/60">
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="flex-1 text-right">
+              <p className="font-bold text-sm">{ctx.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{ctx.description}</p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Header */}
       <div className="text-center">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
