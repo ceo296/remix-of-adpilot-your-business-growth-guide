@@ -182,6 +182,12 @@ const InternalStudio = () => {
         navigate(`/business-card-studio?template=${selectedTemplate}${contactParams}${sidesParam}&paper=${paperType}&size=${cardSize}`);
       } else if (selectedCategory === 'letterhead') {
         navigate(`/letterhead-studio?template=${selectedTemplate}${contactParams}`);
+      } else if (selectedCategory === 'greetings') {
+        const occasion = selectedTemplate.replace('gr-', '');
+        navigate(`/greeting-studio?occasion=${occasion}`);
+      } else if (selectedCategory === 'articles') {
+        const style = selectedTemplate.replace('art-', '');
+        navigate(`/article-studio?style=${style}`);
       } else {
         navigate(`/studio?type=internal&category=${selectedCategory}&template=${selectedTemplate}${contactParams}`);
       }
