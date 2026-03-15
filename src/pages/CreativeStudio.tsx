@@ -19,7 +19,7 @@ import { StudioAssetStep } from '@/components/studio/StudioAssetStep';
 import { StudioTreatmentStep } from '@/components/studio/StudioTreatmentStep';
 import { StudioStyleStep, StyleChoice } from '@/components/studio/StudioStyleStep';
 import { StudioPromptStep, AspectRatio } from '@/components/studio/StudioPromptStep';
-import { StudioModeToggle, StudioMode } from '@/components/studio/StudioModeToggle';
+import { StudioModeToggle, StudioMode, CampaignScope } from '@/components/studio/StudioModeToggle';
 import { StudioAutopilot, CreativeConcept, HolidaySeason, HOLIDAY_LABELS } from '@/components/studio/StudioAutopilot';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
 import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/studio/StudioBriefStep';
