@@ -42,7 +42,7 @@ type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_
 type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round';
 
 // Text-based media types that should be grouped under "מלל"
-const TEXT_MEDIA_TYPES = new Set(['text', 'copy', 'ad_copy', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus', 'contract', 'survey', 'greeting']);
+const TEXT_MEDIA_TYPES = new Set(['text', 'copy', 'ad_copy', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus', 'contract', 'survey', 'greeting', 'email_copy', 'whatsapp_copy']);
 
 // Media types that should be grouped under a parent category for stats
 const MEDIA_TYPE_GROUP: Record<string, string> = {
