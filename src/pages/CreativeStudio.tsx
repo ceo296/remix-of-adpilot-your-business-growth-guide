@@ -89,6 +89,16 @@ interface ClientProfile {
   past_materials_fonts: any[] | null;
   business_photos: any[] | null;
   default_template_id: string | null;
+  // Full identity card fields
+  services: string[] | null;
+  competitors: string[] | null;
+  audience_tone: string | null;
+  brand_presence: string | null;
+  personal_red_lines: string[] | null;
+  successful_campaigns: string[] | null;
+  quality_signatures: any[] | null;
+  honorific_preference: string | null;
+  website_url: string | null;
 }
 
 interface CustomTemplate {
@@ -479,7 +489,7 @@ const CreativeStudio = () => {
 
       const { data: profiles } = await supabase
         .from('client_profiles')
-        .select('id, business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, past_materials_fonts, business_photos, default_template_id')
+        .select('id, business_name, target_audience, end_consumer, decision_maker, primary_x_factor, winning_feature, advantage_type, x_factors, contact_phone, contact_whatsapp, contact_email, contact_address, contact_youtube, social_facebook, social_instagram, primary_color, secondary_color, background_color, header_font, body_font, logo_url, past_materials, past_materials_fonts, business_photos, default_template_id, services, competitors, audience_tone, brand_presence, personal_red_lines, successful_campaigns, quality_signatures, honorific_preference, website_url')
         .eq('user_id', user.id)
         .eq('is_agency_profile', false)
         .eq('onboarding_completed', true)
@@ -505,7 +515,8 @@ const CreativeStudio = () => {
           past_materials: Array.isArray(profile.past_materials) ? profile.past_materials : [],
           past_materials_fonts: Array.isArray(profile.past_materials_fonts) ? profile.past_materials_fonts : [],
           business_photos: Array.isArray(profile.business_photos) ? profile.business_photos : [],
-        });
+          quality_signatures: Array.isArray(profile.quality_signatures) ? profile.quality_signatures : [],
+        } as ClientProfile);
       }
     };
 
@@ -1388,6 +1399,21 @@ const CreativeStudio = () => {
         ?.filter((p: any) => p.url)
         ?.map((p: any) => p.url)
         ?.slice(0, 5) || [],
+      // ── Full Brand Identity Card fields ──
+      services: clientProfile.services || [],
+      competitors: clientProfile.competitors || [],
+      advantageType: clientProfile.advantage_type,
+      audienceTone: clientProfile.audience_tone,
+      brandPresence: clientProfile.brand_presence,
+      endConsumer: clientProfile.end_consumer,
+      decisionMaker: clientProfile.decision_maker,
+      personalRedLines: clientProfile.personal_red_lines || [],
+      successfulCampaigns: clientProfile.successful_campaigns || [],
+      qualitySignatures: clientProfile.quality_signatures || [],
+      honorificPreference: clientProfile.honorific_preference,
+      websiteUrl: clientProfile.website_url,
+      branches: (clientProfile as any).branches || null,
+      openingHours: (clientProfile as any).opening_hours || null,
     } : null;
   };
 

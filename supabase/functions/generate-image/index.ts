@@ -732,7 +732,25 @@ ${brandContext.pastMaterialsAnalysis.map((a: any, i: number) => `Reference ${i+1
 IMPORTANT: The generated image MUST follow the same visual structure, composition style, and layout patterns as the client's existing ads. Keep the same general "feel" — if their ads are clean and minimal, be clean and minimal. If they use bold colors and strong composition, do the same. Match the logo positioning and grid structure.
 ` : ''}
 
-${brandContext ? `BRAND CONTEXT: "${brandContext.businessName || ''}" - ${brandContext.targetAudience || 'Haredi audience'}. ${brandContext.primaryXFactor ? `Differentiator: ${brandContext.primaryXFactor}` : ''}` : ''}
+${brandContext ? `
+═══ FULL BRAND IDENTITY (תעודת זהות) — USE THIS TO INFORM EVERY DESIGN DECISION ═══
+Business: "${brandContext.businessName || ''}"
+Target Audience: ${brandContext.targetAudience || 'Haredi audience'}
+End Consumer: ${brandContext.endConsumer || 'Not specified'}
+Decision Maker: ${brandContext.decisionMaker || 'Not specified'}
+Primary Differentiator (X-Factor): ${brandContext.primaryXFactor || 'Not specified'}
+Winning Feature: ${brandContext.winningFeature || 'Not specified'}
+${brandContext.xFactors?.length ? `Additional Differentiators: ${brandContext.xFactors.join(', ')}` : ''}
+${brandContext.services?.length ? `Services/Products: ${brandContext.services.join(', ')}` : ''}
+${brandContext.competitors?.length ? `Competitors (differentiate from these!): ${brandContext.competitors.join(', ')}` : ''}
+Advantage Type: ${brandContext.advantageType || 'Not specified'}
+Audience Tone: ${brandContext.audienceTone || 'Not specified'}
+Brand Presence Level: ${brandContext.brandPresence || 'Not specified'}
+${brandContext.personalRedLines?.length ? `PERSONAL RED LINES (NEVER DO): ${brandContext.personalRedLines.join('; ')}` : ''}
+${brandContext.successfulCampaigns?.length ? `Past Successful Campaigns (replicate this energy): ${brandContext.successfulCampaigns.join('; ')}` : ''}
+Honorific Style: ${brandContext.honorificPreference || 'neutral'}
+═══════════════════════════════════════════════════════════════════════════════════
+` : ''}
 ${brandContext?.businessPhotoUrls?.length ? `
 CLIENT'S REAL BUSINESS/PRODUCT PHOTOS ARE AVAILABLE (${brandContext.businessPhotoUrls.length} photos). 
 The AI should draw INSPIRATION from the real products/settings shown in these photos to create authentic visuals that match the client's actual business environment.` : ''}
