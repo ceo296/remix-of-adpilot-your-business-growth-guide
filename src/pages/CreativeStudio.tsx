@@ -340,6 +340,9 @@ const CreativeStudio = () => {
   const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
   const [showPipeline, setShowPipeline] = useState(false);
   const [showAutopilotRadio, setShowAutopilotRadio] = useState(false);
+  const [showAutopilotArticle, setShowAutopilotArticle] = useState(false);
+  const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string } | null>(null);
+  const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
