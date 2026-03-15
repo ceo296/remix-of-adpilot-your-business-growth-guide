@@ -246,14 +246,40 @@ const CreativeStudio = () => {
   // Mode state - check URL param for direct access
   const urlMode = searchParams.get('mode');
   const [mode, setMode] = useState<StudioMode>(urlMode === 'upload' ? 'upload' : null);
+  const [detectedIndustry, setDetectedIndustry] = useState<string | null>(null);
+  
+  // Detect industry from client profile or brief text for nudges
+  useEffect(() => {
+    const textToScan = [
+      clientProfile?.business_name,
+      clientProfile?.target_audience,
+      clientProfile?.primary_x_factor,
+      clientProfile?.winning_feature,
+    ].filter(Boolean).join(' ');
+    if (textToScan) {
+      const detected = detectTopicCategory(textToScan);
+      setDetectedIndustry(detected);
+    }
+  }, [clientProfile]);
   
   const handleModeSelect = (selectedMode: StudioMode) => {
     if (selectedMode === 'upload') {
+      // copy-only scope: user has visual, needs copy
       setMode('manual');
-      setCurrentStep(2); // Skip to asset choice step
+      setAssetChoice('has-visual');
+      setCurrentStep(2); // Skip to asset choice (will auto-advance)
+    } else if (selectedMode === 'manual') {
+      // visual-only scope: user has copy, needs visual  
+      setMode('manual');
+      setAssetChoice('has-copy');
+      setCurrentStep(2); // Skip to asset choice (will auto-advance)
     } else {
       setMode(selectedMode);
     }
+  };
+  
+  const handleScopeSelect = (scope: CampaignScope) => {
+    // This is handled via handleModeSelect mapping in StudioModeToggle
   };
   
   // Track if we should skip to asset step (for upload mode)
