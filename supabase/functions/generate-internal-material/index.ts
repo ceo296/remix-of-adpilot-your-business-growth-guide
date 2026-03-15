@@ -106,7 +106,7 @@ serve(async (req) => {
       const [references, guidelines, insights] = await Promise.all([
         fetchSectorBrainReferences(
           supabase,
-          type === 'greeting' ? ['greeting', 'copy', 'ad_copy'] : ['article', 'copy', 'ad_copy', 'strategy'],
+          type === 'greeting' ? ['greeting', 'copy', 'ad_copy'] : ['article', 'copy', 'ad_copy', 'strategy', 'email', 'whatsapp'],
           pd.topicCategory,
           6
         ),
