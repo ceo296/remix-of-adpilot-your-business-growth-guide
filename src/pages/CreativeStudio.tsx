@@ -264,22 +264,23 @@ const CreativeStudio = () => {
   
   const handleModeSelect = (selectedMode: StudioMode) => {
     if (selectedMode === 'upload') {
-      // copy-only scope: user has visual, needs copy
+      // copy-only scope: user has visual, needs copy → brief first, then upload visual
       setMode('manual');
       setAssetChoice('has-visual');
-      setCurrentStep(2); // Skip to asset choice (will auto-advance)
+      // Start at brief (step 0) so we understand context for the copy
     } else if (selectedMode === 'manual') {
-      // visual-only scope: user has copy, needs visual  
+      // visual-only scope: user has copy, needs visual → brief first, then paste copy
       setMode('manual');
       setAssetChoice('has-copy');
-      setCurrentStep(2); // Skip to asset choice (will auto-advance)
+      // Start at brief (step 0) so we understand context for the visual
     } else {
+      // full campaign = autopilot
       setMode(selectedMode);
     }
   };
   
   const handleScopeSelect = (scope: CampaignScope) => {
-    // This is handled via handleModeSelect mapping in StudioModeToggle
+    // Handled via handleModeSelect mapping
   };
   
   // Track if we should skip to asset step (for upload mode)
@@ -596,16 +597,17 @@ const CreativeStudio = () => {
       return [0, 1, 8]; // Brief, MediaType, Radio Script
     }
     if (assetChoice === 'full-campaign') {
-      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
+      return [0, 1, 3]; // Brief, MediaType, Upload (skip asset choice - already selected)
     }
     if (assetChoice === 'has-visual') {
-      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
+      // User has visual, needs copy: Brief → MediaType → Upload image → (generate copy)
+      return [0, 1, 3]; // Brief, MediaType, Upload
     }
     if (assetChoice === 'has-copy') {
-      // User has copy, needs visual: Brief → MediaType → Asset → Copy → DesignApproach → Style → Prompt
-      return [0, 1, 2, 4, 7, 5, 6];
+      // User has copy, needs visual: Brief → MediaType → Copy → DesignApproach → Style → Prompt
+      return [0, 1, 4, 7, 5, 6];
     }
-    return [0, 1, 2];
+    return [0, 1, 2]; // Default includes asset choice step
   };
 
   // Check if this is the final step that should trigger generation/submission
@@ -718,13 +720,7 @@ const CreativeStudio = () => {
       return;
     }
     
-    // For has-copy: skip upload (step 3) and go to copy input (step 4)
-    if (currentStep === 2 && assetChoice === 'has-copy') {
-      setCurrentStep(4);
-      return;
-    }
-    
-    // Normal progression
+    // Normal progression using steps array
     if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
     }
@@ -739,18 +735,13 @@ const CreativeStudio = () => {
       return;
     }
     
-    // For has-copy: from copy step go back to asset selection
-    if (currentStep === 4 && assetChoice === 'has-copy') {
-      setCurrentStep(2);
-      return;
-    }
-    
-    // Normal back progression
+    // Normal back progression using steps array
     if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
     } else {
-      // On first step, go back to mode selection
+      // On first step, go back to mode selection and reset asset choice
       setMode(null);
+      setAssetChoice(null);
     }
   };
 
