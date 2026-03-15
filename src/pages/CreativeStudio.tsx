@@ -2070,6 +2070,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
         isTimeLimited: campaignBrief.isTimeLimited,
         timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
+        services: clientProfile?.services || [],
       };
       
       for (let i = 0; i < 4; i++) {
