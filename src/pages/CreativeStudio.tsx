@@ -420,8 +420,8 @@ const CreativeStudio = () => {
       switch (mediaTypes[0]) {
         case 'ad': setAspectRatio('portrait'); break;
         case 'banner': setAspectRatio('landscape'); break;
-        case 'billboard': setAspectRatio('landscape'); break;
-        case 'social': setAspectRatio('square'); break;
+        case 'email': setAspectRatio('portrait'); break;
+        case 'whatsapp': setAspectRatio('square'); break;
         default: break;
       }
     } else if (mediaTypes.includes('ad') && !mediaTypes.includes('banner')) {
