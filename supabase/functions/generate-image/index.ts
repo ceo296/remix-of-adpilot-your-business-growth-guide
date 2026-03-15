@@ -1031,16 +1031,22 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     }
     console.log('[TextMeta] headline:', headline, '| subtitle:', subtitle, '| ctaText:', ctaText);
     
-    // Extract services list from campaign context, offer text, or x-factors
+    // Extract services list from campaign context (passed from brand), offer text, or x-factors
     let servicesList: string[] = campaignContext?.services || [];
     
     // Auto-extract services/treatments from the offer brief if none provided
     if (!servicesList.length && campaignContext?.offer) {
-      const offerText = campaignContext.offer;
-      // Look for treatment/service names (Hebrew patterns)
-      const treatmentPatterns = offerText.match(/(?:בוטוקס|סקין בוסטר|מיקרונידלינג|עיצוב שפתיים|חומצה היאלורונית|אסטפיל|ביוסטימולטור|פולינוקלאוטידים|טיפולי?[ם]?\s+[\u0590-\u05FF]+|חבילת\s+[\w\s]+)/gi) || [];
-      if (treatmentPatterns.length > 0) {
-        servicesList = [...new Set(treatmentPatterns.map(t => t.trim()))].slice(0, 5);
+      const briefText = campaignContext.offer;
+      // Generic service extraction: look for bullet-like items, comma-separated lists, Hebrew service patterns
+      const bulletItems2 = briefText.match(/[•\-–]\s*([^\n•\-–]+)/g)?.map((m: string) => m.replace(/^[•\-–]\s*/, '').trim()) || [];
+      if (bulletItems2.length > 0) {
+        servicesList = bulletItems2.slice(0, 5);
+      } else {
+        // Try treatment patterns
+        const treatmentPatterns = briefText.match(/(?:בוטוקס|סקין בוסטר|מיקרונידלינג|עיצוב שפתיים|חומצה היאלורונית|פלאפל|שווארמה|חומוס|סלטים|מנות|טיפולי?\s+[\u0590-\u05FF]+|חבילת\s+[\w\s]+)/gi) || [];
+        if (treatmentPatterns.length > 0) {
+          servicesList = [...new Set(treatmentPatterns.map((t: string) => t.trim()))].slice(0, 5);
+        }
       }
     }
     
