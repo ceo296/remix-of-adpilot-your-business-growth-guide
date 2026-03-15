@@ -1388,6 +1388,21 @@ const CreativeStudio = () => {
         ?.filter((p: any) => p.url)
         ?.map((p: any) => p.url)
         ?.slice(0, 5) || [],
+      // ── Full Brand Identity Card fields ──
+      services: clientProfile.services || [],
+      competitors: clientProfile.competitors || [],
+      advantageType: clientProfile.advantage_type,
+      audienceTone: clientProfile.audience_tone,
+      brandPresence: clientProfile.brand_presence,
+      endConsumer: clientProfile.end_consumer,
+      decisionMaker: clientProfile.decision_maker,
+      personalRedLines: clientProfile.personal_red_lines || [],
+      successfulCampaigns: clientProfile.successful_campaigns || [],
+      qualitySignatures: clientProfile.quality_signatures || [],
+      honorificPreference: clientProfile.honorific_preference,
+      websiteUrl: clientProfile.website_url,
+      branches: (clientProfile as any).branches || null,
+      openingHours: (clientProfile as any).opening_hours || null,
     } : null;
   };
 
