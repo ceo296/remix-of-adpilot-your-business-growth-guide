@@ -2829,6 +2829,95 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   </div>
                 )}
 
+                {/* Email Section */}
+                {showAutopilotEmail && (
+                  <div className="mt-10 pt-8 border-t-2 border-primary/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-amber-500/30 flex items-center justify-center">
+                        <Mail className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">מייל שיווקי</h3>
+                        <p className="text-sm text-muted-foreground">{mediaTypes.includes('all') ? 'חלק מקמפיין 360° שלך' : 'דיוור אלקטרוני מעוצב'}</p>
+                      </div>
+                    </div>
+                    {isGeneratingEmail ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב מייל שיווקי...</span>
+                      </div>
+                    ) : autopilotEmailContent ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <div className="text-xs text-muted-foreground mb-1">נושא:</div>
+                          <h4 className="text-xl font-bold text-foreground mb-4">{autopilotEmailContent.subject}</h4>
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                            {autopilotEmailContent.body}
+                          </div>
+                          {autopilotEmailContent.cta && (
+                            <div className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium text-sm">
+                              {autopilotEmailContent.cta}
+                            </div>
+                          )}
+                          <div className="mt-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const text = `נושא: ${autopilotEmailContent.subject}\n\n${autopilotEmailContent.body}\n\n${autopilotEmailContent.cta}`;
+                                navigator.clipboard.writeText(text);
+                                toast.success('המייל הועתק!');
+                              }}
+                            >
+                              העתק מייל
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* WhatsApp Section */}
+                {showAutopilotWhatsapp && (
+                  <div className="mt-10 pt-8 border-t-2 border-primary/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/30 flex items-center justify-center">
+                        <MessageSquare className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">מסר וואטסאפ</h3>
+                        <p className="text-sm text-muted-foreground">{mediaTypes.includes('all') ? 'חלק מקמפיין 360° שלך' : 'מסר קצר וקליט לשיתוף'}</p>
+                      </div>
+                    </div>
+                    {isGeneratingWhatsapp ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב מסר וואטסאפ...</span>
+                      </div>
+                    ) : autopilotWhatsappContent ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
+                            {autopilotWhatsappContent.message}
+                          </div>
+                          <div className="mt-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                navigator.clipboard.writeText(autopilotWhatsappContent.message);
+                                toast.success('המסר הועתק!');
+                              }}
+                            >
+                              העתק מסר
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
 
                 {!isGenerating && generatedImages.length > 0 && (
                   <div className="mt-8 space-y-4">
