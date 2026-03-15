@@ -597,16 +597,17 @@ const CreativeStudio = () => {
       return [0, 1, 8]; // Brief, MediaType, Radio Script
     }
     if (assetChoice === 'full-campaign') {
-      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
+      return [0, 1, 3]; // Brief, MediaType, Upload (skip asset choice - already selected)
     }
     if (assetChoice === 'has-visual') {
-      return [0, 1, 2, 3]; // Brief, MediaType, Asset, Upload
+      // User has visual, needs copy: Brief → MediaType → Upload image → (generate copy)
+      return [0, 1, 3]; // Brief, MediaType, Upload
     }
     if (assetChoice === 'has-copy') {
-      // User has copy, needs visual: Brief → MediaType → Asset → Copy → DesignApproach → Style → Prompt
-      return [0, 1, 2, 4, 7, 5, 6];
+      // User has copy, needs visual: Brief → MediaType → Copy → DesignApproach → Style → Prompt
+      return [0, 1, 4, 7, 5, 6];
     }
-    return [0, 1, 2];
+    return [0, 1, 2]; // Default includes asset choice step
   };
 
   // Check if this is the final step that should trigger generation/submission
