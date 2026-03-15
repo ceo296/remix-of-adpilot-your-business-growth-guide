@@ -2746,7 +2746,32 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   </div>
                 )}
 
-                {!isGenerating && generatedImages.length > 0 && (
+                {/* Banner Section for 360° campaigns */}
+                {showAutopilotBanner && (
+                  <div className="mt-10 pt-8 border-t-2 border-primary/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-teal-500/30 flex items-center justify-center">
+                        <Monitor className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">באנר דיגיטלי</h3>
+                        <p className="text-sm text-muted-foreground">חלק מקמפיין 360° שלך</p>
+                      </div>
+                    </div>
+                    {isGeneratingBanner ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">מייצר באנר דיגיטלי...</span>
+                      </div>
+                    ) : autopilotBannerUrl ? (
+                      <Card className="border-primary/20 overflow-hidden">
+                        <img src={autopilotBannerUrl} alt="באנר דיגיטלי" className="w-full object-contain" />
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
+
+
                   <div className="mt-8 space-y-4">
                     {/* Feedback Buttons */}
                     {feedbackMode === 'none' && !showApproveSelection && (
