@@ -515,7 +515,8 @@ const CreativeStudio = () => {
           past_materials: Array.isArray(profile.past_materials) ? profile.past_materials : [],
           past_materials_fonts: Array.isArray(profile.past_materials_fonts) ? profile.past_materials_fonts : [],
           business_photos: Array.isArray(profile.business_photos) ? profile.business_photos : [],
-        });
+          quality_signatures: Array.isArray(profile.quality_signatures) ? profile.quality_signatures : [],
+        } as ClientProfile);
       }
     };
 
