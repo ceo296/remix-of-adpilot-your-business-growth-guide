@@ -161,7 +161,28 @@ const DESIRED_ACTION_OPTIONS: { id: DesiredAction; label: string; icon: React.El
   { id: 'remember-me', label: 'יזכרו אותי', icon: Brain, gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30', selectedBg: 'bg-violet-500/20', selectedBorder: 'border-violet-400', selectedRing: 'ring-violet-400/50', selectedShadow: 'shadow-violet-500/40' },
 ];
 
-export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors }: StudioBriefStepProps) => {
+const SCOPE_CONTEXT: Record<string, { icon: React.ElementType; label: string; description: string; colorClass: string }> = {
+  'full-campaign': {
+    icon: Sparkles,
+    label: 'קמפיין מלא — ויז\'ואל + קופי',
+    description: 'נייצר לך הכל מאפס. ספר לנו מה אתה רוצה להשיג ואנחנו ניצור את העיצוב והטקסטים.',
+    colorClass: 'border-primary/40 bg-primary/5 text-primary',
+  },
+  'has-visual': {
+    icon: Type,
+    label: 'רק טקסטים — יש לך ויז\'ואל',
+    description: 'תעלה את התמונה בשלב הבא. עכשיו ספר לנו על הקמפיין כדי שנכתוב קופי מדויק.',
+    colorClass: 'border-amber-500/40 bg-amber-500/5 text-amber-600',
+  },
+  'has-copy': {
+    icon: ImagePlus,
+    label: 'רק ויז\'ואל — יש לך טקסטים',
+    description: 'תדביק את הטקסטים בשלב הבא. עכשיו ספר לנו על הקמפיין כדי שנעצב בול.',
+    colorClass: 'border-emerald-500/40 bg-emerald-500/5 text-emerald-600',
+  },
+};
+
+export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors, campaignScope }: StudioBriefStepProps) => {
   const campaignImageInputRef = useRef<HTMLInputElement>(null);
   const [isEnhancing, setIsEnhancing] = useState(false);
   
