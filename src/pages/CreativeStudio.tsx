@@ -264,22 +264,23 @@ const CreativeStudio = () => {
   
   const handleModeSelect = (selectedMode: StudioMode) => {
     if (selectedMode === 'upload') {
-      // copy-only scope: user has visual, needs copy
+      // copy-only scope: user has visual, needs copy → brief first, then upload visual
       setMode('manual');
       setAssetChoice('has-visual');
-      setCurrentStep(2); // Skip to asset choice (will auto-advance)
+      // Start at brief (step 0) so we understand context for the copy
     } else if (selectedMode === 'manual') {
-      // visual-only scope: user has copy, needs visual  
+      // visual-only scope: user has copy, needs visual → brief first, then paste copy
       setMode('manual');
       setAssetChoice('has-copy');
-      setCurrentStep(2); // Skip to asset choice (will auto-advance)
+      // Start at brief (step 0) so we understand context for the visual
     } else {
+      // full campaign = autopilot
       setMode(selectedMode);
     }
   };
   
   const handleScopeSelect = (scope: CampaignScope) => {
-    // This is handled via handleModeSelect mapping in StudioModeToggle
+    // Handled via handleModeSelect mapping
   };
   
   // Track if we should skip to asset step (for upload mode)
