@@ -770,6 +770,16 @@ const SectorBrain = () => {
             <Button 
               variant="outline" 
               size="sm" 
+              onClick={handleBatchTranscribe} 
+              disabled={isTranscribing}
+              title="תמלול אוטומטי של כל תשדירי הרדיו שעדיין לא תומללו"
+            >
+              {isTranscribing ? <Loader2 className="h-4 w-4 ml-1 animate-spin" /> : <Radio className="h-4 w-4 ml-1" />}
+              {isTranscribing ? `מתמלל ${transcribeProgress ? `${transcribeProgress.done}/${transcribeProgress.total}` : '...'}` : 'תמלל רדיו'}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
               onClick={generateAllInsights} 
               disabled={isGeneratingInsights}
               title="יצירת תובנות אוטומטית מכל החומרים ושמירה לסוכנים"
