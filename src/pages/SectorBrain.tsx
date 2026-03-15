@@ -34,7 +34,7 @@ interface UploadedAsset {
   is_general_guideline?: boolean;
 }
 
-type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio' | 'copy' | 'ad_copy' | 'radio_script' | 'banner_copy' | 'strategy' | 'brief' | 'article' | 'landing_page' | 'video_script' | 'sales_script' | 'flyer_copy' | 'prospectus' | 'contract' | 'survey' | 'greeting';
+type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio' | 'email' | 'whatsapp' | 'copy' | 'ad_copy' | 'radio_script' | 'banner_copy' | 'strategy' | 'brief' | 'article' | 'landing_page' | 'video_script' | 'sales_script' | 'flyer_copy' | 'prospectus' | 'contract' | 'survey' | 'greeting' | 'email_copy' | 'whatsapp_copy';
 type ExampleType = 'good' | 'bad';
 type StreamType = 'hasidic' | 'litvish' | 'general' | 'sephardic';
 type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'youth' | 'classic';
