@@ -845,6 +845,8 @@ const CreativeStudio = () => {
         priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
         isTimeLimited: campaignBrief.isTimeLimited,
         timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
+        // Pass brand services so AI can reference them in copy
+        services: clientProfile?.services || [],
       };
 
       // Headline position variety: distribute across sketches
