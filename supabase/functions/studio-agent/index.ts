@@ -290,9 +290,12 @@ serve(async (req) => {
     }
     if (campaignContext) {
       contextBlock += `\n=== הקשר קמפיין ===\n`;
-      if (campaignContext.offer) contextBlock += `הצעה: ${campaignContext.offer}\n`;
+      if (campaignContext.offer) contextBlock += `🔴 בריף מלא: ${campaignContext.offer}\n`;
       if (campaignContext.goal) contextBlock += `מטרה: ${campaignContext.goal}\n`;
       if (campaignContext.structure) contextBlock += `מבנה: ${campaignContext.structure}\n`;
+      if (campaignContext.priceOrBenefit) contextBlock += `💰 מחיר/הטבה: ${campaignContext.priceOrBenefit}\n`;
+      if (campaignContext.isTimeLimited && campaignContext.timeLimitText) contextBlock += `⏰ מוגבל בזמן: ${campaignContext.timeLimitText}\n`;
+      if (campaignContext.services?.length) contextBlock += `שירותים: ${campaignContext.services.join(', ')}\n`;
     }
     if (superAgentPayload) {
       contextBlock += `\n=== הנחיות סוכן-העל ===\n${JSON.stringify(superAgentPayload, null, 2)}\n`;
@@ -308,16 +311,29 @@ serve(async (req) => {
       if (brandContext.logoUrl) contextBlock += `לוגו: ${brandContext.logoUrl}\n`;
       if (brandContext.headerFont) contextBlock += `פונט כותרת: ${brandContext.headerFont}\n`;
       if (brandContext.bodyFont) contextBlock += `פונט גוף: ${brandContext.bodyFont}\n`;
+      if (brandContext.services?.length) contextBlock += `שירותים: ${brandContext.services.join(', ')}\n`;
+      if (brandContext.primaryXFactor) contextBlock += `בידול: ${brandContext.primaryXFactor}\n`;
+      if (brandContext.personalRedLines?.length) contextBlock += `קווים אדומים: ${brandContext.personalRedLines.join('; ')}\n`;
+      // Gender enforcement
+      const honorific = brandContext.honorificPreference || 'neutral';
+      if (honorific === 'mr') {
+        contextBlock += `\n🔒 לשון זכר יחיד בלבד (אתה, שלך).\n`;
+      } else if (honorific === 'mrs') {
+        contextBlock += `\n🔒 לשון נקבה יחיד בלבד (את, שלך).\n`;
+      } else {
+        contextBlock += `\n🔒 לשון רבים בלבד (אתם, שלכם).\n`;
+      }
       if (brandContext.businessPhotoUrls?.length) {
-        contextBlock += `\n📸 ללקוח יש ${brandContext.businessPhotoUrls.length} תמונות עסק/מוצר אמיתיות. כלול בהוראות הויזואליות שהתמונה צריכה לשקף את המוצרים והסביבה האמיתיים של העסק.\n`;
+        contextBlock += `📸 ללקוח ${brandContext.businessPhotoUrls.length} תמונות עסק אמיתיות.\n`;
       }
       // Contact details for bottom strip design
-      contextBlock += `\n=== פרטי קשר של העסק (לגריד תחתון) ===\n`;
+      contextBlock += `\n=== פרטי קשר (לגריד תחתון) ===\n`;
       if (brandContext.contactPhone) contextBlock += `טלפון: ${brandContext.contactPhone}\n`;
       if (brandContext.contactWhatsapp) contextBlock += `וואטסאפ: ${brandContext.contactWhatsapp}\n`;
       if (brandContext.contactEmail) contextBlock += `מייל: ${brandContext.contactEmail}\n`;
       if (brandContext.contactAddress) contextBlock += `כתובת: ${brandContext.contactAddress}\n`;
-      contextBlock += `הנחיה: בפרומפט לתמונה — השאר שטח ריק בתחתית (10% מהגובה) עבור סטריפ פרטי קשר. הטלפון הוא החשוב ביותר.\n`;
+      if (brandContext.branches) contextBlock += `סניפים: ${brandContext.branches}\n`;
+      contextBlock += `הנחיה: השאר שטח ריק בתחתית (10%) עבור סטריפ פרטי קשר.\n`;
     }
     if (aspectRatio) {
       contextBlock += `\nyחס גובה-רוחב: ${aspectRatio}\n`;

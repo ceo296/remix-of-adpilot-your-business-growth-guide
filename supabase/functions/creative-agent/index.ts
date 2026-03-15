@@ -344,7 +344,18 @@ serve(async (req) => {
       if (brandContext.advantageType) contextBlock += `סוג יתרון: ${brandContext.advantageType}\n`;
       if (brandContext.audienceTone) contextBlock += `טון פנייה לקהל: ${brandContext.audienceTone}\n`;
       if (brandContext.brandPresence) contextBlock += `רמת נוכחות מותג: ${brandContext.brandPresence}\n`;
-      if (brandContext.honorificPreference) contextBlock += `סגנון פנייה (לשון כבוד): ${brandContext.honorificPreference}\n`;
+      
+      // Gender/honorific enforcement — critical for copy
+      const honorific = brandContext.honorificPreference || 'neutral';
+      if (honorific === 'mr') {
+        contextBlock += `\n🔒 נעילת מגדר: פנייה בלשון זכר יחיד בלבד (אתה, שלך, תרצה, בוא). אסור לשון נקבה (את, שלך/fem, תרצי, בואי) או רבים (אתם, שלכם).\n`;
+      } else if (honorific === 'mrs') {
+        contextBlock += `\n🔒 נעילת מגדר: פנייה בלשון נקבה יחיד בלבד (את, שלך, תרצי, בואי). אסור לשון זכר (אתה, תרצה, בוא) או רבים (אתם, שלכם).\n`;
+      } else {
+        contextBlock += `\n🔒 נעילת מגדר: פנייה בלשון רבים בלבד (אתם, שלכם, תרצו, בואו). אסור לשון יחיד — לא זכר ולא נקבה.\n`;
+      }
+      contextBlock += `כלל זה חל על כל הטקסטים: כותרת, תת-כותרת, באדי, CTA. עקביות מוחלטת.\n`;
+      
       if (brandContext.personalRedLines?.length) contextBlock += `קווים אדומים אישיים (אסור!): ${brandContext.personalRedLines.join('; ')}\n`;
       if (brandContext.successfulCampaigns?.length) contextBlock += `קמפיינים מוצלחים בעבר (חזור על האנרגיה הזו): ${brandContext.successfulCampaigns.join('; ')}\n`;
       if (brandContext.colors?.primary) contextBlock += `צבע ראשי: ${brandContext.colors.primary}\n`;
@@ -366,13 +377,21 @@ serve(async (req) => {
     if (campaignContext) {
       contextBlock += `\n=== הקשר קמפיין ===\n`;
       if (campaignContext.offer) {
-        contextBlock += `\n🔴 בריף מלא מהלקוח (חובה לקרוא ולהשתמש!):\n${campaignContext.offer}\n`;
-        contextBlock += `\nהוראה קריטית: חלץ מהבריף הזה את הפרטים הבאים ושלב אותם בקונספטים:\n`;
-        contextBlock += `- סוגי טיפולים/שירותים/מוצרים ספציפיים שהלקוח מציע\n`;
-        contextBlock += `- מחירים, הנחות, חבילות, מבצעים\n`;
-        contextBlock += `- יתרון מרכזי / USP שהלקוח מדגיש\n`;
-        contextBlock += `- פרטים ספציפיים שחשובים ללקוח (למשל "רופאה ולא קוסמטיקאית")\n`;
-        contextBlock += `כלול לפחות 2-3 פרטים ספציפיים מהבריף בכל קונספט (בכותרת משנה, באדי או CTA).\n`;
+        contextBlock += `\n🔴🔴🔴 בריף מלא מהלקוח — קרא כל מילה! 🔴🔴🔴\n${campaignContext.offer}\n`;
+        contextBlock += `\nהוראה קריטית — חלץ ושלב את כל הפרטים הבאים:\n`;
+        contextBlock += `1. כל סוגי הטיפולים/שירותים/מוצרים/מנות שהלקוח מציע\n`;
+        contextBlock += `2. מחירים, הנחות, חבילות, מבצעים, הטבות יומיות\n`;
+        contextBlock += `3. יתרון מרכזי / USP שהלקוח מדגיש\n`;
+        contextBlock += `4. פרטים ספציפיים שחשובים ללקוח\n`;
+        contextBlock += `5. שעות פעילות, ימים מיוחדים, תנאים מיוחדים\n`;
+        contextBlock += `כלול לפחות 3-4 פרטים ספציפיים מהבריף בכל קונספט.\n`;
+        contextBlock += `אם הלקוח מזכיר הטבות יומיות/מבצעים/מחירים — הם חייבים להופיע בקופי!\n`;
+      }
+      if (campaignContext.priceOrBenefit) {
+        contextBlock += `\n💰 מחיר/הטבה ספציפית מהבריף: "${campaignContext.priceOrBenefit}" — חובה לשלב בקופי!\n`;
+      }
+      if (campaignContext.isTimeLimited && campaignContext.timeLimitText) {
+        contextBlock += `\n⏰ מבצע מוגבל בזמן: "${campaignContext.timeLimitText}" — חובה ליצור דחיפות!\n`;
       }
       if (campaignContext.goal) {
         const goalMap: Record<string, string> = {

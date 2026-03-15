@@ -909,6 +909,18 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     let headline = '';
     const offerText = campaignContext?.offer || textPrompt || '';
     
+    // Determine gender/language style from honorific preference
+    const honorific = brandContext?.honorificPreference || 'neutral';
+    const genderDirective = honorific === 'mr' 
+      ? 'פנה בלשון זכר יחיד בלבד (אתה, שלך). אסור לשון נקבה או רבים.'
+      : honorific === 'mrs' 
+      ? 'פני בלשון נקבה יחיד בלבד (את, שלך). אסור לשון זכר או רבים.'
+      : 'פנה בלשון רבים (אתם, שלכם). אסור לשון יחיד.';
+    
+    // Extract services from brand context for the AI
+    const brandServices = brandContext?.services?.length ? brandContext.services.join(', ') : '';
+    const brandXFactor = brandContext?.primaryXFactor || brandContext?.winningFeature || '';
+    
     if (offerText && LOVABLE_API_KEY) {
       try {
         console.log('[Headline AI] Generating creative headline from offer:', offerText.slice(0, 100));
@@ -924,11 +936,13 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
             messages: [
               {
                 role: 'system',
-                content: 'אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד. ללא גרשיים, ללא סימני פיסוק. תחזיר רק את הכותרת עצמה.'
+                content: `אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד. ללא גרשיים, ללא סימני פיסוק. תחזיר רק את הכותרת עצמה.
+
+כלל מגדרי קריטי: ${genderDirective}`
               },
               {
                 role: 'user',
-                content: `בריף: ${offerText.slice(0, 300)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}`
+                content: `בריף מלא: ${offerText.slice(0, 500)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`
               }
             ],
           }),
@@ -985,11 +999,13 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
             messages: [
               {
                 role: 'system',
-                content: 'אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה תיאורית קצרה (עד 8 מילים) למודעה. הכותרת צריכה לתאר את השירות או ההזמנה בצורה ישירה ומקצועית. למשל: "מזמינה אתכם לחוויית טיפול" או "מומחים לטיפולי פנים מתקדמים". ללא גרשיים, ללא סימני פיסוק. תחזיר רק את הכותרת עצמה.'
+                content: `אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה תיאורית קצרה (עד 8 מילים) למודעה. הכותרת צריכה לתמצת את ההצעה העיקרית מהבריף — הטבות, מבצעים, שירותים ספציפיים. למשל: "הטבה יומית על כל מנה" או "טיפול פנים מקצועי ב-199 ₪". ללא גרשיים, ללא סימני פיסוק. תחזיר רק את הכותרת עצמה.
+
+כלל מגדרי קריטי: ${genderDirective}`
               },
               {
                 role: 'user',
-                content: `בריף: ${campaignContext.offer.slice(0, 300)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}`
+                content: `בריף מלא: ${campaignContext.offer.slice(0, 500)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`
               }
             ],
           }),
@@ -1015,16 +1031,22 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
     }
     console.log('[TextMeta] headline:', headline, '| subtitle:', subtitle, '| ctaText:', ctaText);
     
-    // Extract services list from campaign context, offer text, or x-factors
+    // Extract services list from campaign context (passed from brand), offer text, or x-factors
     let servicesList: string[] = campaignContext?.services || [];
     
     // Auto-extract services/treatments from the offer brief if none provided
     if (!servicesList.length && campaignContext?.offer) {
-      const offerText = campaignContext.offer;
-      // Look for treatment/service names (Hebrew patterns)
-      const treatmentPatterns = offerText.match(/(?:בוטוקס|סקין בוסטר|מיקרונידלינג|עיצוב שפתיים|חומצה היאלורונית|אסטפיל|ביוסטימולטור|פולינוקלאוטידים|טיפולי?[ם]?\s+[\u0590-\u05FF]+|חבילת\s+[\w\s]+)/gi) || [];
-      if (treatmentPatterns.length > 0) {
-        servicesList = [...new Set(treatmentPatterns.map(t => t.trim()))].slice(0, 5);
+      const briefText = campaignContext.offer;
+      // Generic service extraction: look for bullet-like items, comma-separated lists, Hebrew service patterns
+      const bulletItems2 = briefText.match(/[•\-–]\s*([^\n•\-–]+)/g)?.map((m: string) => m.replace(/^[•\-–]\s*/, '').trim()) || [];
+      if (bulletItems2.length > 0) {
+        servicesList = bulletItems2.slice(0, 5);
+      } else {
+        // Try treatment patterns
+        const treatmentPatterns = briefText.match(/(?:בוטוקס|סקין בוסטר|מיקרונידלינג|עיצוב שפתיים|חומצה היאלורונית|פלאפל|שווארמה|חומוס|סלטים|מנות|טיפולי?\s+[\u0590-\u05FF]+|חבילת\s+[\w\s]+)/gi) || [];
+        if (treatmentPatterns.length > 0) {
+          servicesList = [...new Set(treatmentPatterns.map((t: string) => t.trim()))].slice(0, 5);
+        }
       }
     }
     
