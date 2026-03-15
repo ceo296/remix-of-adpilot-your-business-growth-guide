@@ -100,13 +100,13 @@ serve(async (req) => {
 
     // Sector brain context - fetched for greeting & article types
     let sectorContext = '';
-    const needsSectorBrain = ['greeting', 'article'].includes(type);
+    const needsSectorBrain = ['greeting', 'article', 'email', 'whatsapp'].includes(type);
     
     if (needsSectorBrain) {
       const [references, guidelines, insights] = await Promise.all([
         fetchSectorBrainReferences(
           supabase,
-          type === 'greeting' ? ['greeting', 'copy', 'ad_copy'] : ['article', 'copy', 'ad_copy', 'strategy'],
+          type === 'greeting' ? ['greeting', 'copy', 'ad_copy'] : ['article', 'copy', 'ad_copy', 'strategy', 'email', 'whatsapp'],
           pd.topicCategory,
           6
         ),
@@ -354,6 +354,67 @@ ${sectorContext}
               callToAction: { type: "string", description: "קריאה לפעולה עדינה" },
             },
             required: ["headline", "subheadline", "body", "pullQuote", "callToAction"],
+            additionalProperties: false
+          }
+        }
+      };
+    } else if (type === 'email') {
+      const emailTopic = extraContext?.emailTopic || '';
+      toolName = 'generate_email_content';
+      systemPrompt = `אתה כותב מיילים שיווקיים מקצועיים בעברית למגזר החרדי. צור מייל דיוור אלקטרוני מעוצב.
+${profileBlock}
+${emailTopic ? `נושא/הצעה: ${emailTopic}` : ''}
+${harediBrief}
+${sectorContext}
+הנחיות:
+- כתוב נושא (subject) קצר, קולע ומזמין פתיחה (עד 8 מילים)
+- גוף המייל: 3-5 פסקאות קצרות, שפה חמה ומקצועית
+- CTA ברור — כפתור עם טקסט קצר (3-5 מילים)
+- אל תמציא מידע שלא סופק
+- אסור: סלנג, הבטחות מופרזות, אנגלית`;
+      toolDef = {
+        type: "function",
+        function: {
+          name: toolName,
+          description: "Generate professional marketing email",
+          parameters: {
+            type: "object",
+            properties: {
+              subject: { type: "string", description: "נושא המייל" },
+              body: { type: "string", description: "גוף המייל" },
+              cta: { type: "string", description: "טקסט כפתור הפעולה" },
+            },
+            required: ["subject", "body", "cta"],
+            additionalProperties: false
+          }
+        }
+      };
+    } else if (type === 'whatsapp') {
+      const whatsappTopic = extraContext?.whatsappTopic || '';
+      toolName = 'generate_whatsapp_content';
+      systemPrompt = `אתה כותב מסרי וואטסאפ שיווקיים קצרים וקליטים בעברית למגזר החרדי. צור מסר שמתאים לשיתוף בוואטסאפ.
+${profileBlock}
+${whatsappTopic ? `נושא/הצעה: ${whatsappTopic}` : ''}
+${harediBrief}
+${sectorContext}
+הנחיות:
+- מסר קצר: 3-6 שורות מקסימום
+- כתוב בטון אישי, ידידותי אך מכבד
+- אימוג'ים במינון סביר (2-4 לכל ההודעה)
+- לסיים עם CTA קצר — קישור / מספר טלפון / "שלחו הודעה"
+- פרטי קשר של העסק בסוף
+- אסור: סלנג, הבטחות מופרזות, יותר מדי אימוג'ים`;
+      toolDef = {
+        type: "function",
+        function: {
+          name: toolName,
+          description: "Generate WhatsApp marketing message",
+          parameters: {
+            type: "object",
+            properties: {
+              message: { type: "string", description: "המסר המלא לוואטסאפ" },
+            },
+            required: ["message"],
             additionalProperties: false
           }
         }

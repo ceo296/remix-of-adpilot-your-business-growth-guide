@@ -474,11 +474,11 @@ const FastTrackWizard = () => {
   const getMappedMediaTypes = (): import('@/components/studio/StudioMediaTypeStep').MediaType[] => {
     const map: Record<string, import('@/components/studio/StudioMediaTypeStep').MediaType> = {
       newspapers: 'ad',
-      radio: 'radio' as any,  // not a Studio type but handled by category mapping
-      signage: 'billboard',
+      radio: 'radio',
+      signage: 'banner',
       digital: 'banner',
-      email: 'social' as any,
-      whatsapp: 'social' as any,
+      email: 'email',
+      whatsapp: 'whatsapp',
     };
     return selectedMediaTypes.map(t => map[t]).filter(Boolean);
   };

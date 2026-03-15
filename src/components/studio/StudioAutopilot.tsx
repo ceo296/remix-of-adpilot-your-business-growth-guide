@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, RectangleHorizontal, Share2, Layers, Check, Image, Calendar, Target, Gift, Tag, Megaphone, Zap } from 'lucide-react';
+import { Heart, DollarSign, Smile, Sparkles, Loader2, RefreshCw, Wand2, Newspaper, Radio, Monitor, Share2, Layers, Check, Image, Calendar, Target, Gift, Tag, Megaphone, Zap, Mail, MessageCircle, FileText } from 'lucide-react';
 import { AutopilotLoadingProgress } from './AutopilotLoadingProgress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -86,11 +86,12 @@ const MEDIA_OPTIONS: {
   gradient: string;
   shadowColor: string;
 }[] = [
-  { id: 'radio', label: 'רדיו', icon: Radio, gradient: 'from-violet-500 to-purple-600', shadowColor: 'shadow-purple-500/30' },
   { id: 'ad', label: 'מודעות', icon: Newspaper, gradient: 'from-blue-500 to-cyan-500', shadowColor: 'shadow-cyan-500/30' },
   { id: 'banner', label: 'באנרים', icon: Monitor, gradient: 'from-emerald-500 to-teal-500', shadowColor: 'shadow-teal-500/30' },
-  { id: 'billboard', label: 'שלטי חוצות', icon: RectangleHorizontal, gradient: 'from-orange-500 to-amber-500', shadowColor: 'shadow-amber-500/30' },
-  { id: 'social', label: 'סושיאל', icon: Share2, gradient: 'from-pink-500 to-rose-500', shadowColor: 'shadow-rose-500/30' },
+  { id: 'radio', label: 'תשדיר רדיו', icon: Radio, gradient: 'from-violet-500 to-purple-600', shadowColor: 'shadow-purple-500/30' },
+  { id: 'email', label: 'מיילים', icon: Mail, gradient: 'from-orange-500 to-amber-500', shadowColor: 'shadow-amber-500/30' },
+  { id: 'whatsapp', label: 'וואטסאפ', icon: MessageCircle, gradient: 'from-green-500 to-emerald-600', shadowColor: 'shadow-green-500/30' },
+  { id: 'article', label: 'כתבה', icon: FileText, gradient: 'from-pink-500 to-rose-500', shadowColor: 'shadow-rose-500/30' },
   { id: 'all', label: 'קמפיין 360°', icon: Layers, gradient: 'from-primary to-red-500', shadowColor: 'shadow-primary/30' },
 ];
 
@@ -303,7 +304,7 @@ export const StudioAutopilot = ({
     <div className="space-y-6">
       <div className="text-center mb-8">
         <Badge variant="secondary" className="mb-3">
-          {primaryMediaType === 'radio' ? '🎙️' : primaryMediaType === 'billboard' ? '🪧' : primaryMediaType === 'social' ? '📱' : '📰'} {getMediaLabel()}
+          {primaryMediaType === 'radio' ? '🎙️' : primaryMediaType === 'email' ? '📧' : primaryMediaType === 'whatsapp' ? '💬' : primaryMediaType === 'article' ? '📝' : primaryMediaType === 'banner' ? '🖥️' : '📰'} {getMediaLabel()}
         </Badge>
         <h2 className="text-2xl font-bold mb-2">בחרו את הזווית שמדברת אליכם</h2>
         <p className="text-muted-foreground">
