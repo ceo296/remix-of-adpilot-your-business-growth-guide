@@ -2060,100 +2060,127 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
   };
 
   // Keep handleExecuteConcept for backward compatibility (e.g. "new ideas" flow)
-  const handleExecuteConcept = async () => {
+   const handleExecuteConcept = async () => {
     if (!selectedConcept) return;
     
     setVisualPrompt(selectedConcept.idea);
     setTextPrompt(selectedConcept.copy);
     setStyle('modern');
     setAssetChoice('has-copy');
-    setIsGenerating(true);
-    setGeneratedImages([]);
     setShowResults(true);
-    
-    toast.info('מייצר את העיצובים על בסיס הקונספט שבחרת... 🎨');
+
+    const brandContext = buildBrandContext();
+    const campaignContext = {
+      title: campaignBrief.title,
+      offer: campaignBrief.offer,
+      goal: campaignBrief.goal,
+      structure: campaignBrief.structure,
+      holidaySeason: selectedHoliday || null,
+      campaignImageUrl: campaignBrief.campaignImage || null,
+      adGoal: campaignBrief.adGoal,
+      emotionalTone: campaignBrief.emotionalTone,
+      desiredAction: campaignBrief.desiredAction,
+      desiredActions: (campaignBrief as any).desiredActions || (campaignBrief.desiredAction ? [campaignBrief.desiredAction] : []),
+      priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
+      isTimeLimited: campaignBrief.isTimeLimited,
+      timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
+      services: clientProfile?.services || [],
+    };
+
+    const profileData = {
+      businessName: clientProfile?.business_name,
+      phone: clientProfile?.contact_phone,
+      email: clientProfile?.contact_email,
+      address: clientProfile?.contact_address,
+      website: '',
+      xFactors: clientProfile?.x_factors,
+      targetAudience: clientProfile?.target_audience,
+      winningFeature: clientProfile?.winning_feature,
+    };
+
+    // Determine which outputs to generate based on selected media types
+    const isRadioOnly = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
+    const isArticleOnly = mediaTypes.length === 1 && mediaTypes[0] === 'article';
+    const isEmailOnly = mediaTypes.length === 1 && mediaTypes[0] === 'email';
+    const isWhatsappOnly = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
+    const includes360 = mediaTypes.includes('all');
+    const needsVisuals = !isRadioOnly && !isArticleOnly && !isEmailOnly && !isWhatsappOnly;
+    const needsRadio = isRadioOnly || includes360 || mediaTypes.includes('radio');
+    const needsArticle = isArticleOnly || includes360 || mediaTypes.includes('article');
+    const needsEmail = isEmailOnly || includes360 || mediaTypes.includes('email');
+    const needsWhatsapp = isWhatsappOnly || includes360 || mediaTypes.includes('whatsapp');
+    const needsBanner = includes360 || mediaTypes.includes('banner');
 
     try {
-      const results: GeneratedImage[] = [];
-      const brandContext = buildBrandContext();
-      const campaignContext = {
-        title: campaignBrief.title,
-        offer: campaignBrief.offer,
-        goal: campaignBrief.goal,
-        structure: campaignBrief.structure,
-        holidaySeason: selectedHoliday || null,
-        campaignImageUrl: campaignBrief.campaignImage || null,
-        adGoal: campaignBrief.adGoal,
-        emotionalTone: campaignBrief.emotionalTone,
-        desiredAction: campaignBrief.desiredAction,
-        desiredActions: (campaignBrief as any).desiredActions || (campaignBrief.desiredAction ? [campaignBrief.desiredAction] : []),
-        priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
-        isTimeLimited: campaignBrief.isTimeLimited,
-        timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
-        services: clientProfile?.services || [],
-      };
-      
-      for (let i = 0; i < 4; i++) {
-        toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
-
-        const imageUrl = await generateImageForConcept(selectedConcept, i, brandContext, campaignContext);
-
-        if (imageUrl) {
-          const newImage: GeneratedImage = {
-            id: `${Date.now()}-${i}`,
-            url: imageUrl,
-            status: 'pending',
-          };
-          results.push(newImage);
-          setGeneratedImages([...results]);
-
-          toast.info(`מריץ בדיקת כשרות לסקיצה ${i + 1}... 🔍`);
-          const kosherResult = await runKosherCheck(imageUrl);
-          newImage.status = kosherResult.status as GeneratedImage['status'];
-          newImage.analysis = kosherResult.recommendation;
-          setGeneratedImages([...results]);
-
-          await supabase.from('generated_images')
-            .update({ kosher_status: kosherResult.status, kosher_analysis: kosherResult.recommendation })
-            .eq('image_url', imageUrl);
-        }
-      }
-
-      if (results.length > 0) {
-        const approved = results.filter(r => r.status === 'approved').length;
-        const needsReview = results.filter(r => r.status === 'needs-review').length;
-        const rejected = results.filter(r => r.status === 'rejected').length;
+      // === VISUALS (ads/banners) ===
+      if (needsVisuals) {
+        setIsGenerating(true);
+        setGeneratedImages([]);
+        toast.info('מייצר את העיצובים על בסיס הקונספט שבחרת... 🎨');
         
-        if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
-        if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
-        if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
-      } else {
-        toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
+        const results: GeneratedImage[] = [];
+        const numSketches = includes360 ? 4 : mediaTypes.includes('banner') ? 2 : 4;
+        
+        for (let i = 0; i < numSketches; i++) {
+          toast.info(`מייצר סקיצה ${i + 1} מתוך ${numSketches}...`);
+          const imageUrl = await generateImageForConcept(selectedConcept, i, brandContext, campaignContext);
+          if (imageUrl) {
+            const newImage: GeneratedImage = { id: `${Date.now()}-${i}`, url: imageUrl, status: 'pending' };
+            results.push(newImage);
+            setGeneratedImages([...results]);
+
+            toast.info(`מריץ בדיקת כשרות לסקיצה ${i + 1}... 🔍`);
+            const kosherResult = await runKosherCheck(imageUrl);
+            newImage.status = kosherResult.status as GeneratedImage['status'];
+            newImage.analysis = kosherResult.recommendation;
+            setGeneratedImages([...results]);
+
+            await supabase.from('generated_images')
+              .update({ kosher_status: kosherResult.status, kosher_analysis: kosherResult.recommendation })
+              .eq('image_url', imageUrl);
+          }
+        }
+
+        if (results.length > 0) {
+          const approved = results.filter(r => r.status === 'approved').length;
+          const needsReview = results.filter(r => r.status === 'needs-review').length;
+          const rejected = results.filter(r => r.status === 'rejected').length;
+          if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
+          if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
+          if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
+        } else {
+          toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
+        }
+        setIsGenerating(false);
       }
 
-      // For 360° campaigns, also trigger radio, article, and banner generation
-      const includes360 = mediaTypes.includes('all');
-      if (includes360) {
-        // Radio
-        setShowAutopilotRadio(true);
-        toast.info('מייצר גם ספוט רדיו לקמפיין 360°... 🎙️');
+      // === BANNER (360° additional or standalone) ===
+      if (needsBanner && includes360) {
+        setShowAutopilotBanner(true);
+        setIsGeneratingBanner(true);
+        toast.info('מייצר באנר דיגיטלי... 🖥️');
+        const bannerCampaignContext = { ...campaignContext, mediaFormat: 'banner' };
+        generateImageForConcept(selectedConcept, 99, brandContext, bannerCampaignContext)
+          .then((bannerUrl) => {
+            if (bannerUrl) { setAutopilotBannerUrl(bannerUrl); toast.success('באנר דיגיטלי נוצר! 🖥️'); }
+          }).catch(() => {}).finally(() => setIsGeneratingBanner(false));
+      }
 
-        // Article
+      // === RADIO ===
+      if (needsRadio) {
+        setShowAutopilotRadio(true);
+        toast.info('מייצר ספוט רדיו... 🎙️');
+      }
+
+      // === ARTICLE ===
+      if (needsArticle) {
         setShowAutopilotArticle(true);
         setIsGeneratingArticle(true);
+        toast.info('כותב כתבה פרסומית... 📰');
         supabase.functions.invoke('generate-internal-material', {
           body: {
             type: 'article',
-            profileData: {
-              businessName: clientProfile?.business_name,
-              phone: clientProfile?.contact_phone,
-              email: clientProfile?.contact_email,
-              address: clientProfile?.contact_address,
-              website: '',
-              xFactors: clientProfile?.x_factors,
-              targetAudience: clientProfile?.target_audience,
-              winningFeature: clientProfile?.winning_feature,
-            },
+            profileData,
             extraContext: {
               articleStyle: 'product',
               articleTopic: campaignBrief.offer || selectedConcept?.idea || '',
@@ -2162,31 +2189,55 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             },
           },
         }).then(({ data, error }) => {
-          if (!error && data?.result) {
-            setAutopilotArticle(data.result);
-            toast.success('כתבה פרסומית נוצרה! 📰');
-          }
+          if (!error && data?.result) { setAutopilotArticle(data.result); toast.success('כתבה פרסומית נוצרה! 📰'); }
         }).catch(() => {}).finally(() => setIsGeneratingArticle(false));
+      }
 
-        // Banner — generate a landscape version using the same concept
-        setShowAutopilotBanner(true);
-        setIsGeneratingBanner(true);
-        toast.info('מייצר באנר דיגיטלי לקמפיין 360°... 🖥️');
-        const bannerCampaignContext = { ...campaignContext, mediaFormat: 'banner' };
-        generateImageForConcept(selectedConcept, 99, brandContext, bannerCampaignContext)
-          .then((bannerUrl) => {
-            if (bannerUrl) {
-              setAutopilotBannerUrl(bannerUrl);
-              toast.success('באנר דיגיטלי נוצר! 🖥️');
-            }
-          })
-          .catch(() => {})
-          .finally(() => setIsGeneratingBanner(false));
+      // === EMAIL ===
+      if (needsEmail) {
+        setShowAutopilotEmail(true);
+        setIsGeneratingEmail(true);
+        toast.info('כותב מייל שיווקי... 📧');
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'email',
+            profileData,
+            extraContext: {
+              emailTopic: campaignBrief.offer || selectedConcept?.idea || '',
+              userPrompt: selectedConcept ? `המייל צריך להתבסס על הקונספט: ${selectedConcept.headline} — ${selectedConcept.copy}` : '',
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) { setAutopilotEmailContent(data.result); toast.success('מייל שיווקי נוצר! 📧'); }
+        }).catch(() => {}).finally(() => setIsGeneratingEmail(false));
+      }
+
+      // === WHATSAPP ===
+      if (needsWhatsapp) {
+        setShowAutopilotWhatsapp(true);
+        setIsGeneratingWhatsapp(true);
+        toast.info('כותב מסר לוואטסאפ... 💬');
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'whatsapp',
+            profileData,
+            extraContext: {
+              whatsappTopic: campaignBrief.offer || selectedConcept?.idea || '',
+              userPrompt: selectedConcept ? `המסר צריך להתבסס על הקונספט: ${selectedConcept.headline} — ${selectedConcept.copy}` : '',
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) { setAutopilotWhatsappContent(data.result); toast.success('מסר וואטסאפ נוצר! 💬'); }
+        }).catch(() => {}).finally(() => setIsGeneratingWhatsapp(false));
+      }
+
+      // For non-visual-only types, ensure results view is shown
+      if (!needsVisuals) {
+        setIsGenerating(false);
       }
     } catch (error) {
       console.error('Error:', error);
-      toast.error('שגיאה ביצירת התמונות');
-    } finally {
+      toast.error('שגיאה ביצירת התוצרים');
       setIsGenerating(false);
     }
   };
