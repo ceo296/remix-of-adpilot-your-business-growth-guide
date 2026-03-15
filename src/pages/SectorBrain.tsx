@@ -168,6 +168,48 @@ const SectorBrain = () => {
   const [insightCategory, setInsightCategory] = useState<'general' | 'visual' | 'media' | 'stream' | 'holiday' | 'topic'>('general');
   const [enlargedImage, setEnlargedImage] = useState<{ url: string; name: string } | null>(null);
   const [savedInsightsCount, setSavedInsightsCount] = useState(0);
+  const [isCategorizing, setIsCategorizing] = useState(false);
+  const [categorizeProgress, setCategorizeProgress] = useState<{ done: number; total: number } | null>(null);
+
+  const handleAutoCategorize = async () => {
+    setIsCategorizing(true);
+    setCategorizeProgress({ done: 0, total: stats.untaggedTopic });
+    let totalCategorized = 0;
+    let remaining = stats.untaggedTopic;
+    
+    try {
+      // Process in batches until done
+      while (remaining > 0) {
+        const { data, error } = await supabase.functions.invoke('categorize-brain', {
+          body: { batchSize: 200, offset: 0, dryRun: false },
+        });
+        
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        
+        totalCategorized += data.categorized || 0;
+        remaining = data.remaining || 0;
+        setCategorizeProgress({ done: totalCategorized, total: stats.untaggedTopic });
+        
+        // Log summary
+        if (data.summary) {
+          console.log('Batch categorized:', data.summary);
+        }
+        
+        // If nothing was categorized in this batch, remaining are truly uncategorizable
+        if ((data.categorized || 0) === 0) break;
+      }
+      
+      toast.success(`${totalCategorized} דוגמאות סווגו בהצלחה! ${remaining} נשארו ללא תיוג`);
+      // Refresh data
+      window.location.reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בתיוג אוטומטי');
+    } finally {
+      setIsCategorizing(false);
+      setCategorizeProgress(null);
+    }
+  };
 
   // Check admin role
   useEffect(() => {
