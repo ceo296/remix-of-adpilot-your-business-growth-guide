@@ -394,6 +394,12 @@ const CreativeStudio = () => {
   const [showAutopilotBanner, setShowAutopilotBanner] = useState(false);
   const [autopilotBannerUrl, setAutopilotBannerUrl] = useState<string | null>(null);
   const [isGeneratingBanner, setIsGeneratingBanner] = useState(false);
+  const [autopilotEmailContent, setAutopilotEmailContent] = useState<{ subject: string; body: string; cta: string } | null>(null);
+  const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
+  const [showAutopilotEmail, setShowAutopilotEmail] = useState(false);
+  const [autopilotWhatsappContent, setAutopilotWhatsappContent] = useState<{ message: string } | null>(null);
+  const [isGeneratingWhatsapp, setIsGeneratingWhatsapp] = useState(false);
+  const [showAutopilotWhatsapp, setShowAutopilotWhatsapp] = useState(false);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
