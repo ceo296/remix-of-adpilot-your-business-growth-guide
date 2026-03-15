@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move, Radio } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move, Radio, Newspaper } from 'lucide-react';
 import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
 import { matchTemplateFromAnalysis, buildLayoutInstructions } from '@/lib/template-matcher';
 import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
@@ -340,6 +340,9 @@ const CreativeStudio = () => {
   const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
   const [showPipeline, setShowPipeline] = useState(false);
   const [showAutopilotRadio, setShowAutopilotRadio] = useState(false);
+  const [showAutopilotArticle, setShowAutopilotArticle] = useState(false);
+  const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string } | null>(null);
+  const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
@@ -2098,6 +2101,36 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       if (includes360) {
         setShowAutopilotRadio(true);
         toast.info('מייצר גם ספוט רדיו לקמפיין 360°... 🎙️');
+
+        // Also generate article for 360°
+        setShowAutopilotArticle(true);
+        setIsGeneratingArticle(true);
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'article',
+            profileData: {
+              businessName: clientProfile?.business_name,
+              phone: clientProfile?.contact_phone,
+              email: clientProfile?.contact_email,
+              address: clientProfile?.contact_address,
+              website: '',
+              xFactors: clientProfile?.x_factors,
+              targetAudience: clientProfile?.target_audience,
+              winningFeature: clientProfile?.winning_feature,
+            },
+            extraContext: {
+              articleStyle: 'product',
+              articleTopic: campaignBrief.offer || selectedConcept?.idea || '',
+              targetLength: 'medium',
+              userPrompt: selectedConcept ? `הכתבה צריכה להתבסס על הקונספט: ${selectedConcept.headline} — ${selectedConcept.copy}` : '',
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) {
+            setAutopilotArticle(data.result);
+            toast.success('כתבה פרסומית נוצרה! 📰');
+          }
+        }).catch(() => {}).finally(() => setIsGeneratingArticle(false));
       }
     } catch (error) {
       console.error('Error:', error);
@@ -2621,7 +2654,57 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   </div>
                 )}
 
-                {/* Feedback Section */}
+                {/* Article Section for 360° campaigns */}
+                {showAutopilotArticle && (
+                  <div className="mt-10 pt-8 border-t-2 border-primary/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg shadow-cyan-500/30 flex items-center justify-center">
+                        <Newspaper className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">כתבה פרסומית</h3>
+                        <p className="text-sm text-muted-foreground">חלק מקמפיין 360° שלך</p>
+                      </div>
+                    </div>
+                    {isGeneratingArticle ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב כתבה פרסומית...</span>
+                      </div>
+                    ) : autopilotArticle ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <h4 className="text-xl font-bold text-foreground mb-1">{autopilotArticle.headline}</h4>
+                          <h5 className="text-base text-muted-foreground mb-4">{autopilotArticle.subheadline}</h5>
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                            {autopilotArticle.body}
+                          </div>
+                          {autopilotArticle.pullQuote && (
+                            <div className="border-r-4 border-primary pr-3 py-2 my-4 bg-primary/5 rounded-l-lg">
+                              <p className="text-sm font-medium italic">"{autopilotArticle.pullQuote}"</p>
+                            </div>
+                          )}
+                          {autopilotArticle.callToAction && (
+                            <p className="text-sm text-primary font-medium">{autopilotArticle.callToAction}</p>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-4"
+                            onClick={() => {
+                              const text = `${autopilotArticle.headline}\n${autopilotArticle.subheadline}\n\n${autopilotArticle.body}\n\n"${autopilotArticle.pullQuote}"\n\n${autopilotArticle.callToAction}`;
+                              navigator.clipboard.writeText(text);
+                              toast.success('הכתבה הועתקה!');
+                            }}
+                          >
+                            העתק כתבה
+                          </Button>
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
+
                 {!isGenerating && generatedImages.some(img => img.status === 'approved' || img.status === 'needs-review') && (
                   <div className="mt-8 space-y-4">
                     {/* Feedback Buttons */}
