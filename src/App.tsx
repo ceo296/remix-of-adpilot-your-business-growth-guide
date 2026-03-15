@@ -56,6 +56,8 @@ const App = () => (
             
             <Route path="/business-card-studio" element={<BusinessCardStudio />} />
             <Route path="/letterhead-studio" element={<LetterheadStudio />} />
+            <Route path="/greeting-studio" element={<GreetingStudio />} />
+            <Route path="/article-studio" element={<ArticleStudio />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </HashRouter>
