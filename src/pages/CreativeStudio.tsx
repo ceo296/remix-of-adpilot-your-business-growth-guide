@@ -2610,8 +2610,6 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                 <div className={
                   mediaTypes.includes('banner') 
                     ? 'grid grid-cols-1 lg:grid-cols-2 gap-4' 
-                    : mediaTypes.includes('billboard')
-                    ? 'grid grid-cols-1 gap-4'
                     : generatedImages.length === 3
                     ? 'grid grid-cols-1 sm:grid-cols-3 gap-4'
                     : generatedImages.length === 4
@@ -2624,9 +2622,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                       <div className={`relative bg-muted ${
                         mediaTypes.includes('banner') 
                           ? 'aspect-[4/1]' 
-                          : mediaTypes.includes('billboard')
-                          ? 'aspect-[16/9]'
-                          : mediaTypes.includes('social')
+                          : mediaTypes.includes('whatsapp')
                           ? 'aspect-square'
                           : 'aspect-square'
                       }`}>

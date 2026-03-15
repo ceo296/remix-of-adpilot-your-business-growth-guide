@@ -304,7 +304,7 @@ export const StudioAutopilot = ({
     <div className="space-y-6">
       <div className="text-center mb-8">
         <Badge variant="secondary" className="mb-3">
-          {primaryMediaType === 'radio' ? '🎙️' : primaryMediaType === 'billboard' ? '🪧' : primaryMediaType === 'social' ? '📱' : '📰'} {getMediaLabel()}
+          {primaryMediaType === 'radio' ? '🎙️' : primaryMediaType === 'email' ? '📧' : primaryMediaType === 'whatsapp' ? '💬' : primaryMediaType === 'article' ? '📝' : primaryMediaType === 'banner' ? '🖥️' : '📰'} {getMediaLabel()}
         </Badge>
         <h2 className="text-2xl font-bold mb-2">בחרו את הזווית שמדברת אליכם</h2>
         <p className="text-muted-foreground">
