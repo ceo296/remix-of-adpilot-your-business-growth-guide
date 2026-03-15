@@ -2,3 +2,6 @@ project_id = "hiexyjkcyjsshwkscdob"
 
 [functions.batch-transcribe]
 verify_jwt = false
+
+[functions.categorize-brain]
+verify_jwt = false

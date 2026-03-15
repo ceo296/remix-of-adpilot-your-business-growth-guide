@@ -168,6 +168,48 @@ const SectorBrain = () => {
   const [insightCategory, setInsightCategory] = useState<'general' | 'visual' | 'media' | 'stream' | 'holiday' | 'topic'>('general');
   const [enlargedImage, setEnlargedImage] = useState<{ url: string; name: string } | null>(null);
   const [savedInsightsCount, setSavedInsightsCount] = useState(0);
+  const [isCategorizing, setIsCategorizing] = useState(false);
+  const [categorizeProgress, setCategorizeProgress] = useState<{ done: number; total: number } | null>(null);
+
+  const handleAutoCategorize = async () => {
+    setIsCategorizing(true);
+    setCategorizeProgress({ done: 0, total: stats.untaggedTopic });
+    let totalCategorized = 0;
+    let remaining = stats.untaggedTopic;
+    
+    try {
+      // Process in batches until done
+      while (remaining > 0) {
+        const { data, error } = await supabase.functions.invoke('categorize-brain', {
+          body: { batchSize: 200, offset: 0, dryRun: false },
+        });
+        
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        
+        totalCategorized += data.categorized || 0;
+        remaining = data.remaining || 0;
+        setCategorizeProgress({ done: totalCategorized, total: stats.untaggedTopic });
+        
+        // Log summary
+        if (data.summary) {
+          console.log('Batch categorized:', data.summary);
+        }
+        
+        // If nothing was categorized in this batch, remaining are truly uncategorizable
+        if ((data.categorized || 0) === 0) break;
+      }
+      
+      toast.success(`${totalCategorized} דוגמאות סווגו בהצלחה! ${remaining} נשארו ללא תיוג`);
+      // Refresh data
+      window.location.reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בתיוג אוטומטי');
+    } finally {
+      setIsCategorizing(false);
+      setCategorizeProgress(null);
+    }
+  };
 
   // Check admin role
   useEffect(() => {
@@ -898,20 +940,37 @@ const SectorBrain = () => {
                           );
                         })}
                         {stats.untaggedTopic > 0 && (
-                          <div
-                            className="flex items-center gap-3 opacity-60 cursor-pointer hover:bg-muted/50 rounded-lg p-1 -m-1 transition-colors hover:opacity-100"
-                            onClick={() => { setFilterTopic('untagged'); setActiveTab('browse'); }}
-                          >
-                            <span className="text-sm w-32 text-right shrink-0">ללא תיוג</span>
-                            <div className="flex-1 bg-muted rounded-full h-6 overflow-hidden">
-                              <div
-                                className="h-full bg-muted-foreground/30 rounded-full flex items-center justify-end px-2"
-                                style={{ width: `${Math.max((stats.untaggedTopic / topTopics[0][1]) * 100, 15)}%` }}
-                              >
-                                <span className="text-xs font-bold">{stats.untaggedTopic}</span>
+                          <div className="space-y-2">
+                            <div
+                              className="flex items-center gap-3 opacity-60 cursor-pointer hover:bg-muted/50 rounded-lg p-1 -m-1 transition-colors hover:opacity-100"
+                              onClick={() => { setFilterTopic('untagged'); setActiveTab('browse'); }}
+                            >
+                              <span className="text-sm w-32 text-right shrink-0">ללא תיוג</span>
+                              <div className="flex-1 bg-muted rounded-full h-6 overflow-hidden">
+                                <div
+                                  className="h-full bg-muted-foreground/30 rounded-full flex items-center justify-end px-2"
+                                  style={{ width: `${Math.max((stats.untaggedTopic / topTopics[0][1]) * 100, 15)}%` }}
+                                >
+                                  <span className="text-xs font-bold">{stats.untaggedTopic}</span>
+                                </div>
                               </div>
+                              <Eye className="h-3.5 w-3.5 text-muted-foreground" />
                             </div>
-                            <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleAutoCategorize}
+                              disabled={isCategorizing}
+                              className="w-full text-xs"
+                            >
+                              {isCategorizing ? (
+                                <><Loader2 className="h-3 w-3 ml-1 animate-spin" />
+                                  מסווג... {categorizeProgress ? `${categorizeProgress.done}/${categorizeProgress.total}` : ''}
+                                </>
+                              ) : (
+                                <><Sparkles className="h-3 w-3 ml-1" />תייג אוטומטית {stats.untaggedTopic} דוגמאות</>
+                              )}
+                            </Button>
                           </div>
                         )}
                       </div>
