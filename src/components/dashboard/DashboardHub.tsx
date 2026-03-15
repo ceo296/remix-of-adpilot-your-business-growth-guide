@@ -134,7 +134,7 @@ const DashboardHub = () => {
     } else if (type === 'branding') {
       navigate('/internal-studio?open=branding');
     } else {
-      navigate('/studio?mode=upload');
+      navigate('/studio');
     }
   };
 

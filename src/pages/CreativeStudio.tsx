@@ -245,7 +245,7 @@ const CreativeStudio = () => {
   
   // Mode state - check URL param for direct access
   const urlMode = searchParams.get('mode');
-  const [mode, setMode] = useState<StudioMode>(urlMode === 'upload' ? 'upload' : null);
+  const [mode, setMode] = useState<StudioMode>(null);
   const [detectedIndustry, setDetectedIndustry] = useState<string | null>(null);
   
   // Detect industry from client profile or brief text for nudges
