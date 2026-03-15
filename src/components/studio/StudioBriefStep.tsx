@@ -368,6 +368,23 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Scope context banner */}
+      {campaignScope && SCOPE_CONTEXT[campaignScope] && (() => {
+        const ctx = SCOPE_CONTEXT[campaignScope];
+        const Icon = ctx.icon;
+        return (
+          <div className={cn("flex items-center gap-4 p-4 rounded-xl border-2", ctx.colorClass)} dir="rtl">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-background/60">
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="flex-1 text-right">
+              <p className="font-bold text-sm">{ctx.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{ctx.description}</p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Header */}
       <div className="text-center">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
