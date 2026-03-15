@@ -735,18 +735,13 @@ const CreativeStudio = () => {
       return;
     }
     
-    // For has-copy: from copy step go back to asset selection
-    if (currentStep === 4 && assetChoice === 'has-copy') {
-      setCurrentStep(2);
-      return;
-    }
-    
-    // Normal back progression
+    // Normal back progression using steps array
     if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
     } else {
-      // On first step, go back to mode selection
+      // On first step, go back to mode selection and reset asset choice
       setMode(null);
+      setAssetChoice(null);
     }
   };
 
