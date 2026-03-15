@@ -120,6 +120,8 @@ const COPY_TYPE_LABELS: Record<string, string> = {
   contract: 'חוזה',
   survey: 'שאלון',
   greeting: 'ברכה',
+  email_copy: 'קופי מייל',
+  whatsapp_copy: 'קופי ווצאפ',
 };
 
 const HOLIDAY_LABELS: Record<HolidaySeason, string> = {
