@@ -90,6 +90,40 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     directRoute: '/presentation-studio',
   },
   {
+    id: 'greetings',
+    name: 'Greetings',
+    nameHe: 'ברכות',
+    description: 'ברכות ממותגות לחגים ואירועים',
+    icon: PartyPopper,
+    comingSoon: false,
+    templates: [
+      { id: 'gr-rosh-hashana', name: 'ראש השנה', description: 'שנה טובה ומתוקה', aspectRatio: '1:1', popular: true },
+      { id: 'gr-sukkot', name: 'סוכות', description: 'חג סוכות שמח', aspectRatio: '1:1' },
+      { id: 'gr-chanukah', name: 'חנוכה', description: 'חג אורים שמח', aspectRatio: '1:1' },
+      { id: 'gr-purim', name: 'פורים', description: 'פורים שמח', aspectRatio: '1:1' },
+      { id: 'gr-pesach', name: 'פסח', description: 'חג פסח כשר ושמח', aspectRatio: '1:1' },
+      { id: 'gr-shavuot', name: 'שבועות', description: 'חג שבועות שמח', aspectRatio: '1:1' },
+      { id: 'gr-wedding', name: 'חתונה', description: 'מזל טוב לחתן ולכלה', aspectRatio: '1:1' },
+      { id: 'gr-bar-mitzvah', name: 'בר מצווה', description: 'מזל טוב לבר המצווה', aspectRatio: '1:1' },
+      { id: 'gr-birthday', name: 'יום הולדת', description: 'יום הולדת שמח', aspectRatio: '1:1' },
+      { id: 'gr-general', name: 'ברכה כללית', description: 'ברכה מותאמת אישית', aspectRatio: '1:1' },
+    ]
+  },
+  {
+    id: 'articles',
+    name: 'Articles',
+    nameHe: 'כתבות פרסומיות',
+    description: 'כתבות תוכן שיווקי מקצועיות',
+    icon: Newspaper,
+    comingSoon: false,
+    templates: [
+      { id: 'art-product', name: 'כתבת מוצר', description: 'כתבה על מוצר או שירות', aspectRatio: '1:1.41', popular: true },
+      { id: 'art-story', name: 'כתבת סיפור', description: 'סיפור העסק / היזם', aspectRatio: '1:1.41' },
+      { id: 'art-expert', name: 'כתבת מומחה', description: 'מאמר מקצועי בתחום', aspectRatio: '1:1.41' },
+      { id: 'art-seasonal', name: 'כתבה עונתית', description: 'תוכן מותאם לעונה/חג', aspectRatio: '1:1.41' },
+    ]
+  },
+  {
     id: 'branding',
     name: 'Branding',
     nameHe: 'מיתוג',
