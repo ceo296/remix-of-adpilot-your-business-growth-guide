@@ -89,6 +89,16 @@ interface ClientProfile {
   past_materials_fonts: any[] | null;
   business_photos: any[] | null;
   default_template_id: string | null;
+  // Full identity card fields
+  services: string[] | null;
+  competitors: string[] | null;
+  audience_tone: string | null;
+  brand_presence: string | null;
+  personal_red_lines: string[] | null;
+  successful_campaigns: string[] | null;
+  quality_signatures: any[] | null;
+  honorific_preference: string | null;
+  website_url: string | null;
 }
 
 interface CustomTemplate {
