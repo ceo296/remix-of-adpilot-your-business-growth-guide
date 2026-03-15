@@ -2161,7 +2161,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         setShowAutopilotBanner(true);
         setIsGeneratingBanner(true);
         toast.info('מייצר באנר דיגיטלי לקמפיין 360°... 🖥️');
-        generateImageForConcept(selectedConcept, 99, brandContext, campaignContext, 'banner')
+        const bannerCampaignContext = { ...campaignContext, mediaFormat: 'banner' };
+        generateImageForConcept(selectedConcept, 99, brandContext, bannerCampaignContext)
           .then((bannerUrl) => {
             if (bannerUrl) {
               setAutopilotBannerUrl(bannerUrl);
