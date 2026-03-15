@@ -1,9 +1,71 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+async function fetchSectorBrainReferences(supabase: any, mediaTypes: string[], topicCategory?: string, limit = 8): Promise<string> {
+  // Fetch relevant text examples from sector brain
+  let query = supabase
+    .from('sector_brain_examples')
+    .select('name, text_content, media_type, topic_category, example_type')
+    .eq('is_general_guideline', false)
+    .eq('example_type', 'good')
+    .not('text_content', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (mediaTypes.length > 0) {
+    query = query.in('media_type', mediaTypes);
+  }
+
+  const { data, error } = await query;
+  if (error || !data?.length) {
+    console.log('No sector brain references found:', error?.message);
+    return '';
+  }
+
+  // If we have a topic, prioritize matching topic but include others too
+  let sorted = data;
+  if (topicCategory) {
+    sorted = [
+      ...data.filter((d: any) => d.topic_category === topicCategory),
+      ...data.filter((d: any) => d.topic_category !== topicCategory),
+    ].slice(0, limit);
+  }
+
+  const refs = sorted
+    .filter((d: any) => d.text_content?.trim())
+    .map((d: any, i: number) => `--- דוגמה ${i + 1} (${d.name}) ---\n${d.text_content.substring(0, 800)}`)
+    .join('\n\n');
+
+  return refs;
+}
+
+async function fetchSectorGuidelines(supabase: any): Promise<string> {
+  const { data } = await supabase
+    .from('sector_brain_examples')
+    .select('text_content')
+    .eq('is_general_guideline', true)
+    .not('text_content', 'is', null)
+    .limit(5);
+
+  if (!data?.length) return '';
+  return data.map((d: any) => d.text_content).join('\n');
+}
+
+async function fetchSectorInsights(supabase: any): Promise<string> {
+  const { data } = await supabase
+    .from('sector_brain_insights')
+    .select('content, insight_type')
+    .eq('is_active', true)
+    .limit(5);
+
+  if (!data?.length) return '';
+  return data.map((d: any) => d.content).join('\n');
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
@@ -13,6 +75,12 @@ serve(async (req) => {
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
+
+    // Initialize Supabase for fetching sector brain data
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
 
     const pd = profileData || {};
     const businessName = pd.businessName || 'העסק';
@@ -29,6 +97,47 @@ serve(async (req) => {
 - יתרון מרכזי: ${pd.winningFeature || 'לא סופק'}
 - שעות פעילות: ${pd.openingHours || 'לא סופק'}
 `;
+
+    // Sector brain context - fetched for greeting & article types
+    let sectorContext = '';
+    const needsSectorBrain = ['greeting', 'article'].includes(type);
+    
+    if (needsSectorBrain) {
+      const [references, guidelines, insights] = await Promise.all([
+        fetchSectorBrainReferences(
+          supabase,
+          type === 'greeting' ? ['greeting', 'copy', 'ad_copy'] : ['article', 'copy', 'ad_copy', 'strategy'],
+          pd.topicCategory,
+          6
+        ),
+        fetchSectorGuidelines(supabase),
+        fetchSectorInsights(supabase),
+      ]);
+
+      const parts: string[] = [];
+      if (guidelines) {
+        parts.push(`## הנחיות כלליות מהמוח הסקטוריאלי\n${guidelines}`);
+      }
+      if (insights) {
+        parts.push(`## תובנות סקטוריאליות (כללי אצבע שהופקו מדוגמאות מוצלחות)\n${insights}`);
+      }
+      if (references) {
+        parts.push(`## דוגמאות מוצלחות שכבר פורסמו במגזר (השתמש בסגנון, במבנה ובטון שלהן כהשראה)\n${references}`);
+      }
+      if (parts.length > 0) {
+        sectorContext = `\n\n🧠 מידע סקטוריאלי — חרדי (חובה להיצמד לסגנון, לטון ולכללים הבאים):\n${parts.join('\n\n')}`;
+      }
+    }
+
+    const harediBrief = needsSectorBrain ? `
+כללי חרדיות חובה:
+- שפה מכבדת, ללא סלנג חילוני
+- פנייה בלשון כבוד (רבים/יחיד בהתאם לקהל)
+- אין הפניה ישירה לנשים בפרסום לגברים ולהיפך
+- חגים ומועדים — יש להשתמש בנוסח המסורתי ("חג שמח", "שנה טובה ומתוקה")
+- אסור: תוכן פרובוקטיבי, הומור לא צנוע, הבטחות מופרזות
+- מותר: משחקי מילים, הומור עדין, ציטוטי חז"ל במינון
+` : '';
 
     let systemPrompt = '';
     let toolDef: any = null;
@@ -165,17 +274,20 @@ ${catalogTopic ? `נושא הקטלוג: ${catalogTopic}` : ''}
       };
 
       toolName = 'generate_greeting_content';
-      systemPrompt = `אתה כותב ברכות מקצועיות בעברית עבור עסקים. צור ברכה ממותגת ל${occasionMap[greetingOccasion] || 'אירוע'}.
+      systemPrompt = `אתה כותב ברכות מקצועיות בעברית עבור עסקים במגזר החרדי. צור ברכה ממותגת ל${occasionMap[greetingOccasion] || 'אירוע'}.
 ${profileBlock}
 ${recipientName ? `הנמען: ${recipientName}` : 'ברכה כללית ללקוחות/שותפים'}
+${harediBrief}
+${sectorContext}
 הנחיות:
-- כתוב בשפה חמה ומכבדת
+- כתוב בשפה חמה ומכבדת — בסגנון המגזר החרדי
 - הברכה צריכה לשלב את שם העסק בצורה טבעית
 - טון: חגיגי, אישי, מקצועי
 - אורך: 2-4 משפטים — לא ארוך מדי
 - כותרת קצרה וקולעת (2-4 מילים)
-- אם זה חג — התייחס למהות החג
-- אם זו חתונה/בר מצווה — ברכה מרגשת ואישית`;
+- אם זה חג — התייחס למהות החג בנוסח המסורתי
+- אם זו חתונה/בר מצווה — ברכה מרגשת ואישית
+- השתמש בדוגמאות המוצלחות למעלה כהשראה לסגנון ולמבנה`;
       toolDef = {
         type: "function",
         function: {
@@ -215,15 +327,18 @@ ${recipientName ? `הנמען: ${recipientName}` : 'ברכה כללית ללקו
 ${profileBlock}
 ${articleTopic ? `נושא הכתבה: ${articleTopic}` : ''}
 אורך מבוקש: ${lengthMap[targetLength] || '400-600 מילים'}
+${harediBrief}
+${sectorContext}
 הנחיות:
 - כתוב בסגנון עיתונאי-שיווקי (advertorial) — נקרא כמו כתבה אבל משווק את העסק
-- כותרת מושכת עם הוק חזק
+- כותרת מושכת עם הוק חזק — למד מהדוגמאות המוצלחות למעלה
 - כותרת משנה שמרחיבה
 - פסקאות קצרות וברורות
 - ציטוט אחד לפחות (מבעל העסק או לקוח)
 - לא "מודעתי" מדי — צריך להרגיש כמו תוכן עיתונאי
 - CTA עדין בסוף — לא מכירתי אגרסיבי
-- אל תמציא פרטים שלא סופקו`;
+- אל תמציא פרטים שלא סופקו
+- היצמד לסגנון, לטון ולמבנה של הדוגמאות שפורסמו בהצלחה במגזר`;
       toolDef = {
         type: "function",
         function: {
