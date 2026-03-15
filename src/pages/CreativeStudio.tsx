@@ -1151,8 +1151,12 @@ const CreativeStudio = () => {
     setShowAutopilotRadio(false);
     setShowAutopilotArticle(false);
     setShowAutopilotBanner(false);
+    setShowAutopilotEmail(false);
+    setShowAutopilotWhatsapp(false);
     setAutopilotArticle(null);
     setAutopilotBannerUrl(null);
+    setAutopilotEmailContent(null);
+    setAutopilotWhatsappContent(null);
   };
 
   // Quote handling functions
