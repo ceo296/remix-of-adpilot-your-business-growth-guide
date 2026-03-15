@@ -23,6 +23,8 @@ import PresentationStudio from "./pages/PresentationStudio";
 
 import BusinessCardStudio from "./pages/BusinessCardStudio";
 import LetterheadStudio from "./pages/LetterheadStudio";
+import GreetingStudio from "./pages/GreetingStudio";
+import ArticleStudio from "./pages/ArticleStudio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
