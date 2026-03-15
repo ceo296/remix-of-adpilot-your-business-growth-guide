@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp, Sparkles, RefreshCw, Filter, BarChart3, Calendar, Tag, Eye, FolderOpen, ZoomIn } from 'lucide-react';
+import { ArrowRight, Brain, Trophy, AlertOctagon, Upload, X, FileImage, FileText, Trash2, Loader2, Plus, Clipboard, Newspaper, Radio, Monitor, RectangleHorizontal, Megaphone, Video, Check, ThumbsUp, ThumbsDown, Copy, Link2, BookOpen, Lightbulb, ChevronDown, ChevronUp, Sparkles, RefreshCw, Filter, BarChart3, Calendar, Tag, Eye, FolderOpen, ZoomIn, Mail, MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,7 @@ interface UploadedAsset {
   is_general_guideline?: boolean;
 }
 
-type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio' | 'copy' | 'ad_copy' | 'radio_script' | 'banner_copy' | 'strategy' | 'brief' | 'article' | 'landing_page' | 'video_script' | 'sales_script' | 'flyer_copy' | 'prospectus' | 'contract' | 'survey' | 'greeting';
+type MediaType = 'ads' | 'text' | 'video' | 'signage' | 'promo' | 'radio' | 'email' | 'whatsapp' | 'copy' | 'ad_copy' | 'radio_script' | 'banner_copy' | 'strategy' | 'brief' | 'article' | 'landing_page' | 'video_script' | 'sales_script' | 'flyer_copy' | 'prospectus' | 'contract' | 'survey' | 'greeting' | 'email_copy' | 'whatsapp_copy';
 type ExampleType = 'good' | 'bad';
 type StreamType = 'hasidic' | 'litvish' | 'general' | 'sephardic';
 type GenderAudience = 'male' | 'female' | 'hasidic_female' | 'hasidic_male' | 'youth' | 'classic';
@@ -42,12 +42,14 @@ type TopicCategory = 'real_estate' | 'beauty' | 'food' | 'cellular' | 'filtered_
 type HolidaySeason = 'pesach' | 'sukkot' | 'chanukah' | 'purim' | 'shavuot' | 'lag_baomer' | 'tu_bishvat' | 'summer' | 'bein_hazmanim' | 'rosh_hashana' | 'yom_kippur' | 'year_round';
 
 // Text-based media types that should be grouped under "מלל"
-const TEXT_MEDIA_TYPES = new Set(['text', 'copy', 'ad_copy', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus', 'contract', 'survey', 'greeting']);
+const TEXT_MEDIA_TYPES = new Set(['text', 'copy', 'ad_copy', 'banner_copy', 'strategy', 'brief', 'article', 'landing_page', 'video_script', 'sales_script', 'flyer_copy', 'prospectus', 'contract', 'survey', 'greeting', 'email_copy', 'whatsapp_copy']);
 
 // Media types that should be grouped under a parent category for stats
 const MEDIA_TYPE_GROUP: Record<string, string> = {
   radio_script: 'radio',
   video_script: 'video',
+  email_copy: 'email',
+  whatsapp_copy: 'whatsapp',
 };
 
 const MEDIA_TYPES: { id: string; label: string; icon: React.ElementType }[] = [
@@ -57,6 +59,8 @@ const MEDIA_TYPES: { id: string; label: string; icon: React.ElementType }[] = [
   { id: 'signage', label: 'שילוט', icon: RectangleHorizontal },
   { id: 'promo', label: 'קד"מ', icon: Megaphone },
   { id: 'radio', label: 'רדיו', icon: Radio },
+  { id: 'email', label: 'מיילים', icon: Mail },
+  { id: 'whatsapp', label: 'ווצאפ', icon: MessageCircle },
 ];
 
 const STREAM_LABELS: Record<StreamType, string> = {
@@ -116,6 +120,8 @@ const COPY_TYPE_LABELS: Record<string, string> = {
   contract: 'חוזה',
   survey: 'שאלון',
   greeting: 'ברכה',
+  email_copy: 'קופי מייל',
+  whatsapp_copy: 'קופי ווצאפ',
 };
 
 const HOLIDAY_LABELS: Record<HolidaySeason, string> = {
