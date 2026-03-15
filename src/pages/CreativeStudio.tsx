@@ -813,54 +813,8 @@ const CreativeStudio = () => {
       const results: GeneratedImage[] = [];
       
       // Generate 4 variations
-      // Build brand context for AI - use campaign color selection if set
-      const colorSelection = campaignBrief.colorSelection;
-      const effectiveColors = {
-        primary: colorSelection.mode === 'swapped' 
-          ? colorSelection.primaryColor || clientProfile?.secondary_color 
-          : clientProfile?.primary_color,
-        secondary: colorSelection.mode === 'swapped' 
-          ? colorSelection.secondaryColor || clientProfile?.primary_color 
-          : clientProfile?.secondary_color,
-        background: colorSelection.backgroundColor || clientProfile?.background_color,
-      };
-
-      // Extract ad layout analysis from past materials
-      const pastMaterialsAnalysis = (clientProfile?.past_materials as any[])
-        ?.filter((m: any) => m.adAnalysis)
-        ?.map((m: any) => m.adAnalysis)
-        ?.slice(0, 3) || [];
-
-      // Extract actual past material image URLs for AI reference
-      const pastMaterialUrls = (clientProfile?.past_materials as any[])
-        ?.filter((m: any) => m.url || m.preview)
-        ?.map((m: any) => m.url || m.preview)
-        ?.filter((url: string) => url && !url.startsWith('data:application/pdf'))
-        ?.slice(0, 3) || [];
-
-      const brandContext = clientProfile ? {
-        businessName: clientProfile.business_name,
-        targetAudience: clientProfile.target_audience,
-        primaryXFactor: clientProfile.primary_x_factor,
-        winningFeature: clientProfile.winning_feature,
-        xFactors: clientProfile.x_factors,
-        colors: effectiveColors,
-        fonts: {
-          header: clientProfile.header_font,
-          body: clientProfile.body_font,
-        },
-        colorMode: colorSelection.mode,
-        pastMaterialsAnalysis,
-        pastMaterialUrls, // Actual image URLs for AI visual reference
-        layoutInstructions: buildLayoutInstructions(pastMaterialsAnalysis),
-        designApproach: designApproach || null,
-        designReference: designReference ? { url: designReference.url, adAnalysis: designReference.adAnalysis } : null,
-        // Contact info for the edge function to use in textMeta
-        contactPhone: clientProfile.contact_phone || '',
-        contactEmail: clientProfile.contact_email || '',
-        contactAddress: clientProfile.contact_address || '',
-        contactWhatsapp: clientProfile.contact_whatsapp || '',
-      } : null;
+      const brandContext = buildBrandContext();
+      const sanitizedVisualPrompt = sanitizeVisualPrompt(visualPrompt);
 
       // Resolve PDF logo to PNG if needed
       const resolvedLogo = await getResolvedLogoUrl();
