@@ -870,7 +870,7 @@ const CreativeStudio = () => {
             topicCategory: detectedTopic,
             holidaySeason: selectedHoliday || null,
             aspectRatio,
-            designApproach: designApproach || null,
+            designApproach: designApproach || (brandContext as any)?.designApproach || null,
             corrections: pendingCorrections.length > 0 ? pendingCorrections : undefined,
             variationIndex: i,
             headlinePosition: headlinePositions[i],
