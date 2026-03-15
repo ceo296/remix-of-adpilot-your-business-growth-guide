@@ -59,6 +59,8 @@ const MEDIA_TYPES: { id: string; label: string; icon: React.ElementType }[] = [
   { id: 'signage', label: 'שילוט', icon: RectangleHorizontal },
   { id: 'promo', label: 'קד"מ', icon: Megaphone },
   { id: 'radio', label: 'רדיו', icon: Radio },
+  { id: 'email', label: 'מיילים', icon: Mail },
+  { id: 'whatsapp', label: 'ווצאפ', icon: MessageCircle },
 ];
 
 const STREAM_LABELS: Record<StreamType, string> = {
