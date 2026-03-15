@@ -132,9 +132,10 @@ const getStepTitles = (mediaTypes: MediaType[], assetChoice: string | null) => {
     switch (mediaTypes[0]) {
       case 'banner': mediaLabel = 'באנר'; break;
       case 'ad': mediaLabel = 'מודעה'; break;
-      case 'billboard': mediaLabel = 'שלט חוצות'; break;
-      case 'social': mediaLabel = 'פוסט'; break;
       case 'radio': mediaLabel = 'ספוט רדיו'; break;
+      case 'email': mediaLabel = 'מייל'; break;
+      case 'whatsapp': mediaLabel = 'וואטסאפ'; break;
+      case 'article': mediaLabel = 'כתבה'; break;
       case 'all': mediaLabel = 'קמפיין 360°'; break;
     }
   } else if (mediaTypes.length > 1) {
