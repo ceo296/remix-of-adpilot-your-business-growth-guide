@@ -2654,7 +2654,57 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   </div>
                 )}
 
-                {/* Feedback Section */}
+                {/* Article Section for 360° campaigns */}
+                {showAutopilotArticle && (
+                  <div className="mt-10 pt-8 border-t-2 border-primary/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg shadow-cyan-500/30 flex items-center justify-center">
+                        <Newspaper className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">כתבה פרסומית</h3>
+                        <p className="text-sm text-muted-foreground">חלק מקמפיין 360° שלך</p>
+                      </div>
+                    </div>
+                    {isGeneratingArticle ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב כתבה פרסומית...</span>
+                      </div>
+                    ) : autopilotArticle ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <h4 className="text-xl font-bold text-foreground mb-1">{autopilotArticle.headline}</h4>
+                          <h5 className="text-base text-muted-foreground mb-4">{autopilotArticle.subheadline}</h5>
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                            {autopilotArticle.body}
+                          </div>
+                          {autopilotArticle.pullQuote && (
+                            <div className="border-r-4 border-primary pr-3 py-2 my-4 bg-primary/5 rounded-l-lg">
+                              <p className="text-sm font-medium italic">"{autopilotArticle.pullQuote}"</p>
+                            </div>
+                          )}
+                          {autopilotArticle.callToAction && (
+                            <p className="text-sm text-primary font-medium">{autopilotArticle.callToAction}</p>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-4"
+                            onClick={() => {
+                              const text = `${autopilotArticle.headline}\n${autopilotArticle.subheadline}\n\n${autopilotArticle.body}\n\n"${autopilotArticle.pullQuote}"\n\n${autopilotArticle.callToAction}`;
+                              navigator.clipboard.writeText(text);
+                              toast.success('הכתבה הועתקה!');
+                            }}
+                          >
+                            העתק כתבה
+                          </Button>
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
+
                 {!isGenerating && generatedImages.some(img => img.status === 'approved' || img.status === 'needs-review') && (
                   <div className="mt-8 space-y-4">
                     {/* Feedback Buttons */}
