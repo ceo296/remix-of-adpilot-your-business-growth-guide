@@ -936,13 +936,21 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
             messages: [
               {
                 role: 'system',
-                content: `אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד. ללא גרשיים, ללא סימני פיסוק. תחזיר רק את הכותרת עצמה.
+                content: `אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה.
+
+כללי ברזל:
+1. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות
+2. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד עם טוויסט, משחק מילים, או מטאפורה
+3. הכותרת חייבת להתמקד בבשורה המרכזית של הבריף (המוצר/שירות הספציפי שמפורסם)
+4. אם הבריף מזכיר הטבה/מבצע/מחיר — הכותרת יכולה לרמוז עליו אך לא חייבת
+5. ללא גרשיים, ללא סימני פיסוק, ללא מספרים
+6. תחזיר רק את הכותרת עצמה — ללא הסברים
 
 כלל מגדרי קריטי: ${genderDirective}`
               },
               {
                 role: 'user',
-                content: `בריף מלא: ${offerText.slice(0, 500)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`
+                content: `בריף מלא (קרא הכל!): ${offerText.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול מרכזי: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`
               }
             ],
           }),
