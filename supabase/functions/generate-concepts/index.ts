@@ -387,7 +387,17 @@ ${isTimeLimited && timeLimitText ? `⏰ מוגבל בזמן! יש להדגיש: 
 === סוף בריף מודרך ===
 ` : '';
 
+    // Gender/honorific directive
+    const honorific = profile.honorific_preference || 'neutral';
+    const genderDirective = honorific === 'mr' 
+      ? 'כלל מגדר קריטי: כל הטקסטים חייבים להיות בלשון זכר יחיד (אתה, שלך). אסור לשון נקבה או רבים.'
+      : honorific === 'mrs' 
+      ? 'כלל מגדר קריטי: כל הטקסטים חייבים להיות בלשון נקבה יחיד (את, שלך). אסור לשון זכר או רבים.'
+      : 'כלל מגדר קריטי: כל הטקסטים חייבים להיות בלשון רבים (אתם, שלכם). אסור לשון יחיד.';
+
     const userPrompt = `Create 3 creative ${isRadio ? 'radio spot' : 'advertising'} concepts for this business:
+
+${genderDirective}
 
 Business Name: ${profile.business_name || 'עסק כללי'}
 Target Audience: ${profile.target_audience || 'משפחות חרדיות'}
@@ -396,6 +406,9 @@ Winning Feature: ${profile.winning_feature || 'מקצועיות'}
 Advantage Type: ${profile.advantage_type || 'שירות'}
 All X-Factors: ${profile.x_factors?.join(', ') || 'איכות, מחיר, שירות'}
 Brand Presence: ${profile.brand_presence || 'לא הוגדר'}
+${profile.services?.length ? `Services: ${profile.services.join(', ')}` : ''}
+${profile.competitors?.length ? `Competitors (differentiate!): ${profile.competitors.join(', ')}` : ''}
+${profile.personal_red_lines?.length ? `RED LINES (NEVER do): ${profile.personal_red_lines.join('; ')}` : ''}
 
 ${guidedBriefSection}
 
