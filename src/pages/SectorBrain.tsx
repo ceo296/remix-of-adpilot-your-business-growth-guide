@@ -48,6 +48,8 @@ const TEXT_MEDIA_TYPES = new Set(['text', 'copy', 'ad_copy', 'banner_copy', 'str
 const MEDIA_TYPE_GROUP: Record<string, string> = {
   radio_script: 'radio',
   video_script: 'video',
+  email_copy: 'email',
+  whatsapp_copy: 'whatsapp',
 };
 
 const MEDIA_TYPES: { id: string; label: string; icon: React.ElementType }[] = [
