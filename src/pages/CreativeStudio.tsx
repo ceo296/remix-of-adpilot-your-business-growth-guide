@@ -857,7 +857,7 @@ const CreativeStudio = () => {
         
         const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
-            visualPrompt,
+            visualPrompt: sanitizedVisualPrompt || visualPrompt,
             textPrompt: textPrompt || null,
             style: style || 'ultra-realistic',
             engine: engineVersion,
