@@ -2101,6 +2101,36 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       if (includes360) {
         setShowAutopilotRadio(true);
         toast.info('מייצר גם ספוט רדיו לקמפיין 360°... 🎙️');
+
+        // Also generate article for 360°
+        setShowAutopilotArticle(true);
+        setIsGeneratingArticle(true);
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'article',
+            profileData: {
+              businessName: clientProfile?.business_name,
+              phone: clientProfile?.contact_phone,
+              email: clientProfile?.contact_email,
+              address: clientProfile?.contact_address,
+              website: clientProfile?.website_url,
+              xFactors: clientProfile?.x_factors,
+              targetAudience: clientProfile?.target_audience,
+              winningFeature: clientProfile?.winning_feature,
+            },
+            extraContext: {
+              articleStyle: 'product',
+              articleTopic: campaignBrief.offer || selectedConcept?.idea || '',
+              targetLength: 'medium',
+              userPrompt: selectedConcept ? `הכתבה צריכה להתבסס על הקונספט: ${selectedConcept.headline} — ${selectedConcept.copy}` : '',
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) {
+            setAutopilotArticle(data.result);
+            toast.success('כתבה פרסומית נוצרה! 📰');
+          }
+        }).catch(() => {}).finally(() => setIsGeneratingArticle(false));
       }
     } catch (error) {
       console.error('Error:', error);
