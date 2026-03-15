@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move, Radio, Newspaper } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move, Radio, Newspaper, Monitor } from 'lucide-react';
 import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
 import { matchTemplateFromAnalysis, buildLayoutInstructions } from '@/lib/template-matcher';
 import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
@@ -390,6 +390,9 @@ const CreativeStudio = () => {
   const [showAutopilotArticle, setShowAutopilotArticle] = useState(false);
   const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string } | null>(null);
   const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
+  const [showAutopilotBanner, setShowAutopilotBanner] = useState(false);
+  const [autopilotBannerUrl, setAutopilotBannerUrl] = useState<string | null>(null);
+  const [isGeneratingBanner, setIsGeneratingBanner] = useState(false);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
@@ -1138,6 +1141,11 @@ const CreativeStudio = () => {
     setFeedbackType(null);
     setShowFormatAdaptation(false);
     setAdaptedCreatives([]);
+    setShowAutopilotRadio(false);
+    setShowAutopilotArticle(false);
+    setShowAutopilotBanner(false);
+    setAutopilotArticle(null);
+    setAutopilotBannerUrl(null);
   };
 
   // Quote handling functions
@@ -1481,10 +1489,10 @@ const CreativeStudio = () => {
         engine: engineVersion,
         brandContext,
         campaignContext,
-        mediaType: mediaTypes.includes('all') ? (concept.mediaType || 'ad') : (mediaTypes[0] || null),
+        mediaType: campaignContext?.mediaFormat || (mediaTypes.includes('all') ? (concept.mediaType || 'ad') : (mediaTypes[0] || null)),
         topicCategory: detectedTopic,
         holidaySeason: selectedHoliday || null,
-        aspectRatio,
+        aspectRatio: campaignContext?.mediaFormat === 'banner' ? 'landscape' : aspectRatio,
         visualApproach,
         designApproach: designApproach || null,
         corrections: corrections || undefined,
@@ -2112,13 +2120,14 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
 
-      // For 360° campaigns, also trigger radio script generation
+      // For 360° campaigns, also trigger radio, article, and banner generation
       const includes360 = mediaTypes.includes('all');
       if (includes360) {
+        // Radio
         setShowAutopilotRadio(true);
         toast.info('מייצר גם ספוט רדיו לקמפיין 360°... 🎙️');
 
-        // Also generate article for 360°
+        // Article
         setShowAutopilotArticle(true);
         setIsGeneratingArticle(true);
         supabase.functions.invoke('generate-internal-material', {
@@ -2147,6 +2156,21 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             toast.success('כתבה פרסומית נוצרה! 📰');
           }
         }).catch(() => {}).finally(() => setIsGeneratingArticle(false));
+
+        // Banner — generate a landscape version using the same concept
+        setShowAutopilotBanner(true);
+        setIsGeneratingBanner(true);
+        toast.info('מייצר באנר דיגיטלי לקמפיין 360°... 🖥️');
+        const bannerCampaignContext = { ...campaignContext, mediaFormat: 'banner' };
+        generateImageForConcept(selectedConcept, 99, brandContext, bannerCampaignContext)
+          .then((bannerUrl) => {
+            if (bannerUrl) {
+              setAutopilotBannerUrl(bannerUrl);
+              toast.success('באנר דיגיטלי נוצר! 🖥️');
+            }
+          })
+          .catch(() => {})
+          .finally(() => setIsGeneratingBanner(false));
       }
     } catch (error) {
       console.error('Error:', error);
@@ -2721,6 +2745,32 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                     ) : null}
                   </div>
                 )}
+
+                {/* Banner Section for 360° campaigns */}
+                {showAutopilotBanner && (
+                  <div className="mt-10 pt-8 border-t-2 border-primary/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-teal-500/30 flex items-center justify-center">
+                        <Monitor className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">באנר דיגיטלי</h3>
+                        <p className="text-sm text-muted-foreground">חלק מקמפיין 360° שלך</p>
+                      </div>
+                    </div>
+                    {isGeneratingBanner ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">מייצר באנר דיגיטלי...</span>
+                      </div>
+                    ) : autopilotBannerUrl ? (
+                      <Card className="border-primary/20 overflow-hidden">
+                        <img src={autopilotBannerUrl} alt="באנר דיגיטלי" className="w-full object-contain" />
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
+
 
                 {!isGenerating && generatedImages.length > 0 && (
                   <div className="mt-8 space-y-4">
