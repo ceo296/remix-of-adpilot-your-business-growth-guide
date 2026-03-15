@@ -999,11 +999,13 @@ Remember: ZERO text. Pure visual design only. Beautiful composition with empty a
             messages: [
               {
                 role: 'system',
-                content: 'אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה תיאורית קצרה (עד 8 מילים) למודעה. הכותרת צריכה לתאר את השירות או ההזמנה בצורה ישירה ומקצועית. למשל: "מזמינה אתכם לחוויית טיפול" או "מומחים לטיפולי פנים מתקדמים". ללא גרשיים, ללא סימני פיסוק. תחזיר רק את הכותרת עצמה.'
+                content: `אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה תיאורית קצרה (עד 8 מילים) למודעה. הכותרת צריכה לתמצת את ההצעה העיקרית מהבריף — הטבות, מבצעים, שירותים ספציפיים. למשל: "הטבה יומית על כל מנה" או "טיפול פנים מקצועי ב-199 ₪". ללא גרשיים, ללא סימני פיסוק. תחזיר רק את הכותרת עצמה.
+
+כלל מגדרי קריטי: ${genderDirective}`
               },
               {
                 role: 'user',
-                content: `בריף: ${campaignContext.offer.slice(0, 300)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}`
+                content: `בריף מלא: ${campaignContext.offer.slice(0, 500)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`
               }
             ],
           }),
