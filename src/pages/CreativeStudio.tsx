@@ -2039,6 +2039,124 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         updatePipelineStep(`kosher-${i+1}`, { status: 'skipped', details: 'לא נוצר קונספט' });
       }
 
+      const includes360 = mediaTypes.includes('all');
+      const needsRadio = includes360 || mediaTypes.includes('radio');
+      const needsArticle = includes360 || mediaTypes.includes('article');
+      const needsEmail = includes360 || mediaTypes.includes('email');
+      const needsWhatsapp = includes360 || mediaTypes.includes('whatsapp');
+      const needsBanner = includes360 || mediaTypes.includes('banner');
+
+      const profileData = {
+        businessName: clientProfile?.business_name,
+        phone: clientProfile?.contact_phone,
+        email: clientProfile?.contact_email,
+        address: clientProfile?.contact_address,
+        website: clientProfile?.website_url || '',
+        targetAudience: clientProfile?.target_audience,
+        winningFeature: clientProfile?.winning_feature,
+        openingHours: (clientProfile as any)?.opening_hours || '',
+      };
+
+      const anchorConcept = generatedConcepts[0];
+
+      if (needsBanner && includes360 && anchorConcept) {
+        setShowAutopilotBanner(true);
+        setIsGeneratingBanner(true);
+        const bannerCampaignContext = { ...campaignContext, mediaFormat: 'banner' };
+        generateImageForConcept(anchorConcept, 99, brandContext, bannerCampaignContext)
+          .then((bannerUrl) => {
+            if (bannerUrl) setAutopilotBannerUrl(bannerUrl);
+          })
+          .finally(() => setIsGeneratingBanner(false));
+      }
+
+      if (needsRadio) {
+        setShowAutopilotRadio(true);
+        setIsGeneratingRadio(true);
+        supabase.functions.invoke('generate-radio-script', {
+          body: {
+            brief: {
+              offer: campaignBrief.offer,
+              adGoal: campaignBrief.adGoal,
+              goal: campaignBrief.goal,
+              emotionalTone: campaignBrief.emotionalTone,
+              priceOrBenefit: campaignBrief.priceOrBenefit,
+              timeLimitText: campaignBrief.timeLimitText,
+            },
+            brandContext: {
+              businessName: clientProfile?.business_name,
+              targetAudience: clientProfile?.target_audience,
+            },
+            targetGender: mediaTargetGender,
+            targetStream: mediaTargetStream,
+            contactPhone: clientProfile?.contact_phone || '',
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.scripts?.length) {
+            const bestScript = data.scripts[0];
+            setAutopilotRadioScript({
+              title: bestScript.title || 'ספוט רדיו',
+              script: bestScript.scriptWithNikud || bestScript.script || '',
+              duration: bestScript.duration,
+              voiceNotes: bestScript.voiceNotes,
+            });
+          }
+        }).finally(() => setIsGeneratingRadio(false));
+      }
+
+      if (needsArticle && anchorConcept) {
+        setShowAutopilotArticle(true);
+        setIsGeneratingArticle(true);
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'article',
+            profileData,
+            extraContext: {
+              articleStyle: 'product',
+              articleTopic: campaignBrief.offer || anchorConcept.idea || '',
+              targetLength: 'medium',
+              userPrompt: `הכתבה צריכה להתבסס על הקונספט: ${anchorConcept.headline} — ${anchorConcept.copy}`,
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) setAutopilotArticle(data.result);
+        }).finally(() => setIsGeneratingArticle(false));
+      }
+
+      if (needsEmail && anchorConcept) {
+        setShowAutopilotEmail(true);
+        setIsGeneratingEmail(true);
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'email',
+            profileData,
+            extraContext: {
+              emailTopic: campaignBrief.offer || anchorConcept.idea || '',
+              userPrompt: `המייל צריך להתבסס על הקונספט: ${anchorConcept.headline} — ${anchorConcept.copy}`,
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) setAutopilotEmailContent(data.result);
+        }).finally(() => setIsGeneratingEmail(false));
+      }
+
+      if (needsWhatsapp && anchorConcept) {
+        setShowAutopilotWhatsapp(true);
+        setIsGeneratingWhatsapp(true);
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'whatsapp',
+            profileData,
+            extraContext: {
+              whatsappTopic: campaignBrief.offer || anchorConcept.idea || '',
+              userPrompt: `המסר צריך להתבסס על הקונספט: ${anchorConcept.headline} — ${anchorConcept.copy}`,
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) setAutopilotWhatsappContent(data.result);
+        }).finally(() => setIsGeneratingWhatsapp(false));
+      }
+
       if (results.length > 0) {
         const approved = results.filter(r => r.status === 'approved').length;
         const needsReview = results.filter(r => r.status === 'needs-review').length;
