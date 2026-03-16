@@ -2091,10 +2091,10 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       phone: clientProfile?.contact_phone,
       email: clientProfile?.contact_email,
       address: clientProfile?.contact_address,
-      website: '',
-      xFactors: clientProfile?.x_factors,
+      website: clientProfile?.website_url || '',
       targetAudience: clientProfile?.target_audience,
       winningFeature: clientProfile?.winning_feature,
+      openingHours: (clientProfile as any)?.opening_hours || '',
     };
 
     // Determine which outputs to generate based on selected media types
