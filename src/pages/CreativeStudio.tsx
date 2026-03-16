@@ -1155,6 +1155,7 @@ const CreativeStudio = () => {
     setShowAutopilotBanner(false);
     setShowAutopilotEmail(false);
     setShowAutopilotWhatsapp(false);
+    setAutopilotRadioScript(null);
     setAutopilotArticle(null);
     setAutopilotBannerUrl(null);
     setAutopilotEmailContent(null);
