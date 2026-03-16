@@ -2870,7 +2870,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   ))}
                 </div>
 
-                {/* Radio Script Section for 360° campaigns */}
+                {/* Radio Script Section */}
                 {showAutopilotRadio && (
                   <div className="mt-10 pt-8 border-t-2 border-primary/20">
                     <div className="flex items-center gap-3 mb-6">
@@ -2878,28 +2878,43 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                         <Radio className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold">ספוט רדיו</h3>
-                        <p className="text-sm text-muted-foreground">חלק מקמפיין 360° שלך</p>
+                        <h3 className="text-xl font-bold">תשדיר רדיו</h3>
+                        <p className="text-sm text-muted-foreground">{mediaTypes.includes('all') ? 'חלק מקמפיין 360° שלך' : 'ספוט רדיו מוכן לשידור'}</p>
                       </div>
                     </div>
-                    <RadioScriptStep
-                      brief={{
-                        offer: campaignBrief.offer,
-                        adGoal: campaignBrief.adGoal,
-                        goal: campaignBrief.goal,
-                        emotionalTone: campaignBrief.emotionalTone,
-                        priceOrBenefit: campaignBrief.priceOrBenefit,
-                        timeLimitText: campaignBrief.timeLimitText,
-                      }}
-                      brandContext={clientProfile ? {
-                        businessName: clientProfile.business_name,
-                        targetAudience: clientProfile.target_audience,
-                      } : null}
-                      targetGender={mediaTargetGender}
-                      targetStream={mediaTargetStream}
-                      contactPhone={clientProfile?.contact_phone || ''}
-                      clientProfileId={clientProfile?.id}
-                    />
+                    {isGeneratingRadio ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב תשדיר רדיו...</span>
+                      </div>
+                    ) : autopilotRadioScript ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <h4 className="text-lg font-bold text-foreground">{autopilotRadioScript.title}</h4>
+                            {autopilotRadioScript.duration && (
+                              <Badge variant="secondary">{autopilotRadioScript.duration}</Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                            {autopilotRadioScript.script}
+                          </div>
+                          {autopilotRadioScript.voiceNotes && (
+                            <div className="text-xs text-muted-foreground mb-4">הנחיות קריינות: {autopilotRadioScript.voiceNotes}</div>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(autopilotRadioScript.script);
+                              toast.success('התשדיר הועתק!');
+                            }}
+                          >
+                            העתק תשדיר
+                          </Button>
+                        </div>
+                      </Card>
+                    ) : null}
                   </div>
                 )}
 
