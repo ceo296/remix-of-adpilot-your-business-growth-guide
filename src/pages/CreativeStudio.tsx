@@ -2168,7 +2168,40 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       // === RADIO ===
       if (needsRadio) {
         setShowAutopilotRadio(true);
+        setIsGeneratingRadio(true);
         toast.info('מייצר ספוט רדיו... 🎙️');
+        supabase.functions.invoke('generate-radio-script', {
+          body: {
+            brief: {
+              offer: campaignBrief.offer,
+              adGoal: campaignBrief.adGoal,
+              goal: campaignBrief.goal,
+              emotionalTone: campaignBrief.emotionalTone,
+              priceOrBenefit: campaignBrief.priceOrBenefit,
+              timeLimitText: campaignBrief.timeLimitText,
+            },
+            brandContext: {
+              businessName: clientProfile?.business_name,
+              targetAudience: clientProfile?.target_audience,
+            },
+            targetGender: mediaTargetGender,
+            targetStream: mediaTargetStream,
+            contactPhone: clientProfile?.contact_phone || '',
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.scripts?.length) {
+            const bestScript = data.scripts[0];
+            setAutopilotRadioScript({
+              title: bestScript.title || 'ספוט רדיו',
+              script: bestScript.scriptWithNikud || bestScript.script || '',
+              duration: bestScript.duration,
+              voiceNotes: bestScript.voiceNotes,
+            });
+            toast.success('תשדיר רדיו נוצר! 🎙️');
+          }
+        }).catch(() => {
+          toast.error('שגיאה ביצירת תשדיר רדיו');
+        }).finally(() => setIsGeneratingRadio(false));
       }
 
       // === ARTICLE ===
