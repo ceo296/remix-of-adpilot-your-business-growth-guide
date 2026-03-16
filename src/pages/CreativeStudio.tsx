@@ -388,6 +388,8 @@ const CreativeStudio = () => {
   const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
   const [showPipeline, setShowPipeline] = useState(false);
   const [showAutopilotRadio, setShowAutopilotRadio] = useState(false);
+  const [autopilotRadioScript, setAutopilotRadioScript] = useState<{ title: string; script: string; duration?: string; voiceNotes?: string } | null>(null);
+  const [isGeneratingRadio, setIsGeneratingRadio] = useState(false);
   const [showAutopilotArticle, setShowAutopilotArticle] = useState(false);
   const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string } | null>(null);
   const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
