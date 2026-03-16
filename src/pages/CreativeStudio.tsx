@@ -388,6 +388,8 @@ const CreativeStudio = () => {
   const [pipelineSteps, setPipelineSteps] = useState<AgentStep[]>([]);
   const [showPipeline, setShowPipeline] = useState(false);
   const [showAutopilotRadio, setShowAutopilotRadio] = useState(false);
+  const [autopilotRadioScript, setAutopilotRadioScript] = useState<{ title: string; script: string; duration?: string; voiceNotes?: string } | null>(null);
+  const [isGeneratingRadio, setIsGeneratingRadio] = useState(false);
   const [showAutopilotArticle, setShowAutopilotArticle] = useState(false);
   const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string } | null>(null);
   const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
@@ -855,8 +857,6 @@ const CreativeStudio = () => {
         priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
         isTimeLimited: campaignBrief.isTimeLimited,
         timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
-        // Pass brand services so AI can reference them in copy
-        services: clientProfile?.services || [],
       };
 
       // Headline position variety: distribute across sketches
@@ -1153,6 +1153,7 @@ const CreativeStudio = () => {
     setShowAutopilotBanner(false);
     setShowAutopilotEmail(false);
     setShowAutopilotWhatsapp(false);
+    setAutopilotRadioScript(null);
     setAutopilotArticle(null);
     setAutopilotBannerUrl(null);
     setAutopilotEmailContent(null);
@@ -1869,7 +1870,6 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
         isTimeLimited: campaignBrief.isTimeLimited,
         timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
-        services: clientProfile?.services || [],
       };
 
       const results: GeneratedImage[] = [];
@@ -2039,6 +2039,124 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         updatePipelineStep(`kosher-${i+1}`, { status: 'skipped', details: 'לא נוצר קונספט' });
       }
 
+      const includes360 = mediaTypes.includes('all');
+      const needsRadio = includes360 || mediaTypes.includes('radio');
+      const needsArticle = includes360 || mediaTypes.includes('article');
+      const needsEmail = includes360 || mediaTypes.includes('email');
+      const needsWhatsapp = includes360 || mediaTypes.includes('whatsapp');
+      const needsBanner = includes360 || mediaTypes.includes('banner');
+
+      const profileData = {
+        businessName: clientProfile?.business_name,
+        phone: clientProfile?.contact_phone,
+        email: clientProfile?.contact_email,
+        address: clientProfile?.contact_address,
+        website: clientProfile?.website_url || '',
+        targetAudience: clientProfile?.target_audience,
+        winningFeature: clientProfile?.winning_feature,
+        openingHours: (clientProfile as any)?.opening_hours || '',
+      };
+
+      const anchorConcept = generatedConcepts[0];
+
+      if (needsBanner && includes360 && anchorConcept) {
+        setShowAutopilotBanner(true);
+        setIsGeneratingBanner(true);
+        const bannerCampaignContext = { ...campaignContext, mediaFormat: 'banner' };
+        generateImageForConcept(anchorConcept, 99, brandContext, bannerCampaignContext)
+          .then((bannerUrl) => {
+            if (bannerUrl) setAutopilotBannerUrl(bannerUrl);
+          })
+          .finally(() => setIsGeneratingBanner(false));
+      }
+
+      if (needsRadio) {
+        setShowAutopilotRadio(true);
+        setIsGeneratingRadio(true);
+        supabase.functions.invoke('generate-radio-script', {
+          body: {
+            brief: {
+              offer: campaignBrief.offer,
+              adGoal: campaignBrief.adGoal,
+              goal: campaignBrief.goal,
+              emotionalTone: campaignBrief.emotionalTone,
+              priceOrBenefit: campaignBrief.priceOrBenefit,
+              timeLimitText: campaignBrief.timeLimitText,
+            },
+            brandContext: {
+              businessName: clientProfile?.business_name,
+              targetAudience: clientProfile?.target_audience,
+            },
+            targetGender: mediaTargetGender,
+            targetStream: mediaTargetStream,
+            contactPhone: clientProfile?.contact_phone || '',
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.scripts?.length) {
+            const bestScript = data.scripts[0];
+            setAutopilotRadioScript({
+              title: bestScript.title || 'ספוט רדיו',
+              script: bestScript.scriptWithNikud || bestScript.script || '',
+              duration: bestScript.duration,
+              voiceNotes: bestScript.voiceNotes,
+            });
+          }
+        }).finally(() => setIsGeneratingRadio(false));
+      }
+
+      if (needsArticle && anchorConcept) {
+        setShowAutopilotArticle(true);
+        setIsGeneratingArticle(true);
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'article',
+            profileData,
+            extraContext: {
+              articleStyle: 'product',
+              articleTopic: campaignBrief.offer || anchorConcept.idea || '',
+              targetLength: 'medium',
+              userPrompt: `הכתבה צריכה להתבסס על הקונספט: ${anchorConcept.headline} — ${anchorConcept.copy}`,
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) setAutopilotArticle(data.result);
+        }).finally(() => setIsGeneratingArticle(false));
+      }
+
+      if (needsEmail && anchorConcept) {
+        setShowAutopilotEmail(true);
+        setIsGeneratingEmail(true);
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'email',
+            profileData,
+            extraContext: {
+              emailTopic: campaignBrief.offer || anchorConcept.idea || '',
+              userPrompt: `המייל צריך להתבסס על הקונספט: ${anchorConcept.headline} — ${anchorConcept.copy}`,
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) setAutopilotEmailContent(data.result);
+        }).finally(() => setIsGeneratingEmail(false));
+      }
+
+      if (needsWhatsapp && anchorConcept) {
+        setShowAutopilotWhatsapp(true);
+        setIsGeneratingWhatsapp(true);
+        supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: 'whatsapp',
+            profileData,
+            extraContext: {
+              whatsappTopic: campaignBrief.offer || anchorConcept.idea || '',
+              userPrompt: `המסר צריך להתבסס על הקונספט: ${anchorConcept.headline} — ${anchorConcept.copy}`,
+            },
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.result) setAutopilotWhatsappContent(data.result);
+        }).finally(() => setIsGeneratingWhatsapp(false));
+      }
+
       if (results.length > 0) {
         const approved = results.filter(r => r.status === 'approved').length;
         const needsReview = results.filter(r => r.status === 'needs-review').length;
@@ -2084,7 +2202,6 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
       isTimeLimited: campaignBrief.isTimeLimited,
       timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
-      services: clientProfile?.services || [],
     };
 
     const profileData = {
@@ -2092,10 +2209,10 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       phone: clientProfile?.contact_phone,
       email: clientProfile?.contact_email,
       address: clientProfile?.contact_address,
-      website: '',
-      xFactors: clientProfile?.x_factors,
+      website: clientProfile?.website_url || '',
       targetAudience: clientProfile?.target_audience,
       winningFeature: clientProfile?.winning_feature,
+      openingHours: (clientProfile as any)?.opening_hours || '',
     };
 
     // Determine which outputs to generate based on selected media types
@@ -2169,7 +2286,40 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       // === RADIO ===
       if (needsRadio) {
         setShowAutopilotRadio(true);
+        setIsGeneratingRadio(true);
         toast.info('מייצר ספוט רדיו... 🎙️');
+        supabase.functions.invoke('generate-radio-script', {
+          body: {
+            brief: {
+              offer: campaignBrief.offer,
+              adGoal: campaignBrief.adGoal,
+              goal: campaignBrief.goal,
+              emotionalTone: campaignBrief.emotionalTone,
+              priceOrBenefit: campaignBrief.priceOrBenefit,
+              timeLimitText: campaignBrief.timeLimitText,
+            },
+            brandContext: {
+              businessName: clientProfile?.business_name,
+              targetAudience: clientProfile?.target_audience,
+            },
+            targetGender: mediaTargetGender,
+            targetStream: mediaTargetStream,
+            contactPhone: clientProfile?.contact_phone || '',
+          },
+        }).then(({ data, error }) => {
+          if (!error && data?.scripts?.length) {
+            const bestScript = data.scripts[0];
+            setAutopilotRadioScript({
+              title: bestScript.title || 'ספוט רדיו',
+              script: bestScript.scriptWithNikud || bestScript.script || '',
+              duration: bestScript.duration,
+              voiceNotes: bestScript.voiceNotes,
+            });
+            toast.success('תשדיר רדיו נוצר! 🎙️');
+          }
+        }).catch(() => {
+          toast.error('שגיאה ביצירת תשדיר רדיו');
+        }).finally(() => setIsGeneratingRadio(false));
       }
 
       // === ARTICLE ===
@@ -2720,7 +2870,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   ))}
                 </div>
 
-                {/* Radio Script Section for 360° campaigns */}
+                {/* Radio Script Section */}
                 {showAutopilotRadio && (
                   <div className="mt-10 pt-8 border-t-2 border-primary/20">
                     <div className="flex items-center gap-3 mb-6">
@@ -2728,28 +2878,43 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                         <Radio className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold">ספוט רדיו</h3>
-                        <p className="text-sm text-muted-foreground">חלק מקמפיין 360° שלך</p>
+                        <h3 className="text-xl font-bold">תשדיר רדיו</h3>
+                        <p className="text-sm text-muted-foreground">{mediaTypes.includes('all') ? 'חלק מקמפיין 360° שלך' : 'ספוט רדיו מוכן לשידור'}</p>
                       </div>
                     </div>
-                    <RadioScriptStep
-                      brief={{
-                        offer: campaignBrief.offer,
-                        adGoal: campaignBrief.adGoal,
-                        goal: campaignBrief.goal,
-                        emotionalTone: campaignBrief.emotionalTone,
-                        priceOrBenefit: campaignBrief.priceOrBenefit,
-                        timeLimitText: campaignBrief.timeLimitText,
-                      }}
-                      brandContext={clientProfile ? {
-                        businessName: clientProfile.business_name,
-                        targetAudience: clientProfile.target_audience,
-                      } : null}
-                      targetGender={mediaTargetGender}
-                      targetStream={mediaTargetStream}
-                      contactPhone={clientProfile?.contact_phone || ''}
-                      clientProfileId={clientProfile?.id}
-                    />
+                    {isGeneratingRadio ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב תשדיר רדיו...</span>
+                      </div>
+                    ) : autopilotRadioScript ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <h4 className="text-lg font-bold text-foreground">{autopilotRadioScript.title}</h4>
+                            {autopilotRadioScript.duration && (
+                              <Badge variant="secondary">{autopilotRadioScript.duration}</Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                            {autopilotRadioScript.script}
+                          </div>
+                          {autopilotRadioScript.voiceNotes && (
+                            <div className="text-xs text-muted-foreground mb-4">הנחיות קריינות: {autopilotRadioScript.voiceNotes}</div>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(autopilotRadioScript.script);
+                              toast.success('התשדיר הועתק!');
+                            }}
+                          >
+                            העתק תשדיר
+                          </Button>
+                        </div>
+                      </Card>
+                    ) : null}
                   </div>
                 )}
 
