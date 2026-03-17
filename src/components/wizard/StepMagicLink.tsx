@@ -982,14 +982,14 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
                   קישור לאתר / רשת חברתית
                 </label>
                 <p className="text-sm text-muted-foreground">
-                  נלמד עליכם אוטומטית מהאתר
+                  נלמד עליכם אוטומטית — עובד גם עם עמוד פייסבוק, אינסטגרם וכו׳
                 </p>
               </div>
             </div>
 
             <Input
               type="url"
-              placeholder="https://www.example.co.il"
+              placeholder="אתר, פייסבוק, אינסטגרם..."
               value={url}
               onChange={(e) => handleUrlChange(e.target.value)}
               className={`text-lg h-14 text-left ltr ${urlError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
