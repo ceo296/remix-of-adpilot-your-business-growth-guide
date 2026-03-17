@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { WizardData, WizardDataUpdate, initialWizardData, ContactAssets, HonorificType } from '@/types/wizard';
 import { getGreeting, getTitlePrefix } from '@/lib/honorific-utils';
 import WizardProgress from '@/components/wizard/WizardProgress';
@@ -42,13 +42,17 @@ const stepTitlesAgency = [
 
 const OnboardingWizard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useIsAdmin();
+  const isFromBranding = searchParams.get('from') === 'branding';
+  // When coming from branding, start at WebsiteInsights (step 4 regular, step 5 agency)
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
   const [isSaving, setIsSaving] = useState(false);
   const [isAgency, setIsAgency] = useState(false);
   const [selectedAgencyClientId, setSelectedAgencyClientId] = useState<string | null>(null);
+  const [brandingDataLoaded, setBrandingDataLoaded] = useState(false);
 
   const TOTAL_STEPS = isAgency ? TOTAL_STEPS_AGENCY : TOTAL_STEPS_REGULAR;
   const stepTitles = isAgency ? stepTitlesAgency : stepTitlesRegular;
@@ -62,6 +66,9 @@ const OnboardingWizard = () => {
        navigate('/auth?redirect=/onboarding');
        return;
      }
+     
+     // Skip dashboard redirect when coming from branding - user needs to complete remaining steps
+     if (isFromBranding) return;
      
       const checkOnboardingStatus = async () => {
         // Check if there are any incomplete profiles - if so, don't redirect
@@ -82,7 +89,83 @@ const OnboardingWizard = () => {
       };
      
      checkOnboardingStatus();
-   }, [user, authLoading, adminLoading, isAdmin, navigate]);
+   }, [user, authLoading, adminLoading, isAdmin, navigate, isFromBranding]);
+
+  // When coming from branding, load existing profile data and jump to the right step
+  useEffect(() => {
+    if (!isFromBranding || !user || authLoading || brandingDataLoaded) return;
+    
+    const loadBrandingProfile = async () => {
+      const { data: profiles } = await supabase
+        .from('client_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_agency_profile', false)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+      
+      const profile = profiles?.[0];
+      if (!profile) return;
+      
+      // Hydrate wizard data with existing brand info from profile
+      setWizardData(prev => ({
+        ...prev,
+        userName: '', // Will be loaded from profiles table
+        brand: {
+          ...prev.brand,
+          name: profile.business_name || prev.brand.name,
+          logo: profile.logo_url || prev.brand.logo,
+          colors: {
+            primary: profile.primary_color || prev.brand.colors.primary,
+            secondary: profile.secondary_color || prev.brand.colors.secondary,
+            background: profile.background_color || prev.brand.colors.background,
+          },
+          headerFont: profile.header_font || prev.brand.headerFont,
+          bodyFont: profile.body_font || prev.brand.bodyFont,
+        },
+        websiteUrl: profile.website_url || prev.websiteUrl,
+        contactAssets: {
+          ...prev.contactAssets,
+          contact_phone: profile.contact_phone || '',
+          contact_whatsapp: profile.contact_whatsapp || '',
+          contact_email: profile.contact_email || '',
+          contact_address: profile.contact_address || '',
+          website_url: profile.website_url || '',
+          contact_youtube: profile.contact_youtube || '',
+          social_facebook: profile.social_facebook || '',
+          social_instagram: profile.social_instagram || '',
+          social_tiktok: profile.social_tiktok || '',
+          social_linkedin: profile.social_linkedin || '',
+          opening_hours: profile.opening_hours || '',
+          branches: profile.branches || '',
+        },
+        websiteInsights: {
+          ...prev.websiteInsights,
+          services: profile.services || [],
+        },
+      }));
+      
+      // Load user name from profiles table
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (userProfile?.full_name) {
+        setWizardData(prev => ({ ...prev, userName: userProfile.full_name || '' }));
+      }
+      
+      // Jump to WebsiteInsights step (skip Welcome, FlowChoice, MagicLink)
+      // Regular: step 4 = WebsiteInsights; Agency: step 5
+      setCurrentStep(isAgency ? 5 : 4);
+      setBrandingDataLoaded(true);
+      
+      toast.success(`${profile.business_name} — ממשיכים להשלים את ההיכרות ✨`);
+    };
+    
+    loadBrandingProfile();
+  }, [isFromBranding, user, authLoading, brandingDataLoaded, isAgency]);
 
    // Load existing profile colors/brand from DB (works for both admins and regular users)
    useEffect(() => {
