@@ -47,53 +47,6 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
         {/* Form - enhanced spacing and visibility */}
         <Card className="max-w-2xl mx-auto border-2 border-primary/20 shadow-xl">
           <CardContent className="p-8 md:p-10 space-y-8">
-            {/* Account Type - larger buttons with gradients */}
-            <div className="space-y-4">
-              <label className="text-base font-semibold text-foreground block">
-                מי אתם?
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setIsAgency(false)}
-                  className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${
-                    isAgency === false
-                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-lg scale-[1.02]'
-                      : 'border-border hover:border-blue-300 hover:bg-blue-50/50'
-                  }`}
-                >
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
-                    isAgency === false 
-                      ? 'bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md shadow-blue-500/30' 
-                      : 'bg-muted'
-                  }`}>
-                    <User className={`w-7 h-7 ${isAgency === false ? 'text-white' : 'text-muted-foreground'}`} />
-                  </div>
-                  <span className={`font-bold text-lg ${isAgency === false ? 'text-blue-700' : ''}`}>לקוח פרטי</span>
-                  <span className="text-sm text-muted-foreground">עסק אחד, קמפיינים משלי</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsAgency(true)}
-                  className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${
-                    isAgency === true
-                      ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-violet-50 shadow-lg scale-[1.02]'
-                      : 'border-border hover:border-purple-300 hover:bg-purple-50/50'
-                  }`}
-                >
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
-                    isAgency === true 
-                      ? 'bg-gradient-to-br from-purple-500 to-violet-600 shadow-md shadow-purple-500/30' 
-                      : 'bg-muted'
-                  }`}>
-                    <Building2 className={`w-7 h-7 ${isAgency === true ? 'text-white' : 'text-muted-foreground'}`} />
-                  </div>
-                  <span className={`font-bold text-lg ${isAgency === true ? 'text-purple-700' : ''}`}>סוכנות שיווק</span>
-                  <span className="text-sm text-muted-foreground">מנהל כמה לקוחות</span>
-                </button>
-              </div>
-            </div>
-
             {/* User Name - enhanced input */}
             <div className="space-y-3">
               <div className="flex items-center gap-3">
@@ -170,16 +123,66 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   <Building2 className="w-5 h-5 text-white" />
                 </div>
                 <label className="text-base font-semibold text-foreground">
-                  {isAgency ? 'שם הסוכנות?' : 'שם העסק/ארגון?'}
+                  שם העסק/ארגון?
                 </label>
               </div>
               <Input
                 type="text"
-                placeholder={isAgency ? 'שם הסוכנות' : 'שם העסק'}
+                placeholder="שם העסק"
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
                 className="text-lg h-14 text-xl border-2 border-amber-200 focus:border-amber-400 bg-gradient-to-br from-amber-50/50 to-orange-50/50"
               />
+            </div>
+
+            {/* Account Type - redesigned with clearer explanation */}
+            <div className="space-y-4">
+              <label className="text-base font-semibold text-foreground block">
+                מנהלים כמה עסקים?
+              </label>
+              <p className="text-sm text-muted-foreground -mt-2">
+                זה יעזור לנו להתאים את הממשק — תמיד אפשר לשנות אחר כך
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setIsAgency(false)}
+                  className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${
+                    isAgency === false
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-lg scale-[1.02]'
+                      : 'border-border hover:border-blue-300 hover:bg-blue-50/50'
+                  }`}
+                >
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
+                    isAgency === false 
+                      ? 'bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md shadow-blue-500/30' 
+                      : 'bg-muted'
+                  }`}>
+                    <User className={`w-7 h-7 ${isAgency === false ? 'text-white' : 'text-muted-foreground'}`} />
+                  </div>
+                  <span className={`font-bold text-lg ${isAgency === false ? 'text-blue-700' : ''}`}>עסק אחד</span>
+                  <span className="text-sm text-muted-foreground text-center">אני מפרסם את העסק שלי</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAgency(true)}
+                  className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${
+                    isAgency === true
+                      ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-violet-50 shadow-lg scale-[1.02]'
+                      : 'border-border hover:border-purple-300 hover:bg-purple-50/50'
+                  }`}
+                >
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
+                    isAgency === true 
+                      ? 'bg-gradient-to-br from-purple-500 to-violet-600 shadow-md shadow-purple-500/30' 
+                      : 'bg-muted'
+                  }`}>
+                    <Building2 className={`w-7 h-7 ${isAgency === true ? 'text-white' : 'text-muted-foreground'}`} />
+                  </div>
+                  <span className={`font-bold text-lg ${isAgency === true ? 'text-purple-700' : ''}`}>כמה עסקים</span>
+                  <span className="text-sm text-muted-foreground text-center">אני מנהל פרסום עבור לקוחות</span>
+                </button>
+              </div>
             </div>
 
             {/* Continue Button - larger */}
