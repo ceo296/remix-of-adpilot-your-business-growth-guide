@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { WizardData, WizardDataUpdate, initialWizardData, ContactAssets, HonorificType } from '@/types/wizard';
 import { getGreeting, getTitlePrefix } from '@/lib/honorific-utils';
 import WizardProgress from '@/components/wizard/WizardProgress';
