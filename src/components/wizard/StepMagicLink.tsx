@@ -278,6 +278,13 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
     setIsAnalyzing(false);
   };
 
+  // Detect if URL is a social media page
+  const isSocialMediaUrl = (urlStr: string): boolean => {
+    const lower = urlStr.toLowerCase();
+    return ['facebook.com', 'fb.com', 'instagram.com', 'tiktok.com', 'linkedin.com', 'youtube.com', 'youtu.be', 'twitter.com', 'x.com']
+      .some(domain => lower.includes(domain));
+  };
+
   const handleScan = async () => {
     const targetUrl = url.trim();
     if (!targetUrl) return;
@@ -289,66 +296,99 @@ const StepMagicLink = ({ data, updateData, onNext, onPrev }: StepMagicLinkProps)
     setIsScanning(true);
     updateData({ websiteUrl: url, isScanning: true });
 
+    const isSocial = isSocialMediaUrl(targetUrl);
+
     try {
+      // For social media URLs, try scraping but expect it may fail
       const { data: scrapeResult, error: scrapeError } = await supabase.functions.invoke('scrape-website', {
-        body: { url: targetUrl, options: { formats: ['markdown', 'branding'], onlyMainContent: true } }
+        body: { 
+          url: targetUrl, 
+          options: { 
+            formats: isSocial ? ['markdown'] : ['markdown', 'branding'], 
+            onlyMainContent: true,
+            // Social media pages need longer wait for JS rendering
+            ...(isSocial ? { waitFor: 8000 } : {}),
+          } 
+        }
       });
 
-      if (scrapeError || !scrapeResult?.success) {
-        await handleAnalyze();
-      } else {
-        const scrapedData = scrapeResult.data;
-        const branding = scrapedData.branding;
-        const markdown = scrapedData.markdown || '';
-        
-        setShowSparkles(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setShowSparkles(false);
-        
-        const { data: aiResult } = await supabase.functions.invoke('predict-business', {
-          body: { brandName: data.brand.name, websiteUrl: targetUrl, scrapedContent: markdown.substring(0, 3000), brandingInfo: branding }
-        });
+      const scrapeSuccess = !scrapeError && scrapeResult?.success;
+      const scrapedData = scrapeSuccess ? scrapeResult.data : null;
+      const markdown = scrapedData?.markdown || '';
+      const branding = scrapedData?.branding;
+      
+      // Even if scrape partially failed, try AI analysis with whatever we got
+      setShowSparkles(true);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setShowSparkles(false);
+      
+      const { data: aiResult } = await supabase.functions.invoke('predict-business', {
+        body: { 
+          brandName: data.brand.name, 
+          websiteUrl: targetUrl, 
+          scrapedContent: markdown ? markdown.substring(0, 3000) : undefined, 
+          brandingInfo: branding,
+          // Pass social URL context so AI knows it's a social page
+          ...(isSocial ? { socialUrl: targetUrl } : {}),
+        }
+      });
 
-        const predictions = aiResult?.predictions || {};
-        
-        // Extract contact info from predictions
-        const contactUpdates: Partial<ContactAssets> = {};
-        if (predictions.phone) contactUpdates.contact_phone = predictions.phone;
-        if (predictions.email) contactUpdates.contact_email = predictions.email;
-        if (predictions.address) contactUpdates.contact_address = predictions.address;
-        if (predictions.whatsapp) contactUpdates.contact_whatsapp = predictions.whatsapp;
-        if (predictions.facebook) contactUpdates.social_facebook = predictions.facebook;
-        if (predictions.instagram) contactUpdates.social_instagram = predictions.instagram;
-        if (predictions.youtube) contactUpdates.contact_youtube = predictions.youtube;
-        if (predictions.linkedin) contactUpdates.social_linkedin = predictions.linkedin;
-        if (predictions.tiktok) contactUpdates.social_tiktok = predictions.tiktok;
+      const predictions = aiResult?.predictions || {};
+      
+      // Extract contact info from predictions
+      const contactUpdates: Partial<ContactAssets> = {};
+      if (predictions.phone) contactUpdates.contact_phone = predictions.phone;
+      if (predictions.email) contactUpdates.contact_email = predictions.email;
+      if (predictions.address) contactUpdates.contact_address = predictions.address;
+      if (predictions.whatsapp) contactUpdates.contact_whatsapp = predictions.whatsapp;
+      if (predictions.facebook) contactUpdates.social_facebook = predictions.facebook;
+      if (predictions.instagram) contactUpdates.social_instagram = predictions.instagram;
+      if (predictions.youtube) contactUpdates.contact_youtube = predictions.youtube;
+      if (predictions.linkedin) contactUpdates.social_linkedin = predictions.linkedin;
+      if (predictions.tiktok) contactUpdates.social_tiktok = predictions.tiktok;
 
-        updateData({
-          websiteUrl: url,
-          isScanning: false,
-          brand: { ...data.brand, name: predictions.businessName || data.brand.name },
-          websiteInsights: {
-            industry: predictions.industry || '',
-            seniority: predictions.seniority || '',
-            coreOffering: predictions.coreOffering || '',
-            audience: predictions.audience || '',
-            services: Array.isArray(predictions.services) ? predictions.services : [],
-            confirmed: false,
-          },
-          contactAssets: { ...data.contactAssets, website_url: targetUrl, ...contactUpdates },
-          scrapedBranding: branding ? {
-            primaryColor: branding.colors?.primary,
-            secondaryColor: branding.colors?.secondary,
-            backgroundColor: branding.colors?.background,
-            logo: branding.images?.logo || branding.logo,
-          } : undefined,
-        });
-        
-        toast.success('שאבנו נתונים מהאתר בהצלחה!');
-        setShowSnapshot(true);
+      // If the input was a social URL, auto-populate that field
+      if (isSocial) {
+        const lower = targetUrl.toLowerCase();
+        if (lower.includes('facebook.com') || lower.includes('fb.com')) {
+          contactUpdates.social_facebook = contactUpdates.social_facebook || targetUrl;
+        } else if (lower.includes('instagram.com')) {
+          contactUpdates.social_instagram = contactUpdates.social_instagram || targetUrl;
+        } else if (lower.includes('tiktok.com')) {
+          contactUpdates.social_tiktok = contactUpdates.social_tiktok || targetUrl;
+        } else if (lower.includes('linkedin.com')) {
+          contactUpdates.social_linkedin = contactUpdates.social_linkedin || targetUrl;
+        } else if (lower.includes('youtube.com') || lower.includes('youtu.be')) {
+          contactUpdates.contact_youtube = contactUpdates.contact_youtube || targetUrl;
+        }
       }
+
+      updateData({
+        websiteUrl: url,
+        isScanning: false,
+        brand: { ...data.brand, name: predictions.businessName || data.brand.name },
+        websiteInsights: {
+          industry: predictions.industry || '',
+          seniority: predictions.seniority || '',
+          coreOffering: predictions.coreOffering || '',
+          audience: predictions.audience || '',
+          services: Array.isArray(predictions.services) ? predictions.services : [],
+          confirmed: false,
+        },
+        contactAssets: { ...data.contactAssets, website_url: isSocial ? (data.contactAssets.website_url || '') : targetUrl, ...contactUpdates },
+        scrapedBranding: branding ? {
+          primaryColor: branding.colors?.primary,
+          secondaryColor: branding.colors?.secondary,
+          backgroundColor: branding.colors?.background,
+          logo: branding.images?.logo || branding.logo,
+        } : undefined,
+      });
+      
+      toast.success(isSocial ? 'שאבנו נתונים מהרשת החברתית!' : 'שאבנו נתונים מהאתר בהצלחה!');
+      setShowSnapshot(true);
     } catch (error) {
       console.error('Scan error:', error);
+      // Fallback to AI-only analysis
       await handleAnalyze();
     }
     
