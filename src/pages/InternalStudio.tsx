@@ -474,7 +474,8 @@ const InternalStudio = () => {
         businessName={profile?.business_name || 'העסק שלי'}
         onBrandingComplete={(branding) => {
           setShowBrandingStudio(false);
-          navigate('/profile');
+          // After branding, route to onboarding to complete remaining steps (MRI, contacts, etc.)
+          navigate('/onboarding?from=branding');
         }}
       />
     </div>
