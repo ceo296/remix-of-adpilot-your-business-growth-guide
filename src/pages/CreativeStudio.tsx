@@ -48,6 +48,7 @@ interface GeneratedImage {
   status: 'approved' | 'needs-review' | 'rejected' | 'pending';
   analysis?: string;
   visualOnlyUrl?: string;
+  model?: string;
   textMeta?: {
     headline: string;
     subtitle?: string;
