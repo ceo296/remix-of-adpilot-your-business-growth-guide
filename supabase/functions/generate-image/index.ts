@@ -283,7 +283,7 @@ The client's ACTUAL brand logo is attached as the LAST image.
         console.log("[All-in-One] Success with model:", tryModel);
         return { imageUrl, model: tryModel };
       }
-      console.error("[Layer 1 - Visual] No image in response");
+      console.error("[All-in-One] No image in response");
     } else {
       const status = response.status;
       const errorText = await response.text();
