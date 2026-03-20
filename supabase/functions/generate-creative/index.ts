@@ -394,45 +394,58 @@ ${typographyBlock}
     // This is the correct image generation model — do NOT use gemini-2.0-flash-exp or other text models
     const IMAGE_MODELS = ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'];
     
-    // Attempt via Lovable AI Gateway with proper image model
-    if (!imageUrl && LOVABLE_API_KEY) {
-      console.log('Falling back to Lovable AI Gateway...');
-      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-3.1-flash-image-preview',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: enhancedPrompt }
-          ],
-          modalities: ['image', 'text']
-        }),
-      });
+    // Generate image via Lovable AI Gateway with Nano Banana 2
+    if (LOVABLE_API_KEY) {
+      for (const tryModel of IMAGE_MODELS) {
+        console.log(`Trying image generation with ${tryModel}...`);
+        try {
+          const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: tryModel,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: enhancedPrompt }
+              ],
+              modalities: ['image', 'text']
+            }),
+          });
 
-      if (!aiResponse.ok) {
-        const errorText = await aiResponse.text();
-        console.error('AI Gateway error:', aiResponse.status, errorText);
-        
-        if (aiResponse.status === 429) {
-          return new Response(
-            JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          if (!aiResponse.ok) {
+            const errorText = await aiResponse.text();
+            console.error(`${tryModel} error:`, aiResponse.status, errorText);
+            
+            if (aiResponse.status === 429) {
+              return new Response(
+                JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+                { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+            if (aiResponse.status === 402) {
+              return new Response(
+                JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
+                { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+            // Try next model
+            await new Promise(r => setTimeout(r, 1500));
+            continue;
+          }
+
+          const aiData = await aiResponse.json();
+          imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url || '';
+          if (imageUrl) {
+            usedMethod = `lovable-gateway/${tryModel}`;
+            console.log(`Image generated successfully with ${tryModel}`);
+            break;
+          }
+        } catch (err) {
+          console.error(`${tryModel} fetch error:`, err);
         }
-        if (aiResponse.status === 402) {
-          return new Response(
-            JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
-            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-      } else {
-        const aiData = await aiResponse.json();
-        imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url || '';
-        usedMethod = 'lovable-gateway';
       }
     }
 
