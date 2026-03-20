@@ -951,6 +951,7 @@ const CreativeStudio = () => {
             status: 'pending',
             visualOnlyUrl: data.visualOnlyUrl || data.imageUrl,
             textMeta: data.textMeta || undefined,
+            model: data.model || data.layers?.visual?.model || undefined,
           };
           
           results.push(newImage);
