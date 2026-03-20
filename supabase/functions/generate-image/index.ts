@@ -262,7 +262,7 @@ The client's ACTUAL brand logo is attached as the LAST image.
   }
 
   for (const tryModel of models) {
-    console.log("[Layer 1 - Visual] Trying model:", tryModel);
+    console.log("[All-in-One] Trying model:", tryModel);
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
