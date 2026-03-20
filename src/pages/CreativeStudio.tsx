@@ -48,6 +48,7 @@ interface GeneratedImage {
   status: 'approved' | 'needs-review' | 'rejected' | 'pending';
   analysis?: string;
   visualOnlyUrl?: string;
+  model?: string;
   textMeta?: {
     headline: string;
     subtitle?: string;
@@ -950,6 +951,7 @@ const CreativeStudio = () => {
             status: 'pending',
             visualOnlyUrl: data.visualOnlyUrl || data.imageUrl,
             textMeta: data.textMeta || undefined,
+            model: data.model || data.layers?.visual?.model || undefined,
           };
           
           results.push(newImage);
@@ -1904,6 +1906,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             id: `${Date.now()}-${i}`,
             url: imageUrl,
             status: 'pending',
+            model: 'gemini-3.1-flash-image-preview',
           };
           results.push(newImage);
           setGeneratedImages([...results]);
@@ -2842,8 +2845,13 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                           alt={`Generated ${image.id}`}
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute top-2 right-2">
+                        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
                           {getStatusBadge(image.status)}
+                          {image.model && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-background/80 backdrop-blur-sm border-border/50 font-mono">
+                              🍌 {image.model.includes('3.1-flash') ? 'Nano Banana 2' : image.model.includes('2.5-flash') ? 'Nano Banana' : image.model.split('/').pop()?.substring(0, 20)}
+                            </Badge>
+                          )}
                         </div>
                         {image.analysis && (
                           <div className="absolute bottom-0 left-0 right-0 bg-background/90 p-2 text-xs">
