@@ -11,8 +11,9 @@ serve(async (req) => {
   try {
     const { brief, businessName, industry, slideCount = 7, theme = 'corporate', profileData } = await req.json();
     
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
+    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) throw new Error('No AI service configured');
 
     const pd = profileData || {};
     
@@ -176,53 +177,113 @@ ${profileContext}
 
     const userMessage = `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\nבריף:\n${brief}`;
 
-    const models = ['google/gemini-3-flash-preview', 'google/gemini-2.5-flash', 'openai/gpt-5-mini'];
     let response: Response | null = null;
 
-    for (const model of models) {
-      console.log(`[generate-presentation] Trying model: ${model}`);
+    // Try Google Gemini API first (direct, faster)
+    if (GOOGLE_GEMINI_API_KEY) {
+      console.log('[generate-presentation] Trying Google Gemini API directly...');
       try {
-        response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userMessage },
-            ],
-            tools: toolsSchema,
-            tool_choice: { type: "function", function: { name: "create_presentation" } },
-          }),
-        });
+        const geminiBody = {
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+          tools: [{
+            functionDeclarations: toolsSchema.map((t: any) => t.function)
+          }],
+          toolConfig: { functionCallingConfig: { mode: 'ANY', allowedFunctionNames: ['create_presentation'] } },
+          generationConfig: { maxOutputTokens: 8192 },
+        };
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(geminiBody),
+          }
+        );
+        if (directResponse.ok) {
+          // Convert Gemini format to OpenAI-compatible format for downstream parsing
+          const geminiData = await directResponse.json();
+          const candidate = geminiData.candidates?.[0];
+          const funcCall = candidate?.content?.parts?.find((p: any) => p.functionCall);
+          if (funcCall?.functionCall) {
+            // Wrap in OpenAI-compatible format
+            const fakeResponse = {
+              choices: [{
+                message: {
+                  tool_calls: [{
+                    function: {
+                      name: funcCall.functionCall.name,
+                      arguments: JSON.stringify(funcCall.functionCall.args),
+                    }
+                  }]
+                }
+              }]
+            };
+            console.log('[generate-presentation] Google Gemini direct success');
+            // Create a synthetic Response object
+            response = new Response(JSON.stringify(fakeResponse), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            });
+          }
+        } else {
+          const errText = await directResponse.text();
+          console.error('[generate-presentation] Google API error:', directResponse.status, errText);
+        }
+      } catch (e) {
+        console.error('[generate-presentation] Google API fetch error:', e);
+      }
+    }
 
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ error: 'הגעת למגבלת הבקשות. נסה שוב בעוד דקה.' }), {
-            status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // Fallback to Lovable Gateway
+    if (!response) {
+      const gatewayModels = ['google/gemini-3-flash-preview', 'google/gemini-2.5-flash', 'openai/gpt-5-mini'];
+      for (const model of gatewayModels) {
+        if (!LOVABLE_API_KEY) break;
+        console.log(`[generate-presentation] Trying Gateway model: ${model}`);
+        try {
+          response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userMessage },
+              ],
+              tools: toolsSchema,
+              tool_choice: { type: "function", function: { name: "create_presentation" } },
+            }),
           });
-        }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ error: 'נדרש חידוש קרדיטים. עבור להגדרות → שימוש.' }), {
-            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
 
-        if (response.ok) {
-          console.log(`[generate-presentation] Success with model: ${model}`);
-          break;
-        }
+          if (response.status === 429) {
+            return new Response(JSON.stringify({ error: 'הגעת למגבלת הבקשות. נסה שוב בעוד דקה.' }), {
+              status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+          if (response.status === 402) {
+            return new Response(JSON.stringify({ error: 'נדרש חידוש קרדיטים. עבור להגדרות → שימוש.' }), {
+              status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
 
-        const errText = await response.text();
-        console.error(`[generate-presentation] Model ${model} failed: ${response.status}`, errText);
-        response = null;
-        await new Promise(r => setTimeout(r, 1500));
-      } catch (fetchErr) {
-        console.error(`[generate-presentation] Fetch error for ${model}:`, fetchErr);
-        response = null;
-        await new Promise(r => setTimeout(r, 1500));
+          if (response.ok) {
+            console.log(`[generate-presentation] Gateway success with: ${model}`);
+            break;
+          }
+
+          const errText = await response.text();
+          console.error(`[generate-presentation] Model ${model} failed: ${response.status}`, errText);
+          response = null;
+          await new Promise(r => setTimeout(r, 1500));
+        } catch (fetchErr) {
+          console.error(`[generate-presentation] Fetch error for ${model}:`, fetchErr);
+          response = null;
+          await new Promise(r => setTimeout(r, 1500));
+        }
       }
     }
 
