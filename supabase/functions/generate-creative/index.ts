@@ -387,47 +387,14 @@ ${typographyBlock}
       );
     }
 
-    const combinedPrompt = `${systemPrompt}\n\n${enhancedPrompt}`;
     let imageUrl = '';
     let usedMethod = '';
 
-    // Attempt 1: Direct Google Gemini API
-    if (GOOGLE_GEMINI_API_KEY) {
-      console.log('Trying direct Google Gemini API...');
-      try {
-        const directResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: combinedPrompt }] }],
-              generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
-            }),
-          }
-        );
-
-        if (directResponse.ok) {
-          const data = await directResponse.json();
-          const parts = data.candidates?.[0]?.content?.parts || [];
-          for (const part of parts) {
-            if (part.inlineData) {
-              imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-              usedMethod = 'google-direct';
-              break;
-            }
-          }
-          if (!imageUrl) console.error('No image in Google direct response');
-        } else {
-          const errorText = await directResponse.text();
-          console.error('Google Gemini direct error:', directResponse.status, errorText);
-        }
-      } catch (directError) {
-        console.error('Google Gemini direct fetch error:', directError);
-      }
-    }
-
-    // Attempt 2: Lovable AI Gateway fallback
+    // Use Nano Banana 2 (gemini-3.1-flash-image-preview) via Lovable AI Gateway
+    // This is the correct image generation model — do NOT use gemini-2.0-flash-exp or other text models
+    const IMAGE_MODELS = ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'];
+    
+    // Attempt via Lovable AI Gateway with proper image model
     if (!imageUrl && LOVABLE_API_KEY) {
       console.log('Falling back to Lovable AI Gateway...');
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
