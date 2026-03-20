@@ -58,67 +58,55 @@ CRITICAL: No text, no letters, no words, no watermarks, no women, no girls. Clea
 If humans appear, only Haredi Orthodox Jewish men/boys in dignified settings.
 4K quality, dramatic lighting, shallow depth of field.`;
 
-    const models = ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'];
+    const MODEL = 'google/gemini-3.1-flash-image-preview';
     let imageUrl: string | null = null;
 
-    for (const model of models) {
-      try {
-        console.log(`[generate-slide-image] Trying model: ${model}`);
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model,
-            messages: [{ role: 'user', content: enhancedPrompt }],
-            modalities: ['image', 'text'],
-          }),
-        });
+    console.log(`[generate-slide-image] Generating with ${MODEL}`);
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [{ role: 'user', content: enhancedPrompt }],
+        modalities: ['image', 'text'],
+      }),
+    });
 
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ error: 'Rate limit' }), {
-            status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ error: 'Payment required' }), {
-            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-
-        if (!response.ok) {
-          const text = await response.text();
-          console.error(`Model ${model} failed: ${response.status}`, text);
-          continue;
-        }
-
-        const rawText = await response.text();
-        let data: unknown;
-        try {
-          data = JSON.parse(rawText);
-        } catch (_parseErr) {
-          console.error(`JSON parse failed for ${model}, raw length: ${rawText.length}, tail: ${rawText.slice(-100)}`);
-          continue;
-        }
-
-        // deno-lint-ignore no-explicit-any
-        imageUrl = (data as any)?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-        if (imageUrl) {
-          console.log(`[generate-slide-image] Success with ${model}`);
-          break;
-        }
-        console.error(`No image in response from ${model}`);
-      } catch (fetchErr) {
-        console.error(`Fetch error for ${model}:`, fetchErr);
-      }
-      await new Promise(r => setTimeout(r, 1000));
+    if (response.status === 429) {
+      return new Response(JSON.stringify({ error: 'Rate limit' }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (response.status === 402) {
+      return new Response(JSON.stringify({ error: 'Payment required' }), {
+        status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`${MODEL} failed: ${response.status}`, text);
+      throw new Error(`Image generation failed: ${response.status}`);
+    }
+
+    const rawText = await response.text();
+    let data: unknown;
+    try {
+      data = JSON.parse(rawText);
+    } catch (_parseErr) {
+      console.error(`JSON parse failed, raw length: ${rawText.length}`);
+      throw new Error('Failed to parse image generation response');
+    }
+
+    // deno-lint-ignore no-explicit-any
+    imageUrl = (data as any)?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     if (!imageUrl) {
-      throw new Error('No image generated after all model attempts');
+      throw new Error('No image in response from model');
     }
+    console.log(`[generate-slide-image] Success with ${MODEL}`);
 
     return new Response(JSON.stringify({ imageUrl }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
