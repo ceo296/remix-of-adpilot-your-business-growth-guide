@@ -11,8 +11,9 @@ serve(async (req) => {
   try {
     const { brief, businessName, industry, slideCount = 7, theme = 'corporate', profileData } = await req.json();
     
+    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
+    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) throw new Error('No AI service configured');
 
     const pd = profileData || {};
     
