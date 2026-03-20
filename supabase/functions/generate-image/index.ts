@@ -644,7 +644,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     }
 
     // ═══════════════════════════════════════════
-    // LAYER 1: Pure visual - ZERO text
+    // ALL-IN-ONE: Complete ad with text, logo, and layout in a single AI call
     // ═══════════════════════════════════════════
     // Aspect ratio instruction
     let aspectInstruction = '';
@@ -663,53 +663,182 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
       console.log(`[Pipeline] Applying media format instructions for: ${mediaFormatKey}`);
     }
 
-    const visualOnlyPrompt = `Generate a VISUALLY STUNNING, AWARD-WINNING advertisement IMAGE with ABSOLUTELY ZERO TEXT AND ZERO LOGOS.
+    // ═══ STEP 1: Generate headline + subtitle via fast text model ═══
+    const rawHeadline = textPrompt || campaignContext?.offer || '';
+    const businessName = brandContext?.businessName || '';
+    const honorific = brandContext?.honorificPreference || 'neutral';
+    const genderDirective = honorific === 'mr' 
+      ? 'פנה בלשון זכר יחיד בלבד (אתה, שלך). אסור לשון נקבה או רבים.'
+      : honorific === 'mrs' 
+      ? 'פני בלשון נקבה יחיד בלבד (את, שלך). אסור לשון זכר או רבים.'
+      : 'פנה בלשון רבים (אתם, שלכם). אסור לשון יחיד.';
+    const brandServices = brandContext?.services?.length ? brandContext.services.join(', ') : '';
+    const brandXFactor = brandContext?.primaryXFactor || brandContext?.winningFeature || '';
+    const offerTextForAI = campaignContext?.offer || textPrompt || '';
+    
+    // Generate headline + subtitle in parallel
+    let headline = '';
+    let subtitle = '';
+    
+    if (offerTextForAI && LOVABLE_API_KEY) {
+      const headlinePromise = fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-lite',
+          max_completion_tokens: 40,
+          messages: [
+            { role: 'system', content: `אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה.\n\nכללי ברזל:\n1. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות\n2. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד עם טוויסט, משחק מילים, או מטאפורה\n3. הכותרת חייבת להתמקד בבשורה המרכזית של הבריף\n4. ללא גרשיים, ללא סימני פיסוק, ללא מספרים\n5. תחזיר רק את הכותרת עצמה\n\nכלל מגדרי קריטי: ${genderDirective}` },
+            { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
+          ],
+        }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null);
 
-CRITICAL - NO TEXT, NO LOGOS:
-- Do NOT render ANY letters, words, numbers, characters, or symbols in ANY language
-- Do NOT write Hebrew, English, Arabic, or any other script
-- Do NOT include phone numbers, headlines, watermarks, or captions
-- Do NOT include ANY logo, emblem, brand mark, symbol, monogram, or seal — real or invented
-- The brand logo and all text will be added in POST-PRODUCTION as a separate programmatic layer
-- The image must be 100% VISUAL — only photography, illustration, colors, shapes, and composition
-- ANY text or logo in the generated image is a CRITICAL ERROR
+      const subtitlePromise = fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-lite',
+          max_completion_tokens: 60,
+          messages: [
+            { role: 'system', content: `אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה תיאורית קצרה (5-10 מילים) למודעה.\n\nכללי ברזל:\n1. הכותרת חייבת להכיל את הפרט הקונקרטי החשוב ביותר מהבריף\n2. קרא את כל הבריף עד הסוף — חפש הטבות, מבצעים, מחירים\n3. ללא גרשיים. תחזיר רק את הכותרת עצמה\n\nכלל מגדרי קריטי: ${genderDirective}` },
+            { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
+          ],
+        }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null);
 
-VISUAL IMPACT — MAKE IT EXTRAORDINARY (CRITICAL):
-- Think CANNES LIONS, D&AD, ONE SHOW award-winning visual concepts
-- Output must look like PREMIUM COMMERCIAL PHOTOGRAPHY, not clipart/illustration templates
-- If the scene can be interpreted as an icon/illustration (e.g., tooth logo, generic symbol), REGENERATE as a real photographed scene
-- Use BOLD, UNEXPECTED visual metaphors: surreal scale shifts, dramatic juxtaposition, impossible perspectives
-- Create VISUAL TENSION: contrast between luxury and everyday, big and small, old and new
-- Use CINEMATIC composition: dramatic angles (low angle hero shots, bird's eye, Dutch tilt), leading lines, rule of thirds with intent
-- LIGHTING must be DRAMATIC: rim lighting, silhouettes, volumetric light rays, golden hour, neon glows, chiaroscuro
-- Add DEPTH and DIMENSION: foreground elements framing the subject, atmospheric haze, layered planes of focus
-- COLOR should be INTENTIONAL: complementary color schemes, monochromatic with one pop accent, rich saturated palettes
-- Think EDITORIAL PHOTOGRAPHY meets FINE ART: every frame should feel like a gallery piece
-- AVOID: flat compositions, centered subjects with no context, generic stock-photo poses, boring angles, plain backgrounds
-- STRICTLY FORBIDDEN: vector icons, mascot-like drawings, infographic style, 2D clipart, logo-like symbols, medical stock templates
+      const [headlineData, subtitleData] = await Promise.all([headlinePromise, subtitlePromise]);
+      
+      const aiHeadline = headlineData?.choices?.[0]?.message?.content?.trim();
+      if (aiHeadline && aiHeadline.length > 2 && aiHeadline.length <= 40) {
+        headline = aiHeadline.replace(/["""''`.!?]/g, '').trim();
+        console.log('[Headline AI] Generated:', headline);
+      }
+      
+      const aiSubtitle = subtitleData?.choices?.[0]?.message?.content?.trim();
+      if (aiSubtitle && aiSubtitle.length > 3 && aiSubtitle.length <= 56) {
+        subtitle = aiSubtitle.replace(/["""''`]/g, '').slice(0, 56);
+        console.log('[Subtitle AI] Generated:', subtitle);
+      }
+    }
+    
+    // Fallbacks
+    if (!headline) headline = buildCreativeHeadline(rawHeadline, campaignContext, topicCategory);
+    if (!subtitle && brandContext?.winningFeature) subtitle = brandContext.winningFeature.slice(0, 56);
+    else if (!subtitle && brandContext?.primaryXFactor) subtitle = brandContext.primaryXFactor.slice(0, 56);
 
-COMPOSITION FOR TEXT INTEGRATION (CRITICAL — FILL THE FRAME):
-- The image must be VISUALLY FULL — NO large empty areas, NO excessive blank space
-- Think MAGAZINE COVER: every inch of the frame contributes to the visual story
-${headlinePosition === 'bottom' ? `
-- TOP 80%: HERO VISUAL fills the frame with bold composition — subject large, dramatic, frame-filling
-- BOTTOM 25%: Subtle organic darkening (shadow gradient, not a solid band) for contact info overlay
-- BOTTOM-LEFT corner: Small clear space for brand logo
-- The headline will overlay on top of the visual with text-shadow for contrast — the image behind MUST be interesting, not blank
-` : headlinePosition === 'center' ? `
-- FULL-FRAME visual with the hero subject LARGE and DOMINANT
-- CENTER: A natural depth-of-field zone or atmospheric area where text can sit with contrast
-- BOTTOM 12%: Thin contact strip area with organic darkening
-- BOTTOM-LEFT corner: Small space for brand logo
-` : `
-- TOP-RIGHT 25%: Slightly darker atmospheric zone for headline text (NOT blank — use bokeh, gradient, atmospheric depth)
-- The HERO VISUAL fills 85%+ of the frame — subject is LARGE, close-up, dramatic
-- BOTTOM 12%: Thin organic shadow gradient for contact details
-- BOTTOM-LEFT corner: Small clear space for brand logo
-`}
-- CRUCIAL: The visual must feel DENSE and RICH — like editorial photography, NOT a template with empty zones
-- Use organic darkening at text zones: deep shadows, bokeh, atmospheric haze — NEVER solid color bands
-- The subject should be CLOSE, LARGE, and COMMANDING — not tiny in the middle of empty space
+    // Build contact details string for the ad
+    const phone = brandContext?.contactPhone || '';
+    const email = brandContext?.contactEmail || '';
+    const address = brandContext?.contactAddress || '';
+    const whatsapp = brandContext?.contactWhatsapp || '';
+    const website = brandContext?.websiteUrl || '';
+    const openingHours = brandContext?.openingHours || '';
+    const branches = brandContext?.branches || '';
+    
+    // CTA text
+    const CTA_MAP: Record<string, string> = {
+      'whatsapp-email': 'שלחו הודעה עכשיו',
+      'phone-call': 'חייגו עכשיו',
+      'visit-store': 'בואו לבקר',
+      'visit-website': 'לפרטים נוספים',
+      'remember-me': '',
+    };
+    const primaryAction = Array.isArray(campaignContext?.desiredActions) 
+      ? campaignContext.desiredActions[0] 
+      : campaignContext?.desiredAction;
+    const ctaText = primaryAction ? (CTA_MAP[primaryAction] || '') : '';
+
+    console.log('[All-in-One] headline:', headline, '| subtitle:', subtitle, '| phone:', phone, '| ctaText:', ctaText);
+
+    // ═══ STEP 2: Build the All-in-One prompt ═══
+    // Build the Hebrew text block for the ad
+    let textBlock = '';
+    if (headline || subtitle || phone || businessName) {
+      const textParts: string[] = [];
+      if (headline) textParts.push(`כותרת ראשית (גדולה, בולטת, עברית): "${headline}"`);
+      if (subtitle) textParts.push(`כותרת משנה (קטנה יותר, מתחת לכותרת): "${subtitle}"`);
+      if (ctaText) textParts.push(`קריאה לפעולה (כפתור/באנר): "${ctaText}"`);
+      if (phone) textParts.push(`טלפון (בולט בסטריפ תחתון): ${phone}`);
+      if (whatsapp && whatsapp !== phone) textParts.push(`וואטסאפ: ${whatsapp}`);
+      if (address) textParts.push(`כתובת: ${address}`);
+      if (branches) textParts.push(`סניפים: ${branches}`);
+      if (website) textParts.push(`אתר: ${website}`);
+      if (openingHours) textParts.push(`שעות פעילות: ${openingHours}`);
+      
+      textBlock = `
+═══ HEBREW TEXT TO INCLUDE IN THE AD (CRITICAL — RENDER ALL TEXT) ═══
+${textParts.join('\n')}
+שם העסק: "${businessName}"
+
+TYPOGRAPHY RULES:
+- ALL text must be in HEBREW, reading RIGHT-TO-LEFT
+- Every letter must be in correct Hebrew reading order — NOT mirrored or reversed
+- Headline: LARGE, BOLD, dominant — the first thing the eye sees
+- Subtitle: smaller, lighter weight, directly below headline
+- Contact details: clean, organized in the BOTTOM CONTACT STRIP
+- Phone number: LARGE and clear with area code
+- Business name: prominent, associated with or near the logo area
+- Use PROFESSIONAL Hebrew typography — clean, modern, well-kerned
+- Text must be SHARP and PERFECTLY READABLE — no blurry or distorted letters
+═══════════════════════════════════════════════════════════════════
+`;
+    }
+
+    // Logo instructions
+    let logoBlock = '';
+    const logoUrl = brandContext?.logoUrl;
+    if (logoUrl) {
+      logoBlock = `
+═══ BRAND LOGO (ATTACHED AS IMAGE — USE IT EXACTLY) ═══
+The client's ACTUAL logo is attached as an image reference.
+- Place the logo PROMINENTLY in the BOTTOM-LEFT area of the contact strip (for RTL Hebrew layout)
+- The logo should be 15-25% of ad width — NEVER a tiny icon
+- Keep the logo in its ORIGINAL colors — do NOT recolor it
+- Do NOT invent or modify the logo — use it EXACTLY as provided
+═══════════════════════════════════════════════════════════
+`;
+    } else {
+      logoBlock = `
+LOGO: No logo was provided. Leave the bottom-left corner of the contact strip clean and empty for later logo placement. Do NOT invent any logo or symbol.
+`;
+    }
+
+    const fullAdPrompt = `Generate a COMPLETE, READY-TO-PUBLISH professional advertisement with BOTH stunning visuals AND Hebrew text, all composed together as ONE cohesive design.
+
+THIS IS A COMPLETE AD — NOT JUST A PHOTO:
+- The output must look like a FINISHED print/digital advertisement
+- Visual + text + contact details + logo — all integrated into ONE harmonious composition
+- Think of how a professional graphic designer would create a complete ad in Photoshop/InDesign
+
+${textBlock}
+${logoBlock}
+
+═══ 3-ZONE AD GRID (MANDATORY STRUCTURE) ═══
+ZONE 1 — HEADLINE / HOOK (top 15-20% of ad):
+  - Main promotional headline in BOLD Hebrew typography
+  - Subtitle below in smaller text
+  - May include a decorative accent or price callout
+
+ZONE 2 — HERO VISUAL (center 55-65% of ad):
+  - The emotional/visual core of the ad
+  - High quality, cinematic product/lifestyle photography
+  - This is where the visual storytelling happens
+
+ZONE 3 — CONTACT STRIP (bottom 15-25% of ad):
+  - DARK or BRAND-COLORED background bar for contrast and readability
+  - Logo anchored on LEFT side (RTL Hebrew layout)
+  - RIGHT side: branch locations, phone numbers, website
+  - Phone number: LARGE and clear
+  - Multiple branches separated by pipes (|) if applicable
+═══════════════════════════════════════════════
+
+VISUAL IMPACT — MAKE IT EXTRAORDINARY:
+- PREMIUM COMMERCIAL PHOTOGRAPHY quality, not clipart/illustration
+- CINEMATIC composition: dramatic angles, shallow depth of field, professional lighting
+- LIGHTING: Professional "Golden Hour" or soft studio lighting
+- The visual must be DENSE and RICH — like editorial photography
+- AVOID: flat compositions, generic stock-photo look, boring angles
 
 ${aspectInstruction}
 ${mediaFormatInstructions}
@@ -729,135 +858,75 @@ ${brandContext.pastMaterialsAnalysis.map((a: any, i: number) => `Reference ${i+1
 - Typography style: ${a.typography || 'unknown'}
 - Layout notes: ${a.layoutNotes || 'none'}`).join('\n')}
 
-IMPORTANT: The generated image MUST follow the same visual structure, composition style, and layout patterns as the client's existing ads. Keep the same general "feel" — if their ads are clean and minimal, be clean and minimal. If they use bold colors and strong composition, do the same. Match the logo positioning and grid structure.
+IMPORTANT: Match the same visual structure, composition style, and layout patterns.
 ` : ''}
 
 ${brandContext ? `
-═══ FULL BRAND IDENTITY (תעודת זהות) — USE THIS TO INFORM EVERY DESIGN DECISION ═══
+═══ BRAND IDENTITY ═══
 Business: "${brandContext.businessName || ''}"
 Target Audience: ${brandContext.targetAudience || 'Haredi audience'}
 End Consumer: ${brandContext.endConsumer || 'Not specified'}
-Decision Maker: ${brandContext.decisionMaker || 'Not specified'}
-Primary Differentiator (X-Factor): ${brandContext.primaryXFactor || 'Not specified'}
+Primary Differentiator: ${brandContext.primaryXFactor || 'Not specified'}
 Winning Feature: ${brandContext.winningFeature || 'Not specified'}
 ${brandContext.xFactors?.length ? `Additional Differentiators: ${brandContext.xFactors.join(', ')}` : ''}
 ${brandContext.services?.length ? `Services/Products: ${brandContext.services.join(', ')}` : ''}
-${brandContext.competitors?.length ? `Competitors (differentiate from these!): ${brandContext.competitors.join(', ')}` : ''}
-Advantage Type: ${brandContext.advantageType || 'Not specified'}
+${brandContext.competitors?.length ? `Competitors: ${brandContext.competitors.join(', ')}` : ''}
 Audience Tone: ${brandContext.audienceTone || 'Not specified'}
-Brand Presence Level: ${brandContext.brandPresence || 'Not specified'}
-${brandContext.personalRedLines?.length ? `PERSONAL RED LINES (NEVER DO): ${brandContext.personalRedLines.join('; ')}` : ''}
-${brandContext.successfulCampaigns?.length ? `Past Successful Campaigns (replicate this energy): ${brandContext.successfulCampaigns.join('; ')}` : ''}
-Honorific Style: ${brandContext.honorificPreference || 'neutral'}
-═══════════════════════════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════
 ` : ''}
-${brandContext?.businessPhotoUrls?.length ? `
-CLIENT'S REAL BUSINESS/PRODUCT PHOTOS ARE AVAILABLE (${brandContext.businessPhotoUrls.length} photos). 
-The AI should draw INSPIRATION from the real products/settings shown in these photos to create authentic visuals that match the client's actual business environment.` : ''}
+
 ${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
-${campaignContext?.campaignImageUrl ? `
-A SPECIFIC CAMPAIGN IMAGE has been provided by the client. Use this image as the PRIMARY visual reference for the ad composition.` : ''}
 ${campaignContext?.adGoal ? `
-AD GOAL (GUIDED BRIEF): "${campaignContext.adGoal}"
-${campaignContext.adGoal === 'sell' ? '→ This is a SALES ad. Focus on product visibility, pricing emphasis, and urgency. Bold, energetic composition with warm contrasting colors.' : ''}
-${campaignContext.adGoal === 'brand-presence' ? '→ This is a BRANDING ad. Premium, elegant, aspirational composition. Soft diffused lighting. Clean layout with generous white space. No prices.' : ''}
-${campaignContext.adGoal === 'invite-contact' ? '→ This ad invites CONTACT/MEETING. Warm, welcoming, professional composition. Human connection emphasis. Contact details should be prominent.' : ''}
-${campaignContext.adGoal === 'introduce-product' ? '→ This is a PRODUCT LAUNCH ad. Dramatic reveal composition. Theatrical lighting. Focus on ONE key element with sense of mystery and excitement.' : ''}` : ''}
-${campaignContext?.emotionalTone ? `
-EMOTIONAL TONE DIRECTIVE: "${campaignContext.emotionalTone}"
-${campaignContext.emotionalTone === 'luxury' ? '→ Luxurious, elegant feel. Rich textures, gold accents, dramatic lighting. Premium materials and surfaces.' : ''}
-${campaignContext.emotionalTone === 'urgency' ? '→ Urgent, time-sensitive feel. Bold red/orange accents, dynamic angles, high contrast. Energy and motion.' : ''}
-${campaignContext.emotionalTone === 'belonging' ? '→ Warm belonging feel. Soft golden light, intimate compositions, family/community atmosphere.' : ''}
-${campaignContext.emotionalTone === 'professional' ? '→ Professional, trustworthy feel. Clean lines, structured composition, neutral sophisticated palette.' : ''}` : ''}
-${campaignContext?.priceOrBenefit ? `PRICE/BENEFIT TO HIGHLIGHT: "${campaignContext.priceOrBenefit}"` : ''}
-${campaignContext?.isTimeLimited && campaignContext?.timeLimitText ? `TIME LIMIT: "${campaignContext.timeLimitText}" — add visual urgency cues.` : ''}
-${campaignContext?.desiredAction ? `DESIRED CTA: "${campaignContext.desiredAction}" — composition should guide the eye toward this action.` : ''}
-${!campaignContext?.adGoal && campaignContext?.goal === 'awareness' ? `
-GOAL STYLE DIRECTIVE (awareness): Premium, elegant, aspirational composition. Soft diffused lighting. Clean layout with generous white space. Muted sophisticated color palette. No prices or discounts in the visual.` : 
-!campaignContext?.adGoal && campaignContext?.goal === 'promotion' ? `
-GOAL STYLE DIRECTIVE (promotion): Bold, energetic, eye-catching composition. Warm contrasting colors (red, orange, gold accents). Dynamic layout. Clear large text area for prices/offers. Sense of urgency.` :
-!campaignContext?.adGoal && campaignContext?.goal === 'launch' ? `
-GOAL STYLE DIRECTIVE (launch): Dramatic, surprising composition. Strong theatrical lighting with deep shadows. Unconventional camera angles. Shallow depth of field focusing on ONE key element. Sense of reveal and mystery.` :
-!campaignContext?.adGoal && campaignContext?.goal === 'seasonal' ? `
-GOAL STYLE DIRECTIVE (seasonal): Warm, festive, inviting composition. Golden hour warm lighting. Rich colors (gold, burgundy, deep green depending on holiday). Subtle seasonal elements in background. Warm family atmosphere.` : ''}
+AD GOAL: "${campaignContext.adGoal}"
+${campaignContext.adGoal === 'sell' ? '→ SALES ad: product visibility, pricing emphasis, urgency.' : ''}
+${campaignContext.adGoal === 'brand-presence' ? '→ BRANDING ad: premium, elegant, aspirational.' : ''}
+${campaignContext.adGoal === 'invite-contact' ? '→ CONTACT ad: warm, welcoming, contact details prominent.' : ''}
+${campaignContext.adGoal === 'introduce-product' ? '→ PRODUCT LAUNCH: dramatic reveal, theatrical lighting.' : ''}` : ''}
+${campaignContext?.emotionalTone ? `EMOTIONAL TONE: "${campaignContext.emotionalTone}"` : ''}
+${campaignContext?.priceOrBenefit ? `PRICE/BENEFIT: "${campaignContext.priceOrBenefit}"` : ''}
+${campaignContext?.isTimeLimited && campaignContext?.timeLimitText ? `TIME LIMIT: "${campaignContext.timeLimitText}"` : ''}
 
-DESIGN APPROACH (CRITICAL):
-${designApproach === 'brand-follower' ? `
-DESIGN CONTINUITY MODE — BRAND FOLLOWER:
-- You MUST replicate the EXACT same grid structure, layout composition, and visual language as the client's existing ads.
-- Same positioning of elements: headline placement, logo position, contact bar, visual hero.
-- Same style DNA: if their ads are clean/minimal → be clean/minimal. If bold/maximalist → match that.
-- Think of this as creating the NEXT AD in an existing campaign series — seamless visual continuity.
-- The viewer should NOT be able to tell if this ad was designed by a different designer.
-` : designApproach === 'visual-refresh' ? `
-DESIGN MODE — VISUAL REFRESH:
-- Keep the SAME grid/layout structure as existing client ads (headline position, logo placement, contact bar location).
-- BUT apply a FRESH visual style: new color treatment, new photographic approach, new typographic energy.
-- Think: same skeleton, new skin. The structure is familiar but the aesthetics feel modern and renewed.
-- Match all structural elements from past materials but make the visual execution feel elevated and current.
-` : designApproach === 'structural-flex' ? `
-DESIGN MODE — STRUCTURAL FLEXIBILITY:
-- Preserve the brand DNA: use the brand colors, fonts, and visual identity faithfully.
-- BUT feel free to create an entirely NEW grid/layout structure.
-- Experiment with different headline positions, hero placements, and contact bar arrangements.
-- The ad should feel like the same brand but presented in a completely different layout format.
-` : designApproach === 'creative-freedom' ? `
-DESIGN MODE — CREATIVE FREEDOM:
-- FULL creative freedom — design from scratch with NO constraints from past materials.
-- Create an entirely new visual identity for this specific campaign.
-- Innovate on both structure AND style — surprise the viewer with unexpected composition and aesthetics.
-- The only constraints are brand colors (if provided) and community rules.
-` : ''}
-${visualApproach === 'product-focus' ? `
-- THIS IS A PRODUCT-FOCUSED visual. Show ONLY the product/service itself.
-- For dental clinic → premium clinic interior, macro-quality dental instruments, high-end treatment context (NO tooth icons).
-- ZERO people/characters. Focus entirely on the product/service with professional studio/editorial photography style.
-- Clean background, premium lighting, hero product shot with believable realism.
-` : visualApproach === 'lifestyle' ? `
-- This concept MAY include ONE person (Orthodox Jewish man or boy in modest attire) if relevant to the message.
-- Use cinematic lifestyle photography aesthetics, NEVER cartoon/illustration look.
-- People are OPTIONAL, not mandatory. If the product doesn't need a person, don't force one.
-` : `
-- THIS IS A GRAPHIC-LED visual but still PREMIUM and realistic in finish.
-- No clipart, no flat icon language, no template-like flyer graphics.
-- Use advanced editorial composition, textured backgrounds, refined geometric systems, and luxury brand art direction.
-- Keep it modern, bold, and high-end — not old-school coupon/flyer design.
-`}
-- Do NOT force holiday elements unless the campaign is specifically about that holiday
-- Focus on the PRODUCT/SERVICE itself, not generic "Haredi scenes"
-- Professional, modern, clean design that happens to be for a Haredi audience — not "Haredi-themed" by default
+DESIGN APPROACH:
+${designApproach === 'brand-follower' ? `BRAND FOLLOWER: Replicate EXACT same grid and visual language as client's existing ads.` : 
+  designApproach === 'visual-refresh' ? `VISUAL REFRESH: Same grid structure, fresh visual style.` : 
+  designApproach === 'structural-flex' ? `STRUCTURAL FLEX: Keep brand DNA, new grid/layout.` : 
+  `CREATIVE FREEDOM: Full freedom, design from scratch.`}
 
-COMMUNITY RULES:
+${visualApproach === 'product-focus' ? `PRODUCT-FOCUSED: Show ONLY the product/service. ZERO people.` : 
+  visualApproach === 'lifestyle' ? `LIFESTYLE: May include ONE Orthodox Jewish man/boy if relevant.` : 
+  `GRAPHIC-LED: Premium editorial composition, no clipart.`}
+
+COMMUNITY RULES (NON-NEGOTIABLE):
 - This targets the Haredi (Ultra-Orthodox) Jewish community
 - ABSOLUTELY NO women or girls in images
-- If people ARE needed: men/boys in modest Orthodox attire only
+- If people ARE needed: men/boys in modest Orthodox attire only (dark suits, white shirts, kippot)
 - Clean, premium, professional
 
-CRITICAL — GENDER-VISUAL MATCHING (IRON RULE):
-- If the campaign copy/offer targets WOMEN (feminine language: את, שלך, מגיע לך, מושלמת, הרגישי) or the product is FOR WOMEN (facial treatments for women, women's fashion, wigs/sheitels, cosmetics, dresses):
-  → DO NOT show ANY male figures (no bearded men, no boys, no male characters)
-  → Use ONLY: product photography, graphic design, abstract elements, feminine aesthetics (flowers, spa elements, creams, fabrics)
-  → A man with a beard in an ad for women's facial treatments is a CATASTROPHIC ERROR
-- If the campaign copy targets MEN (masculine language: אתה, שלך, אבא):
-  → Male figures are appropriate
-  → Do NOT use feminine product imagery
-- WHEN IN DOUBT: Use pure product/graphic design with NO people at all. This is ALWAYS safe.
+GENDER-VISUAL MATCHING:
+- If product is FOR WOMEN → NO male figures, use product photography/graphic design only
+- If product is FOR MEN → male figures appropriate
+- WHEN IN DOUBT → pure product/graphic with NO people
 
 ${sectorInsights}
 ${modelRules}
 
 ${corrections?.length ? `
-CLIENT REVISION NOTES (IMPORTANT — apply these changes to improve the design):
+CLIENT REVISIONS:
 ${corrections.map((c: any) => `- [${c.type === 'copy' ? 'TEXT' : c.type === 'visual' ? 'VISUAL' : 'GENERAL'}]: ${c.text}`).join('\n')}
-Incorporate ALL these corrections into the new design.
 ` : ''}
 
-Remember: ZERO text. Pure visual design only. Beautiful composition with empty areas for text overlay.`;
+FINAL CHECKLIST:
+✓ Hebrew text is correct, right-to-left, perfectly readable
+✓ 3-zone grid: headline top, visual center, contact strip bottom
+✓ Contact details are accurate and complete
+✓ Logo is properly placed (if provided)
+✓ Visual is cinematic and premium
+✓ All community rules respected`;
 
     const engineVersion = engine === 'nano-banana-pro' ? 'nano-banana-pro' : 'nano-banana';
-    console.log(`[Pipeline] Starting Layer 1 - Visual generation (engine: ${engineVersion})`);
-    const visualResult = await generateVisualLayer(visualOnlyPrompt, brandContext, LOVABLE_API_KEY, engineVersion, campaignContext);
-    console.log("[Pipeline] Layer 1 complete. Skipping Layer 2 — Hebrew text will be applied programmatically on the frontend for perfect rendering.");
+    console.log(`[Pipeline] Starting All-in-One generation (engine: ${engineVersion})`);
+    const visualResult = await generateVisualLayer(fullAdPrompt, brandContext, LOVABLE_API_KEY, engineVersion, campaignContext);
+    console.log("[Pipeline] All-in-One generation complete — full ad with text and layout.");
 
     // ═══════════════════════════════════════════
     // LAYER 2 SKIPPED — Hebrew text is rendered programmatically by the frontend Canvas engine
