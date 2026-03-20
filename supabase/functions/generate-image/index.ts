@@ -153,7 +153,7 @@ const ENGINE_MODELS: Record<string, string[]> = {
   'nano-banana': ['google/gemini-3.1-flash-image-preview'],
 };
 
-// ───── LAYER 1: Visual-only generation ─────
+// ───── All-in-One image generation (visual + text + logo in single call) ─────
 async function generateVisualLayer(
   fullPrompt: string,
   brandContext: any,
