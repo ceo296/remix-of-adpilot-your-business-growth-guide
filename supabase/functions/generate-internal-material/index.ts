@@ -424,40 +424,98 @@ ${sectorContext}
       throw new Error(`Unknown material type: ${type}`);
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `צור תוכן מקצועי עבור ${businessName}. ${extraContext?.userPrompt || ''}` },
-        ],
-        tools: [toolDef],
-        tool_choice: { type: "function", function: { name: toolName } },
-      }),
-    });
+    const userContent = `צור תוכן מקצועי עבור ${businessName}. ${extraContext?.userPrompt || ''}`;
+    let data: any = null;
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'הגעת למגבלת הבקשות. נסה שוב בעוד דקה.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+    // Try Google Gemini API first (direct, faster)
+    if (GOOGLE_GEMINI_API_KEY) {
+      try {
+        console.log('[generate-internal-material] Trying Google Gemini API...');
+        const geminiBody = {
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: userContent }] }],
+          tools: [{
+            functionDeclarations: [toolDef.function]
+          }],
+          toolConfig: { functionCallingConfig: { mode: 'ANY', allowedFunctionNames: [toolName] } },
+          generationConfig: { maxOutputTokens: 4096 },
+        };
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(geminiBody),
+          }
+        );
+        if (directResponse.ok) {
+          const geminiData = await directResponse.json();
+          const funcCall = geminiData.candidates?.[0]?.content?.parts?.find((p: any) => p.functionCall);
+          if (funcCall?.functionCall) {
+            data = {
+              choices: [{
+                message: {
+                  tool_calls: [{
+                    function: {
+                      name: funcCall.functionCall.name,
+                      arguments: funcCall.functionCall.args,
+                    }
+                  }]
+                }
+              }]
+            };
+            console.log('[generate-internal-material] Google Gemini direct success');
+          }
+        } else {
+          const errText = await directResponse.text();
+          console.error('[generate-internal-material] Google API error:', directResponse.status, errText);
+        }
+      } catch (e) {
+        console.error('[generate-internal-material] Google API fetch error:', e);
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'נדרש חידוש קרדיטים.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const text = await response.text();
-      console.error('AI gateway error:', response.status, text);
-      throw new Error('AI gateway error');
     }
 
-    const data = await response.json();
+    // Fallback to Lovable Gateway
+    if (!data && LOVABLE_API_KEY) {
+      console.log('[generate-internal-material] Falling back to Lovable Gateway...');
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-3-flash-preview',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userContent },
+          ],
+          tools: [toolDef],
+          tool_choice: { type: "function", function: { name: toolName } },
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: 'הגעת למגבלת הבקשות. נסה שוב בעוד דקה.' }), {
+            status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: 'נדרש חידוש קרדיטים.' }), {
+            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        const text = await response.text();
+        console.error('AI gateway error:', response.status, text);
+        throw new Error('AI gateway error');
+      }
+
+      data = await response.json();
+    }
+
+    if (!data) throw new Error('No AI response received');
+
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     let result;
     

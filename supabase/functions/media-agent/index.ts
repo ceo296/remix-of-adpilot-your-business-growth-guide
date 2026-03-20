@@ -164,29 +164,78 @@ serve(async (req) => {
     }
     messages.push({ role: 'user', content: message });
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages,
-      }),
-    });
+    // Try Google Gemini API first, fallback to Lovable Gateway
+    let content = '';
+    let aiSuccess = false;
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI Gateway error:', aiResponse.status, errorText);
-      const status = aiResponse.status === 429 ? 429 : aiResponse.status === 402 ? 402 : 500;
-      return new Response(JSON.stringify({ error: status === 429 ? 'Rate limit exceeded' : status === 402 ? 'AI credits exhausted' : 'AI processing failed' }), {
-        status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    if (GOOGLE_GEMINI_API_KEY) {
+      try {
+        console.log('Trying Google Gemini API for media-agent...');
+        const geminiMessages = messages.filter((m: any) => m.role !== 'system');
+        const systemText = messages.find((m: any) => m.role === 'system')?.content || '';
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemText }] },
+              contents: geminiMessages.map((m: any) => ({
+                role: m.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: m.content }],
+              })),
+              generationConfig: { maxOutputTokens: 8192 },
+            }),
+          }
+        );
+        if (directResponse.ok) {
+          const data = await directResponse.json();
+          content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (content) {
+            aiSuccess = true;
+            console.log('Google Gemini direct success for media-agent');
+          }
+        } else {
+          const errText = await directResponse.text();
+          console.error('Google API error:', directResponse.status, errText);
+        }
+      } catch (e) {
+        console.error('Google API fetch error:', e);
+      }
     }
 
-    const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content || '';
+    if (!aiSuccess && LOVABLE_API_KEY) {
+      console.log('Falling back to Lovable Gateway for media-agent...');
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-pro',
+          messages,
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('AI Gateway error:', aiResponse.status, errorText);
+        const status = aiResponse.status === 429 ? 429 : aiResponse.status === 402 ? 402 : 500;
+        return new Response(JSON.stringify({ error: status === 429 ? 'Rate limit exceeded' : status === 402 ? 'AI credits exhausted' : 'AI processing failed' }), {
+          status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const aiData = await aiResponse.json();
+      content = aiData.choices?.[0]?.message?.content || '';
+    }
+
+    if (!content) {
+      return new Response(JSON.stringify({ error: 'AI returned empty response' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     let systemCommand = null;
     const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
