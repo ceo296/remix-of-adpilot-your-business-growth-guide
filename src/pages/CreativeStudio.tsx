@@ -1906,6 +1906,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             id: `${Date.now()}-${i}`,
             url: imageUrl,
             status: 'pending',
+            model: 'gemini-3.1-flash-image-preview',
           };
           results.push(newImage);
           setGeneratedImages([...results]);
