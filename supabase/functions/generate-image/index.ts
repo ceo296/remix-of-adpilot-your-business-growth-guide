@@ -280,7 +280,7 @@ The client's ACTUAL brand logo is attached as the LAST image.
       const data = await response.json();
       const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
       if (imageUrl) {
-        console.log("[Layer 1 - Visual] Success with model:", tryModel);
+        console.log("[All-in-One] Success with model:", tryModel);
         return { imageUrl, model: tryModel };
       }
       console.error("[Layer 1 - Visual] No image in response");
