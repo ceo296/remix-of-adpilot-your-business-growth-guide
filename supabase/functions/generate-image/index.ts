@@ -287,7 +287,7 @@ The client's ACTUAL brand logo is attached as the LAST image.
     } else {
       const status = response.status;
       const errorText = await response.text();
-      console.error(`[Layer 1 - Visual] ${tryModel} error:`, status, errorText);
+      console.error(`[All-in-One] ${tryModel} error:`, status, errorText);
 
       if (status === 429) throw { status: 429, message: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." };
       if (status === 402) throw { status: 402, message: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." };
