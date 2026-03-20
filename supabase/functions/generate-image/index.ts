@@ -928,11 +928,6 @@ FINAL CHECKLIST:
     const visualResult = await generateVisualLayer(fullAdPrompt, brandContext, LOVABLE_API_KEY, engineVersion, campaignContext);
     console.log("[Pipeline] All-in-One generation complete — full ad with text and layout.");
 
-    // ═══════════════════════════════════════════
-    // LAYER 2 SKIPPED — Hebrew text is rendered programmatically by the frontend Canvas engine
-    // This eliminates all AI Hebrew text rendering issues (gibberish, reversed letters, etc.)
-    // ═══════════════════════════════════════════
-
     // Log the generation
     try {
       await supabase
@@ -940,9 +935,9 @@ FINAL CHECKLIST:
         .insert({
           media_type: configMediaType,
           model_config_id: modelConfig?.id || null,
-          prompt_used: visualOnlyPrompt.substring(0, 5000),
+          prompt_used: fullAdPrompt.substring(0, 5000),
           generated_output: visualResult.imageUrl.substring(0, 500),
-          generation_type: 'image_visual_only',
+          generation_type: 'image_all_in_one',
           success: true,
           brand_context: brandContext || null,
           campaign_context: campaignContext || null,
@@ -951,282 +946,23 @@ FINAL CHECKLIST:
       console.error('Error logging generation:', logError);
     }
 
-    // Extract text meta for frontend programmatic overlay
-    const rawHeadline = textPrompt || campaignContext?.offer || '';
-    const businessName = brandContext?.businessName || '';
-    
-    // Extract contact details: prefer brand context, then try past_materials analysis
-    let phone = brandContext?.contactPhone || '';
-    let email = brandContext?.contactEmail || '';
-    let address = brandContext?.contactAddress || '';
-    
-    // If no contact details in brand context, try to extract from past materials analysis
-    if (brandContext?.pastMaterialsAnalysis?.length) {
-      for (const analysis of brandContext.pastMaterialsAnalysis) {
-        if (!phone && analysis.extractedPhone) phone = analysis.extractedPhone;
-        if (!email && analysis.extractedEmail) email = analysis.extractedEmail;
-        if (!address && analysis.extractedAddress) address = analysis.extractedAddress;
-        if (analysis.contactInfo) {
-          if (!phone && analysis.contactInfo.phone) phone = analysis.contactInfo.phone;
-          if (!email && analysis.contactInfo.email) email = analysis.contactInfo.email;
-          if (!address && analysis.contactInfo.address) address = analysis.contactInfo.address;
-        }
-      }
-    }
-    
-    // === HEADLINE: Generate a creative, punchy marketing headline via AI ===
-    let headline = '';
-    const offerText = campaignContext?.offer || textPrompt || '';
-    
-    // Determine gender/language style from honorific preference
-    const honorific = brandContext?.honorificPreference || 'neutral';
-    const genderDirective = honorific === 'mr' 
-      ? 'פנה בלשון זכר יחיד בלבד (אתה, שלך). אסור לשון נקבה או רבים.'
-      : honorific === 'mrs' 
-      ? 'פני בלשון נקבה יחיד בלבד (את, שלך). אסור לשון זכר או רבים.'
-      : 'פנה בלשון רבים (אתם, שלכם). אסור לשון יחיד.';
-    
-    // Extract services from brand context for the AI
-    const brandServices = brandContext?.services?.length ? brandContext.services.join(', ') : '';
-    const brandXFactor = brandContext?.primaryXFactor || brandContext?.winningFeature || '';
-    
-    if (offerText && LOVABLE_API_KEY) {
-      try {
-        console.log('[Headline AI] Generating creative headline from offer:', offerText.slice(0, 100));
-        const headlineResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-lite',
-            max_completion_tokens: 40,
-            messages: [
-              {
-                role: 'system',
-                content: `אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה.
-
-כללי ברזל:
-1. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות
-2. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד עם טוויסט, משחק מילים, או מטאפורה
-3. הכותרת חייבת להתמקד בבשורה המרכזית של הבריף (המוצר/שירות הספציפי שמפורסם)
-4. אם הבריף מזכיר הטבה/מבצע/מחיר — הכותרת יכולה לרמוז עליו אך לא חייבת
-5. ללא גרשיים, ללא סימני פיסוק, ללא מספרים
-6. תחזיר רק את הכותרת עצמה — ללא הסברים
-
-כלל מגדרי קריטי: ${genderDirective}`
-              },
-              {
-                role: 'user',
-                content: `בריף מלא (קרא הכל!): ${offerText.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול מרכזי: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`
-              }
-            ],
-          }),
-        });
-        if (headlineResponse.ok) {
-          const headlineData = await headlineResponse.json();
-          const aiHeadline = headlineData.choices?.[0]?.message?.content?.trim();
-          if (aiHeadline && aiHeadline.length > 2 && aiHeadline.length <= 40) {
-            headline = aiHeadline.replace(/["""''`.!?]/g, '').trim();
-            console.log('[Headline AI] Generated:', headline);
-          }
-        }
-      } catch (headlineError) {
-        console.error('[Headline AI] Error:', headlineError);
-      }
-    }
-    
-    // Fallback: use buildCreativeHeadline if AI failed
-    if (!headline) {
-      headline = buildCreativeHeadline(rawHeadline, campaignContext, topicCategory);
-    }
-    
-    const secondaryLines = buildSecondaryLines(campaignContext?.offer || textPrompt || '', businessName);
-    const bodyText = ''; // IRON RULE: bodyText never rendered
-    
-    // Map desiredAction from guided brief → Hebrew CTA text
-    const CTA_MAP: Record<string, string> = {
-      'whatsapp-email': 'שלחו הודעה עכשיו',
-      'phone-call': 'חייגו עכשיו',
-      'visit-store': 'בואו לבקר',
-      'visit-website': 'לפרטים נוספים',
-      'remember-me': '',
-    };
-    const primaryAction = Array.isArray(campaignContext?.desiredActions) 
-      ? campaignContext.desiredActions[0] 
-      : campaignContext?.desiredAction;
-    const ctaText = primaryAction ? (CTA_MAP[primaryAction] || '') : '';
-    
-    // === SUBTITLE: descriptive text about the business/service (smaller, under headline) ===
-    // Use AI to generate a short descriptive subtitle from the brief
-    let subtitle = '';
-    if (campaignContext?.offer && LOVABLE_API_KEY) {
-      try {
-        console.log('[Subtitle AI] Generating subtitle from offer:', campaignContext.offer.slice(0, 100));
-        const subtitleResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-lite',
-            max_completion_tokens: 60,
-            messages: [
-              {
-                role: 'system',
-                content: `אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה תיאורית קצרה (5-10 מילים) למודעה.
-
-כללי ברזל:
-1. כותרת המשנה חייבת להכיל את הפרט הקונקרטי החשוב ביותר מהבריף: הטבה ספציפית, מחיר, שירות מרכזי
-2. קרא את כל הבריף עד הסוף — חפש הטבות, מבצעים, מחירים, שירותים ספציפיים
-3. אם יש הטבה יומית, מבצע ספציפי, או מחיר — זה חייב להופיע בכותרת המשנה
-4. דוגמאות טובות: "הטבה יומית משתנה על כל מנה" | "טיפול פנים מקצועי מ-199 ₪" | "משלוח חינם בהזמנה מעל 100 ₪"
-5. ללא גרשיים. תחזיר רק את הכותרת עצמה
-
-כלל מגדרי קריטי: ${genderDirective}`
-              },
-              {
-                role: 'user',
-                content: `בריף מלא (קרא הכל עד הסוף!): ${campaignContext.offer.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nבידול מרכזי: ${brandXFactor}\nשירותים: ${brandServices}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה מהבריף: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`
-              }
-            ],
-          }),
-        });
-        if (subtitleResponse.ok) {
-          const subtitleData = await subtitleResponse.json();
-          const aiSubtitle = subtitleData.choices?.[0]?.message?.content?.trim();
-          if (aiSubtitle && aiSubtitle.length > 3 && aiSubtitle.length <= 56) {
-            subtitle = aiSubtitle.replace(/["""''`]/g, '').slice(0, 56);
-            console.log('[Subtitle AI] Generated:', subtitle);
-          }
-        }
-      } catch (subtitleError) {
-        console.error('[Subtitle AI] Error:', subtitleError);
-      }
-    }
-    
-    // Fallback subtitles
-    if (!subtitle && brandContext?.winningFeature) {
-      subtitle = brandContext.winningFeature.slice(0, 56);
-    } else if (!subtitle && brandContext?.primaryXFactor) {
-      subtitle = brandContext.primaryXFactor.slice(0, 56);
-    }
-    console.log('[TextMeta] headline:', headline, '| subtitle:', subtitle, '| ctaText:', ctaText);
-    
-    // Extract services list from campaign context (passed from brand), offer text, or x-factors
-    let servicesList: string[] = campaignContext?.services || [];
-    
-    // Auto-extract services/treatments from the offer brief if none provided
-    if (!servicesList.length && campaignContext?.offer) {
-      const briefText = campaignContext.offer;
-      // Generic service extraction: look for bullet-like items, comma-separated lists, Hebrew service patterns
-      const bulletItems2 = briefText.match(/[•\-–]\s*([^\n•\-–]+)/g)?.map((m: string) => m.replace(/^[•\-–]\s*/, '').trim()) || [];
-      if (bulletItems2.length > 0) {
-        servicesList = bulletItems2.slice(0, 5);
-      } else {
-        // Try treatment patterns
-        const treatmentPatterns = briefText.match(/(?:בוטוקס|סקין בוסטר|מיקרונידלינג|עיצוב שפתיים|חומצה היאלורונית|פלאפל|שווארמה|חומוס|סלטים|מנות|טיפולי?\s+[\u0590-\u05FF]+|חבילת\s+[\w\s]+)/gi) || [];
-        if (treatmentPatterns.length > 0) {
-          servicesList = [...new Set(treatmentPatterns.map((t: string) => t.trim()))].slice(0, 5);
-        }
-      }
-    }
-    
-    if (!servicesList.length && brandContext?.xFactors?.length) {
-      servicesList = brandContext.xFactors.slice(0, 5);
-    }
-    
-    // Auto-extract promo info: prioritize guided brief fields over auto-extraction
-    let promoText = campaignContext?.promoText || '';
-    let promoValue = campaignContext?.priceOrBenefit || campaignContext?.promoValue || '';
-    
-    // If there's a time limit, use it as promo text
-    if (!promoText && campaignContext?.isTimeLimited && campaignContext?.timeLimitText) {
-      promoText = campaignContext.timeLimitText;
-    }
-    
-    // If there's a price/benefit but no promoText, use it as promo badge text
-    if (!promoText && promoValue) {
-      promoText = promoValue;
-    }
-    
-    // Auto-extract bullet items (services, prices, advantages) from the brief
-    const bulletItems: { icon: string; text: string; highlight?: boolean }[] = [];
-    
-    if (campaignContext?.offer) {
-      const offerText = campaignContext.offer;
-      
-      // Extract discount percentages
-      const discountMatch = offerText.match(/(\d{1,3}%\s*הנחה(?:\s+על\s+[\u0590-\u05FF\s]+)?)/);
-      if (discountMatch) {
-        promoValue = discountMatch[1].trim();
-      }
-      // Extract price mentions
-      const priceMatch = offerText.match(/(\d{3,5})\s*(?:ש"ח|₪)/);
-      if (priceMatch && !promoValue) {
-        promoValue = `מ-${priceMatch[1]} ₪`;
-      }
-      
-      // 1. Extract package deals with prices (e.g., "חבילת skin glow ... 3490 ש"ח")
-      const packageRegex = /חבילת\s+([^\n-–]+?)[\s-–]*(\d{3,5})\s*(?:ש"ח|₪)/gi;
-      let pkgMatch;
-      while ((pkgMatch = packageRegex.exec(offerText)) !== null && bulletItems.length < 6) {
-        bulletItems.push({ icon: '🏷️', text: `${pkgMatch[1].trim()} - ${pkgMatch[2]} ₪`, highlight: true });
-      }
-      
-      // 2. Extract discount lines (e.g., "10% הנחה על בוטוקס")
-      const discountRegex = /(\d{1,3}%\s*הנחה\s+על\s+[^\n,]+)/gi;
-      let discMatch;
-      while ((discMatch = discountRegex.exec(offerText)) !== null && bulletItems.length < 6) {
-        bulletItems.push({ icon: '🔥', text: discMatch[1].trim() });
-      }
-      
-      // 3. Extract USP / advantage phrases
-      const uspPhrases = offerText.match(/(?:רופאה[^.!,\n]*|לא קוסמטיקאית[^.!,\n]*|אבחון רפואי[^.!,\n]*|התאמה אישית[^.!,\n]*|מראה טבעי[^.!,\n]*)/gi);
-      if (uspPhrases) {
-        for (const usp of uspPhrases.slice(0, 3)) {
-          if (bulletItems.length >= 6) break;
-          bulletItems.push({ icon: '⭐', text: usp.trim().slice(0, 40) });
-        }
-      }
-      
-      // 4. Extract specific treatment/service names as bullets if we have room
-      if (bulletItems.length < 4 && servicesList.length > 0) {
-        for (const svc of servicesList.slice(0, 4 - bulletItems.length)) {
-          bulletItems.push({ icon: '✓', text: svc });
-        }
-      }
-    } else if (!promoText && !promoValue) {
-      // No offer text, skip promo extraction
-    }
-
     return new Response(JSON.stringify({ 
       imageUrl: visualResult.imageUrl,
       visualOnlyUrl: visualResult.imageUrl,
       textMeta: {
         headline,
         subtitle,
-        bodyText,
-        ctaText,
         businessName,
         phone,
         email,
         address,
-        servicesList,
-        promoText,
-        promoValue,
-        bulletItems: bulletItems.length > 0 ? bulletItems : undefined,
+        ctaText,
       },
       status: 'approved',
-      message: `שכבה ויזואלית: ${visualResult.model} | טקסט: עיבוד פרוגרמטי`,
+      message: `All-in-One: ${visualResult.model}`,
       model: visualResult.model,
       configUsed: modelConfig?.media_type || 'default',
-      layers: {
-        visual: { model: visualResult.model },
-        text: { model: 'programmatic-canvas' },
-      }
+      allInOne: true,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
