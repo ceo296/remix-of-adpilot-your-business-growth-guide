@@ -959,39 +959,8 @@ const CreativeStudio = () => {
               });
               if (retryData.error || !retryData.data?.imageUrl) continue;
 
-              let retryFinalUrl = retryData.data.imageUrl;
-              const retryTextMeta = retryData.data.textMeta;
-              if (retryTextMeta && (retryTextMeta.headline || retryTextMeta.businessName || retryTextMeta.phone)) {
-                try {
-                  const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
-                  retryFinalUrl = await applyHtmlTextOverlay(retryData.data.imageUrl, {
-                    headline: retryTextMeta.headline,
-                    subtitle: retryTextMeta.subtitle || '', // Sub-strip: USP or key benefit
-                    bodyText: '', // IRON RULE: never render bodyText on overlay
-                    ctaText: retryTextMeta.ctaText,
-                    businessName: retryTextMeta.businessName,
-                    phone: campaignBrief.contactSelection.phone ? (retryTextMeta.phone || clientProfile?.contact_phone || undefined) : undefined,
-                    email: campaignBrief.contactSelection.email ? (retryTextMeta.email || clientProfile?.contact_email || undefined) : undefined,
-                    whatsapp: campaignBrief.contactSelection.whatsapp ? (clientProfile?.contact_whatsapp || undefined) : undefined,
-                    address: campaignBrief.contactSelection.address ? (retryTextMeta.address || clientProfile?.contact_address || undefined) : undefined,
-                    primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color || undefined,
-                    secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined,
-                    backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
-                    layoutStyle: 'custom',
-                    customTemplateHtml: activeCustomTemplate?.html_template,
-                    logoUrl: (brandContext as any)?.logoUrl || clientProfile?.logo_url || undefined,
-                    servicesList: retryTextMeta.servicesList,
-                    promoText: retryTextMeta.promoText,
-                    promoValue: retryTextMeta.promoValue,
-                    bulletItems: retryTextMeta.bulletItems,
-                    headerFont: clientProfile?.header_font || undefined,
-                    openingHours: campaignBrief.contactSelection.openingHours ? (clientProfile as any)?.opening_hours || undefined : undefined,
-                    branches: campaignBrief.contactSelection.selectedBranches?.length
-                      ? campaignBrief.contactSelection.selectedBranches
-                      : undefined,
-                  });
-                } catch (e) { console.error('[Retry] Text overlay failed:', e); }
-              }
+              // All-in-One: use the image directly, no overlay needed
+              const retryFinalUrl = retryData.data.imageUrl;
 
               const retryKosher = await runKosherCheck(retryData.data.imageUrl);
               if (retryKosher.status !== 'rejected') {
