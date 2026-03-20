@@ -375,97 +375,75 @@ ${typographyBlock}
 - סגנון: ${style || 'מודרני ונקי'}
 - יחס גובה-רוחב: ${aspectRatio || 'מרובע'}`;
 
-    // Try Google Gemini API directly first, then Lovable gateway as fallback
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
-      console.error('No API key configured');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const combinedPrompt = `${systemPrompt}\n\n${enhancedPrompt}`;
     let imageUrl = '';
     let usedMethod = '';
 
-    // Attempt 1: Direct Google Gemini API
-    if (GOOGLE_GEMINI_API_KEY) {
-      console.log('Trying direct Google Gemini API...');
-      try {
-        const directResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-          {
+    // Use Nano Banana 2 (gemini-3.1-flash-image-preview) via Lovable AI Gateway
+    // This is the correct image generation model — do NOT use gemini-2.0-flash-exp or other text models
+    const IMAGE_MODELS = ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'];
+    
+    // Generate image via Lovable AI Gateway with Nano Banana 2
+    if (LOVABLE_API_KEY) {
+      for (const tryModel of IMAGE_MODELS) {
+        console.log(`Trying image generation with ${tryModel}...`);
+        try {
+          const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: combinedPrompt }] }],
-              generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+              model: tryModel,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: enhancedPrompt }
+              ],
+              modalities: ['image', 'text']
             }),
-          }
-        );
+          });
 
-        if (directResponse.ok) {
-          const data = await directResponse.json();
-          const parts = data.candidates?.[0]?.content?.parts || [];
-          for (const part of parts) {
-            if (part.inlineData) {
-              imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-              usedMethod = 'google-direct';
-              break;
+          if (!aiResponse.ok) {
+            const errorText = await aiResponse.text();
+            console.error(`${tryModel} error:`, aiResponse.status, errorText);
+            
+            if (aiResponse.status === 429) {
+              return new Response(
+                JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+                { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
             }
+            if (aiResponse.status === 402) {
+              return new Response(
+                JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
+                { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+            // Try next model
+            await new Promise(r => setTimeout(r, 1500));
+            continue;
           }
-          if (!imageUrl) console.error('No image in Google direct response');
-        } else {
-          const errorText = await directResponse.text();
-          console.error('Google Gemini direct error:', directResponse.status, errorText);
-        }
-      } catch (directError) {
-        console.error('Google Gemini direct fetch error:', directError);
-      }
-    }
 
-    // Attempt 2: Lovable AI Gateway fallback
-    if (!imageUrl && LOVABLE_API_KEY) {
-      console.log('Falling back to Lovable AI Gateway...');
-      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-3.1-flash-image-preview',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: enhancedPrompt }
-          ],
-          modalities: ['image', 'text']
-        }),
-      });
-
-      if (!aiResponse.ok) {
-        const errorText = await aiResponse.text();
-        console.error('AI Gateway error:', aiResponse.status, errorText);
-        
-        if (aiResponse.status === 429) {
-          return new Response(
-            JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          const aiData = await aiResponse.json();
+          imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url || '';
+          if (imageUrl) {
+            usedMethod = `lovable-gateway/${tryModel}`;
+            console.log(`Image generated successfully with ${tryModel}`);
+            break;
+          }
+        } catch (err) {
+          console.error(`${tryModel} fetch error:`, err);
         }
-        if (aiResponse.status === 402) {
-          return new Response(
-            JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
-            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-      } else {
-        const aiData = await aiResponse.json();
-        imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url || '';
-        usedMethod = 'lovable-gateway';
       }
     }
 
