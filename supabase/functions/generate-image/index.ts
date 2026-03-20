@@ -178,10 +178,10 @@ interface AIModelConfig {
   donts: string[] | null;
 }
 
-// Engine version → model priority mapping
+// Engine version → model mapping (Nano Banana 2 only, no fallback to inferior models)
 const ENGINE_MODELS: Record<string, string[]> = {
-  'nano-banana-pro': ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'],
-  'nano-banana': ['google/gemini-3.1-flash-image-preview', 'google/gemini-2.5-flash-image'],
+  'nano-banana-pro': ['google/gemini-3.1-flash-image-preview'],
+  'nano-banana': ['google/gemini-3.1-flash-image-preview'],
 };
 
 // ───── LAYER 1: Visual-only generation ─────
