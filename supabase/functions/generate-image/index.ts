@@ -271,9 +271,26 @@ This is NOT just inspiration — this is the TEMPLATE to follow.
 \n\n` + messageContent[0].text;
   }
 
-  // IRON RULE: NEVER send logo to AI image generator
-  // The logo is ALWAYS handled by the programmatic HTML overlay (Layer 2)
-  messageContent[0].text = `IRON RULE — LOGO: Do NOT include ANY logo, emblem, symbol, monogram, or brand mark in the image. The brand logo will be added in post-production as a separate layer. Leave the BOTTOM-LEFT corner completely clean and empty. ANY attempt to generate, recreate, or place a logo is a CRITICAL ERROR that ruins the ad.\n\n` + messageContent[0].text;
+  // ALL-IN-ONE: Include the logo as a reference image so the AI places it naturally in the composition
+  const logoUrl = brandContext?.logoUrl;
+  if (logoUrl && typeof logoUrl === 'string' && !logoUrl.startsWith('data:application/pdf')) {
+    console.log("Including BRAND LOGO as reference for All-in-One composition:", logoUrl.substring(0, 80));
+    messageContent.push({
+      type: "image_url",
+      image_url: { url: logoUrl }
+    });
+    messageContent[0].text = `
+═══ BRAND LOGO ATTACHED — USE IT EXACTLY AS-IS ═══
+The client's ACTUAL brand logo is attached as the LAST image.
+- Place this EXACT logo prominently in the BOTTOM-LEFT area of the contact strip
+- The logo should be 15-25% of ad width — clearly visible and prominent
+- Keep in ORIGINAL colors — do NOT modify, recolor, or redesign it
+- Do NOT invent a new logo — use ONLY this attached image
+═══════════════════════════════════════════════════
+\n\n` + messageContent[0].text;
+  } else {
+    messageContent[0].text = `LOGO NOTE: No logo was provided. Leave the bottom-left corner of the contact strip clean for later logo placement. Do NOT invent any logo.\n\n` + messageContent[0].text;
+  }
 
   for (const tryModel of models) {
     console.log("[Layer 1 - Visual] Trying model:", tryModel);
