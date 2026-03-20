@@ -43,7 +43,10 @@ const StepCreativeResults = ({ creatives, isLoading, error, onRetry }: Props) =>
 
       if (data?.imageUrl) {
         setImageUrls(prev => ({ ...prev, [creative.id]: data.imageUrl }));
-        toast.success('העיצוב נוצר בהצלחה!');
+        // Log model used
+        const modelName = data.model || data.layers?.visual?.model || 'unknown';
+        console.log(`[ADKOP] Image generated with model: ${modelName}`);
+        toast.success(`העיצוב נוצר בהצלחה! (${modelName.includes('3.1-flash') ? '🍌 Nano Banana 2' : modelName})`);
       } else if (data?.error) {
         throw new Error(data.error);
       }
