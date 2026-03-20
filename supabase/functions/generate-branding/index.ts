@@ -30,11 +30,21 @@ serve(async (req) => {
     };
 
     const TEXT_FALLBACKS = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
-    const IMAGE_FALLBACKS = ["google/gemini-3.1-flash-image-preview", "google/gemini-3-pro-image-preview"];
 
     const aiCall = async (model: string, messages: any[], modalities?: string[], maxTokens?: number) => {
-      const fallbacks = modalities ? IMAGE_FALLBACKS : TEXT_FALLBACKS;
-      const models = [model, ...fallbacks.filter(m => m !== model)];
+      // For image generation — no fallback, Nano Banana 2 only
+      if (modalities) {
+        console.log(`Image generation with: ${model} (no fallback)`);
+        const result = await aiCallSingle(model, messages, modalities, maxTokens);
+        if (!result.error) return result;
+        console.error(`Image model ${model} failed with status ${result.status}`);
+        if (result.status === 402) throw new Error("PAYMENT_REQUIRED");
+        if (result.status === 429) throw new Error("RATE_LIMITED");
+        throw new Error(`AI image generation failed: ${result.status}`);
+      }
+
+      // For text — fallback chain
+      const models = [model, ...TEXT_FALLBACKS.filter(m => m !== model)];
       let saw402 = false;
       let saw429 = false;
 
