@@ -375,12 +375,10 @@ ${typographyBlock}
 - סגנון: ${style || 'מודרני ונקי'}
 - יחס גובה-רוחב: ${aspectRatio || 'מרובע'}`;
 
-    // Try Google Gemini API directly first, then Lovable gateway as fallback
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
-      console.error('No API key configured');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
