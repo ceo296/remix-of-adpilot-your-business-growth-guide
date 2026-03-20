@@ -896,54 +896,10 @@ const CreativeStudio = () => {
         }
 
         if (data?.imageUrl) {
-          // Apply Hebrew text programmatically using Canvas
-          let finalUrl = data.imageUrl;
-          const textMeta = data.textMeta;
-          
-          if (textMeta && (textMeta.headline || textMeta.businessName || textMeta.phone)) {
-            const overlayPrimary = brandContext?.colors?.primary || clientProfile?.primary_color || undefined;
-            const overlaySecondary = brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined;
-            const overlayLogo = (brandContext as any)?.logoUrl || clientProfile?.logo_url || undefined;
-            console.log(`[Studio] 🎨 Brand colors for sketch ${i}:`, { 
-              overlayPrimary, overlaySecondary, overlayLogo: overlayLogo ? 'YES' : 'NO',
-              profileColors: { primary: clientProfile?.primary_color, secondary: clientProfile?.secondary_color },
-              effectiveColors,
-            });
-            
-            try {
-              const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
-              finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
-                headline: textMeta.headline,
-                subtitle: textMeta.subtitle || '', // Sub-strip: doctor name, USP, or launch context
-                bodyText: '', // IRON RULE: never render bodyText on overlay
-                ctaText: textMeta.ctaText,
-                businessName: textMeta.businessName,
-                // Only pass contact fields that the user selected in the brief
-                phone: campaignBrief.contactSelection.phone ? (textMeta.phone || clientProfile?.contact_phone || undefined) : undefined,
-                email: campaignBrief.contactSelection.email ? (textMeta.email || clientProfile?.contact_email || undefined) : undefined,
-                whatsapp: campaignBrief.contactSelection.whatsapp ? (clientProfile?.contact_whatsapp || undefined) : undefined,
-                address: campaignBrief.contactSelection.address ? (textMeta.address || clientProfile?.contact_address || undefined) : undefined,
-                primaryColor: overlayPrimary,
-                secondaryColor: overlaySecondary,
-                backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
-                layoutStyle: 'custom',
-                customTemplateHtml: activeCustomTemplate?.html_template,
-                logoUrl: campaignBrief.contactSelection.logoOnly || campaignBrief.contactSelection.phone || campaignBrief.contactSelection.whatsapp || campaignBrief.contactSelection.email || campaignBrief.contactSelection.address ? overlayLogo : undefined,
-                servicesList: textMeta.servicesList,
-                promoText: textMeta.promoText,
-                promoValue: textMeta.promoValue,
-                bulletItems: textMeta.bulletItems,
-                headerFont: clientProfile?.header_font || undefined,
-                openingHours: campaignBrief.contactSelection.openingHours ? (clientProfile as any)?.opening_hours || undefined : undefined,
-                branches: campaignBrief.contactSelection.selectedBranches?.length
-                  ? campaignBrief.contactSelection.selectedBranches
-                  : undefined,
-              });
-              console.log(`[HTML] Hebrew text applied for sketch ${i}`);
-            } catch (canvasError) {
-              console.error('[Canvas] Failed to apply text overlay:', canvasError);
-            }
-          }
+          // All-in-One: the AI generates the complete ad with text, logo, and layout
+          // No programmatic overlay needed — use the image directly
+          const finalUrl = data.imageUrl;
+          console.log(`[Studio] All-in-One sketch ${i} ready. Model: ${data.model}`);
 
           const newImage: GeneratedImage = {
             id: `${Date.now()}-${i}`,
@@ -951,7 +907,7 @@ const CreativeStudio = () => {
             status: 'pending',
             visualOnlyUrl: data.visualOnlyUrl || data.imageUrl,
             textMeta: data.textMeta || undefined,
-            model: data.model || data.layers?.visual?.model || undefined,
+            model: data.model || undefined,
           };
           
           results.push(newImage);
