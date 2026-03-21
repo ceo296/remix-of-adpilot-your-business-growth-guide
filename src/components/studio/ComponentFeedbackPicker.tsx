@@ -1,13 +1,9 @@
 import { useState } from 'react';
 import { 
-  Type, 
   Image as ImageIcon, 
   LayoutGrid, 
-  Phone, 
   Heading1, 
   Heading2, 
-  MousePointerClick,
-  Palette,
   Check,
   X,
   Send
@@ -22,10 +18,7 @@ export type AdComponent =
   | 'headline' 
   | 'subtitle' 
   | 'visual' 
-  | 'grid-layout' 
-  | 'cta' 
-  | 'contact-info'
-  | 'colors-fonts'
+  | 'grid-layout'
   | 'general';
 
 interface ComponentFeedback {
@@ -69,31 +62,10 @@ const AD_COMPONENTS: {
   },
   {
     id: 'grid-layout',
-    label: 'גריד ופריסה',
-    description: 'מיקום אלמנטים, מרווחים, סדר',
+    label: 'פרטים טכניים בגריד',
+    description: 'לוגו, טלפון, כתובת, מיקום אלמנטים',
     icon: LayoutGrid,
-    placeholder: 'מה לשנות? למשל: "הלוגו גדול מדי", "הטקסט צמוד מדי"...',
-  },
-  {
-    id: 'cta',
-    label: 'הנעה לפעולה (CTA)',
-    description: 'כפתור, משפט סגירה, הנעה',
-    icon: MousePointerClick,
-    placeholder: 'מה לשנות? למשל: "להחליף ל-התקשרו עכשיו", "להוסיף דחיפות"...',
-  },
-  {
-    id: 'contact-info',
-    label: 'פרטי קשר',
-    description: 'טלפון, כתובת, לוגו, שעות',
-    icon: Phone,
-    placeholder: 'מה חסר או שגוי? למשל: "חסר מספר טלפון", "כתובת לא נכונה"...',
-  },
-  {
-    id: 'colors-fonts',
-    label: 'צבעים וטיפוגרפיה',
-    description: 'גוונים, פונטים, ניגודיות',
-    icon: Palette,
-    placeholder: 'מה לשנות? למשל: "יותר ניגודיות", "פונט אחר", "צבע רקע כהה"...',
+    placeholder: 'מה לשנות? למשל: "הלוגו גדול מדי", "הטלפון לא קריא", "כתובת חסרה"...',
   },
 ];
 
@@ -130,7 +102,7 @@ export const ComponentFeedbackPicker = ({
       }
     }
     if (feedbacks.length === 0) {
-      return; // Button should be disabled
+      return;
     }
     onSubmit(feedbacks);
   };
