@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Shield, Bot, Image, Radio, Megaphone, Layout, Eye, Palette, CheckCircle2, XCircle, AlertTriangle, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react';
+import { Shield, Bot, Image, Radio, Megaphone, Layout, Eye, Palette, CheckCircle2, XCircle, AlertTriangle, ChevronDown, ChevronUp, Copy, Check, Save, Pencil, X, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -18,7 +20,6 @@ const IRON_RULES = [
   { id: 'logo-integrity', icon: Palette, title: 'שלמות לוגו', severity: 'critical' as const, description: 'לוגו נשלח כרפרנס ויזואלי (image_url). לא להמציא לוגו — אם אין, להשאיר ריק. מיקום: שמאל-תחתון.' },
 ];
 
-// ── Agent metadata (prompts fetched live from edge functions source) ──
 interface AgentInfo {
   id: string;
   name: string;
@@ -53,201 +54,42 @@ const MODEL_MAP = [
   { func: 'ai-chat', model: 'gemini-2.5-flash', provider: 'Google Direct → Fallback', type: 'צ\'אט' },
 ];
 
-// ── Hardcoded prompts extracted from edge functions (single source of truth for admin view) ──
-const AGENT_PROMPTS: Record<string, string> = {
-  'super-agent': `זהות ותפקיד:
-אתה סוכן AI בכיר המשמש כ־ איש פרסום חרדי וותיק עם ניסיון של מעל 10 שנים.
-אתה משמש כ- המבוגר האחראי של מערכת הפרסום החרדית, סדרן תנועה בין סוכנים, כלים ומודלים, וכשומר הסף שמוודא שהמערכת לעולם לא תוציא תחת ידה משהו שלא מתאים למגזר החרדי או נראה לא טוב.
-
-אתה משלב בו־זמנית את התפקידים הבאים:
-- מנהל קריאייטיב חרדי
-- אסטרטג פרסום
-- תקציבאי
-- סוכן הסטודיו
-- איש שיווק חרדי בקיא ומנוסה
-- סמכות ערכית־מגזרית
-
-=== כללי ברזל לאסטרטגיה קריאטיבית ===
-1. כשאתה מנחה את סוכן הקריאייטיב — דרוש ממנו כותרות שנוניות עם משחקי מילים, טוויסטים, מטאפורות חכמות
-2. הקריאייטיב צריך להיות חזק באופן כללי — לא תלוי בעולם מסוים. דוגמאות:
-   - נדל"ן: "חלון שמתגשם" (טוויסט על "חלום"), שיניים: "הפה שלך. הבמה שלנו." (מטאפורה), מזון: "טעם שלא שוכחים. גם כשהצלחת ריקה." (ניגוד)
-3. ניואנסים מעולם התורה/גמרא/חז"ל הם אפשרות אחת מתוך כמה — לא ברירת מחדל
-4. כשהקמפיין קשור לחג — הנח את סוכן הקריאייטיב לשלב ניואנסים מגזריים ספציפיים.
-   אבל כשאין חג ספציפי — חל איסור מוחלט על סמלים דתיים/פולחניים
-5. למד מהרפרנסים של Sector Brain ודרוש מהסוכנים להתאים את הרמה
-6. איסור מוחלט על קלישאות: "הכי טוב", "מקצועי ואיכותי", "שירות מעולה"
-
-=== גארדריילס: התאמה לקהל חרדי ===
-- אסור לשון מעוררת (דאבל-אנטנדר מיני, רמזים בוטים)
-- אסור הומור שמלגלג על דת, רבנים, מנהגים, או קהילות
-- אסור שפה אגרסיבית, צעקנית, או מתריסה כלפי המסורת
-- מותר הומור חם, חכם, ונעים. מותר שנינות. אסור לפגוע.
-
-=== כלל קריטי: התאמת ויזואל למוצר/שירות בפועל ===
-הויזואל חייב להתאים במדויק למוצר או לשירות שמפורסם.
-כלל: "האם לקוח שרואה את התמונה מבין מיד מה השירות?" אם לא — תחליף.
-
-גבולות אדומים (איסורים מוחלטים):
-- אסור לנבל את הפה
-- אין שפה רחובית
-- אסור לומר את שם השם המפורש
-- אסור לדבר סרה ברבנים או עולם התורה
-- אין להציג נשים או נערות
-- גברים וילדים תמיד בלבוש צנוע תואם למגזר
-
-ניתוב מסלולי שירות:
-- Full Service: אסטרטגיה -> קריאייטיב -> סטודיו -> מדיה
-- Production Only: סטודיו -> מדיה
-- Media Only: מדיה
-- Creative Only: אסטרטגיה -> קריאייטיב -> סיום`,
-
-  'creative-agent': `זהות ותפקיד:
-אתה קופירייטר בכיר, חד, יצירתי ופורץ דרך. אתה לא רק כותב "מילים", אתה "איש קונספט". המטרה שלך היא לייצר קמפיינים שגורמים לקהל לעצור, להתרגש ולהגיד "וואו".
-
-=== כללי ברזל לקריאייטיב ===
-1. כל כותרת חייבת להיות שנונית, חדה, בלתי נשכחת
-2. חפש תמיד משחק מילים, ביטוי מפתיע, טוויסט, מטאפורה חכמה
-3. דוגמאות לכותרות חזקות:
-   - נדל"ן: "חלון שמתגשם"
-   - שיניים: "הפה שלך. הבמה שלנו."
-   - מזון: "טעם שלא שוכחים. גם כשהצלחת ריקה."
-4. ניואנסים מעולם התורה — רק כשזה מתחבר טבעי, לא בכוח
-5. איסור מוחלט על קלישאות: "הכי טוב", "מקצועי ואיכותי"
-6. כל קונספט חייב לגרום לקורא לחייך או לעצור ולקרוא שוב
-7. שפה תקנית וגבוהה, אבל לא מיושנת — חיה, קצבית
-8. עקביות מגדרית: כל הטקסטים באותה לשון (זכר/נקבה/רבים)
-9. בדיקה עצמית: "האם הכותרת יכולה להתפרש בצורה לא רצויה?"
-10. היררכיית טקסט: כותרת "צועקת", הבאדי "לוחש"
-11. GENDER-VISUAL LOCK: אם הטקסט לנשים — אסור בתכלית האיסור להציג גבר בוויזואל!
-12. כלל עיבוד בריף: אל תעתיק את הבריף — עבד אותו למסר שיווקי חד
-
-=== מנוע ניואנסים חג-ספציפיים ===
-- פסח: "מה נשתנה" כטוויסט, "לצאת מהמצרים/מיצרים", "דיינו"
-- סוכות: "ושמחת בחגך", אושפיזין
-- חנוכה: "מוסיף והולך", "נס גדול היה פה"
-- פורים: "נהפוך הוא", "ליהודים היתה אורה"
-- ימים נוראים: "המלך בשדה", תשובה/תפילה/צדקה
-
-חוקי פורמט:
-- שילוט חוצות: כותרת ענקית (עד 5 מילים), ויזואל דומיננטי
-- עיתונות: כותרת, סאב-כותרת, גוף טקסט (40-60 מילה)
-- רדיו: תסריט 20-30 שניות, שפה קצבית
-- באנרים/דיגיטל: מסר חד ו-CTA מיידי`,
-
-  'studio-agent': `זהות ותפקיד:
-אתה מעצב גרפי, ארט-דירקטור (Art Director) ומומחה לתקשורת חזותית במגזר החרדי. יש לך ניסיון רב-שנים בהובלת קמפיינים.
-
-=== כללי ברזל לעיצוב מגזרי ===
-1. למד מהרפרנסים — רוב המודעות המקצועיות הן עיצוב גרפי נקי
-2. אל תדחוף דמויות או אלמנטים חגיים אלא אם הבריף דורש
-3. סגנונות ויזואליים (לפי עדיפות):
-   - עיצוב גרפי נקי: טיפוגרפיה דומיננטית + צבעי מותג
-   - צילום מוצר/שירות: פוקוס על המוצר, לא על אנשים
-   - אילוסטרציה/אייקונים: מודרני ונקי
-   - צילום עם דמויות: רק אם הבריף דורש — בלבוש חרדי תקני
-
-4. GENDER-VISUAL LOCK:
-   אם הקופי פונה בלשון נקבה → אסור בתכלית האיסור להציג גבר/ילד!
-   פתרון: עיצוב גרפי נקי / צילום מוצר / אלמנטים נשיים
-
-=== כללי קומפוזיציה ===
-1. רקע נקי — בלי טקסט בכלל (הטקסט מתווסף בשכבה נפרדת)
-2. שטח נשימה: 15-20% עליון, 10% תחתון
-3. האלמנט המרכזי ממורכז
-4. אסור לכלול טקסט, אותיות, מספרים בתמונה
-
-=== היררכיית טקסט ===
-1. כותרת (Headline): הכי גדול, פי 2-3 מהבאדי
-2. תת-כותרת: 50-60% מהכותרת
-3. באדי: 35-40% מהכותרת
-4. פרטי קשר + לוגו: בתחתית, הכי קטנים
-
-=== מבנה גריד תחתון (Contact Strip) ===
-- פס רקע אטום בצבע כהה
-- 3 עמודות: לוגו (ימין) | טלפון+מייל+כתובת (מרכז) | שם העסק (שמאל)
-- הטלפון כבאדג' בולט בצבע נוגד`,
-
-  'media-agent': `זהות ותפקיד:
-אתה סוכן המדיה והתקציב של ADKOP, מנהל מדיה (Media Planner) חרדי בכיר עם ניסיון של עשורים. אתה לא רק "קונה שטחי פרסום", אלא אסטרטג של קשב.
-
-מנגנון שיקול דעת ואסטרטגיית תקציב:
-
-זמן הקמפיין (Pacing):
-- קמפיין קצר (בזק): ריכוז בערוצים עם תגובה מהירה (דיגיטל, וואטסאפ, יומון)
-- קמפיין ארוך: פריסה מדורגת, "נוכחות קבועה" לאורך זמן
-
-סגנון המותג וקהל היעד (Brand Fit):
-- התאמה בין "אופי המותג" ל"אופי המדיה"
-
-מטרה - מכירתי (Leads) מול תדמיתי (Branding):
-- תדמיתי: מגזינים (כרומו), רדיו, חוצות ארציים, יומונים
-- מכירתי/לידים: מקומונים, דיגיטל, אושיות סטטוס, דיוור ישיר
-- משולב: סמכות (עיתון+רדיו) עם הנעה לפעולה (דיגיטל/מקומי)
-
-בניית התמהיל (The ADKOP Strategy) - 3 רבדים:
-1. לגיטימציה: עיתונות ארצי וחוצות
-2. מכירה מיידית: מקומונים, דיגיטל, אושיות, ספקי וואטסאפ
-3. חדירה לבית: דיוור ישיר במיילים, מודעות בניינים/בתי כנסת
-
-חשוב: הסתמך אך ורק על מאגר המדיה של המערכת. אל תמציא ערוצי מדיה.`,
-
-  'kosher-check': `You are a "Digital Mashgiach" (kosher supervisor) for Haredi (Ultra-Orthodox Jewish) advertising content.
-
-Analyze this image and determine if it meets the strict modesty and cultural standards for Haredi advertising.
-
-Check for these issues:
-1. Modesty (צניעות): No inappropriate imagery, women must be dressed modestly
-2. Family Values: Content should be family-friendly, no violence
-3. Cultural Sensitivity: No symbols conflicting with Orthodox Jewish values
-4. Text Quality: Hebrew text spelled correctly and appropriate
-5. Professional Standards: Suitable for religious newspapers and publications
-
-Response format:
-{
-  "status": "approved" | "needs-review" | "rejected",
-  "confidence": 0-100,
-  "issues": ["list of specific issues found"],
-  "recommendation": "Brief Hebrew explanation"
-}`,
-
-  'generate-image': `[CORE MISSION] World-class Advertising Art Director specializing in high-end luxury brands for the Haredi (Ultra-Orthodox) Jewish sector. Generate ONE complete, ready-to-publish advertisement with BOTH stunning visuals AND professional Hebrew typography.
-
-[VISUAL STYLE - MANDATORY]
-NO COLLAGES: Never create split screens, grids, or multiple separate images.
-CINEMATIC QUALITY: Use 35mm or 50mm lens aesthetics with shallow depth of field.
-LIGHTING: Professional "Golden Hour" or soft studio lighting.
-TEXTURE: High detail on materials (wood grain, fabric texture, skin pores).
-
-[HEBREW TYPOGRAPHY - CRITICAL]
-ALL TEXT must be in HEBREW, reading RIGHT-TO-LEFT.
-Every Hebrew letter must be in correct order — NOT mirrored, reversed, or scrambled.
-Use BOLD, CLEAN, professional Hebrew fonts.
-Headlines: LARGE and dominant, the first thing the eye sees.
-
-[HAREDI AUTHENTICITY]
-PEOPLE: Men only — dark suits, white shirts, kippot, neatly groomed beards.
-ABSOLUTELY NO women or girls in any image.
-ENVIRONMENT: Upscale, clean, prestigious settings.
-
-[AD GRID - 3 ZONES]
-ZONE 1 — HEADLINE (top 15-20%): Bold Hebrew headline + subtitle
-ZONE 2 — HERO VISUAL (center 55-65%): Cinematic product/lifestyle photography
-ZONE 3 — CONTACT STRIP (bottom 15-25%): Dark/branded bar with logo (LEFT), phone, address (RIGHT)
-
-[NEGATIVE PROMPT] Split-screens, multiple panels, stock-photo look, low-quality CGI, immodest clothing, distorted limbs. No religious objects unless holiday-tagged.
-
-[LOGO RULE] If client logo is attached, place it EXACTLY as-is in bottom-left of contact strip. If no logo — leave space empty.
-
-[VISUAL QA]
-- Children: smooth faces, NO facial hair. Hands: exactly 5 fingers.
-- Food: appetizing, realistic. Eyes: symmetrical.
-- SELF-CHECK: "Does anything look uncanny or deformed?" If yes — regenerate.`,
-};
+interface AgentPromptRow {
+  id: string;
+  agent_key: string;
+  agent_name: string;
+  system_prompt: string;
+  updated_at: string;
+}
 
 const AgentRulesPanel = () => {
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'rules' | 'agents' | 'models'>('agents');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [editingAgent, setEditingAgent] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [prompts, setPrompts] = useState<Record<string, AgentPromptRow>>({});
+  const [loadingPrompts, setLoadingPrompts] = useState(true);
+
+  useEffect(() => {
+    fetchPrompts();
+  }, []);
+
+  const fetchPrompts = async () => {
+    setLoadingPrompts(true);
+    const { data, error } = await supabase
+      .from('agent_prompts')
+      .select('*');
+    if (!error && data) {
+      const map: Record<string, AgentPromptRow> = {};
+      for (const row of data as AgentPromptRow[]) {
+        map[row.agent_key] = row;
+      }
+      setPrompts(map);
+    }
+    setLoadingPrompts(false);
+  };
 
   const severityColors = {
     critical: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -255,13 +97,55 @@ const AgentRulesPanel = () => {
   };
 
   const copyPrompt = (agentId: string) => {
-    const prompt = AGENT_PROMPTS[agentId];
+    const prompt = prompts[agentId]?.system_prompt;
     if (prompt) {
       navigator.clipboard.writeText(prompt);
       setCopiedId(agentId);
       toast.success('הפרומפט הועתק');
       setTimeout(() => setCopiedId(null), 2000);
     }
+  };
+
+  const startEditing = (agentId: string) => {
+    setEditingAgent(agentId);
+    setEditText(prompts[agentId]?.system_prompt || '');
+  };
+
+  const cancelEditing = () => {
+    setEditingAgent(null);
+    setEditText('');
+  };
+
+  const savePrompt = async (agentId: string) => {
+    setSaving(true);
+    const existing = prompts[agentId];
+    if (existing) {
+      const { error } = await supabase
+        .from('agent_prompts')
+        .update({ system_prompt: editText, updated_at: new Date().toISOString() })
+        .eq('agent_key', agentId);
+      if (error) {
+        toast.error('שגיאה בשמירה: ' + error.message);
+      } else {
+        toast.success('הפרומפט נשמר בהצלחה!');
+        setEditingAgent(null);
+        fetchPrompts();
+      }
+    } else {
+      // Insert new
+      const agent = AGENTS.find(a => a.id === agentId);
+      const { error } = await supabase
+        .from('agent_prompts')
+        .insert({ agent_key: agentId, agent_name: agent?.name || agentId, system_prompt: editText });
+      if (error) {
+        toast.error('שגיאה בשמירה: ' + error.message);
+      } else {
+        toast.success('הפרומפט נשמר בהצלחה!');
+        setEditingAgent(null);
+        fetchPrompts();
+      }
+    }
+    setSaving(false);
   };
 
   return (
@@ -321,9 +205,19 @@ const AgentRulesPanel = () => {
       {/* Agents with full prompts */}
       {activeSection === 'agents' && (
         <div className="grid gap-4">
-          {AGENTS.map(agent => {
+          {loadingPrompts && (
+            <div className="flex items-center justify-center py-8 text-muted-foreground gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              טוען פרומפטים...
+            </div>
+          )}
+          {!loadingPrompts && AGENTS.map(agent => {
             const isExpanded = expandedAgent === agent.id;
-            const prompt = AGENT_PROMPTS[agent.id];
+            const promptRow = prompts[agent.id];
+            const promptText = promptRow?.system_prompt || '';
+            const isEditing = editingAgent === agent.id;
+            const lastUpdated = promptRow?.updated_at ? new Date(promptRow.updated_at).toLocaleString('he-IL') : null;
+
             return (
               <div key={agent.id} className="bg-card border border-border rounded-xl overflow-hidden">
                 <button
@@ -347,30 +241,78 @@ const AgentRulesPanel = () => {
                   <div className="border-t border-border p-4 space-y-3">
                     <p className="text-muted-foreground text-sm">{agent.role}</p>
                     
-                    {/* Full Prompt */}
-                    {prompt && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
                           <h4 className="text-xs text-muted-foreground font-medium">
                             System Prompt — {agent.edgeFunction}/index.ts
                           </h4>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); copyPrompt(agent.id); }}
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded bg-muted"
-                          >
-                            {copiedId === agent.id ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
-                            {copiedId === agent.id ? 'הועתק' : 'העתק'}
-                          </button>
+                          {lastUpdated && (
+                            <span className="text-xs text-muted-foreground/60">עודכן: {lastUpdated}</span>
+                          )}
                         </div>
+                        <div className="flex items-center gap-2">
+                          {!isEditing && (
+                            <>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); startEditing(agent.id); }}
+                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded bg-muted"
+                              >
+                                <Pencil className="h-3 w-3" />
+                                ערוך
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); copyPrompt(agent.id); }}
+                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded bg-muted"
+                              >
+                                {copiedId === agent.id ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                                {copiedId === agent.id ? 'הועתק' : 'העתק'}
+                              </button>
+                            </>
+                          )}
+                          {isEditing && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={(e) => { e.stopPropagation(); savePrompt(agent.id); }}
+                                disabled={saving}
+                                className="h-7 text-xs gap-1"
+                              >
+                                {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                                שמור
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => { e.stopPropagation(); cancelEditing(); }}
+                                className="h-7 text-xs gap-1"
+                              >
+                                <X className="h-3 w-3" />
+                                בטל
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {isEditing ? (
+                        <Textarea
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          className="min-h-[400px] font-mono text-xs leading-relaxed bg-muted/70 border-border"
+                          dir="rtl"
+                        />
+                      ) : (
                         <pre
                           className="bg-muted/70 border border-border rounded-lg p-4 text-xs text-foreground/90 max-h-[400px] overflow-y-auto whitespace-pre-wrap leading-relaxed font-mono"
                           dir="rtl"
                           style={{ tabSize: 2 }}
                         >
-                          {prompt}
+                          {promptText || '(לא נמצא פרומפט — לחץ "ערוך" כדי להוסיף)'}
                         </pre>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
