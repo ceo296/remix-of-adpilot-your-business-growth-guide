@@ -107,6 +107,8 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'rules':
+        return <AgentRulesPanel />;
       case 'media':
         return <MediaDatabaseAdmin />;
       case 'models':
