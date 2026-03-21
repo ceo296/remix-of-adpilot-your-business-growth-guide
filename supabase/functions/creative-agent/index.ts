@@ -83,7 +83,15 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
   } catch { return null; }
 }
 
-const SYSTEM_PROMPT = `זהות ותפקיד:
+async function fetchAgentPrompt(agentKey: string, fallback: string): Promise<string> {
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data } = await supabase.from('agent_prompts').select('system_prompt').eq('agent_key', agentKey).maybeSingle();
+    return data?.system_prompt || fallback;
+  } catch { return fallback; }
+}
+
+const DEFAULT_SYSTEM_PROMPT = `זהות ותפקיד:
 אתה קופירייטר בכיר, חד, יצירתי ופורץ דרך. אתה לא רק כותב "מילים", אתה "איש קונספט". המטרה שלך היא לייצר קמפיינים שגורמים לקהל לעצור, להתרגש ולהגיד "וואו". אתה פועל תחת הנחיות סוכן-העל (האסטרטג) ומחויב ל-DNA של המותג ולערכיו.
 
 === כללי ברזל לקריאייטיב ===
@@ -448,6 +456,7 @@ serve(async (req) => {
       }
     }
 
+    const SYSTEM_PROMPT = await fetchAgentPrompt('creative-agent', DEFAULT_SYSTEM_PROMPT);
     const messages: Array<{role: string; content: string}> = [
       { role: 'system', content: SYSTEM_PROMPT + contextBlock }
     ];

@@ -70,6 +70,33 @@ export type Database = {
           },
         ]
       }
+      agent_prompts: {
+        Row: {
+          agent_key: string
+          agent_name: string
+          id: string
+          system_prompt: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          agent_key: string
+          agent_name: string
+          id?: string
+          system_prompt: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          agent_key?: string
+          agent_name?: string
+          id?: string
+          system_prompt?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       ai_generation_logs: {
         Row: {
           brand_context: Json | null
