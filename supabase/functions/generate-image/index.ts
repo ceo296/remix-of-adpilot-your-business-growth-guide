@@ -589,7 +589,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
           model: 'google/gemini-2.5-flash-lite',
           max_completion_tokens: 40,
           messages: [
-            { role: 'system', content: `אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה.\n\nכללי ברזל:\n1. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות\n2. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד עם טוויסט, משחק מילים, או מטאפורה\n3. הכותרת חייבת להתמקד בבשורה המרכזית של הבריף\n4. ללא גרשיים, ללא סימני פיסוק, ללא מספרים\n5. אסור לכלול את שם העסק בכותרת — שם העסק כבר מופיע בלוגו\n6. תחזיר רק את הכותרת עצמה\n\nכלל מגדרי קריטי: ${genderDirective}` },
+            { role: 'system', content: `אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה.\n\nכללי ברזל:\n1. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות\n2. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד עם טוויסט, משחק מילים, או מטאפורה\n3. הכותרת חייבת להתמקד בבשורה המרכזית של הבריף\n4. ללא גרשיים, ללא סימני פיסוק, ללא מספרים\n5. עדיף לא לכלול את שם העסק בכותרת — הוא כבר מופיע בלוגו. אם שם העסק חיוני למסר, מותר לכלול אותו פעם אחת בלבד\n6. תחזיר רק את הכותרת עצמה\n\nכלל מגדרי קריטי: ${genderDirective}` },
             { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
           ],
         }),
@@ -671,7 +671,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
 ═══ HEBREW TEXT TO INCLUDE IN THE AD (CRITICAL — RENDER ALL TEXT) ═══
 ${textParts.join('\n')}
 
-IMPORTANT: The business name "${businessName}" appears in the LOGO only. Do NOT write the business name as separate text — the logo is the brand identity.
+IMPORTANT: The business name "${businessName}" already appears in the LOGO. Avoid writing it as separate text in the ad unless it's essential for the message. Never repeat the business name more than once in the entire ad.
 
 TYPOGRAPHY RULES:
 - ALL text must be in HEBREW, reading RIGHT-TO-LEFT
