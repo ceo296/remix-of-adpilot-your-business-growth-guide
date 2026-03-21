@@ -456,6 +456,7 @@ serve(async (req) => {
       }
     }
 
+    const SYSTEM_PROMPT = await fetchAgentPrompt('creative-agent', DEFAULT_SYSTEM_PROMPT);
     const messages: Array<{role: string; content: string}> = [
       { role: 'system', content: SYSTEM_PROMPT + contextBlock }
     ];
