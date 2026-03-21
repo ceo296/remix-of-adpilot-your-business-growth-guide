@@ -670,7 +670,8 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
       textBlock = `
 ═══ HEBREW TEXT TO INCLUDE IN THE AD (CRITICAL — RENDER ALL TEXT) ═══
 ${textParts.join('\n')}
-שם העסק: "${businessName}"
+
+IMPORTANT: The business name "${businessName}" appears in the LOGO only. Do NOT write the business name as separate text — the logo is the brand identity.
 
 TYPOGRAPHY RULES:
 - ALL text must be in HEBREW, reading RIGHT-TO-LEFT
@@ -679,7 +680,6 @@ TYPOGRAPHY RULES:
 - Subtitle: smaller, lighter weight, directly below headline
 - Contact details: clean, organized in the BOTTOM CONTACT STRIP
 - Phone number: LARGE and clear with area code
-- Business name: prominent, associated with or near the logo area
 - Use PROFESSIONAL Hebrew typography — clean, modern, well-kerned
 - Text must be SHARP and PERFECTLY READABLE — no blurry or distorted letters
 ═══════════════════════════════════════════════════════════════════
