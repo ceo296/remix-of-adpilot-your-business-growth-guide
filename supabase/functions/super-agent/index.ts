@@ -308,6 +308,7 @@ serve(async (req) => {
       contextParts.push(`\n=== תובנות AI שנלמדו מניתוח המאגר ===\n${sectorBrainData.insights.join('\n\n')}`);
     }
     
+    const SYSTEM_PROMPT = await fetchAgentPrompt('super-agent', DEFAULT_SYSTEM_PROMPT);
     const systemContent = SYSTEM_PROMPT + (contextParts.length ? '\n\n=== הקשר ===\n' + contextParts.join('\n') : '');
 
     // Build conversation messages
