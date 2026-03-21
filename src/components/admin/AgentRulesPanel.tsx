@@ -30,7 +30,7 @@ interface AgentInfo {
 }
 
 const AGENTS: AgentInfo[] = [
-  { id: 'super-agent', name: 'סוכן-על (Guardian)', icon: Shield, model: 'gemini-2.5-pro / gemini-3-flash-preview', provider: 'Google Direct → Gateway Fallback', edgeFunction: 'super-agent', role: 'שומר הסף של המערכת. מחזיק בקונטקסט המלא של המגזר החרדי. כל פלט חייב לעבור אישורו.' },
+  { id: 'super-agent', name: 'סוכן-על (Guardian)', icon: Shield, model: 'gemini-2.5-pro', provider: 'Google Direct → Gateway Fallback', edgeFunction: 'super-agent', role: 'שומר הסף של המערכת. מחזיק בקונטקסט המלא של המגזר החרדי. כל פלט חייב לעבור אישורו.' },
   { id: 'creative-agent', name: 'סוכן יצירתי (Creative)', icon: Megaphone, model: 'gemini-2.5-pro', provider: 'Google Direct → Gateway Fallback', edgeFunction: 'creative-agent', role: 'קופירייטר בכיר — קונספטים, סלוגנים, קופי. מייצר 3 כיוונים יצירתיים.' },
   { id: 'studio-agent', name: 'סוכן סטודיו (Art Director)', icon: Image, model: 'gemini-2.5-pro + ננו בננה 2', provider: 'Google Direct + Gateway', edgeFunction: 'studio-agent', role: 'ארט-דירקטור. מתרגם קריאייטיב לתוצר ויזואלי מוגמר.' },
   { id: 'media-agent', name: 'סוכן מדיה (Media)', icon: Radio, model: 'gemini-2.5-pro', provider: 'Google Direct → Gateway Fallback', edgeFunction: 'media-agent', role: 'תכנון מדיה, תקציבים, המלצות חבילות ואסטרטגיית פרסום.' },
