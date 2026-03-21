@@ -1444,52 +1444,10 @@ const CreativeStudio = () => {
     }
 
     if (data?.imageUrl) {
-      // Apply Hebrew text programmatically using Canvas (perfect rendering every time)
-      let finalUrl = data.imageUrl;
-      const textMeta = data.textMeta;
-      
-      if (textMeta && (textMeta.headline || textMeta.businessName || textMeta.phone)) {
-        try {
-          const { applyHtmlTextOverlay } = await import('@/lib/html-text-overlay');
-          // Always use the master template
-          finalUrl = await applyHtmlTextOverlay(data.imageUrl, {
-            headline: concept.headline || textMeta.headline,
-            subtitle: textMeta.subtitle || '', // Sub-strip: USP or key benefit
-            bodyText: '', // IRON RULE: never render bodyText on overlay  
-            ctaText: textMeta.ctaText,
-            businessName: textMeta.businessName,
-            phone: campaignBrief.contactSelection.phone ? (textMeta.phone || clientProfile?.contact_phone || undefined) : undefined,
-            email: campaignBrief.contactSelection.email ? (textMeta.email || clientProfile?.contact_email || undefined) : undefined,
-            whatsapp: campaignBrief.contactSelection.whatsapp ? (clientProfile?.contact_whatsapp || undefined) : undefined,
-            address: campaignBrief.contactSelection.address ? (textMeta.address || clientProfile?.contact_address || undefined) : undefined,
-            primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color || undefined,
-            secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color || undefined,
-            backgroundColor: brandContext?.colors?.background || clientProfile?.background_color || undefined,
-            layoutStyle: 'custom',
-            customTemplateHtml: activeCustomTemplate?.html_template || undefined,
-            logoUrl: brandContext?.logoUrl || clientProfile?.logo_url || undefined,
-            servicesList: textMeta.servicesList,
-            promoText: textMeta.promoText,
-            promoValue: textMeta.promoValue,
-            bulletItems: textMeta.bulletItems,
-            headerFont: clientProfile?.header_font || undefined,
-            openingHours: campaignBrief.contactSelection.openingHours ? (clientProfile as any)?.opening_hours || undefined : undefined,
-            branches: campaignBrief.contactSelection.selectedBranches?.length
-              ? campaignBrief.contactSelection.selectedBranches
-              : undefined,
-          });
-          console.log(`[Canvas] Hebrew text applied with master template for concept ${index}`, {
-            primaryColor: brandContext?.colors?.primary || clientProfile?.primary_color,
-            secondaryColor: brandContext?.colors?.secondary || clientProfile?.secondary_color,
-            logoUrl: brandContext?.logoUrl ? 'from-context' : clientProfile?.logo_url ? 'from-profile' : 'none',
-            phone: textMeta.phone,
-            businessName: textMeta.businessName,
-          });
-        } catch (canvasError) {
-          console.error('[Canvas] Failed to apply text overlay, using visual-only:', canvasError);
-          // Fall back to visual-only image
-        }
-      }
+      // All-in-One: the AI generates the complete ad with text, logo, and layout
+      // No programmatic overlay needed — use the image directly
+      const finalUrl = data.imageUrl;
+      console.log(`[Studio] All-in-One concept ${index} ready. Model: ${data.model}`);
 
       await supabase.from('generated_images').insert({
         visual_prompt: enhancedVisualPrompt,
