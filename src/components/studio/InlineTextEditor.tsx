@@ -1,15 +1,17 @@
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Loader2, RefreshCw, Type, Check, Pencil } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, Send, Heading1, Heading2, Image as ImageIcon, LayoutGrid, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 export interface TextMeta {
   headline: string;
   businessName: string;
   phone: string;
 }
+
+type FeedbackCategory = 'headline' | 'subtitle' | 'visual' | 'grid-layout';
 
 interface InlineTextEditorProps {
   imageUrl: string;
@@ -19,6 +21,38 @@ interface InlineTextEditorProps {
   onOpenFullEditor: () => void;
 }
 
+const FEEDBACK_CATEGORIES: {
+  id: FeedbackCategory;
+  label: string;
+  icon: React.ElementType;
+  placeholder: string;
+}[] = [
+  {
+    id: 'headline',
+    label: 'כותרת ראשית',
+    icon: Heading1,
+    placeholder: 'מה לשנות בכותרת? למשל: "לשנות ל...", "קצר מדי"...',
+  },
+  {
+    id: 'subtitle',
+    label: 'כותרת משנה',
+    icon: Heading2,
+    placeholder: 'מה לתקן בכותרת המשנה?',
+  },
+  {
+    id: 'visual',
+    label: 'וויז\'ואל / תמונה',
+    icon: ImageIcon,
+    placeholder: 'מה לא עבד? למשל: "רקע שונה", "תמונה יותר חמה"...',
+  },
+  {
+    id: 'grid-layout',
+    label: 'פרטים טכניים בגריד',
+    icon: LayoutGrid,
+    placeholder: 'מה לשנות? למשל: "הלוגו גדול מדי", "הטלפון לא קריא"...',
+  },
+];
+
 export const InlineTextEditor = ({
   imageUrl,
   visualOnlyUrl,
@@ -26,43 +60,52 @@ export const InlineTextEditor = ({
   onImageUpdate,
   onOpenFullEditor,
 }: InlineTextEditorProps) => {
-  const [editingField, setEditingField] = useState<keyof TextMeta | null>(null);
-  const [editValues, setEditValues] = useState<TextMeta>(textMeta);
+  const [selectedCategories, setSelectedCategories] = useState<Set<FeedbackCategory>>(new Set());
+  const [feedbackTexts, setFeedbackTexts] = useState<Record<FeedbackCategory, string>>({} as any);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  const hasChanges = editValues.headline !== textMeta.headline ||
-    editValues.phone !== textMeta.phone;
-
-  const handleFieldClick = (field: keyof TextMeta) => {
-    if (editingField === field) return;
-    setEditingField(field);
+  const toggleCategory = (id: FeedbackCategory) => {
+    setSelectedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  const handleFieldBlur = () => {
-    setEditingField(null);
-  };
+  const hasValidFeedback = Array.from(selectedCategories).some(
+    cat => feedbackTexts[cat]?.trim()
+  );
 
-  const handleRegenerate = useCallback(async () => {
-    if (!hasChanges) {
-      toast.info('לא בוצעו שינויים בטקסט');
-      return;
+  const handleSubmit = useCallback(async () => {
+    if (!hasValidFeedback) return;
+
+    const corrections: string[] = [];
+    for (const cat of selectedCategories) {
+      const text = feedbackTexts[cat]?.trim();
+      if (text) {
+        const label = FEEDBACK_CATEGORIES.find(c => c.id === cat)?.label || cat;
+        corrections.push(`[${label}] ${text}`);
+      }
     }
 
     setIsRegenerating(true);
     try {
+      const { supabase } = await import('@/integrations/supabase/client');
       const { data, error } = await supabase.functions.invoke('generate-image', {
         body: {
           visualPrompt: '',
-          textPrompt: editValues.headline,
+          textPrompt: textMeta.headline,
           style: 'ultra-realistic',
           engine: 'nano-banana',
           brandContext: {
-            businessName: editValues.businessName,
-            contactPhone: editValues.phone,
+            businessName: textMeta.businessName,
+            contactPhone: textMeta.phone,
           },
           campaignContext: {
-            offer: editValues.headline,
+            offer: textMeta.headline,
           },
+          corrections,
           _visualOnlyUrl: visualOnlyUrl,
         }
       });
@@ -70,108 +113,99 @@ export const InlineTextEditor = ({
       if (error) throw error;
 
       if (data?.imageUrl) {
-        onImageUpdate(data.imageUrl, editValues);
-        toast.success('הטקסט עודכן בהצלחה!');
-        setEditingField(null);
+        onImageUpdate(data.imageUrl, textMeta);
+        toast.success('המודעה עודכנה בהצלחה! ✅');
+        setSelectedCategories(new Set());
+        setFeedbackTexts({} as any);
       }
     } catch (err) {
-      console.error('Error regenerating text:', err);
-      toast.error('שגיאה בעדכון הטקסט. נסה שוב.');
+      console.error('Error regenerating:', err);
+      toast.error('שגיאה בעדכון. נסה שוב.');
     } finally {
       setIsRegenerating(false);
     }
-  }, [editValues, hasChanges, visualOnlyUrl, onImageUpdate]);
-
-  // Only headline and phone — business name comes from the logo
-  const fieldConfig = [
-    { key: 'headline' as const, label: 'כותרת ראשית', icon: '📝' },
-    { key: 'phone' as const, label: 'טלפון', icon: '📞' },
-  ];
+  }, [feedbackTexts, selectedCategories, hasValidFeedback, textMeta, visualOnlyUrl, onImageUpdate]);
 
   return (
     <div className="flex flex-col h-full max-h-[85vh]" dir="rtl">
-      {/* Image preview - full width on top */}
+      {/* Image preview */}
       <div className="flex-1 flex items-center justify-center p-4 bg-muted/10 min-h-0">
         <div className="relative max-w-full max-h-full">
           <img
             src={imageUrl}
             alt="תצוגה מקדימה"
-            className="max-w-full max-h-[60vh] object-contain rounded-lg"
+            className="max-w-full max-h-[55vh] object-contain rounded-lg"
           />
           {isRegenerating && (
             <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-lg">
               <div className="flex items-center gap-2 text-primary">
                 <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="font-medium">מעדכן טקסט...</span>
+                <span className="font-medium">מייצר מודעה מתוקנת...</span>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Text fields editing area - below the image */}
-      <div className="border-t border-border bg-card p-4 space-y-3">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="font-bold text-sm flex items-center gap-1.5">
-            <Type className="h-4 w-4 text-primary" />
-            עריכת טקסטים
-          </h4>
+      {/* Feedback area - below image */}
+      <div className="border-t border-border bg-card p-4 space-y-3 max-h-[30vh] overflow-y-auto">
+        {/* Category chips */}
+        <div className="flex flex-wrap gap-2">
+          {FEEDBACK_CATEGORIES.map((cat) => {
+            const isSelected = selectedCategories.has(cat.id);
+            return (
+              <button
+                key={cat.id}
+                onClick={() => toggleCategory(cat.id)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 transition-all text-sm font-medium',
+                  isSelected
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                )}
+              >
+                <cat.icon className="h-3.5 w-3.5" />
+                {cat.label}
+                {isSelected && <Check className="h-3 w-3" />}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="flex gap-4 items-end">
-          {fieldConfig.map(({ key, label, icon }) => (
-            <div key={key} className="flex-1">
-              <label className="text-xs text-muted-foreground mb-1 block">{icon} {label}</label>
-              {editingField === key ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={editValues[key]}
-                    onChange={(e) => setEditValues(prev => ({ ...prev, [key]: e.target.value }))}
-                    className="text-right text-sm flex-1"
-                    dir="rtl"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleFieldBlur();
-                      if (e.key === 'Escape') {
-                        setEditValues(prev => ({ ...prev, [key]: textMeta[key] }));
-                        setEditingField(null);
-                      }
-                    }}
-                  />
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleFieldBlur}>
-                    <Check className="h-4 w-4 text-primary" />
-                  </Button>
+        {/* Feedback inputs for selected categories */}
+        {selectedCategories.size > 0 && (
+          <div className="space-y-3">
+            {FEEDBACK_CATEGORIES.filter(c => selectedCategories.has(c.id)).map((cat) => (
+              <div key={cat.id} className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <cat.icon className="h-3.5 w-3.5 text-primary" />
+                  <span className="font-medium text-xs">{cat.label}</span>
                 </div>
+                <Textarea
+                  value={feedbackTexts[cat.id] || ''}
+                  onChange={(e) => setFeedbackTexts(prev => ({ ...prev, [cat.id]: e.target.value }))}
+                  placeholder={cat.placeholder}
+                  className="min-h-[60px] text-sm"
+                  dir="rtl"
+                />
+              </div>
+            ))}
+
+            <Button
+              onClick={handleSubmit}
+              disabled={!hasValidFeedback || isRegenerating}
+              className="w-full gap-2"
+              size="sm"
+            >
+              {isRegenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <div
-                  className="flex items-center justify-between p-2.5 rounded-md border border-transparent hover:border-border hover:bg-muted/50 cursor-pointer transition-colors group"
-                  onClick={() => handleFieldClick(key)}
-                >
-                  <span className={`text-sm ${editValues[key] ? '' : 'text-muted-foreground italic'}`}>
-                    {editValues[key] || `ללא ${label}`}
-                  </span>
-                  <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
+                <Send className="h-4 w-4" />
               )}
-            </div>
-          ))}
-
-          {/* Action button inline */}
-          <Button
-            onClick={handleRegenerate}
-            disabled={!hasChanges || isRegenerating}
-            size="sm"
-            className="gap-2 whitespace-nowrap"
-            variant={hasChanges ? 'default' : 'outline'}
-          >
-            {isRegenerating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-            {hasChanges ? 'עדכן' : 'שנה טקסט'}
-          </Button>
-        </div>
+              שלח תיקונים ({selectedCategories.size})
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
