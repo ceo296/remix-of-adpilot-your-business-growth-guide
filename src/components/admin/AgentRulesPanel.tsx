@@ -46,7 +46,7 @@ const MODEL_MAP = [
   { func: 'studio-agent', model: 'gemini-3.1-flash-image-preview', provider: 'Gateway', type: 'תמונה' },
   { func: 'creative-agent', model: 'gemini-2.5-pro', provider: 'Google Direct', type: 'טקסט' },
   { func: 'media-agent', model: 'gemini-2.5-pro', provider: 'Google Direct → Fallback', type: 'טקסט' },
-  { func: 'super-agent', model: 'gemini-2.5-pro / flash', provider: 'Google Direct → Fallback', type: 'טקסט' },
+  { func: 'super-agent', model: 'gemini-2.5-pro', provider: 'Google Direct → Fallback', type: 'טקסט' },
   { func: 'generate-presentation', model: 'gemini-3-flash-preview', provider: 'Google Direct → Fallback', type: 'טקסט' },
   { func: 'generate-internal-material', model: 'gemini-3-flash-preview', provider: 'Google Direct → Fallback', type: 'טקסט' },
   { func: 'kosher-check', model: 'gemini-2.5-flash', provider: 'Google Direct → Fallback', type: 'ניתוח' },
