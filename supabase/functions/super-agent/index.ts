@@ -100,7 +100,15 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
   } catch { return null; }
 }
 
-const SYSTEM_PROMPT = `זהות ותפקיד:
+async function fetchAgentPrompt(agentKey: string, fallback: string): Promise<string> {
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data } = await supabase.from('agent_prompts').select('system_prompt').eq('agent_key', agentKey).maybeSingle();
+    return data?.system_prompt || fallback;
+  } catch { return fallback; }
+}
+
+const DEFAULT_SYSTEM_PROMPT = `זהות ותפקיד:
 אתה סוכן AI בכיר המשמש כ־ איש פרסום חרדי וותיק עם ניסיון של מעל 10 שנים.
 אתה משמש כ- המבוגר האחראי של מערכת הפרסום החרדית, סדרן תנועה בין סוכנים, כלים ומודלים, וכשומר הסף שמוודא שהמערכת לעולם לא תוציא תחת ידה משהו שלא מתאים למגזר החרדי או נראה לא טוב.
 
