@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   Database, Brain, Users, LogOut, Menu, X, 
-  Settings, ChevronLeft, Palette, Newspaper, Link2, Cpu, FileCode2, Type
+  Settings, ChevronLeft, Palette, Newspaper, Link2, Cpu, FileCode2, Type, ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,10 +16,12 @@ import MediaPortalAdmin from '@/components/admin/MediaPortalAdmin';
 import AIModelConfigsAdmin from '@/components/admin/AIModelConfigsAdmin';
 import TemplateEditor from '@/components/admin/TemplateEditor';
 import FontManager from '@/components/admin/FontManager';
+import AgentRulesPanel from '@/components/admin/AgentRulesPanel';
 
-type AdminTab = 'media' | 'brain' | 'models' | 'templates' | 'fonts' | 'clients' | 'branding' | 'proofs' | 'portal';
+type AdminTab = 'media' | 'brain' | 'models' | 'templates' | 'fonts' | 'clients' | 'branding' | 'proofs' | 'portal' | 'rules';
 
 const TABS = [
+  { id: 'rules' as AdminTab, label: 'כללים וסוכנים', icon: ShieldCheck },
   { id: 'media' as AdminTab, label: 'ערוצי מדיה', icon: Database },
   { id: 'brain' as AdminTab, label: 'אימון מערכת AI', icon: Brain },
   { id: 'models' as AdminTab, label: 'מודלים ייעודיים', icon: Cpu },
@@ -105,6 +107,8 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'rules':
+        return <AgentRulesPanel />;
       case 'media':
         return <MediaDatabaseAdmin />;
       case 'models':
