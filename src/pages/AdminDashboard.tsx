@@ -16,6 +16,7 @@ import MediaPortalAdmin from '@/components/admin/MediaPortalAdmin';
 import AIModelConfigsAdmin from '@/components/admin/AIModelConfigsAdmin';
 import TemplateEditor from '@/components/admin/TemplateEditor';
 import FontManager from '@/components/admin/FontManager';
+import AgentRulesPanel from '@/components/admin/AgentRulesPanel';
 
 type AdminTab = 'media' | 'brain' | 'models' | 'templates' | 'fonts' | 'clients' | 'branding' | 'proofs' | 'portal';
 
