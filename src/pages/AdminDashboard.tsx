@@ -21,6 +21,7 @@ import AgentRulesPanel from '@/components/admin/AgentRulesPanel';
 type AdminTab = 'media' | 'brain' | 'models' | 'templates' | 'fonts' | 'clients' | 'branding' | 'proofs' | 'portal' | 'rules';
 
 const TABS = [
+  { id: 'rules' as AdminTab, label: 'כללים וסוכנים', icon: ShieldCheck },
   { id: 'media' as AdminTab, label: 'ערוצי מדיה', icon: Database },
   { id: 'brain' as AdminTab, label: 'אימון מערכת AI', icon: Brain },
   { id: 'models' as AdminTab, label: 'מודלים ייעודיים', icon: Cpu },
