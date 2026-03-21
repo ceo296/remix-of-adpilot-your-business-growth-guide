@@ -18,7 +18,7 @@ import TemplateEditor from '@/components/admin/TemplateEditor';
 import FontManager from '@/components/admin/FontManager';
 import AgentRulesPanel from '@/components/admin/AgentRulesPanel';
 
-type AdminTab = 'media' | 'brain' | 'models' | 'templates' | 'fonts' | 'clients' | 'branding' | 'proofs' | 'portal';
+type AdminTab = 'media' | 'brain' | 'models' | 'templates' | 'fonts' | 'clients' | 'branding' | 'proofs' | 'portal' | 'rules';
 
 const TABS = [
   { id: 'media' as AdminTab, label: 'ערוצי מדיה', icon: Database },
