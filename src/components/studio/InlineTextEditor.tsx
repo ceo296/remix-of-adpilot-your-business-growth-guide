@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, RefreshCw, Type, Check, X, Pencil, Plus } from 'lucide-react';
+import { Loader2, RefreshCw, Type, Check, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,7 +31,6 @@ export const InlineTextEditor = ({
   const [isRegenerating, setIsRegenerating] = useState(false);
 
   const hasChanges = editValues.headline !== textMeta.headline ||
-    editValues.businessName !== textMeta.businessName ||
     editValues.phone !== textMeta.phone;
 
   const handleFieldClick = (field: keyof TextMeta) => {
@@ -51,10 +50,9 @@ export const InlineTextEditor = ({
 
     setIsRegenerating(true);
     try {
-      // Call a lightweight edge function to re-run Layer 2 only
       const { data, error } = await supabase.functions.invoke('generate-image', {
         body: {
-          visualPrompt: '', // Not needed for Layer 2 re-run
+          visualPrompt: '',
           textPrompt: editValues.headline,
           style: 'ultra-realistic',
           engine: 'nano-banana',
@@ -65,7 +63,6 @@ export const InlineTextEditor = ({
           campaignContext: {
             offer: editValues.headline,
           },
-          // Pass the visual-only image to skip Layer 1
           _visualOnlyUrl: visualOnlyUrl,
         }
       });
@@ -85,21 +82,21 @@ export const InlineTextEditor = ({
     }
   }, [editValues, hasChanges, visualOnlyUrl, onImageUpdate]);
 
+  // Only headline and phone — business name comes from the logo
   const fieldConfig = [
-    { key: 'businessName' as const, label: 'שם העסק', icon: '🏢' },
     { key: 'headline' as const, label: 'כותרת ראשית', icon: '📝' },
     { key: 'phone' as const, label: 'טלפון', icon: '📞' },
   ];
 
   return (
-    <div className="flex flex-col md:flex-row h-full max-h-[85vh]" dir="rtl">
-      {/* Image preview - takes most of the space */}
+    <div className="flex flex-col h-full max-h-[85vh]" dir="rtl">
+      {/* Image preview - full width on top */}
       <div className="flex-1 flex items-center justify-center p-4 bg-muted/10 min-h-0">
         <div className="relative max-w-full max-h-full">
           <img
             src={imageUrl}
             alt="תצוגה מקדימה"
-            className="max-w-full max-h-[80vh] object-contain rounded-lg"
+            className="max-w-full max-h-[60vh] object-contain rounded-lg"
           />
           {isRegenerating && (
             <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-lg">
@@ -112,8 +109,8 @@ export const InlineTextEditor = ({
         </div>
       </div>
 
-      {/* Text fields editing area */}
-      <div className="md:w-72 border-t md:border-t-0 md:border-r border-border bg-card p-4 space-y-3 overflow-y-auto">
+      {/* Text fields editing area - below the image */}
+      <div className="border-t border-border bg-card p-4 space-y-3">
         <div className="flex items-center justify-between mb-2">
           <h4 className="font-bold text-sm flex items-center gap-1.5">
             <Type className="h-4 w-4 text-primary" />
@@ -121,49 +118,50 @@ export const InlineTextEditor = ({
           </h4>
         </div>
 
-        {fieldConfig.map(({ key, label, icon }) => (
-          <div key={key} className="group">
-            <label className="text-xs text-muted-foreground mb-1 block">{icon} {label}</label>
-            {editingField === key ? (
-              <div className="flex items-center gap-2">
-                <Input
-                  value={editValues[key]}
-                  onChange={(e) => setEditValues(prev => ({ ...prev, [key]: e.target.value }))}
-                  className="text-right text-sm flex-1"
-                  dir="rtl"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleFieldBlur();
-                    if (e.key === 'Escape') {
-                      setEditValues(prev => ({ ...prev, [key]: textMeta[key] }));
-                      setEditingField(null);
-                    }
-                  }}
-                />
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleFieldBlur}>
-                  <Check className="h-4 w-4 text-primary" />
-                </Button>
-              </div>
-            ) : (
-              <div
-                className="flex items-center justify-between p-2.5 rounded-md border border-transparent hover:border-border hover:bg-muted/50 cursor-pointer transition-colors group"
-                onClick={() => handleFieldClick(key)}
-              >
-                <span className={`text-sm ${editValues[key] ? '' : 'text-muted-foreground italic'}`}>
-                  {editValues[key] || `ללא ${label}`}
-                </span>
-                <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            )}
-          </div>
-        ))}
+        <div className="flex gap-4 items-end">
+          {fieldConfig.map(({ key, label, icon }) => (
+            <div key={key} className="flex-1">
+              <label className="text-xs text-muted-foreground mb-1 block">{icon} {label}</label>
+              {editingField === key ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={editValues[key]}
+                    onChange={(e) => setEditValues(prev => ({ ...prev, [key]: e.target.value }))}
+                    className="text-right text-sm flex-1"
+                    dir="rtl"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleFieldBlur();
+                      if (e.key === 'Escape') {
+                        setEditValues(prev => ({ ...prev, [key]: textMeta[key] }));
+                        setEditingField(null);
+                      }
+                    }}
+                  />
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleFieldBlur}>
+                    <Check className="h-4 w-4 text-primary" />
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  className="flex items-center justify-between p-2.5 rounded-md border border-transparent hover:border-border hover:bg-muted/50 cursor-pointer transition-colors group"
+                  onClick={() => handleFieldClick(key)}
+                >
+                  <span className={`text-sm ${editValues[key] ? '' : 'text-muted-foreground italic'}`}>
+                    {editValues[key] || `ללא ${label}`}
+                  </span>
+                  <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              )}
+            </div>
+          ))}
 
-        {/* Action buttons */}
-        <div className="flex gap-2 pt-2">
+          {/* Action button inline */}
           <Button
             onClick={handleRegenerate}
             disabled={!hasChanges || isRegenerating}
-            className="flex-1 gap-2"
+            size="sm"
+            className="gap-2 whitespace-nowrap"
             variant={hasChanges ? 'default' : 'outline'}
           >
             {isRegenerating ? (
@@ -171,7 +169,7 @@ export const InlineTextEditor = ({
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            {hasChanges ? 'עדכן טקסט על התמונה' : 'שנה טקסט כדי לעדכן'}
+            {hasChanges ? 'עדכן' : 'שנה טקסט'}
           </Button>
         </div>
       </div>
