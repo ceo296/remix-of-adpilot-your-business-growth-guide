@@ -671,7 +671,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
 ═══ HEBREW TEXT TO INCLUDE IN THE AD (CRITICAL — RENDER ALL TEXT) ═══
 ${textParts.join('\n')}
 
-IMPORTANT: The business name "${businessName}" appears in the LOGO only. Do NOT write the business name as separate text — the logo is the brand identity.
+IMPORTANT: The business name "${businessName}" already appears in the LOGO. Avoid writing it as separate text in the ad unless it's essential for the message. Never repeat the business name more than once in the entire ad.
 
 TYPOGRAPHY RULES:
 - ALL text must be in HEBREW, reading RIGHT-TO-LEFT
