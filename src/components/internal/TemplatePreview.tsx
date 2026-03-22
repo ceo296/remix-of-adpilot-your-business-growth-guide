@@ -409,6 +409,173 @@ export const TemplatePreview = ({ templateId, primaryColor = '#E34870', secondar
         </div>
       </div>
     ),
+
+    // ── Article templates ──
+    'art-product': (
+      <div className="w-full h-full bg-white rounded flex flex-col overflow-hidden" dir="rtl">
+        <div className="h-[30%] w-full" style={{ background: `linear-gradient(135deg, ${color}20, ${color}08)` }}>
+          <div className="flex items-center gap-1 p-2">
+            <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: color }} />
+            <div className="text-[5px] font-bold text-gray-400">{businessName}</div>
+          </div>
+        </div>
+        <div className="flex-1 p-2 space-y-1.5">
+          <div className="text-[7px] font-black text-gray-800 leading-tight">כתבת מוצר</div>
+          <div className="text-[5px] text-gray-400">תיאור המוצר והיתרונות שלו</div>
+          <div className="w-full h-[0.5px]" style={{ backgroundColor: `${color}30` }} />
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-[1.5px] bg-gray-100 rounded" style={{ width: `${90 - i * 8}%` }} />
+          ))}
+          <div className="border-r-2 pr-1 mt-1" style={{ borderColor: color }}>
+            <div className="text-[4px] text-gray-500 italic">"ציטוט מרכזי"</div>
+          </div>
+        </div>
+      </div>
+    ),
+    'art-story': (
+      <div className="w-full h-full bg-white rounded flex flex-col overflow-hidden" dir="rtl">
+        <div className="h-[35%] w-full flex items-center justify-center" style={{ background: `linear-gradient(180deg, ${color}15, transparent)` }}>
+          <div className="text-center">
+            <div className="text-[8px] font-black text-gray-800">הסיפור שלנו</div>
+            <div className="w-6 h-[0.5px] mx-auto mt-1" style={{ backgroundColor: color }} />
+          </div>
+        </div>
+        <div className="flex-1 p-2 space-y-1.5">
+          <div className="text-[5px] text-gray-400">איך הכל התחיל...</div>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-[1.5px] bg-gray-100 rounded w-full" />
+          ))}
+          <div className="flex items-center gap-1 mt-1">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: `${color}20` }} />
+            <div className="text-[4px] text-gray-500">{businessName}</div>
+          </div>
+        </div>
+      </div>
+    ),
+    'art-expert': (
+      <div className="w-full h-full bg-white rounded flex flex-col overflow-hidden" dir="rtl">
+        <div className="p-2 flex items-center gap-1.5">
+          <div className="w-5 h-5 rounded-full" style={{ backgroundColor: `${color}20` }}>
+            <div className="w-full h-full rounded-full flex items-center justify-center text-[5px] font-bold" style={{ color }}>M</div>
+          </div>
+          <div>
+            <div className="text-[6px] font-bold text-gray-800">מאמר מומחה</div>
+            <div className="text-[4px] text-gray-400">{businessName}</div>
+          </div>
+        </div>
+        <div className="h-[0.5px] w-[90%] mx-auto" style={{ backgroundColor: `${color}20` }} />
+        <div className="flex-1 p-2 space-y-1.5">
+          <div className="text-[7px] font-bold text-gray-800 leading-tight">טיפים מקצועיים</div>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-[1.5px] bg-gray-100 rounded" style={{ width: `${95 - i * 5}%` }} />
+          ))}
+        </div>
+        <div className="px-2 py-1" style={{ backgroundColor: `${color}08` }}>
+          <div className="text-[3.5px] text-gray-400 text-center">למידע נוסף: {businessName}</div>
+        </div>
+      </div>
+    ),
+    'art-seasonal': (
+      <div className="w-full h-full bg-white rounded flex flex-col overflow-hidden" dir="rtl">
+        <div className="h-[30%] w-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${color}18, #fef3c7)` }}>
+          <div className="text-[9px]">🌸</div>
+        </div>
+        <div className="flex-1 p-2 space-y-1.5">
+          <div className="text-[7px] font-black text-gray-800 leading-tight">כתבה עונתית</div>
+          <div className="text-[5px] text-gray-400">תוכן מותאם לעונה</div>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-[1.5px] bg-gray-100 rounded w-full" />
+          ))}
+        </div>
+        <div className="px-2 py-1 flex items-center justify-between" style={{ backgroundColor: `${color}08` }}>
+          <div className="text-[4px] font-bold" style={{ color }}>{businessName}</div>
+          <div className="text-[3.5px] text-gray-400">📞 054-000-0000</div>
+        </div>
+      </div>
+    ),
+
+    // ── Greeting templates ──
+    'gr-rosh-hashana': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}15, #fef9c3)` }}>
+        <div className="text-[10px]">🍯</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">שנה טובה</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
+    'gr-sukkot': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}10, #d1fae5)` }}>
+        <div className="text-[10px]">🌿</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">חג סוכות שמח</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
+    'gr-chanukah': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}15, #dbeafe)` }}>
+        <div className="text-[10px]">🕎</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">חג אורים שמח</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
+    'gr-purim': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}10, #fce7f3)` }}>
+        <div className="text-[10px]">🎭</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">פורים שמח</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
+    'gr-pesach': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}10, #fef3c7)` }}>
+        <div className="text-[10px]">🍷</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">חג פסח שמח</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
+    'gr-shavuot': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}10, #ecfdf5)` }}>
+        <div className="text-[10px]">🌾</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">חג שבועות שמח</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
+    'gr-wedding': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}08, #fdf2f8)` }}>
+        <div className="text-[10px]">💍</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">מזל טוב</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
+    'gr-bar-mitzvah': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}10, #eff6ff)` }}>
+        <div className="text-[10px]">📖</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">מזל טוב</div>
+        <div className="text-[5px] text-gray-400">בר מצווה</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
+    'gr-birthday': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}10, #fef3c7)` }}>
+        <div className="text-[10px]">🎂</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">יום הולדת שמח</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
+    'gr-general': (
+      <div className="w-full h-full rounded flex flex-col items-center justify-center p-2" style={{ background: `linear-gradient(135deg, ${color}12, #f5f3ff)` }}>
+        <div className="text-[10px]">✨</div>
+        <div className="text-[7px] font-bold text-gray-800 mt-1">ברכה מיוחדת</div>
+        <div className="w-5 h-[0.5px] mx-auto my-1" style={{ backgroundColor: color }} />
+        <div className="text-[5px] text-gray-500">{businessName}</div>
+      </div>
+    ),
   };
 
   return previews[templateId] || (
