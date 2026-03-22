@@ -321,7 +321,8 @@ The client's ACTUAL brand logo is attached as the LAST image.
         continue;
       }
     }
-  }
+  } // end models loop
+  } // end retry loop
   throw { status: 500, message: "שגיאה ביצירת השכבה הויזואלית. נסה שוב." };
 }
 
