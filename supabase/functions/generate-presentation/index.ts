@@ -61,7 +61,7 @@ serve(async (req) => {
       creative: `סגנון יצירתי ונועז (Canva style): כותרות פרובוקטיביות ומפתיעות, שפה שיווקית חזקה, ניסוחים לא שגרתיים. שאלות רטוריות ומשפטי תועלת חזקים.`,
     };
 
-    const systemPrompt = `🚀 אתה "The Visionary Engine" – מנהל אמנותי בסטודיו למיתוג יוקרה.
+    const DEFAULT_SYSTEM_PROMPT = `🚀 אתה "The Visionary Engine" – מנהל אמנותי בסטודיו למיתוג יוקרה.
 המטרה: ליצור מצגת "Million Dollar" שמשלבת רגש, עוצמה וניקיון עיצובי קיצוני. בעברית.
 
 ═══ הוראת יסוד: סנכרון מגזרי (Haredi Compliance) ═══
