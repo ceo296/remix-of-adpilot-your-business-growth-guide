@@ -605,10 +605,28 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
         method: 'POST',
         headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-lite',
-          max_completion_tokens: 40,
+          model: 'google/gemini-3-flash-preview',
+          max_completion_tokens: 50,
           messages: [
-            { role: 'system', content: `אתה קופירייטר פרסומי מבריק. תפקידך ליצור כותרת ראשית קצרה ועוצמתית (3-6 מילים בלבד) למודעה.\n\nכללי ברזל:\n1. הכותרת חייבת להיות קריאייטיבית, שיווקית, מושכת ומעוררת סקרנות\n2. אל תעתיק את הבריף — תמצה אותו למסר פרסומי חד עם טוויסט, משחק מילים, או מטאפורה\n3. הכותרת חייבת להתמקד בבשורה המרכזית של הבריף\n4. ללא גרשיים, ללא סימני פיסוק, ללא מספרים\n5. עדיף לא לכלול את שם העסק בכותרת — הוא כבר מופיע בלוגו. אם שם העסק חיוני למסר, מותר לכלול אותו פעם אחת בלבד\n6. תחזיר רק את הכותרת עצמה\n\nכלל מגדרי קריטי: ${genderDirective}` },
+            { role: 'system', content: `אתה קופירייטר בכיר — פורץ דרך, שנון, בלתי נשכח. תפקידך ליצור כותרת ראשית למודעה (3-6 מילים).
+
+כללי ברזל:
+1. חפש תמיד טוויסט, משחק מילים, מטאפורה חכמה, או ניגוד מעניין
+2. כותרת שגורמת לקורא לעצור ולקרוא שוב — כמו כותרת עיתון שעוצרת ברחוב
+3. אל תעתיק את הבריף. תמצה אותו למסר פרסומי חד עם אנרגיה ואימפקט
+4. אסור קלישאות: "הכי טוב", "מקצועי ואיכותי", "שירות מעולה", "פתרון מושלם"
+5. אסור סימני פיסוק (פסיקים, נקודות). אסור גרשיים. אסור מספרים
+6. עדיף לא לכלול את שם העסק — הוא בלוגו. שם העסק מותר רק אם הוא חלק אינטגרלי מהטוויסט
+7. תחזיר רק את הכותרת עצמה — בלי הסברים
+
+דוגמאות לכותרות חזקות:
+- נדל"ן: "חלון שמתגשם" (טוויסט על "חלום")
+- שיניים: "הפה שלך. הבמה שלנו"
+- מזון: "טעם שלא שוכחים"
+- אופנה: "הבגד עושה את הגבר"
+- טיפוח: "כי מגיע לך להרגיש מושלמת"
+
+כלל מגדרי קריטי: ${genderDirective}` },
             { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
           ],
         }),
@@ -618,10 +636,18 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
         method: 'POST',
         headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-lite',
+          model: 'google/gemini-3-flash-preview',
           max_completion_tokens: 60,
           messages: [
-            { role: 'system', content: `אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה תיאורית קצרה (5-10 מילים) למודעה.\n\nכללי ברזל:\n1. הכותרת חייבת להכיל את הפרט הקונקרטי החשוב ביותר מהבריף\n2. קרא את כל הבריף עד הסוף — חפש הטבות, מבצעים, מחירים\n3. ללא גרשיים. תחזיר רק את הכותרת עצמה\n\nכלל מגדרי קריטי: ${genderDirective}` },
+            { role: 'system', content: `אתה קופירייטר פרסומי. תפקידך ליצור כותרת משנה תיאורית קצרה (5-10 מילים) למודעה.
+
+כללי ברזל:
+1. כותרת המשנה חייבת להישמע כמו סלוגן חד — לא כמו משפט מהבריף
+2. קרא את כל הבריף — חפש הטבות, מבצעים, מחירים ותמצת אותם בחדות
+3. ללא גרשיים. תחזיר רק את הכותרת עצמה
+4. אם יש מחיר/הטבה ספציפית בבריף — שלב אותה בכותרת המשנה
+
+כלל מגדרי קריטי: ${genderDirective}` },
             { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
           ],
         }),
