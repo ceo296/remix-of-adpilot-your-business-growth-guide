@@ -1337,20 +1337,25 @@ const PresentationStudio = () => {
 
   if (isPresenting) {
     return (
-      <div
-        className="fixed inset-0 bg-black z-50 flex items-center justify-center cursor-none"
-        onClick={() => setActiveSlide(prev => Math.min(prev + 1, slides.length - 1))}
-      >
-        <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
-          <SlideRenderer slide={slides[activeSlide]} brandColor={brandColor} secColor={secColor} businessName={businessName} logoUrl={logoUrl} phone={phone} email={email} scale={Math.min(window.innerWidth / 1920, window.innerHeight / 1080)} font={font} theme={currentTheme} businessPhotos={businessPhotos} slideIndex={activeSlide} address={address} />
-        </div>
-        <button className="absolute top-4 left-4 text-white/50 hover:text-white text-sm z-50" onClick={(e) => { e.stopPropagation(); setIsPresenting(false); }}>
-          ESC לצאת
-        </button>
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-sm">
-          {activeSlide + 1} / {slides.length}
-        </div>
-      </div>
+      <PresentationViewer
+        slides={slides}
+        activeSlide={activeSlide}
+        onActiveSlideChange={setActiveSlide}
+        onSlidesChange={setSlides as any}
+        onClose={() => setIsPresenting(false)}
+        onExportPDF={exportPDF}
+        isExporting={isExporting}
+        brandColor={brandColor}
+        industry={profile?.services?.join(', ') || ''}
+        renderSlide={(slide, scale, slideIndex) => (
+          <SlideRenderer
+            slide={slide} brandColor={brandColor} secColor={secColor}
+            businessName={businessName} logoUrl={logoUrl} phone={phone}
+            email={email} scale={scale} font={font} theme={currentTheme}
+            businessPhotos={businessPhotos} slideIndex={slideIndex} address={address}
+          />
+        )}
+      />
     );
   }
 
