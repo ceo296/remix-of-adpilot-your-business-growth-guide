@@ -6,7 +6,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SYSTEM_PROMPT = `זהות ותפקיד:
+async function fetchAgentPrompt(agentKey: string, fallback: string): Promise<string> {
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data } = await supabase.from('agent_prompts').select('system_prompt').eq('agent_key', agentKey).maybeSingle();
+    if (data?.system_prompt) {
+      console.log(`[${agentKey}] Loaded dynamic prompt from DB (${data.system_prompt.length} chars)`);
+      return data.system_prompt;
+    }
+    console.log(`[${agentKey}] No DB prompt found, using fallback`);
+    return fallback;
+  } catch (e) {
+    console.error(`[${agentKey}] Failed to fetch prompt:`, e);
+    return fallback;
+  }
+}
+
+const DEFAULT_SYSTEM_PROMPT = `זהות ותפקיד:
 אתה סוכן המדיה והתקציב של ADKOP, מנהל מדיה (Media Planner) חרדי בכיר עם ניסיון של עשורים. אתה לא רק "קונה שטחי פרסום", אלא אסטרטג של קשב. אתה המוח שמחליט איפה, מתי ואיך יפגוש הלקוח החרדי את המותג.
 
 מנגנון שיקול דעת ואסטרטגיית תקציב:
