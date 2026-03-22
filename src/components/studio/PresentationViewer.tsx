@@ -27,14 +27,14 @@ export interface PresentationSlideData {
 }
 
 interface PresentationViewerProps {
-  slides: SlideData[];
+  slides: PresentationSlideData[];
   activeSlide: number;
   onActiveSlideChange: (index: number) => void;
-  onSlidesChange: (slides: SlideData[]) => void;
+  onSlidesChange: (slides: PresentationSlideData[]) => void;
   onClose: () => void;
   onExportPDF: () => void;
   isExporting: boolean;
-  renderSlide: (slide: SlideData, scale: number, slideIndex: number) => React.ReactNode;
+  renderSlide: (slide: PresentationSlideData, scale: number, slideIndex: number) => React.ReactNode;
   brandColor?: string;
   industry?: string;
 }
@@ -108,7 +108,7 @@ export const PresentationViewer = ({
   }, [isFullscreen]);
 
   // Slide updates
-  const updateSlide = (updates: Partial<SlideData>) => {
+  const updateSlide = (updates: Partial<PresentationSlideData>) => {
     const newSlides = slides.map((s, i) => i === activeSlide ? { ...s, ...updates } : s);
     onSlidesChange(newSlides);
   };
