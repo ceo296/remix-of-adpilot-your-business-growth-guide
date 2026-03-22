@@ -300,7 +300,12 @@ The client's ACTUAL brand logo is attached as the LAST image.
         console.log("[All-in-One] Success with model:", tryModel);
         return { imageUrl, model: tryModel };
       }
-      console.error("[All-in-One] No image in response");
+      // Model returned OK but no image — log details and retry
+      const textContent = data.choices?.[0]?.message?.content || '(no text)';
+      console.error(`[All-in-One] No image in response from ${tryModel}. Text: ${textContent.substring(0, 200)}`);
+      console.log("[All-in-One] Retrying after no-image response...");
+      await new Promise(r => setTimeout(r, 2000));
+      continue;
     } else {
       const status = response.status;
       const errorText = await response.text();
