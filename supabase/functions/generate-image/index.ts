@@ -278,8 +278,10 @@ The client's ACTUAL brand logo is attached as the LAST image.
     messageContent[0].text = `LOGO NOTE: No logo was provided. Leave the bottom-left corner of the contact strip clean for later logo placement. Do NOT invent any logo.\n\n` + messageContent[0].text;
   }
 
+  const MAX_RETRIES = 3;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
   for (const tryModel of models) {
-    console.log("[All-in-One] Trying model:", tryModel);
+    console.log(`[All-in-One] Trying model: ${tryModel} (attempt ${attempt + 1}/${MAX_RETRIES})`);
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
