@@ -415,6 +415,7 @@ serve(async (req) => {
       contextBlock += `\n=== ניטרליות חגית ===\nזו אינה מודעה חגית. אין לכלול סמלי חגים (חנוכייה, קערת סדר, לולב, שופר, מגילה). שמור על עיצוב כללי ומקצועי.\n`;
     }
 
+    const SYSTEM_PROMPT = await fetchAgentPrompt('studio-agent', DEFAULT_SYSTEM_PROMPT);
     const messages: Array<{role: string; content: string}> = [
       { role: 'system', content: SYSTEM_PROMPT + contextBlock }
     ];

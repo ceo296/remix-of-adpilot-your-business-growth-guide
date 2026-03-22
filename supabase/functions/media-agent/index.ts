@@ -171,6 +171,7 @@ serve(async (req) => {
     if (campaignGoal) contextBlock += `מטרה: ${campaignGoal}\n`;
     if (campaignDuration) contextBlock += `משך: ${campaignDuration}\n`;
 
+    const SYSTEM_PROMPT = await fetchAgentPrompt('media-agent', DEFAULT_SYSTEM_PROMPT);
     const messages: Array<{role: string; content: string}> = [
       { role: 'system', content: SYSTEM_PROMPT + contextBlock }
     ];
