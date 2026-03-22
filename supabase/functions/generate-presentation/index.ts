@@ -159,6 +159,12 @@ ${profileContext}
 
 צור בדיוק ${slideCount} שקופיות (או פחות אם אין מספיק מידע).`;
 
+    // Load dynamic prompt from DB, fall back to hardcoded
+    const dbPrompt = await fetchAgentPrompt('generate-presentation', '');
+    const systemPrompt = dbPrompt 
+      ? dbPrompt + `\n\n═══ סגנון נבחר ═══\n${themeInstructions[theme] || themeInstructions.corporate}\n\n═══ image_prompt (חובה לכל שקופית!) ═══\n- פרומפט מפורט באנגלית. NO TEXT, NO LETTERS, NO WOMEN.\n- Cinematic quality, shallow depth of field, golden hour lighting.\n- If humans appear - Haredi Orthodox Jewish men/boys only.\n\n${profileContext}\n\nצור בדיוק ${slideCount} שקופיות.`
+      : DEFAULT_SYSTEM_PROMPT;
+
     const toolsSchema = [{
       type: "function",
       function: {
