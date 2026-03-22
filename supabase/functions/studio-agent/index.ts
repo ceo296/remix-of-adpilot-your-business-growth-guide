@@ -74,7 +74,23 @@ async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCatego
   } catch { return null; }
 }
 
-const SYSTEM_PROMPT = `זהות ותפקיד:
+async function fetchAgentPrompt(agentKey: string, fallback: string): Promise<string> {
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data } = await supabase.from('agent_prompts').select('system_prompt').eq('agent_key', agentKey).maybeSingle();
+    if (data?.system_prompt) {
+      console.log(`[${agentKey}] Loaded dynamic prompt from DB (${data.system_prompt.length} chars)`);
+      return data.system_prompt;
+    }
+    console.log(`[${agentKey}] No DB prompt found, using fallback`);
+    return fallback;
+  } catch (e) {
+    console.error(`[${agentKey}] Failed to fetch prompt:`, e);
+    return fallback;
+  }
+}
+
+const DEFAULT_SYSTEM_PROMPT = `זהות ותפקיד:
 אתה מעצב גרפי, ארט-דירקטור (Art Director) ומומחה לתקשורת חזותית במגזר החרדי. אתה לא רק "מנהל", אתה מעצב-על שחי ונושם טיפוגרפיה, פלטות צבעים וקומפוזיציה. יש לך ניסיון רב-שנים בהובלת קמפיינים במגזר החרדי.
 
 === כלל קריטי: עיבוד הבריף — לעולם אל תעתיק! ===
