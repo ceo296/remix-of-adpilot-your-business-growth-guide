@@ -645,7 +645,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     if (!subtitle && brandContext?.winningFeature) subtitle = brandContext.winningFeature.slice(0, 56);
     else if (!subtitle && brandContext?.primaryXFactor) subtitle = brandContext.primaryXFactor.slice(0, 56);
 
-    // Build contact details string for the ad
+    // Build contact details string for the ad — NEVER invent placeholder data
     const phone = brandContext?.contactPhone || '';
     const email = brandContext?.contactEmail || '';
     const address = brandContext?.contactAddress || '';
@@ -653,6 +653,9 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     const website = brandContext?.websiteUrl || '';
     const openingHours = brandContext?.openingHours || '';
     const branches = brandContext?.branches || '';
+    
+    // Sanitize visual prompt — strip placeholder phone numbers the AI may have hallucinated
+    const sanitizedVisualPrompt = (visualPrompt || '').replace(/0[2-9]X?[-\s]?X{3,7}/gi, '').replace(/05\d[-\s]?\d{7}/g, phone || '').trim();
     
     // CTA text
     const CTA_MAP: Record<string, string> = {
