@@ -6,8 +6,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function fetchAgentPrompt(agentKey: string, fallback: string): Promise<string> {
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data } = await supabase.from('agent_prompts').select('system_prompt').eq('agent_key', agentKey).maybeSingle();
+    if (data?.system_prompt) {
+      console.log(`[${agentKey}] Loaded dynamic prompt from DB (${data.system_prompt.length} chars)`);
+      return data.system_prompt;
+    }
+    console.log(`[${agentKey}] No DB prompt found, using fallback`);
+    return fallback;
+  } catch (e) {
+    console.error(`[${agentKey}] Failed to fetch prompt:`, e);
+    return fallback;
+  }
+}
+
 // Enhanced style descriptions for better quality
-const ART_DIRECTOR_GUIDELINES = `
+const DEFAULT_ART_DIRECTOR_GUIDELINES = `
 [CORE MISSION] You are a world-class Advertising Art Director specializing in high-end luxury brands for the Haredi (Ultra-Orthodox) Jewish sector. Your goal is to generate ONE complete, ready-to-publish advertisement with BOTH stunning visuals AND professional Hebrew typography — all composed together as a single cohesive masterpiece.
 
 [VISUAL STYLE - MANDATORY]
@@ -163,6 +179,7 @@ async function generateVisualLayer(
 ): Promise<{ imageUrl: string; model: string }> {
   const models = ENGINE_MODELS[engineVersion] || ENGINE_MODELS['nano-banana-pro'];
 
+  const ART_DIRECTOR_GUIDELINES = await fetchAgentPrompt('generate-image', DEFAULT_ART_DIRECTOR_GUIDELINES);
   const messageContent: any[] = [{ type: "text", text: ART_DIRECTOR_GUIDELINES + "\n\n" + fullPrompt }];
 
   // ═══ PAST MATERIALS as visual references (HIGHEST priority for brand-follower/visual-refresh) ═══

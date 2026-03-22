@@ -6,6 +6,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function fetchAgentPrompt(agentKey: string, fallback: string): Promise<string> {
+  try {
+    const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data } = await supabaseAdmin.from('agent_prompts').select('system_prompt').eq('agent_key', agentKey).maybeSingle();
+    if (data?.system_prompt) {
+      console.log(`[${agentKey}] Loaded dynamic prompt from DB (${data.system_prompt.length} chars)`);
+      return data.system_prompt;
+    }
+    console.log(`[${agentKey}] No DB prompt found, using fallback`);
+    return fallback;
+  } catch (e) {
+    console.error(`[${agentKey}] Failed to fetch prompt:`, e);
+    return fallback;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -71,7 +87,7 @@ serve(async (req) => {
       contextInfo += `\n\nהמערכת למדה ${fameCount} דוגמאות של קמפיינים מוצלחים.`;
     }
 
-    const analysisPrompt = `You are a "Digital Mashgiach" (kosher supervisor) for Haredi (Ultra-Orthodox Jewish) advertising content.
+    const DEFAULT_KOSHER_PROMPT = `You are a "Digital Mashgiach" (kosher supervisor) for Haredi (Ultra-Orthodox Jewish) advertising content.
 
 Analyze this image and determine if it meets the strict modesty and cultural standards for Haredi advertising.
 ${contextInfo}
@@ -94,6 +110,11 @@ Respond in JSON format:
 If no issues are found, mark as "approved".
 If minor/unclear issues, mark as "needs-review".
 If clear violations, mark as "rejected".`;
+
+    const dbPrompt = await fetchAgentPrompt('kosher-check', '');
+    const analysisPrompt = dbPrompt 
+      ? dbPrompt + contextInfo
+      : DEFAULT_KOSHER_PROMPT;
 
     console.log("Sending image for analysis");
 
