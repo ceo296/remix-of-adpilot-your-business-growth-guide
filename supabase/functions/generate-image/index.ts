@@ -457,7 +457,9 @@ serve(async (req) => {
     // Get style description
     const styleDesc = STYLE_DESCRIPTIONS[style] || STYLE_DESCRIPTIONS['ultra-realistic'];
     const templatePrompt = templateId ? TEMPLATE_PROMPTS[templateId] || '' : '';
-    const effectiveVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
+    const rawVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
+    // Sanitize placeholder phones from AI-generated visual prompts
+    const effectiveVisualPrompt = rawVisualPrompt.replace(/0[2-9]X?[-\s]?X{3,7}/gi, '').replace(/05\d[-\s]?\d{7}/g, brandContext?.contactPhone || '').trim() || 'עיצוב פרסומי מקצועי';
     
     // Brand color instructions — STRICT ENFORCEMENT
     let colorInstructions = '';
@@ -645,7 +647,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     if (!subtitle && brandContext?.winningFeature) subtitle = brandContext.winningFeature.slice(0, 56);
     else if (!subtitle && brandContext?.primaryXFactor) subtitle = brandContext.primaryXFactor.slice(0, 56);
 
-    // Build contact details string for the ad
+    // Build contact details string for the ad — NEVER invent placeholder data
     const phone = brandContext?.contactPhone || '';
     const email = brandContext?.contactEmail || '';
     const address = brandContext?.contactAddress || '';
@@ -653,6 +655,9 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     const website = brandContext?.websiteUrl || '';
     const openingHours = brandContext?.openingHours || '';
     const branches = brandContext?.branches || '';
+    
+    // Sanitize visual prompt — strip placeholder phone numbers the AI may have hallucinated
+    const sanitizedVisualPrompt = (visualPrompt || '').replace(/0[2-9]X?[-\s]?X{3,7}/gi, '').replace(/05\d[-\s]?\d{7}/g, phone || '').trim();
     
     // CTA text
     const CTA_MAP: Record<string, string> = {
