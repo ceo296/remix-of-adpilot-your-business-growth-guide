@@ -1726,16 +1726,14 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         updatePipelineStep(`sketch-${i+1}`, { label: `עיצוב סקיצה ${i+1} — ${typeLabel}` });
       });
 
-      // Generate images
-      toast.info('הקונספטים מוכנים! מתחיל לעצב סקיצות... 🎨');
-      setIsGenerating(true);
-      setShowResults(true);
-      setStyle('modern');
-      setAssetChoice('has-copy');
+      // Determine if we need visuals in autopilot flow
+      const isRadioOnlyAutopilot = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
+      const isArticleOnlyAutopilot = mediaTypes.length === 1 && mediaTypes[0] === 'article';
+      const isEmailOnlyAutopilot = mediaTypes.length === 1 && mediaTypes[0] === 'email';
+      const isWhatsappOnlyAutopilot = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
+      const needsVisualsAutopilot = !isRadioOnlyAutopilot && !isArticleOnlyAutopilot && !isEmailOnlyAutopilot && !isWhatsappOnlyAutopilot;
 
       const brandContext = buildBrandContext();
-      
-      // Resolve PDF logo to PNG if needed
       const resolvedLogo = await getResolvedLogoUrl();
       if (resolvedLogo && brandContext) {
         brandContext.logoUrl = resolvedLogo;
@@ -1758,6 +1756,23 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       };
 
       const results: GeneratedImage[] = [];
+
+      if (!needsVisualsAutopilot) {
+        // Skip image generation for text-only media types
+        toast.info('מייצר תוכן טקסטואלי... ✍️');
+        setShowResults(true);
+        // Skip all sketch pipeline steps
+        for (let i = 0; i < generatedConcepts.length; i++) {
+          updatePipelineStep(`sketch-${i+1}`, { status: 'skipped', details: 'לא נדרש ויזואל — כתבה/רדיו/מייל בלבד' });
+          updatePipelineStep(`kosher-${i+1}`, { status: 'skipped', details: 'לא נדרש ויזואל' });
+        }
+      } else {
+        // Generate images
+        toast.info('הקונספטים מוכנים! מתחיל לעצב סקיצות... 🎨');
+        setIsGenerating(true);
+        setShowResults(true);
+        setStyle('modern');
+        setAssetChoice('has-copy');
 
       for (let i = 0; i < generatedConcepts.length; i++) {
         const concept = generatedConcepts[i];
@@ -1924,6 +1939,9 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         updatePipelineStep(`sketch-${i+1}`, { status: 'skipped', details: 'לא נוצר קונספט' });
         updatePipelineStep(`kosher-${i+1}`, { status: 'skipped', details: 'לא נוצר קונספט' });
       }
+
+      setIsGenerating(false);
+      } // end of needsVisualsAutopilot else block
 
       const includes360 = mediaTypes.includes('all');
       const needsRadio = includes360 || mediaTypes.includes('radio');
