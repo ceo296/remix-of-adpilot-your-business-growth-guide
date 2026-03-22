@@ -179,6 +179,7 @@ async function generateVisualLayer(
 ): Promise<{ imageUrl: string; model: string }> {
   const models = ENGINE_MODELS[engineVersion] || ENGINE_MODELS['nano-banana-pro'];
 
+  const ART_DIRECTOR_GUIDELINES = await fetchAgentPrompt('generate-image', DEFAULT_ART_DIRECTOR_GUIDELINES);
   const messageContent: any[] = [{ type: "text", text: ART_DIRECTOR_GUIDELINES + "\n\n" + fullPrompt }];
 
   // ═══ PAST MATERIALS as visual references (HIGHEST priority for brand-follower/visual-refresh) ═══
