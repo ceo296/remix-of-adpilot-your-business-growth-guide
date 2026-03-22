@@ -457,7 +457,9 @@ serve(async (req) => {
     // Get style description
     const styleDesc = STYLE_DESCRIPTIONS[style] || STYLE_DESCRIPTIONS['ultra-realistic'];
     const templatePrompt = templateId ? TEMPLATE_PROMPTS[templateId] || '' : '';
-    const effectiveVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
+    const rawVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
+    // Sanitize placeholder phones from AI-generated visual prompts
+    const effectiveVisualPrompt = rawVisualPrompt.replace(/0[2-9]X?[-\s]?X{3,7}/gi, '').replace(/05\d[-\s]?\d{7}/g, brandContext?.contactPhone || '').trim() || 'עיצוב פרסומי מקצועי';
     
     // Brand color instructions — STRICT ENFORCEMENT
     let colorInstructions = '';
