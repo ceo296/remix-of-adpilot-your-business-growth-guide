@@ -1347,9 +1347,9 @@ const PresentationStudio = () => {
         isExporting={isExporting}
         brandColor={brandColor}
         industry={profile?.services?.join(', ') || ''}
-        renderSlide={(slide, scale, slideIndex) => (
+        renderSlide={(slide: any, scale: number, slideIndex: number) => (
           <SlideRenderer
-            slide={slide} brandColor={brandColor} secColor={secColor}
+            slide={slide as SlideData} brandColor={brandColor} secColor={secColor}
             businessName={businessName} logoUrl={logoUrl} phone={phone}
             email={email} scale={scale} font={font} theme={currentTheme}
             businessPhotos={businessPhotos} slideIndex={slideIndex} address={address}
