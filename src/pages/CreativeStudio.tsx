@@ -1940,6 +1940,9 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         updatePipelineStep(`kosher-${i+1}`, { status: 'skipped', details: 'לא נוצר קונספט' });
       }
 
+      setIsGenerating(false);
+      } // end of needsVisualsAutopilot else block
+
       const includes360 = mediaTypes.includes('all');
       const needsRadio = includes360 || mediaTypes.includes('radio');
       const needsArticle = includes360 || mediaTypes.includes('article');
