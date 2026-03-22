@@ -376,13 +376,17 @@ serve(async (req) => {
       }
       // Contact details for including in concepts
       contextBlock += `\n=== פרטי קשר של העסק (לשילוב בגריד תחתון בלבד — לא בקופי!) ===\n`;
-      if (brandContext.contactPhone) contextBlock += `טלפון: ${brandContext.contactPhone}\n`;
+      if (brandContext.contactPhone) {
+        contextBlock += `טלפון: ${brandContext.contactPhone}\n`;
+      } else {
+        contextBlock += `⚠️ טלפון: לא הוזן! אסור להמציא מספר טלפון. אם אין טלפון — השאר את אזור הטלפון ריק בגריד התחתון. אסור בתכלית האיסור לכתוב "05X-XXXXXXX" או כל מספר פיקטיבי!\n`;
+      }
       if (brandContext.contactWhatsapp) contextBlock += `וואטסאפ: ${brandContext.contactWhatsapp}\n`;
       if (brandContext.contactEmail) contextBlock += `מייל: ${brandContext.contactEmail}\n`;
       if (brandContext.contactAddress) contextBlock += `כתובת: ${brandContext.contactAddress}\n`;
       if (brandContext.websiteUrl) contextBlock += `אתר: ${brandContext.websiteUrl}\n`;
       if (brandContext.branches) contextBlock += `סניפים: ${brandContext.branches}\n`;
-      contextBlock += `הנחיה: כלול את פרטי הקשר הרלוונטיים ב-CTA ובגריד התחתון של כל קונספט. הטלפון הוא החשוב ביותר.\n`;
+      contextBlock += `הנחיה: כלול רק את פרטי הקשר שקיימים בפועל. אסור להמציא מספרי טלפון, כתובות, או כל פרט שלא סופק.\n`;
     }
 
     if (campaignContext) {
