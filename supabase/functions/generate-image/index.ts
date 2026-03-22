@@ -278,8 +278,10 @@ The client's ACTUAL brand logo is attached as the LAST image.
     messageContent[0].text = `LOGO NOTE: No logo was provided. Leave the bottom-left corner of the contact strip clean for later logo placement. Do NOT invent any logo.\n\n` + messageContent[0].text;
   }
 
+  const MAX_RETRIES = 3;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
   for (const tryModel of models) {
-    console.log("[All-in-One] Trying model:", tryModel);
+    console.log(`[All-in-One] Trying model: ${tryModel} (attempt ${attempt + 1}/${MAX_RETRIES})`);
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -300,7 +302,12 @@ The client's ACTUAL brand logo is attached as the LAST image.
         console.log("[All-in-One] Success with model:", tryModel);
         return { imageUrl, model: tryModel };
       }
-      console.error("[All-in-One] No image in response");
+      // Model returned OK but no image — log details and retry
+      const textContent = data.choices?.[0]?.message?.content || '(no text)';
+      console.error(`[All-in-One] No image in response from ${tryModel}. Text: ${textContent.substring(0, 200)}`);
+      console.log("[All-in-One] Retrying after no-image response...");
+      await new Promise(r => setTimeout(r, 2000));
+      continue;
     } else {
       const status = response.status;
       const errorText = await response.text();
@@ -314,7 +321,8 @@ The client's ACTUAL brand logo is attached as the LAST image.
         continue;
       }
     }
-  }
+  } // end models loop
+  } // end retry loop
   throw { status: 500, message: "שגיאה ביצירת השכבה הויזואלית. נסה שוב." };
 }
 
