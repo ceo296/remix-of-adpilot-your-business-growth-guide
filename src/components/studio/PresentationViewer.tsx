@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface SlideData {
+export interface PresentationSlideData {
   id: string;
   type: string;
   title: string;
