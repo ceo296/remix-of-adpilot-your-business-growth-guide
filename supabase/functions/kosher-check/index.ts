@@ -87,7 +87,7 @@ serve(async (req) => {
       contextInfo += `\n\nהמערכת למדה ${fameCount} דוגמאות של קמפיינים מוצלחים.`;
     }
 
-    const analysisPrompt = `You are a "Digital Mashgiach" (kosher supervisor) for Haredi (Ultra-Orthodox Jewish) advertising content.
+    const DEFAULT_KOSHER_PROMPT = `You are a "Digital Mashgiach" (kosher supervisor) for Haredi (Ultra-Orthodox Jewish) advertising content.
 
 Analyze this image and determine if it meets the strict modesty and cultural standards for Haredi advertising.
 ${contextInfo}
@@ -110,6 +110,11 @@ Respond in JSON format:
 If no issues are found, mark as "approved".
 If minor/unclear issues, mark as "needs-review".
 If clear violations, mark as "rejected".`;
+
+    const dbPrompt = await fetchAgentPrompt('kosher-check', '');
+    const analysisPrompt = dbPrompt 
+      ? dbPrompt + contextInfo
+      : DEFAULT_KOSHER_PROMPT;
 
     console.log("Sending image for analysis");
 
