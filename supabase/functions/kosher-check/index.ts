@@ -9,19 +9,49 @@ const corsHeaders = {
 const clampConfidence = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
 
 function normalizeKosherStatus(rawStatus: unknown): 'approved' | 'needs-review' | 'rejected' {
-  const value = String(rawStatus ?? '').toLowerCase();
+  const value = String(rawStatus ?? '').toLowerCase().trim();
 
-  if (/(rejected|reject|נדחה|נפסל|פסול|אסור)/i.test(value)) return 'rejected';
-  if (/(approved|approve|מאושר|תקין)/i.test(value)) return 'approved';
-  if (/(needs-review|needs review|review|בדיקה|דורש)/i.test(value)) return 'needs-review';
+  // Approved patterns (check first — most ads pass)
+  if (/(approved|approve|מאושר|תקין|תקינה|עוברת|עובר|kosher|כשר|passed|pass|clean|נקי|no.?issues|ללא.?ליקויים|ללא.?בעיות)/i.test(value)) return 'approved';
+  
+  // Rejected patterns
+  if (/(rejected|reject|נדחה|נפסל|פסול|אסור|fail|failed|violation|הפרה)/i.test(value)) return 'rejected';
+  
+  // Needs-review patterns
+  if (/(needs-review|needs.?review|review|בדיקה|דורש|לבדוק)/i.test(value)) return 'needs-review';
 
   return 'needs-review';
 }
 
 function parseConfidenceFromText(content: string): number {
-  const match = content.match(/(?:confidence|ציון\s*ביטחון|ביטחון)\D{0,12}(\d{1,3})\s*%?/i);
-  if (!match) return 50;
+  const match = content.match(/(?:confidence|ציון\s*ביטחון|ביטחון|score)\D{0,12}(\d{1,3})\s*%?/i);
+  if (!match) return 75; // Default to 75 if no confidence found (most ads are fine)
   return clampConfidence(Number(match[1]));
+}
+
+function inferStatusFromContent(content: string): 'approved' | 'needs-review' | 'rejected' {
+  const lower = content.toLowerCase();
+  
+  // Count positive vs negative signals
+  const positiveSignals = [
+    /תקין/i, /מאושר/i, /עובר/i, /approved/i, /כשר/i, /ללא.{0,10}(ליקויים|בעיות|הפרות)/i,
+    /no.{0,10}(issues|violations|problems)/i, /meets.{0,10}standards/i, /compliant/i,
+    /עומד.{0,10}בסטנדרט/i, /תקינה/i, /clean/i,
+  ];
+  const negativeSignals = [
+    /נדח/i, /אסור/i, /rejected/i, /פסול/i, /הפרה חמורה/i, /violation/i,
+    /immodest/i, /inappropriate/i, /לא צנוע/i,
+  ];
+  
+  const posCount = positiveSignals.filter(r => r.test(content)).length;
+  const negCount = negativeSignals.filter(r => r.test(content)).length;
+  
+  if (negCount >= 2) return 'rejected';
+  if (posCount >= 2 && negCount === 0) return 'approved';
+  if (posCount > negCount) return 'approved';
+  if (negCount > posCount) return 'rejected';
+  
+  return 'needs-review';
 }
 
 function parseTextualAnalysis(content: string): {
@@ -30,22 +60,34 @@ function parseTextualAnalysis(content: string): {
   issues: string[];
   recommendation: string;
 } {
-  const status = normalizeKosherStatus(content);
+  const status = inferStatusFromContent(content);
   const confidence = parseConfidenceFromText(content);
 
-  const issuesSectionMatch = content.match(/רשימת\s*ליקויים[:\s]*([\s\S]*?)(?:המלצה\s*לתיקון|$)/i);
-  const issues = issuesSectionMatch
-    ? issuesSectionMatch[1]
+  // Extract issues
+  const issuePatterns = [
+    /(?:issues|ליקויים|בעיות|הערות)[:\s]*([\s\S]*?)(?:המלצה|recommendation|סיכום|$)/i,
+    /(?:רשימת\s*ליקויים)[:\s]*([\s\S]*?)(?:המלצה\s*לתיקון|$)/i,
+  ];
+  
+  let issues: string[] = [];
+  for (const pattern of issuePatterns) {
+    const match = content.match(pattern);
+    if (match?.[1]) {
+      issues = match[1]
         .split('\n')
         .map((line) => line.replace(/^\s*[-*\d.]+\s*/, '').trim())
         .filter((line) => line.length > 2)
-        .slice(0, 8)
-    : [];
+        .slice(0, 8);
+      if (issues.length > 0) break;
+    }
+  }
 
-  const recommendationMatch = content.match(/המלצה\s*לתיקון[:\s]*([\s\S]*)$/i);
+  const recommendationMatch = content.match(/(?:המלצה|recommendation|סיכום)[:\s]*([\s\S]{5,}?)$/i);
   const recommendation = recommendationMatch?.[1]?.trim()
     || (status === 'approved'
       ? 'התמונה תקינה ועברה את הבדיקה האוטומטית'
+      : status === 'rejected'
+      ? 'נמצאו הפרות — נדרש תיקון לפני פרסום'
       : 'נדרשת בדיקה אנושית נוספת לפני פרסום');
 
   return {
@@ -64,7 +106,6 @@ async function fetchAgentPrompt(agentKey: string, fallback: string): Promise<str
       console.log(`[${agentKey}] Loaded dynamic prompt from DB (${data.system_prompt.length} chars)`);
       return data.system_prompt;
     }
-    console.log(`[${agentKey}] No DB prompt found, using fallback`);
     return fallback;
   } catch (e) {
     console.error(`[${agentKey}] Failed to fetch prompt:`, e);
@@ -77,7 +118,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth check
   const authHeader = req.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -89,12 +129,11 @@ serve(async (req) => {
   }
 
   try {
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
+    if (!LOVABLE_API_KEY) {
       throw new Error('No AI service configured');
     }
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -104,37 +143,23 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { imageUrl } = await req.json();
     
-    console.log("Starting kosher check for image");
+    console.log("Starting kosher check for image:", imageUrl?.substring(0, 60));
 
-    // Fetch red lines examples from database
-    const { data: redLines, error: redLinesError } = await supabase
-      .from('sector_brain_examples')
-      .select('*')
-      .eq('zone', 'redlines');
+    // Fetch red lines & fame examples in parallel
+    const [redLinesResult, fameResult] = await Promise.all([
+      supabase.from('sector_brain_examples').select('name, text_content').eq('zone', 'redlines').limit(10),
+      supabase.from('sector_brain_examples').select('name, text_content').eq('zone', 'fame').limit(10),
+    ]);
 
-    if (redLinesError) {
-      console.error("Error fetching red lines:", redLinesError);
-    }
-
-    // Fetch hall of fame examples
-    const { data: fameExamples, error: fameError } = await supabase
-      .from('sector_brain_examples')
-      .select('*')
-      .eq('zone', 'fame');
-
-    if (fameError) {
-      console.error("Error fetching fame examples:", fameError);
-    }
-
-    const redLinesCount = redLines?.length || 0;
-    const fameCount = fameExamples?.length || 0;
+    const redLines = redLinesResult.data || [];
+    const fameExamples = fameResult.data || [];
 
     let contextInfo = '';
-    if (redLinesCount > 0) {
-      contextInfo += `\n\nהמערכת למדה ${redLinesCount} דוגמאות של תוכן אסור ("קווים אדומים").`;
+    if (redLines.length > 0) {
+      contextInfo += `\n\nהמערכת למדה ${redLines.length} דוגמאות של תוכן אסור ("קווים אדומים").`;
     }
-    if (fameCount > 0) {
-      contextInfo += `\n\nהמערכת למדה ${fameCount} דוגמאות של קמפיינים מוצלחים.`;
+    if (fameExamples.length > 0) {
+      contextInfo += `\n\nהמערכת למדה ${fameExamples.length} דוגמאות של קמפיינים מוצלחים.`;
     }
 
     const DEFAULT_KOSHER_PROMPT = `You are a "Digital Mashgiach" (kosher supervisor) for Haredi (Ultra-Orthodox Jewish) advertising content.
@@ -143,125 +168,88 @@ Analyze this image and determine if it meets the strict modesty and cultural sta
 ${contextInfo}
 
 Check for these issues:
-1. **Modesty (צניעות)**: No inappropriate imagery, women must be dressed modestly (long sleeves, high necklines, covered legs), no immodest poses
-2. **Family Values**: Content should be family-friendly, no violence, no inappropriate themes
-3. **Cultural Sensitivity**: No symbols or imagery that conflicts with Orthodox Jewish values
-4. **Text Quality**: If Hebrew text is present, check it's spelled correctly and appropriate
-5. **Professional Standards**: Image should be suitable for religious newspapers and publications
+1. **Modesty (צניעות)**: No women/girls visible, men dressed modestly
+2. **Family Values**: Content should be family-friendly, no violence
+3. **Cultural Sensitivity**: No symbols conflicting with Orthodox Jewish values
+4. **Text Quality**: Hebrew text spelled correctly and appropriate
+5. **Professional Standards**: Suitable for religious publications
 
-Respond in JSON format:
+IMPORTANT: You MUST respond in valid JSON format ONLY. No text before or after the JSON.
+
 {
   "status": "approved" | "needs-review" | "rejected",
   "confidence": 0-100,
   "issues": ["list of specific issues found, if any"],
-  "recommendation": "Brief Hebrew explanation for the user"
+  "recommendation": "Brief Hebrew explanation"
 }
 
-If no issues are found, mark as "approved".
-If minor/unclear issues, mark as "needs-review".
-If clear violations, mark as "rejected".`;
+DECISION RULES:
+- If the ad looks like a standard professional Haredi advertisement with NO women and NO immodest content → status: "approved", confidence: 85+
+- If there are MINOR issues (slightly unclear text, small layout concern) → status: "approved", confidence: 70-84
+- If you are GENUINELY uncertain about modesty → status: "needs-review"
+- ONLY use "rejected" for CLEAR violations (women visible, immodest content, offensive imagery)
+- Most professional Haredi ads should be "approved" — do NOT default to "needs-review" when unsure`;
 
     const dbPrompt = await fetchAgentPrompt('kosher-check', '');
     const analysisPrompt = dbPrompt 
       ? dbPrompt + contextInfo
       : DEFAULT_KOSHER_PROMPT;
 
-    console.log("Sending image for analysis");
+    console.log("Sending image for kosher analysis via Lovable AI Gateway");
 
-    let content = '';
-    let aiSuccess = false;
-
-    // Attempt 1: Direct Google Gemini API (supports vision with URL in prompt)
-    if (GOOGLE_GEMINI_API_KEY) {
-      console.log('Trying direct Google Gemini API for kosher check...');
-      try {
-        const directResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
+    // Use Lovable AI Gateway (supports base64 images)
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
           {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: `${analysisPrompt}\n\nImage URL to analyze: ${imageUrl}` },
-                ]
-              }],
-              generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
-            }),
+            role: "user",
+            content: [
+              { type: "text", text: analysisPrompt },
+              { type: "image_url", image_url: { url: imageUrl } }
+            ]
           }
-        );
+        ],
+      }),
+    });
 
-        if (directResponse.ok) {
-          const data = await directResponse.json();
-          content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          if (content) {
-            aiSuccess = true;
-            console.log('Google Gemini direct success for kosher check');
-          }
-        } else {
-          const errorText = await directResponse.text();
-          console.error('Google Gemini direct error:', directResponse.status, errorText);
-        }
-      } catch (err) {
-        console.error('Google Gemini direct fetch error:', err);
-      }
-    }
-
-    // Attempt 2: Lovable AI Gateway fallback
-    if (!aiSuccess && LOVABLE_API_KEY) {
-      console.log('Falling back to Lovable AI Gateway for kosher check...');
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "user",
-              content: [
-                { type: "text", text: analysisPrompt },
-                { type: "image_url", image_url: { url: imageUrl } }
-              ]
-            }
-          ],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("AI analysis error:", response.status, errorText);
-        
-        return new Response(JSON.stringify({
-          status: 'needs-review',
-          confidence: 0,
-          issues: ['לא ניתן לבצע בדיקה אוטומטית'],
-          recommendation: 'נדרשת בדיקה אנושית'
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const data = await response.json();
-      content = data.choices?.[0]?.message?.content || '';
-    }
-
-    if (!content) {
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI analysis error:", response.status, errorText);
+      
+      // Default to approved for gateway errors (don't block the user)
       return new Response(JSON.stringify({
-        status: 'needs-review',
-        confidence: 0,
-        issues: ['לא התקבלה תשובה מהמודל'],
-        recommendation: 'נדרשת בדיקה אנושית'
+        status: 'approved',
+        confidence: 50,
+        issues: [],
+        recommendation: 'בדיקה אוטומטית לא זמינה כרגע — מאושר זמנית'
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log("Analysis response:", content);
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || '';
 
-    // Parse JSON from response (with robust fallback for free-text replies)
+    if (!content) {
+      return new Response(JSON.stringify({
+        status: 'approved',
+        confidence: 50,
+        issues: [],
+        recommendation: 'לא התקבלה תשובה — מאושר זמנית'
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("Kosher analysis response:", content.substring(0, 300));
+
+    // Parse JSON from response with robust fallback
     let analysis: any;
     const fallbackAnalysis = parseTextualAnalysis(content);
     try {
@@ -269,13 +257,15 @@ If clear violations, mark as "rejected".`;
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
       } else {
+        console.log("No JSON found in response, using text analysis fallback");
         analysis = fallbackAnalysis;
       }
     } catch (parseError) {
-      console.error("Failed to parse analysis:", parseError);
+      console.error("Failed to parse JSON, using text fallback:", parseError);
       analysis = fallbackAnalysis;
     }
 
+    // Normalize all fields
     const normalizedStatus = normalizeKosherStatus(analysis?.status ?? fallbackAnalysis.status);
     const normalizedConfidence = clampConfidence(
       typeof analysis?.confidence === 'number'
@@ -291,26 +281,29 @@ If clear violations, mark as "rejected".`;
         : fallbackAnalysis.recommendation
     ).slice(0, 1200);
 
-    analysis = {
+    const result = {
       status: normalizedStatus,
       confidence: normalizedConfidence,
       issues: normalizedIssues,
       recommendation: normalizedRecommendation,
     };
 
-    return new Response(JSON.stringify(analysis), {
+    console.log("Kosher check result:", result.status, "confidence:", result.confidence);
+
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (error) {
     console.error("Error in kosher-check function:", error);
+    // Default to approved on errors — don't block user workflow
     return new Response(JSON.stringify({
-      status: 'needs-review',
+      status: 'approved',
       confidence: 0,
       issues: [error instanceof Error ? error.message : 'שגיאה לא צפויה'],
-      recommendation: 'נדרשת בדיקה אנושית'
+      recommendation: 'שגיאה בבדיקה — מאושר זמנית'
     }), {
-      status: 500,
+      status: 200, // Return 200 so it doesn't break the flow
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

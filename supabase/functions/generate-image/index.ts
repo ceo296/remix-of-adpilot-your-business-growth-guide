@@ -191,17 +191,39 @@ async function generateVisualLayer(
       type: "image_url",
       image_url: { url: normalizedSourceImageUrl }
     });
+    // In revision mode, REPLACE the entire prompt with a minimal, focused revision prompt
+    // This prevents the AI from being overwhelmed by the full creative brief and generating new concepts
     messageContent[0].text = `
-═══ TARGETED REVISION MODE — EDIT THE ATTACHED AD ONLY ═══
-The attached image is the EXISTING approved sketch that must be corrected.
-YOU MUST:
-1. Keep the SAME composition, style, and layout structure.
-2. Keep the SAME logo and brand identity exactly as shown.
-3. Apply ONLY the requested corrections.
-4. Return ONE revised ad, not alternative concepts.
-5. Preserve all unchanged areas as-is.
-════════════════════════════════════════════════════════════
-\n\n` + messageContent[0].text;
+════════════════════════════════════════════════════════════════════
+         ⚠️  TARGETED REVISION MODE — THIS IS NOT A NEW AD  ⚠️
+════════════════════════════════════════════════════════════════════
+
+You are receiving an EXISTING advertisement that needs SMALL CORRECTIONS.
+
+🔒 LOCKED (DO NOT CHANGE):
+- The overall composition, layout, and grid structure
+- The logo (keep EXACTLY as it appears — do NOT redraw, replace, or invent a new logo)
+- The color palette and brand identity
+- The visual style and photography
+- Any elements NOT mentioned in the corrections below
+
+✏️ CORRECTIONS TO APPLY:
+${fullPrompt.match(/CLIENT REVISIONS:\n([\s\S]*?)(?:\n\n|FINAL CHECKLIST)/)?.[1] || '(see below)'}
+
+📐 RULES:
+1. Output exactly ONE corrected version of this ad
+2. Keep 95%+ of the image IDENTICAL — only change what's requested
+3. All Hebrew text must be RIGHT-TO-LEFT, sharp, and fully readable
+4. No text may be clipped, cut off, or extend beyond edges (keep 5% safety margin)
+5. Do NOT generate a new concept, new layout, or new visual approach
+6. Do NOT invent, redraw, or modify the logo — keep it EXACTLY as shown
+7. The corrected ad must look like a MINOR EDIT of the original, not a redesign
+
+${fullPrompt.match(/═══ HEBREW TEXT TO INCLUDE[\s\S]*?═══════════════════════════════════════════════════════════════════/)?.[0] || ''}
+
+GENERATE THE CORRECTED AD NOW.
+════════════════════════════════════════════════════════════════════
+`;
   }
 
   // ═══ PAST MATERIALS as visual references (HIGHEST priority for brand-follower/visual-refresh) ═══
@@ -282,8 +304,12 @@ This is NOT just inspiration — this is the TEMPLATE to follow.
   }
 
   // ALL-IN-ONE: Include the logo as a reference image so the AI places it naturally in the composition
+  // In REVISION MODE: do NOT attach the logo separately — it's already in the source image
   const logoUrl = brandContext?.logoUrl;
-  if (logoUrl && typeof logoUrl === 'string' && !logoUrl.startsWith('data:application/pdf')) {
+  if (isRevisionMode) {
+    // Revision mode: logo is already in the source ad, just remind the AI not to touch it
+    messageContent[0].text = `REVISION LOGO RULE: The source ad already contains the correct brand logo. Keep it EXACTLY as-is. Do NOT replace, redraw, invent, or remove the logo.\n\n` + messageContent[0].text;
+  } else if (logoUrl && typeof logoUrl === 'string' && !logoUrl.startsWith('data:application/pdf')) {
     console.log("Including BRAND LOGO as reference for All-in-One composition:", logoUrl.substring(0, 80));
     messageContent.push({
       type: "image_url",
@@ -298,10 +324,8 @@ The client's ACTUAL brand logo is attached as the LAST image.
 - Do NOT invent a new logo — use ONLY this attached image
 ═══════════════════════════════════════════════════
 \n\n` + messageContent[0].text;
-  } else if (!isRevisionMode) {
-    messageContent[0].text = `LOGO NOTE: No logo was provided. Leave the bottom-left corner of the contact strip clean for later logo placement. Do NOT invent any logo.\n\n` + messageContent[0].text;
   } else {
-    messageContent[0].text = `REVISION MODE LOGO RULE: Keep the exact same logo that already appears in the attached source ad. Never replace, redesign, or invent a new logo.\n\n` + messageContent[0].text;
+    messageContent[0].text = `LOGO NOTE: No logo was provided. Leave the bottom-left corner of the contact strip clean for later logo placement. Do NOT invent any logo.\n\n` + messageContent[0].text;
   }
 
   const MAX_RETRIES = 3;
