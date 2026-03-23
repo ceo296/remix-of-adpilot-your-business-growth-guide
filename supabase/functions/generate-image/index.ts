@@ -175,12 +175,34 @@ async function generateVisualLayer(
   brandContext: any,
   LOVABLE_API_KEY: string,
   engineVersion: string = 'nano-banana-pro',
-  campaignContext?: any
+  campaignContext?: any,
+  sourceImageUrl?: string
 ): Promise<{ imageUrl: string; model: string }> {
   const models = ENGINE_MODELS[engineVersion] || ENGINE_MODELS['nano-banana-pro'];
 
   const ART_DIRECTOR_GUIDELINES = await fetchAgentPrompt('generate-image', DEFAULT_ART_DIRECTOR_GUIDELINES);
   const messageContent: any[] = [{ type: "text", text: ART_DIRECTOR_GUIDELINES + "\n\n" + fullPrompt }];
+  const normalizedSourceImageUrl = typeof sourceImageUrl === 'string' ? sourceImageUrl.trim() : '';
+  const isRevisionMode = !!normalizedSourceImageUrl && !normalizedSourceImageUrl.startsWith('data:application/pdf');
+
+  if (isRevisionMode) {
+    console.log("Including SOURCE AD image for targeted revision:", normalizedSourceImageUrl.substring(0, 80));
+    messageContent.push({
+      type: "image_url",
+      image_url: { url: normalizedSourceImageUrl }
+    });
+    messageContent[0].text = `
+═══ TARGETED REVISION MODE — EDIT THE ATTACHED AD ONLY ═══
+The attached image is the EXISTING approved sketch that must be corrected.
+YOU MUST:
+1. Keep the SAME composition, style, and layout structure.
+2. Keep the SAME logo and brand identity exactly as shown.
+3. Apply ONLY the requested corrections.
+4. Return ONE revised ad, not alternative concepts.
+5. Preserve all unchanged areas as-is.
+════════════════════════════════════════════════════════════
+\n\n` + messageContent[0].text;
+  }
 
   // ═══ PAST MATERIALS as visual references (HIGHEST priority for brand-follower/visual-refresh) ═══
   const pastMaterialUrls = brandContext?.pastMaterialUrls || [];
@@ -188,7 +210,7 @@ async function generateVisualLayer(
   const shouldUsePastMaterials = pastMaterialUrls.length > 0 && 
     (designApproach === 'brand-follower' || designApproach === 'visual-refresh');
   
-  if (shouldUsePastMaterials) {
+  if (!isRevisionMode && shouldUsePastMaterials) {
     const materialsToInclude = pastMaterialUrls.slice(0, 3); // Max 3 to avoid overloading
     for (const matUrl of materialsToInclude) {
       if (matUrl && typeof matUrl === 'string' && !matUrl.startsWith('data:application/pdf')) {
@@ -215,7 +237,7 @@ A viewer should NOT be able to tell a different designer made this ad.
 
   // Include campaign-specific image if provided (highest priority visual reference)
   const campaignImageUrl = campaignContext?.campaignImageUrl;
-  if (campaignImageUrl && !campaignImageUrl.startsWith('data:application/pdf')) {
+  if (!isRevisionMode && campaignImageUrl && !campaignImageUrl.startsWith('data:application/pdf')) {
     console.log("Including client campaign image as PRIMARY visual reference");
     messageContent.push({
       type: "image_url",
@@ -227,22 +249,24 @@ A viewer should NOT be able to tell a different designer made this ad.
   // Include business photos as visual references (up to 2 to avoid overloading)
   const businessPhotoUrls = brandContext?.businessPhotoUrls || [];
   const photosToInclude = businessPhotoUrls.slice(0, 2);
-  for (const photoUrl of photosToInclude) {
-    if (photoUrl && typeof photoUrl === 'string' && !photoUrl.startsWith('data:application/pdf')) {
-      console.log("Including business photo as visual reference:", photoUrl.substring(0, 80));
-      messageContent.push({
-        type: "image_url",
-        image_url: { url: photoUrl }
-      });
+  if (!isRevisionMode) {
+    for (const photoUrl of photosToInclude) {
+      if (photoUrl && typeof photoUrl === 'string' && !photoUrl.startsWith('data:application/pdf')) {
+        console.log("Including business photo as visual reference:", photoUrl.substring(0, 80));
+        messageContent.push({
+          type: "image_url",
+          image_url: { url: photoUrl }
+        });
+      }
     }
-  }
-  if (photosToInclude.length > 0) {
-    messageContent[0].text = `The client has provided ${photosToInclude.length} REAL business/product photos (attached). Draw inspiration from these actual products/settings to create authentic visuals.\n\n` + messageContent[0].text;
+    if (photosToInclude.length > 0) {
+      messageContent[0].text = `The client has provided ${photosToInclude.length} REAL business/product photos (attached). Draw inspiration from these actual products/settings to create authentic visuals.\n\n` + messageContent[0].text;
+    }
   }
 
   // Include design reference (specific past material selected by user)
   const designRefUrl = brandContext?.designReference?.url;
-  if (designRefUrl && typeof designRefUrl === 'string' && !designRefUrl.startsWith('data:application/pdf')) {
+  if (!isRevisionMode && designRefUrl && typeof designRefUrl === 'string' && !designRefUrl.startsWith('data:application/pdf')) {
     console.log("Including DESIGN REFERENCE image:", designRefUrl.substring(0, 80));
     messageContent.push({
       type: "image_url",
@@ -274,8 +298,10 @@ The client's ACTUAL brand logo is attached as the LAST image.
 - Do NOT invent a new logo — use ONLY this attached image
 ═══════════════════════════════════════════════════
 \n\n` + messageContent[0].text;
-  } else {
+  } else if (!isRevisionMode) {
     messageContent[0].text = `LOGO NOTE: No logo was provided. Leave the bottom-left corner of the contact strip clean for later logo placement. Do NOT invent any logo.\n\n` + messageContent[0].text;
+  } else {
+    messageContent[0].text = `REVISION MODE LOGO RULE: Keep the exact same logo that already appears in the attached source ad. Never replace, redesign, or invent a new logo.\n\n` + messageContent[0].text;
   }
 
   const MAX_RETRIES = 3;
@@ -330,6 +356,33 @@ The client's ACTUAL brand logo is attached as the LAST image.
 
 function normalizePromptText(value: string): string {
   return (value || '').replace(/\s+/g, ' ').trim();
+}
+
+type NormalizedCorrection = { type: string; text: string };
+
+function normalizeCorrections(rawCorrections: any): NormalizedCorrection[] {
+  if (!Array.isArray(rawCorrections)) return [];
+
+  return rawCorrections
+    .map((item): NormalizedCorrection => {
+      if (typeof item === 'string') {
+        return { type: 'general', text: normalizePromptText(item) };
+      }
+
+      if (item && typeof item === 'object') {
+        const type = typeof item.type === 'string' && item.type.trim() ? item.type.trim() : 'general';
+        const text = typeof item.text === 'string'
+          ? normalizePromptText(item.text)
+          : typeof item.note === 'string'
+            ? normalizePromptText(item.note)
+            : '';
+
+        return { type, text };
+      }
+
+      return { type: 'general', text: '' };
+    })
+    .filter((item) => item.text.length > 0);
 }
 
 function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicCategory?: string): string {
@@ -417,8 +470,11 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, designApproach, corrections, variationIndex, headlinePosition } = await req.json();
-    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, headlinePosition, brandContext: brandContext ? { businessName: brandContext.businessName, colors: brandContext.colors, logoUrl: !!brandContext.logoUrl } : null, corrections: corrections?.length || 0 });
+    const body = await req.json();
+    const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, designApproach, corrections, variationIndex, headlinePosition, _visualOnlyUrl, sourceImageUrl } = body;
+    const revisionSourceImageUrl = sourceImageUrl || _visualOnlyUrl || null;
+    const normalizedCorrections = normalizeCorrections(corrections);
+    console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, headlinePosition, hasRevisionSource: !!revisionSourceImageUrl, brandContext: brandContext ? { businessName: brandContext.businessName, colors: brandContext.colors, logoUrl: !!brandContext.logoUrl } : null, corrections: normalizedCorrections.length });
 
     // Initialize Supabase to fetch model config + sector brain
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -755,11 +811,28 @@ The client's ACTUAL logo is attached as an image reference.
 - Do NOT invent or modify the logo — use it EXACTLY as provided
 ═══════════════════════════════════════════════════════════
 `;
+    } else if (revisionSourceImageUrl) {
+      logoBlock = `
+REVISION LOGO RULE: The source ad already contains the correct brand logo.
+- Keep that exact logo in the same visual zone
+- Do NOT replace, redraw, or remove it
+- Do NOT invent any new logo symbol
+`;
     } else {
       logoBlock = `
 LOGO: No logo was provided. Leave the bottom-left corner of the contact strip clean and empty for later logo placement. Do NOT invent any logo or symbol.
 `;
     }
+
+    const revisionInstructions = revisionSourceImageUrl ? `
+═══ TARGETED REVISION BRIEF ═══
+This request is a FIX for an existing ad (source image attached).
+- Keep same concept, same composition, same style, same brand identity.
+- Apply only the listed client revisions.
+- Return ONE corrected version of this exact ad — not a new concept.
+- Text must remain fully readable with no clipped/cut words.
+═══════════════════════════════
+` : '';
 
     const fullAdPrompt = `Generate a COMPLETE, READY-TO-PUBLISH professional advertisement with BOTH stunning visuals AND Hebrew text, all composed together as ONE cohesive design.
 
@@ -767,6 +840,8 @@ THIS IS A COMPLETE AD — NOT JUST A PHOTO:
 - The output must look like a FINISHED print/digital advertisement
 - Visual + text + contact details + logo — all integrated into ONE harmonious composition
 - Think of how a professional graphic designer would create a complete ad in Photoshop/InDesign
+
+${revisionInstructions}
 
 ${textBlock}
 ${logoBlock}
@@ -867,9 +942,9 @@ GENDER-VISUAL MATCHING:
 ${sectorInsights}
 ${modelRules}
 
-${corrections?.length ? `
+${normalizedCorrections.length ? `
 CLIENT REVISIONS:
-${corrections.map((c: any) => `- [${c.type === 'copy' ? 'TEXT' : c.type === 'visual' ? 'VISUAL' : 'GENERAL'}]: ${c.text}`).join('\n')}
+${normalizedCorrections.map((c) => `- [${c.type === 'copy' || c.type === 'headline' || c.type === 'subtitle' ? 'TEXT' : c.type === 'visual' ? 'VISUAL' : 'GENERAL'}]: ${c.text}`).join('\n')}
 ` : ''}
 
 FINAL CHECKLIST:
@@ -878,11 +953,12 @@ FINAL CHECKLIST:
 ✓ Contact details are accurate and complete
 ✓ Logo is properly placed (if provided)
 ✓ Visual is cinematic and premium
+✓ No clipped/cut Hebrew text at edges or overlays
 ✓ All community rules respected`;
 
     const engineVersion = engine === 'nano-banana-pro' ? 'nano-banana-pro' : 'nano-banana';
     console.log(`[Pipeline] Starting All-in-One generation (engine: ${engineVersion})`);
-    const visualResult = await generateVisualLayer(fullAdPrompt, brandContext, LOVABLE_API_KEY, engineVersion, campaignContext);
+    const visualResult = await generateVisualLayer(fullAdPrompt, brandContext, LOVABLE_API_KEY, engineVersion, campaignContext, revisionSourceImageUrl || undefined);
     console.log("[Pipeline] All-in-One generation complete — full ad with text and layout.");
 
     // Log the generation
