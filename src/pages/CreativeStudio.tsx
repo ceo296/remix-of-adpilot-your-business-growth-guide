@@ -1246,11 +1246,13 @@ const CreativeStudio = () => {
           })
         );
 
-        const successful = patchResults.filter((r): r is { id: string; ok: true; patch: Partial<GeneratedImage> } => r.ok);
+        const successful = patchResults.filter((r) => r.ok);
         const failedCount = patchResults.length - successful.length;
 
         if (successful.length > 0) {
-          const patchMap = new Map(successful.map((r) => [r.id, r.patch]));
+          const patchMap = new Map(
+            successful.map((r) => [r.id, (r as { id: string; patch: Partial<GeneratedImage> }).patch])
+          );
 
           setGeneratedImages((prev) =>
             prev.map((img) => (patchMap.has(img.id) ? { ...img, ...(patchMap.get(img.id) as Partial<GeneratedImage>) } : img))
