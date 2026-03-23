@@ -6,6 +6,56 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const clampConfidence = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
+
+function normalizeKosherStatus(rawStatus: unknown): 'approved' | 'needs-review' | 'rejected' {
+  const value = String(rawStatus ?? '').toLowerCase();
+
+  if (/(rejected|reject|נדחה|נפסל|פסול|אסור)/i.test(value)) return 'rejected';
+  if (/(approved|approve|מאושר|תקין)/i.test(value)) return 'approved';
+  if (/(needs-review|needs review|review|בדיקה|דורש)/i.test(value)) return 'needs-review';
+
+  return 'needs-review';
+}
+
+function parseConfidenceFromText(content: string): number {
+  const match = content.match(/(?:confidence|ציון\s*ביטחון|ביטחון)\D{0,12}(\d{1,3})\s*%?/i);
+  if (!match) return 50;
+  return clampConfidence(Number(match[1]));
+}
+
+function parseTextualAnalysis(content: string): {
+  status: 'approved' | 'needs-review' | 'rejected';
+  confidence: number;
+  issues: string[];
+  recommendation: string;
+} {
+  const status = normalizeKosherStatus(content);
+  const confidence = parseConfidenceFromText(content);
+
+  const issuesSectionMatch = content.match(/רשימת\s*ליקויים[:\s]*([\s\S]*?)(?:המלצה\s*לתיקון|$)/i);
+  const issues = issuesSectionMatch
+    ? issuesSectionMatch[1]
+        .split('\n')
+        .map((line) => line.replace(/^\s*[-*\d.]+\s*/, '').trim())
+        .filter((line) => line.length > 2)
+        .slice(0, 8)
+    : [];
+
+  const recommendationMatch = content.match(/המלצה\s*לתיקון[:\s]*([\s\S]*)$/i);
+  const recommendation = recommendationMatch?.[1]?.trim()
+    || (status === 'approved'
+      ? 'התמונה תקינה ועברה את הבדיקה האוטומטית'
+      : 'נדרשת בדיקה אנושית נוספת לפני פרסום');
+
+  return {
+    status,
+    confidence,
+    issues,
+    recommendation: recommendation.slice(0, 1200),
+  };
+}
+
 async function fetchAgentPrompt(agentKey: string, fallback: string): Promise<string> {
   try {
     const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -211,24 +261,42 @@ If clear violations, mark as "rejected".`;
 
     console.log("Analysis response:", content);
 
-    // Parse JSON from response
-    let analysis;
+    // Parse JSON from response (with robust fallback for free-text replies)
+    let analysis: any;
+    const fallbackAnalysis = parseTextualAnalysis(content);
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
       } else {
-        throw new Error('No JSON found in response');
+        analysis = fallbackAnalysis;
       }
     } catch (parseError) {
       console.error("Failed to parse analysis:", parseError);
-      analysis = {
-        status: 'needs-review',
-        confidence: 50,
-        issues: ['לא ניתן לפרסר את תוצאת הבדיקה'],
-        recommendation: 'נדרשת בדיקה אנושית'
-      };
+      analysis = fallbackAnalysis;
     }
+
+    const normalizedStatus = normalizeKosherStatus(analysis?.status ?? fallbackAnalysis.status);
+    const normalizedConfidence = clampConfidence(
+      typeof analysis?.confidence === 'number'
+        ? analysis.confidence
+        : fallbackAnalysis.confidence
+    );
+    const normalizedIssues = Array.isArray(analysis?.issues)
+      ? analysis.issues.map((issue: unknown) => String(issue).trim()).filter(Boolean).slice(0, 8)
+      : fallbackAnalysis.issues;
+    const normalizedRecommendation = (
+      typeof analysis?.recommendation === 'string' && analysis.recommendation.trim()
+        ? analysis.recommendation.trim()
+        : fallbackAnalysis.recommendation
+    ).slice(0, 1200);
+
+    analysis = {
+      status: normalizedStatus,
+      confidence: normalizedConfidence,
+      issues: normalizedIssues,
+      recommendation: normalizedRecommendation,
+    };
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
