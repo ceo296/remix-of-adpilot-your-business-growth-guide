@@ -304,8 +304,12 @@ This is NOT just inspiration — this is the TEMPLATE to follow.
   }
 
   // ALL-IN-ONE: Include the logo as a reference image so the AI places it naturally in the composition
+  // In REVISION MODE: do NOT attach the logo separately — it's already in the source image
   const logoUrl = brandContext?.logoUrl;
-  if (logoUrl && typeof logoUrl === 'string' && !logoUrl.startsWith('data:application/pdf')) {
+  if (isRevisionMode) {
+    // Revision mode: logo is already in the source ad, just remind the AI not to touch it
+    messageContent[0].text = `REVISION LOGO RULE: The source ad already contains the correct brand logo. Keep it EXACTLY as-is. Do NOT replace, redraw, invent, or remove the logo.\n\n` + messageContent[0].text;
+  } else if (logoUrl && typeof logoUrl === 'string' && !logoUrl.startsWith('data:application/pdf')) {
     console.log("Including BRAND LOGO as reference for All-in-One composition:", logoUrl.substring(0, 80));
     messageContent.push({
       type: "image_url",
@@ -320,10 +324,8 @@ The client's ACTUAL brand logo is attached as the LAST image.
 - Do NOT invent a new logo — use ONLY this attached image
 ═══════════════════════════════════════════════════
 \n\n` + messageContent[0].text;
-  } else if (!isRevisionMode) {
-    messageContent[0].text = `LOGO NOTE: No logo was provided. Leave the bottom-left corner of the contact strip clean for later logo placement. Do NOT invent any logo.\n\n` + messageContent[0].text;
   } else {
-    messageContent[0].text = `REVISION MODE LOGO RULE: Keep the exact same logo that already appears in the attached source ad. Never replace, redesign, or invent a new logo.\n\n` + messageContent[0].text;
+    messageContent[0].text = `LOGO NOTE: No logo was provided. Leave the bottom-left corner of the contact strip clean for later logo placement. Do NOT invent any logo.\n\n` + messageContent[0].text;
   }
 
   const MAX_RETRIES = 3;
