@@ -1131,13 +1131,13 @@ const CreativeStudio = () => {
       toast.error('נא להזין פירוט');
       return;
     }
-
-    setPendingCorrections(prev => [...prev, ...corrections]);
+    const targetSketchIds = selectedSketchIds.length > 0 ? [...selectedSketchIds] : [];
+    const isTargetedFixFlow = feedbackMode === 'small-fixes' && targetSketchIds.length > 0;
     
     // Save corrections as pending creative rules
     try {
-      const targetInfo = selectedSketchIds.length > 0 
-        ? `(סקיצות: ${selectedSketchIds.join(', ')})` 
+      const targetInfo = targetSketchIds.length > 0 
+        ? `(סקיצות: ${targetSketchIds.join(', ')})` 
         : '(כל הסקיצות)';
       
       for (const corr of corrections) {
@@ -1160,8 +1160,123 @@ const CreativeStudio = () => {
     setFeedbackText('');
     setFeedbackType(null);
     setSelectedSketchIds([]);
-    
-    // Regenerate
+
+    if (isTargetedFixFlow) {
+      const targetImages = generatedImages.filter(
+        (img) => targetSketchIds.includes(img.id) && img.status !== 'rejected'
+      );
+
+      if (targetImages.length === 0) {
+        toast.error('לא נמצאו סקיצות פעילות לתיקון');
+        return;
+      }
+
+      setIsGenerating(true);
+
+      try {
+        const brandContext = buildBrandContext();
+        const resolvedLogo = await getResolvedLogoUrl();
+        if (resolvedLogo && brandContext) {
+          (brandContext as any).logoUrl = resolvedLogo;
+        } else if (clientProfile?.logo_url && brandContext) {
+          (brandContext as any).logoUrl = clientProfile.logo_url;
+        }
+
+        const campaignContext = {
+          title: campaignBrief.title,
+          offer: campaignBrief.offer,
+          goal: campaignBrief.goal,
+          structure: campaignBrief.structure,
+          contactInfo: campaignBrief.contactSelection,
+          campaignImageUrl: campaignBrief.campaignImage || null,
+          adGoal: campaignBrief.adGoal,
+          emotionalTone: campaignBrief.emotionalTone,
+          desiredAction: campaignBrief.desiredAction,
+          desiredActions: (campaignBrief as any).desiredActions || (campaignBrief.desiredAction ? [campaignBrief.desiredAction] : []),
+          priceOrBenefit: campaignBrief.showPriceOrBenefit ? campaignBrief.priceOrBenefit : null,
+          isTimeLimited: campaignBrief.isTimeLimited,
+          timeLimitText: campaignBrief.isTimeLimited ? campaignBrief.timeLimitText : null,
+        };
+
+        const detectedTopic = detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title);
+        const sanitizedVisualPrompt = sanitizeVisualPrompt(visualPrompt);
+
+        toast.info(`מתקן ${targetImages.length} סקיצה${targetImages.length > 1 ? 'ות' : ''} ממוקדות... 🎯`);
+
+        const patchResults = await Promise.all(
+          targetImages.map(async (img) => {
+            const { data, error } = await supabase.functions.invoke('generate-image', {
+              body: {
+                visualPrompt: sanitizedVisualPrompt || visualPrompt,
+                textPrompt: textPrompt || null,
+                style: style || 'ultra-realistic',
+                engine: engineVersion,
+                templateId: selectedTemplate?.id || null,
+                templateHints: selectedTemplate?.promptHints || null,
+                dimensions: selectedTemplate?.dimensions || null,
+                brandContext,
+                campaignContext,
+                mediaType: mediaTypes[0] || null,
+                topicCategory: detectedTopic,
+                holidaySeason: selectedHoliday || null,
+                aspectRatio,
+                designApproach: designApproach || (brandContext as any)?.designApproach || null,
+                corrections,
+                _visualOnlyUrl: img.visualOnlyUrl || img.url,
+              },
+            });
+
+            if (error || !data?.imageUrl) {
+              return { id: img.id, ok: false as const };
+            }
+
+            const kosherResult = await runKosherCheck(data.imageUrl);
+            return {
+              id: img.id,
+              ok: true as const,
+              patch: {
+                url: data.imageUrl,
+                visualOnlyUrl: data.visualOnlyUrl || data.imageUrl,
+                textMeta: data.textMeta || img.textMeta,
+                status: kosherResult.status as GeneratedImage['status'],
+                analysis: kosherResult.recommendation,
+                model: data.model || img.model,
+              },
+            };
+          })
+        );
+
+        const successful = patchResults.filter((r): r is { id: string; ok: true; patch: Partial<GeneratedImage> } => r.ok);
+        const failedCount = patchResults.length - successful.length;
+
+        if (successful.length > 0) {
+          const patchMap = new Map(successful.map((r) => [r.id, r.patch]));
+
+          setGeneratedImages((prev) =>
+            prev.map((img) => (patchMap.has(img.id) ? { ...img, ...(patchMap.get(img.id) as Partial<GeneratedImage>) } : img))
+          );
+
+          setEnlargedImage((prev) => {
+            if (!prev) return prev;
+            const patch = patchMap.get(prev.id);
+            return patch ? { ...prev, ...(patch as Partial<GeneratedImage>) } : prev;
+          });
+
+          toast.success(`עודכנו ${successful.length} סקיצה${successful.length > 1 ? 'ות' : ''} במקום`);
+        }
+
+        if (failedCount > 0) {
+          toast.error(`לא הצלחנו לתקן ${failedCount} סקיצה${failedCount > 1 ? 'ות' : ''} — נסה שוב`);
+        }
+      } finally {
+        setIsGenerating(false);
+      }
+
+      return;
+    }
+
+    // Full rerender flow ("עוד סבב")
+    setPendingCorrections(prev => [...prev, ...corrections]);
     await handleGenerate();
   };
 
