@@ -631,8 +631,14 @@ const CreativeStudio = () => {
   const getSteps = () => {
     // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
+    const isTextOnlyMedia = mediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(mediaTypes[0]);
+    
     if (isOnlyRadio) {
-      return [0, 1, 8]; // Brief, MediaType, Radio Script
+      return [0, 1, 8]; // Brief, MediaType, Radio Script (self-contained)
+    }
+    if (isTextOnlyMedia) {
+      // Text-only media: Brief → MediaType → then auto-generate (no visual steps needed)
+      return [0, 1]; // Final step triggers text generation
     }
     if (assetChoice === 'full-campaign') {
       return [0, 1, 3]; // Brief, MediaType, Upload (skip asset choice - already selected)
@@ -2436,6 +2442,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
 
       // For non-visual-only types, ensure results view is shown
       if (!needsVisuals) {
+        setShowResults(true);
         setIsGenerating(false);
       }
     } catch (error) {
@@ -2713,6 +2720,29 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                       >
                         <CheckCircle2 className="h-4 w-4 ml-2" />
                         {assetChoice === 'full-campaign' ? 'שלח קמפיין' : 'שלח ויז\'ואל לעיבוד'}
+                      </Button>
+                    ) : mediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(mediaTypes[0]) ? (
+                      // Text-only media — generate the specific content type
+                      <Button
+                        onClick={() => {
+                          // Route to the autopilot concept generation which handles all media types
+                          handleGenerateConcepts();
+                        }}
+                        disabled={!canProceed() || isGeneratingConcepts || isGenerating}
+                        variant="gradient"
+                        className="min-w-[160px]"
+                      >
+                        {isGeneratingConcepts || isGenerating ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                            מייצר...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 ml-2" />
+                            {mediaTypes[0] === 'article' ? 'צור כתבה' : mediaTypes[0] === 'email' ? 'צור מייל' : 'צור הודעת וואטסאפ'}
+                          </>
+                        )}
                       </Button>
                     ) : (
                       // Generation flows - generate visuals
