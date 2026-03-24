@@ -3492,8 +3492,14 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                               dir="rtl"
                             />
                           ) : (
-                            <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
+                            <div 
+                              className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line cursor-pointer rounded-lg p-3 -m-3 transition-all hover:bg-primary/5 hover:ring-1 hover:ring-primary/20 group relative"
+                              onClick={() => { if (fixRequestPlatform !== 'whatsapp') setFixRequestPlatform('whatsapp'); }}
+                            >
                               {autopilotWhatsappContent.message}
+                              <span className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-primary flex items-center gap-1">
+                                <Pencil className="h-3 w-3" /> לחץ לתיקונים
+                              </span>
                             </div>
                           )}
                           
