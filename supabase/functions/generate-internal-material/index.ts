@@ -164,7 +164,6 @@ ${profileBlock}
               tagline: { type: "string", description: "משפט שיווקי קצר" },
             },
             required: ["title", "tagline"],
-            additionalProperties: false
           }
         }
       };
@@ -207,7 +206,6 @@ ${letterTopic ? `נושא: ${letterTopic}` : ''}
               senderTitle: { type: "string", description: "תפקיד החותם" },
             },
             required: ["letterContent", "senderName", "senderTitle"],
-            additionalProperties: false
           }
         }
       };
@@ -257,7 +255,6 @@ ${extraContext?.userPrompt ? `- הנחיות נוספות מהמשתמש (חוב
               closingLine: { type: "string", description: "שורת סיום/חתימה" },
             },
             required: ["headline", "greetingText", "closingLine"],
-            additionalProperties: false
           }
         }
       };
@@ -311,7 +308,6 @@ ${extraContext?.userPrompt ? `- הנחיות נוספות מהמשתמש (חוב
               callToAction: { type: "string", description: "קריאה לפעולה עדינה" },
             },
             required: ["headline", "subheadline", "body", "pullQuote", "callToAction"],
-            additionalProperties: false
           }
         }
       };
@@ -342,7 +338,6 @@ ${sectorContext}
               cta: { type: "string", description: "טקסט כפתור הפעולה" },
             },
             required: ["subject", "body", "cta"],
-            additionalProperties: false
           }
         }
       };
@@ -372,7 +367,6 @@ ${sectorContext}
               message: { type: "string", description: "המסר המלא לוואטסאפ" },
             },
             required: ["message"],
-            additionalProperties: false
           }
         }
       };
