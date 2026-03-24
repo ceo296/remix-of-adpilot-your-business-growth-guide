@@ -63,6 +63,20 @@ const LetterheadStudio = () => {
     senderTitle: '',
   });
 
+  // Sync profile data when it loads asynchronously
+  useEffect(() => {
+    if (profile) {
+      setLetterData(prev => ({
+        ...prev,
+        businessName: prev.businessName || profile.business_name || '',
+        phone: prev.phone || profile.contact_phone || '',
+        email: prev.email || profile.contact_email || '',
+        address: prev.address || profile.contact_address || '',
+        website: prev.website || profile.website_url || '',
+      }));
+    }
+  }, [profile]);
+
   const pageRef = useRef<HTMLDivElement>(null);
 
   const updateField = (field: keyof LetterData, value: string) => {

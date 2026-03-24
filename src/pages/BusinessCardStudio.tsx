@@ -56,6 +56,21 @@ const BusinessCardStudio = () => {
     website: profile?.website_url || '',
   });
 
+  // Sync profile data when it loads asynchronously
+  useEffect(() => {
+    if (profile) {
+      setCardData(prev => ({
+        ...prev,
+        businessName: prev.businessName || profile.business_name || '',
+        phone: prev.phone || profile.contact_phone || '',
+        email: prev.email || profile.contact_email || '',
+        address: prev.address || profile.contact_address || '',
+        whatsapp: prev.whatsapp || profile.contact_whatsapp || '',
+        website: prev.website || profile.website_url || '',
+      }));
+    }
+  }, [profile]);
+
   const frontRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLDivElement>(null);
 
