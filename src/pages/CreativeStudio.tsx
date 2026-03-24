@@ -2926,7 +2926,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold flex items-center gap-2">
                 <Sparkles className="h-6 w-6 text-primary" />
-                הסקיצות שלך
+                {isTextOnlyFlow ? 'התוצרים שלך' : 'הסקיצות שלך'}
               </h2>
               <div className="flex gap-2">
                 {/* PDF export button hidden - available after approval in media flow */}
