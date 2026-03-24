@@ -34,6 +34,9 @@ import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor
 import { PrintExportDialog, PrintSettings } from '@/components/studio/PrintExportDialog';
 import { FormatAdaptation } from '@/components/studio/FormatAdaptation';
 import { ImageEditor } from '@/components/studio/ImageEditor';
+import { ClientLoadingTimer } from '@/components/studio/ClientLoadingTimer';
+import { ClientResultsView } from '@/components/studio/ClientResultsView';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 // LayoutShowcase removed — master template only
 import type { AdaptedCreative } from '@/lib/image-resize';
 
