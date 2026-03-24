@@ -1,0 +1,1 @@
+DELETE FROM agent_prompts WHERE agent_key IN ('creative-agent', 'generate-image');
