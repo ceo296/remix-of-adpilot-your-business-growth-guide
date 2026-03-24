@@ -2216,16 +2216,22 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         }).finally(() => setIsGeneratingWhatsapp(false));
       }
 
-      if (results.length > 0) {
-        const approved = results.filter(r => r.status === 'approved').length;
-        const needsReview = results.filter(r => r.status === 'needs-review').length;
-        const rejected = results.filter(r => r.status === 'rejected').length;
-        
-        if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
-        if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
-        if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
+      if (needsVisualsAutopilot) {
+        // Only show image result toasts when visuals were actually generated
+        if (results.length > 0) {
+          const approved = results.filter(r => r.status === 'approved').length;
+          const needsReview = results.filter(r => r.status === 'needs-review').length;
+          const rejected = results.filter(r => r.status === 'rejected').length;
+          
+          if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
+          if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
+          if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
+        } else {
+          toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
+        }
       } else {
-        toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
+        // Text-only media — show success toast
+        toast.success('התוכן נוצר בהצלחה! ✍️');
       }
     } catch (error) {
       console.error('Error:', error);
