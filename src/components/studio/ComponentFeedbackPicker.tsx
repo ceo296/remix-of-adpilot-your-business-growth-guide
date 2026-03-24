@@ -4,6 +4,7 @@ import {
   LayoutGrid, 
   Heading1, 
   Heading2, 
+  MessageCircle,
   Check,
   X,
   Send
@@ -66,6 +67,13 @@ const AD_COMPONENTS: {
     description: 'לוגו, טלפון, כתובת, מיקום אלמנטים',
     icon: LayoutGrid,
     placeholder: 'מה לשנות? למשל: "הלוגו גדול מדי", "הטלפון לא קריא", "כתובת חסרה"...',
+  },
+  {
+    id: 'general',
+    label: 'מסר כללי',
+    description: 'הערה חופשית על המודעה',
+    icon: MessageCircle,
+    placeholder: 'כתוב הערה כללית... למשל: "הטון לא מתאים", "צריך להיות יותר מכירתי"...',
   },
 ];
 
