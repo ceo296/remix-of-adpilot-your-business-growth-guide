@@ -118,7 +118,7 @@ const GreetingStudio = () => {
   const handleDownloadImage = async () => {
     if (!designRef.current) return;
     try {
-      const dataUrl = await html2canvas.toPng(designRef.current, { quality: 1, pixelRatio: 3 });
+      const dataUrl = await toPng(designRef.current, { quality: 1, pixelRatio: 3 });
       const link = document.createElement('a');
       link.download = `greeting-${selectedOccasion}-${businessName}.png`;
       link.href = dataUrl;
