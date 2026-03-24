@@ -96,18 +96,8 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     description: 'ברכות ממותגות לחגים ואירועים',
     icon: PartyPopper,
     comingSoon: false,
-    templates: [
-      { id: 'gr-rosh-hashana', name: 'ראש השנה', description: 'שנה טובה ומתוקה', aspectRatio: '1:1', popular: true },
-      { id: 'gr-sukkot', name: 'סוכות', description: 'חג סוכות שמח', aspectRatio: '1:1' },
-      { id: 'gr-chanukah', name: 'חנוכה', description: 'חג אורים שמח', aspectRatio: '1:1' },
-      { id: 'gr-purim', name: 'פורים', description: 'פורים שמח', aspectRatio: '1:1' },
-      { id: 'gr-pesach', name: 'פסח', description: 'חג פסח כשר ושמח', aspectRatio: '1:1' },
-      { id: 'gr-shavuot', name: 'שבועות', description: 'חג שבועות שמח', aspectRatio: '1:1' },
-      { id: 'gr-wedding', name: 'חתונה', description: 'מזל טוב לחתן ולכלה', aspectRatio: '1:1' },
-      { id: 'gr-bar-mitzvah', name: 'בר מצווה', description: 'מזל טוב לבר המצווה', aspectRatio: '1:1' },
-      { id: 'gr-birthday', name: 'יום הולדת', description: 'יום הולדת שמח', aspectRatio: '1:1' },
-      { id: 'gr-general', name: 'ברכה כללית', description: 'ברכה מותאמת אישית', aspectRatio: '1:1' },
-    ]
+    templates: [],
+    directRoute: '/greeting-studio',
   },
   {
     id: 'articles',
