@@ -1121,77 +1121,28 @@ const CreativeStudio = () => {
     if (!platformFixText.trim()) return;
     setIsRegenerating(platform);
     setFixRequestPlatform(null);
-    
-    const concept = selectedConcept;
-    const offer = campaignBrief.offer || '';
     const fixInstruction = platformFixText.trim();
     setPlatformFixText('');
+    const concept = selectedConcept;
+    const offer = campaignBrief.offer || '';
     
+    const profileData = clientProfile ? {
+      businessName: clientProfile.business_name,
+      phone: clientProfile.contact_phone,
+      email: clientProfile.contact_email,
+      address: clientProfile.contact_address,
+      website: clientProfile.website_url,
+      xFactors: clientProfile.x_factors,
+      targetAudience: clientProfile.target_audience,
+      winningFeature: clientProfile.winning_feature,
+    } : {};
+
     try {
-      if (platform === 'article') {
-        const existingContent = autopilotArticle;
-        const { data, error } = await supabase.functions.invoke('generate-internal-material', {
-          body: {
-            category: 'articles',
-            businessName: clientProfile?.business_name || '',
-            offer,
-            concept: concept?.headline,
-            brandContext: { ...clientProfile },
-            fixInstruction,
-            existingContent,
-          },
-        });
-        if (!error && data?.result) {
-          setAutopilotArticle(data.result);
-          toast.success('הכתבה עודכנה! 📰');
-        } else {
-          toast.error('שגיאה בעדכון הכתבה');
-        }
-      } else if (platform === 'email') {
-        const existingContent = autopilotEmailContent;
-        const { data, error } = await supabase.functions.invoke('generate-internal-material', {
-          body: {
-            category: 'emails',
-            businessName: clientProfile?.business_name || '',
-            offer,
-            concept: concept?.headline,
-            brandContext: { ...clientProfile },
-            fixInstruction,
-            existingContent,
-          },
-        });
-        if (!error && data?.result) {
-          setAutopilotEmailContent(data.result);
-          toast.success('המייל עודכן! 📧');
-        } else {
-          toast.error('שגיאה בעדכון המייל');
-        }
-      } else if (platform === 'whatsapp') {
-        const existingContent = autopilotWhatsappContent;
-        const { data, error } = await supabase.functions.invoke('generate-internal-material', {
-          body: {
-            category: 'whatsapp',
-            businessName: clientProfile?.business_name || '',
-            offer,
-            concept: concept?.headline,
-            brandContext: { ...clientProfile },
-            fixInstruction,
-            existingContent,
-          },
-        });
-        if (!error && data?.result) {
-          setAutopilotWhatsappContent(data.result);
-          toast.success('המסר עודכן! 💬');
-        } else {
-          toast.error('שגיאה בעדכון המסר');
-        }
-      } else if (platform === 'radio') {
+      if (platform === 'radio') {
         const { data, error } = await supabase.functions.invoke('generate-radio-script', {
           body: {
             brief: { offer, adGoal: campaignBrief.adGoal, goal: campaignBrief.goal },
             brandContext: clientProfile ? { businessName: clientProfile.business_name, targetAudience: clientProfile.target_audience } : null,
-            fixInstruction,
-            existingScript: autopilotRadioScript?.script,
           },
         });
         if (!error && data?.scripts?.length) {
@@ -1203,16 +1154,31 @@ const CreativeStudio = () => {
             voiceNotes: bestScript.voiceNotes,
           });
           toast.success('התשדיר עודכן! 🎙️');
-        } else {
-          toast.error('שגיאה בעדכון התשדיר');
-        }
+        } else { toast.error('שגיאה בעדכון התשדיר'); }
+      } else {
+        const typeMap: Record<string, string> = { article: 'article', email: 'email', whatsapp: 'whatsapp' };
+        const topicKey = platform === 'article' ? 'articleTopic' : platform === 'email' ? 'emailTopic' : 'whatsappTopic';
+        const { data, error } = await supabase.functions.invoke('generate-internal-material', {
+          body: {
+            type: typeMap[platform],
+            profileData,
+            extraContext: {
+              [topicKey]: offer || concept?.idea || '',
+              userPrompt: `תיקון מבוקש: ${fixInstruction}${concept ? `\nקונספט: ${concept.headline} — ${concept.copy}` : ''}`,
+              ...(platform === 'article' ? { articleStyle: 'product', targetLength: 'medium' } : {}),
+            },
+          },
+        });
+        if (!error && data?.result) {
+          if (platform === 'article') { setAutopilotArticle(data.result); toast.success('הכתבה עודכנה! 📰'); }
+          else if (platform === 'email') { setAutopilotEmailContent(data.result); toast.success('המייל עודכן! 📧'); }
+          else { setAutopilotWhatsappContent(data.result); toast.success('המסר עודכן! 💬'); }
+        } else { toast.error('שגיאה בעדכון'); }
       }
-    } catch {
-      toast.error('שגיאה בעדכון');
-    } finally {
-      setIsRegenerating(null);
-    }
+    } catch { toast.error('שגיאה בעדכון'); }
+    finally { setIsRegenerating(null); }
   };
+
 
 
   const getQuoteData = (): QuoteData => {
