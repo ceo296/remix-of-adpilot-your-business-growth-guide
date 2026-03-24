@@ -2878,18 +2878,18 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             {/* CLIENT VIEW — clean, no pipeline, no kosher notes */}
             {!isAdmin ? (
               <>
-                {generatedImages.length === 0 && isGenerating ? (
+                {!isTextOnlyFlow && generatedImages.length === 0 && isGenerating ? (
                   <ClientLoadingTimer 
                     isGenerating={isGenerating} 
                     sketchCount={3} 
                     completedCount={generatedImages.filter(img => img.status !== 'pending').length} 
                   />
-                ) : generatedImages.length === 0 ? (
+                ) : !isTextOnlyFlow && generatedImages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                     <ImageIcon className="h-16 w-16 mb-4 opacity-30" />
                     <p>לא נוצרו תמונות</p>
                   </div>
-                ) : (
+                ) : !isTextOnlyFlow ? (
                   <ClientResultsView
                     images={generatedImages}
                     businessName={clientProfile?.business_name}
@@ -2918,7 +2918,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                       setCurrentStep(0);
                     }}
                   />
-                )}
+                ) : null}
               </>
             ) : (
             /* ADMIN VIEW — full pipeline, debug, kosher notes */
