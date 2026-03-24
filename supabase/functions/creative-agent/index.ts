@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 async function fetchSectorBrainFromDB(holidaySeason?: string | null, topicCategory?: string | null) {
@@ -488,9 +488,6 @@ serve(async (req) => {
           role: m.role === 'assistant' ? 'model' : 'user',
           parts: [{ text: m.content }]
         }));
-        if (userMessages.length > 0) {
-          userMessages[0].parts[0].text = systemContent + '\n\n' + userMessages[0].parts[0].text;
-        }
 
         const directResponse = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
@@ -498,6 +495,7 @@ serve(async (req) => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemContent }] },
               contents: userMessages,
               generationConfig: { temperature: 0.9, maxOutputTokens: 8192 },
             }),
