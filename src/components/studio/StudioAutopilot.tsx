@@ -270,7 +270,7 @@ export const StudioAutopilot = ({
           className="text-lg px-8"
         >
           <Wand2 className="h-5 w-5 ml-2" />
-          תעצבו לי סקיצות על בסיס האסטרטגיה
+          תכינו לי קמפיין על בסיס האסטרטגיה
         </Button>
         
         {selectedMediaTypes.length === 0 && (
