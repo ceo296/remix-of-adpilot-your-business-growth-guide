@@ -2944,17 +2944,17 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             {/* Agent Pipeline Debug Panel */}
             <AgentPipelineDebug steps={pipelineSteps} isVisible={showPipeline} />
 
-            {generatedImages.length === 0 && isGenerating ? (
+            {!isTextOnlyFlow && generatedImages.length === 0 && isGenerating ? (
               <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                 <Loader2 className="h-12 w-12 animate-spin mb-4" />
                 <p>מייצר את העיצובים שלך...</p>
               </div>
-            ) : generatedImages.length === 0 ? (
+            ) : !isTextOnlyFlow && generatedImages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                 <ImageIcon className="h-16 w-16 mb-4 opacity-30" />
                 <p>לא נוצרו תמונות</p>
               </div>
-            ) : (
+            ) : generatedImages.length > 0 ? (
               <>
                 {/* Dynamic grid based on media type */}
                 <div className={
