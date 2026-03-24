@@ -11,7 +11,7 @@ import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import html2canvas from 'html-to-image';
+import { toPng } from 'html-to-image';
 
 const OCCASIONS = [
   { id: 'rosh-hashana', label: 'ראש השנה', emoji: '🍯', color: 'from-amber-500/20 to-yellow-500/20 border-amber-500/30' },
@@ -118,7 +118,7 @@ const GreetingStudio = () => {
   const handleDownloadImage = async () => {
     if (!designRef.current) return;
     try {
-      const dataUrl = await html2canvas.toPng(designRef.current, { quality: 1, pixelRatio: 3 });
+      const dataUrl = await toPng(designRef.current, { quality: 1, pixelRatio: 3 });
       const link = document.createElement('a');
       link.download = `greeting-${selectedOccasion}-${businessName}.png`;
       link.href = dataUrl;

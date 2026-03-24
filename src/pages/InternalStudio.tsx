@@ -277,20 +277,19 @@ const InternalStudio = () => {
         {/* Template Selection */}
         {selectedCategory && currentCategory && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mb-8">
               {currentCategory.templates.map((template) => (
                 <Card
                   key={template.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
+                  className={`cursor-pointer transition-all hover:shadow-md ${
                     selectedTemplate === template.id
-                      ? 'border-2 border-primary bg-primary/5 shadow-lg'
+                      ? 'border-2 border-primary bg-primary/5 shadow-md'
                       : 'hover:border-primary/50'
                   }`}
                   onClick={() => handleSelectTemplate(template.id)}
                 >
-                  <CardContent className="p-4">
-                    {/* Template Preview Placeholder */}
-                    <div className="aspect-[3/4] rounded-lg mb-3 relative overflow-hidden border border-border">
+                  <CardContent className="p-2">
+                    <div className="aspect-[4/3] rounded-md mb-2 relative overflow-hidden border border-border">
                       <TemplatePreview
                         templateId={template.id}
                         primaryColor={profile?.primary_color || '#E34870'}
@@ -298,19 +297,18 @@ const InternalStudio = () => {
                         doubleSided={selectedCategory === 'business-cards' ? isDoubleSided : undefined}
                       />
                       {template.popular && (
-                        <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs">
+                        <Badge className="absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
                           פופולרי
                         </Badge>
                       )}
                       {selectedTemplate === template.id && (
-                        <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-4 h-4 text-primary-foreground" />
+                        <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="w-3 h-3 text-primary-foreground" />
                         </div>
                       )}
                     </div>
-                    
-                    <h4 className="font-semibold text-foreground">{template.name}</h4>
-                    <p className="text-xs text-muted-foreground">{template.description}</p>
+                    <h4 className="text-sm font-semibold text-foreground">{template.name}</h4>
+                    <p className="text-[10px] text-muted-foreground leading-tight">{template.description}</p>
                   </CardContent>
                 </Card>
               ))}
