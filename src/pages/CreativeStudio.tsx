@@ -2873,12 +2873,6 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         ) : (
           /* Results View */
           <div className="space-y-6">
-            {/* Compute if this is a text-only flow (no visuals expected) */}
-            {(() => {
-              const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email', 'whatsapp'].includes(t));
-              return (
-              <>
-
             {/* CLIENT VIEW — clean, no pipeline, no kosher notes */}
             {!isAdmin ? (
               <>
