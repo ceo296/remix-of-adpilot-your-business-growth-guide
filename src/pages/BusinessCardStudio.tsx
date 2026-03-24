@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -55,6 +55,21 @@ const BusinessCardStudio = () => {
     whatsapp: profile?.contact_whatsapp || '',
     website: profile?.website_url || '',
   });
+
+  // Sync profile data when it loads asynchronously
+  useEffect(() => {
+    if (profile) {
+      setCardData(prev => ({
+        ...prev,
+        businessName: prev.businessName || profile.business_name || '',
+        phone: prev.phone || profile.contact_phone || '',
+        email: prev.email || profile.contact_email || '',
+        address: prev.address || profile.contact_address || '',
+        whatsapp: prev.whatsapp || profile.contact_whatsapp || '',
+        website: prev.website || profile.website_url || '',
+      }));
+    }
+  }, [profile]);
 
   const frontRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLDivElement>(null);

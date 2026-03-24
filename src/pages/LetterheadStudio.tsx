@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -62,6 +62,20 @@ const LetterheadStudio = () => {
     senderName: '',
     senderTitle: '',
   });
+
+  // Sync profile data when it loads asynchronously
+  useEffect(() => {
+    if (profile) {
+      setLetterData(prev => ({
+        ...prev,
+        businessName: prev.businessName || profile.business_name || '',
+        phone: prev.phone || profile.contact_phone || '',
+        email: prev.email || profile.contact_email || '',
+        address: prev.address || profile.contact_address || '',
+        website: prev.website || profile.website_url || '',
+      }));
+    }
+  }, [profile]);
 
   const pageRef = useRef<HTMLDivElement>(null);
 

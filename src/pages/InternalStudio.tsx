@@ -264,8 +264,11 @@ const InternalStudio = () => {
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
-                      {!category.comingSoon && (
+                      {!category.comingSoon && !category.directRoute && category.templates.length > 0 && (
                         <p className="text-xs text-primary mt-2">{category.templates.length} תבניות זמינות</p>
+                      )}
+                      {!category.comingSoon && category.directRoute && (
+                        <p className="text-xs text-primary mt-2">לחץ לפתיחה →</p>
                       )}
                     </div>
                   </div>
