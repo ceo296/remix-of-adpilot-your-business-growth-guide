@@ -34,6 +34,9 @@ import { InlineTextEditor, TextMeta } from '@/components/studio/InlineTextEditor
 import { PrintExportDialog, PrintSettings } from '@/components/studio/PrintExportDialog';
 import { FormatAdaptation } from '@/components/studio/FormatAdaptation';
 import { ImageEditor } from '@/components/studio/ImageEditor';
+import { ClientLoadingTimer } from '@/components/studio/ClientLoadingTimer';
+import { ClientResultsView } from '@/components/studio/ClientResultsView';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 // LayoutShowcase removed — master template only
 import type { AdaptedCreative } from '@/lib/image-resize';
 
@@ -261,6 +264,7 @@ function sanitizeVisualPrompt(prompt: string): string {
 
 const CreativeStudio = () => {
   const [searchParams] = useSearchParams();
+  const { isAdmin } = useIsAdmin();
   
   // Client profile state
   const [clientProfile, setClientProfile] = useState<ClientProfile | null>(null);
@@ -2833,6 +2837,54 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         ) : (
           /* Results View */
           <div className="space-y-6">
+            {/* CLIENT VIEW — clean, no pipeline, no kosher notes */}
+            {!isAdmin ? (
+              <>
+                {generatedImages.length === 0 && isGenerating ? (
+                  <ClientLoadingTimer 
+                    isGenerating={isGenerating} 
+                    sketchCount={3} 
+                    completedCount={generatedImages.filter(img => img.status !== 'pending').length} 
+                  />
+                ) : generatedImages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                    <ImageIcon className="h-16 w-16 mb-4 opacity-30" />
+                    <p>לא נוצרו תמונות</p>
+                  </div>
+                ) : (
+                  <ClientResultsView
+                    images={generatedImages}
+                    businessName={clientProfile?.business_name}
+                    onRequestFix={(imageId, feedback) => {
+                      const img = generatedImages.find(i => i.id === imageId);
+                      if (img) {
+                        handleSubmitFeedback([{ component: 'headline' as AdComponent, text: feedback }]);
+                      }
+                    }}
+                    onApproveAndDownload={(imageIds) => {
+                      const imgs = generatedImages.filter(i => imageIds.includes(i.id));
+                      imgs.forEach(img => {
+                        const link = document.createElement('a');
+                        link.href = img.url;
+                        link.download = `sketch-${img.id}.png`;
+                        link.click();
+                      });
+                      toast.success(`${imgs.length} סקיצות הורדו בהצלחה! 📥`);
+                    }}
+                    onSendToMedia={(imageIds) => {
+                      setShowResults(false);
+                      setShowMediaSelection(true);
+                    }}
+                    onStartOver={() => {
+                      setShowResults(false);
+                      setCurrentStep(0);
+                    }}
+                  />
+                )}
+              </>
+            ) : (
+            /* ADMIN VIEW — full pipeline, debug, kosher notes */
+            <>
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold flex items-center gap-2">
                 <Sparkles className="h-6 w-6 text-primary" />
@@ -3318,6 +3370,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               <Shield className="h-4 w-4" />
               כל תמונה עוברת בדיקת כשרות אוטומטית
             </div>
+            </>
+            )}
           </div>
         )}
       </div>
