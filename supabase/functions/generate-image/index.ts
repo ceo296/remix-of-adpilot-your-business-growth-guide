@@ -766,35 +766,54 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     let headline = '';
     let subtitle = '';
     
+    // ═══ ANTI-BANALITY ENGINE: Generate 3 candidates, reject clichés, pick best ═══
+    const CLICHE_PATTERNS = [
+      /הכי טוב/i, /מקצועי ואיכותי/i, /שירות מעולה/i, /פתרון מושלם/i,
+      /הבחירה הנכונה/i, /חווי[ית]ה? (שלא |בלתי )?נשכח/i, /מומחים ב/i,
+      /שנות ניסיון/i, /באיכות ללא פשרות/i, /הפתרון שלך/i, /מובילים ב/i,
+      /הכתובת שלך ל/i, /עולם של/i, /חוויה ייחודית/i, /ברמה אחרת/i,
+      /מהיום הכל/i, /שירות ברמה/i, /איכות ללא/i, /המקום שבו/i,
+      /בואו להכיר/i, /הזדמנות שלא/i, /אל תפספסו/i, /רק אצלנו/i,
+    ];
+
+    function isCliche(text: string): boolean {
+      return CLICHE_PATTERNS.some(p => p.test(text));
+    }
+
     if (offerTextForAI && LOVABLE_API_KEY) {
-      const headlinePromise = fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'google/gemini-3-flash-preview',
-          max_completion_tokens: 50,
-          messages: [
-            { role: 'system', content: `אתה קופירייטר בכיר — פורץ דרך, שנון, בלתי נשכח. תפקידך ליצור כותרת ראשית למודעה (3-6 מילים).
+      const headlineSystemPrompt = `אתה קופירייטר בכיר — פורץ דרך, שנון, בלתי נשכח.
+תפקידך ליצור 3 כותרות מועמדות למודעה (3-6 מילים כל אחת), כל אחת בשורה נפרדת.
 
 כללי ברזל:
-1. חפש תמיד טוויסט, משחק מילים, מטאפורה חכמה, או ניגוד מעניין
-2. כותרת שגורמת לקורא לעצור ולקרוא שוב — כמו כותרת עיתון שעוצרת ברחוב
-3. אל תעתיק את הבריף. תמצה אותו למסר פרסומי חד עם אנרגיה ואימפקט
-4. אסור קלישאות: "הכי טוב", "מקצועי ואיכותי", "שירות מעולה", "פתרון מושלם"
-5. אסור סימני פיסוק (פסיקים, נקודות). אסור גרשיים. אסור מספרים
-6. עדיף לא לכלול את שם העסק — הוא בלוגו. שם העסק מותר רק אם הוא חלק אינטגרלי מהטוויסט
-7. לקהל חרדי: אסור סלנג לילה/ברים/מועדונים כמו "תפתח מועדון", "תמלא את הכוס", "פאב", "מסיבה"
-8. תחזיר רק את הכותרת עצמה — בלי הסברים
+1. כל כותרת חייבת להיות שונה לחלוטין בזווית — אסור 3 וריאציות על אותו רעיון
+2. כותרת 1: טוויסט או משחק מילים חכם
+3. כותרת 2: מטאפורה או דימוי ויזואלי
+4. כותרת 3: ניגוד, פרובוקציה, או שאלה רטורית חדה
+5. אסור קלישאות: "הכי טוב", "מקצועי ואיכותי", "שירות מעולה", "פתרון מושלם", "חוויה ייחודית", "ברמה אחרת", "באיכות ללא פשרות", "הבחירה הנכונה", "הזדמנות שלא חוזרת"
+6. אסור סימני פיסוק (פסיקים, נקודות). אסור גרשיים. אסור מספרים
+7. עדיף לא לכלול את שם העסק — הוא בלוגו
+8. לקהל חרדי: אסור סלנג לילה/ברים/מועדונים
+9. תחזיר רק 3 כותרות — כל אחת בשורה נפרדת, בלי מספור, בלי הסברים
 
 דוגמאות לכותרות חזקות:
 - נדל"ן: "חלון שמתגשם" (טוויסט על "חלום")
 - שיניים: "הפה שלך. הבמה שלנו"
 - מזון: "טעם שלא שוכחים"
 - אופנה: "הבגד עושה את הגבר"
-- טיפוח: "כי מגיע לך להרגיש מושלמת"
 
-כלל מגדרי קריטי: ${genderDirective}` },
-            { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\nוריאציה נדרשת: ${variationDirective}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
+כלל מגדרי קריטי: ${genderDirective}`;
+
+      const headlineUserContent = `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\nוריאציה נדרשת: ${variationDirective}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`;
+
+      const headlinePromise = fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'google/gemini-3-flash-preview',
+          max_completion_tokens: 120,
+          messages: [
+            { role: 'system', content: headlineSystemPrompt },
+            { role: 'user', content: headlineUserContent }
           ],
         }),
       }).then(r => r.ok ? r.json() : null).catch(() => null);
@@ -823,15 +842,34 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
 
       const [headlineData, subtitleData] = await Promise.all([headlinePromise, subtitlePromise]);
       
-      const aiHeadline = headlineData?.choices?.[0]?.message?.content?.trim();
-      if (aiHeadline && aiHeadline.length > 2 && aiHeadline.length <= 40) {
-        const sanitizedHeadline = aiHeadline.replace(/["""''`.!?]/g, '').replace(/\s{2,}/g, ' ').trim();
-        if (isHeadlineSafeForAudience(sanitizedHeadline, headlineValidationContext)) {
-          headline = sanitizedHeadline;
-          console.log('[Headline AI] Generated:', headline);
-        } else {
-          console.warn('[Headline AI] Rejected unsafe headline:', sanitizedHeadline);
-        }
+      // ═══ ANTI-BANALITY: Parse 3 candidates, filter clichés, pick best ═══
+      const rawResponse = headlineData?.choices?.[0]?.message?.content?.trim() || '';
+      const candidates = rawResponse
+        .split('\n')
+        .map((line: string) => line.replace(/^\d+[\.\)\-]\s*/, '').replace(/["""''`.!?]/g, '').replace(/\s{2,}/g, ' ').trim())
+        .filter((line: string) => line.length > 2 && line.length <= 40);
+      
+      console.log('[Headline AI] 3 Candidates:', candidates);
+      
+      // Filter: remove clichés + unsafe headlines
+      const validCandidates = candidates.filter((c: string) => {
+        if (isCliche(c)) { console.log(`[Anti-Banality] REJECTED cliché: "${c}"`); return false; }
+        if (!isHeadlineSafeForAudience(c, headlineValidationContext)) { console.log(`[Anti-Banality] REJECTED unsafe: "${c}"`); return false; }
+        return true;
+      });
+      
+      console.log('[Headline AI] Valid after filter:', validCandidates);
+      
+      // Pick: prefer shortest (punchiest) among valid candidates
+      if (validCandidates.length > 0) {
+        // Sort by word count ascending — punchier = better
+        validCandidates.sort((a: string, b: string) => a.split(/\s+/).length - b.split(/\s+/).length);
+        headline = validCandidates[0];
+        console.log('[Headline AI] WINNER:', headline);
+      } else if (candidates.length > 0) {
+        // All were clichés — take the last one (most creative attempt) but log warning
+        headline = candidates[candidates.length - 1];
+        console.warn('[Anti-Banality] All candidates were clichés, using least-bad:', headline);
       }
       
       const aiSubtitle = subtitleData?.choices?.[0]?.message?.content?.trim();
