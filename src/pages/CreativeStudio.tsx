@@ -407,6 +407,14 @@ const CreativeStudio = () => {
   const [autopilotWhatsappContent, setAutopilotWhatsappContent] = useState<{ message: string } | null>(null);
   const [isGeneratingWhatsapp, setIsGeneratingWhatsapp] = useState(false);
   const [showAutopilotWhatsapp, setShowAutopilotWhatsapp] = useState(false);
+  // Editing states for 360° platform results
+  const [editingRadio, setEditingRadio] = useState(false);
+  const [editingArticle, setEditingArticle] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [editingWhatsapp, setEditingWhatsapp] = useState(false);
+  const [fixRequestPlatform, setFixRequestPlatform] = useState<'radio' | 'article' | 'email' | 'whatsapp' | null>(null);
+  const [platformFixText, setPlatformFixText] = useState('');
+  const [isRegenerating, setIsRegenerating] = useState<string | null>(null);
 
   // Media selection state
   const [mediaBudget, setMediaBudget] = useState<number>(0);
