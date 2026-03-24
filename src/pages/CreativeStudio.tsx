@@ -2151,7 +2151,10 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             contactPhone: clientProfile?.contact_phone || '',
           },
         }).then(({ data, error }) => {
-          if (!error && data?.scripts?.length) {
+          if (error) {
+            console.error('Radio script error:', error);
+            toast.error('שגיאה ביצירת תשדיר רדיו');
+          } else if (data?.scripts?.length) {
             const bestScript = data.scripts[0];
             setAutopilotRadioScript({
               title: bestScript.title || 'ספוט רדיו',
@@ -2159,6 +2162,11 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               duration: bestScript.duration,
               voiceNotes: bestScript.voiceNotes,
             });
+          } else if (data?.error) {
+            console.error('Radio script API error:', data.error);
+            toast.error(`שגיאה ביצירת תשדיר: ${data.error}`);
+          } else {
+            toast.error('לא התקבל תשדיר רדיו — נסה שוב');
           }
         }).finally(() => setIsGeneratingRadio(false));
       }
@@ -2372,7 +2380,10 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             contactPhone: clientProfile?.contact_phone || '',
           },
         }).then(({ data, error }) => {
-          if (!error && data?.scripts?.length) {
+          if (error) {
+            console.error('Radio script error:', error);
+            toast.error('שגיאה ביצירת תשדיר רדיו');
+          } else if (data?.scripts?.length) {
             const bestScript = data.scripts[0];
             setAutopilotRadioScript({
               title: bestScript.title || 'ספוט רדיו',
@@ -2381,6 +2392,11 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               voiceNotes: bestScript.voiceNotes,
             });
             toast.success('תשדיר רדיו נוצר! 🎙️');
+          } else if (data?.error) {
+            console.error('Radio API error:', data.error);
+            toast.error(`שגיאה ביצירת תשדיר: ${data.error}`);
+          } else {
+            toast.error('לא התקבל תשדיר רדיו — נסה שוב');
           }
         }).catch(() => {
           toast.error('שגיאה ביצירת תשדיר רדיו');
@@ -3058,7 +3074,11 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                           </Button>
                         </div>
                       </Card>
-                    ) : null}
+                    ) : (
+                      <div className="text-center p-8 text-muted-foreground">
+                        <p>לא הצלחנו ליצור תשדיר רדיו. נסה שוב.</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -3440,7 +3460,11 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                           </Button>
                         </div>
                       </Card>
-                    ) : null}
+                    ) : (
+                      <div className="text-center p-8 text-muted-foreground">
+                        <p>לא הצלחנו ליצור תשדיר רדיו. נסה שוב.</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
