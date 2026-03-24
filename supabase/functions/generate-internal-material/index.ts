@@ -211,52 +211,6 @@ ${letterTopic ? `נושא: ${letterTopic}` : ''}
           }
         }
       };
-    } else if (type === 'catalog') {
-      const productCount = extraContext?.productCount || 6;
-      const catalogTopic = extraContext?.catalogTopic || '';
-
-      toolName = 'generate_catalog_content';
-      systemPrompt = `אתה יוצר תוכן קטלוגי מקצועי בעברית לעסק.
-${profileBlock}
-${catalogTopic ? `נושא הקטלוג: ${catalogTopic}` : ''}
-הנחיות:
-- צור שמות מוצרים/שירותים ריאליסטיים בהתאם לתחום העסק
-- תיאורים קצרים ושיווקיים (עד 15 מילים)
-- מחירים סבירים בשקלים
-- badges רלוונטיים (חדש, מבצע, חם, נבחר)
-- כותרת קאבר וכותרת משנה מושכים
-- טקסט "הסיפור שלנו" של 2-3 משפטים`;
-      toolDef = {
-        type: "function",
-        function: {
-          name: toolName,
-          description: "Generate professional catalog content",
-          parameters: {
-            type: "object",
-            properties: {
-              coverTitle: { type: "string" },
-              coverSubtitle: { type: "string" },
-              storyText: { type: "string", description: "טקסט 'הסיפור שלנו'" },
-              products: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    name: { type: "string" },
-                    description: { type: "string" },
-                    price: { type: "string" },
-                    badge: { type: "string" },
-                  },
-                  required: ["name", "description", "price"],
-                  additionalProperties: false
-                }
-              }
-            },
-            required: ["coverTitle", "coverSubtitle", "products"],
-            additionalProperties: false
-          }
-        }
-      };
     } else if (type === 'greeting') {
       const greetingOccasion = extraContext?.occasion || 'general';
       const recipientName = extraContext?.recipientName || '';
@@ -288,7 +242,8 @@ ${sectorContext}
 - כותרת קצרה וקולעת (2-4 מילים)
 - אם זה חג — התייחס למהות החג בנוסח המסורתי
 - אם זו חתונה/בר מצווה — ברכה מרגשת ואישית
-- השתמש בדוגמאות המוצלחות למעלה כהשראה לסגנון ולמבנה`;
+- השתמש בדוגמאות המוצלחות למעלה כהשראה לסגנון ולמבנה
+${extraContext?.userPrompt ? `- הנחיות נוספות מהמשתמש (חובה ליישם): ${extraContext.userPrompt}` : ''}`;
       toolDef = {
         type: "function",
         function: {
@@ -339,7 +294,8 @@ ${sectorContext}
 - לא "מודעתי" מדי — צריך להרגיש כמו תוכן עיתונאי
 - CTA עדין בסוף — לא מכירתי אגרסיבי
 - אל תמציא פרטים שלא סופקו
-- היצמד לסגנון, לטון ולמבנה של הדוגמאות שפורסמו בהצלחה במגזר`;
+- היצמד לסגנון, לטון ולמבנה של הדוגמאות שפורסמו בהצלחה במגזר
+${extraContext?.userPrompt ? `- הנחיות נוספות מהמשתמש (חובה ליישם): ${extraContext.userPrompt}` : ''}`;
       toolDef = {
         type: "function",
         function: {
