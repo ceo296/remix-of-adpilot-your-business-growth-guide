@@ -3556,11 +3556,13 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               </>
             )}
 
-            {/* Kosher Check Info */}
-            <div className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
-              <Shield className="h-4 w-4" />
-              כל תמונה עוברת בדיקת כשרות אוטומטית
-            </div>
+            {/* Kosher Check Info — only for visual flows */}
+            {!isTextOnlyFlow && (
+              <div className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+                <Shield className="h-4 w-4" />
+                כל תמונה עוברת בדיקת כשרות אוטומטית
+              </div>
+            )}
             </>
             )}
           </div>
