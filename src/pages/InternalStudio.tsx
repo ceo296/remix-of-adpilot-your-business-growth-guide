@@ -432,7 +432,7 @@ const InternalStudio = () => {
                 className="min-w-[300px] h-14 text-lg font-bold"
               >
                 <Sparkles className="w-5 h-5 ml-2" />
-                המשך לעיצוב
+                {selectedCategory === 'articles' ? 'המשך' : 'המשך לעיצוב'}
               </Button>
             </div>
           </>
