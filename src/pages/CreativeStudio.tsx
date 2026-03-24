@@ -631,8 +631,14 @@ const CreativeStudio = () => {
   const getSteps = () => {
     // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
+    const isTextOnlyMedia = mediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(mediaTypes[0]);
+    
     if (isOnlyRadio) {
-      return [0, 1, 8]; // Brief, MediaType, Radio Script
+      return [0, 1, 8]; // Brief, MediaType, Radio Script (self-contained)
+    }
+    if (isTextOnlyMedia) {
+      // Text-only media: Brief → MediaType → then auto-generate (no visual steps needed)
+      return [0, 1]; // Final step triggers text generation
     }
     if (assetChoice === 'full-campaign') {
       return [0, 1, 3]; // Brief, MediaType, Upload (skip asset choice - already selected)
