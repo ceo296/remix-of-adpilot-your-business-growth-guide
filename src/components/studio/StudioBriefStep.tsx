@@ -188,6 +188,10 @@ const SCOPE_CONTEXT: Record<string, { icon: React.ElementType; label: string; de
 export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors, campaignScope }: StudioBriefStepProps) => {
   const campaignImageInputRef = useRef<HTMLInputElement>(null);
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
