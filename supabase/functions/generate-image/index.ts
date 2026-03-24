@@ -701,7 +701,7 @@ CRITICAL HOLIDAY RULES — THIS IS A ${holidaySeason.toUpperCase()} AD:
 - ABSOLUTELY FORBIDDEN — DO NOT include ANY of these (they belong to OTHER holidays): ${hRules.forbid}
 - Mixing holidays is a SEVERE ERROR that will make the ad unusable. A Hanukkah menorah in a Passover ad is completely wrong.
 - If unsure about an element, DO NOT include it.`;
-    } else if (!holidaySeason || holidaySeason === 'year_round') {
+    } else if (!holidaySeason || holidaySeason === 'year_round' || holidaySeason === '') {
       holidayRules = `
 HOLIDAY NEUTRALITY — THIS IS THE MOST CRITICAL RULE:
 This is NOT a holiday-specific ad. It is a regular commercial advertisement.

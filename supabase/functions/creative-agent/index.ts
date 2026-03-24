@@ -267,8 +267,6 @@ const DEFAULT_SYSTEM_PROMPT = `זהות ותפקיד:
 חובה: ב-JSON הוסף שדה visual_approach לכל קונספט.
 אסור: שלושת הקונספטים עם דמויות/אנשים. מקסימום אחד מתוך שלושה יכול לכלול דמות.
 אסור: אלמנטים דתיים/חגיים שלא קשורים ישירות למוצר.
-אסור: אלמנטים דתיים/חגיים שלא קשורים ישירות למוצר.
-אסור: אלמנטים דתיים/חגיים שלא קשורים ישירות למוצר.
 
 === מבנה גריד תחתון (Contact Strip) — סטנדרט חובה! ===
 כל מודעת דפוס/דיגיטל חייבת לכלול סטריפ תחתון עם פרטי קשר. המבנה:
@@ -298,8 +296,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
   const supabaseAuth = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
-  const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(authHeader.replace('Bearer ', ''));
-  if (claimsError || !claimsData?.claims) {
+  const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+  if (userError || !user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
