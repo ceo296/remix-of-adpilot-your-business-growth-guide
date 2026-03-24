@@ -10,7 +10,15 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { brief, brandContext, targetGender, targetStream, contactPhone } = await req.json();
+    const body = await req.json();
+    const { brief, brandContext, targetGender, targetStream, contactPhone, profileData } = body;
+    
+    // Support both brandContext and profileData (fallback)
+    const businessName = brandContext?.businessName || profileData?.businessName || 'העסק';
+    const targetAudience = brandContext?.targetAudience || profileData?.targetAudience || 'כללי';
+    const phone = contactPhone || profileData?.phone || '';
+    const services = profileData?.services?.join(', ') || brandContext?.services || '';
+    const winningFeature = profileData?.winningFeature || brandContext?.winningFeature || '';
 
     // Determine voice direction
     const voiceGender = targetGender === "women" ? "נשי" : "גברי";
