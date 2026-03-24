@@ -173,13 +173,13 @@ export function AdTemplates({ selectedTemplate, onSelect, mediaType }: AdTemplat
                 >
                   {/* Aspect ratio preview */}
                   <div 
-                    className="bg-muted rounded mb-2 flex items-center justify-center text-muted-foreground text-xs"
+                    className="bg-muted rounded mb-2 flex items-center justify-center"
                     style={{
                       aspectRatio: template.aspectRatio.replace(':', '/'),
                       maxHeight: '60px',
                     }}
                   >
-                    {template.dimensions.width}×{template.dimensions.height}
+                    <Icon className="h-4 w-4 text-muted-foreground/50" />
                   </div>
                   <div className="text-sm font-medium">{template.name}</div>
                   <div className="text-xs text-muted-foreground">{template.description}</div>

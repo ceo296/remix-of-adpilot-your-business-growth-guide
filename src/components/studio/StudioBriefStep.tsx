@@ -44,6 +44,9 @@ import {
   Store,
   MousePointerClick,
   Check,
+  Mic,
+  Square,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -185,6 +188,10 @@ const SCOPE_CONTEXT: Record<string, { icon: React.ElementType; label: string; de
 export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors, campaignScope }: StudioBriefStepProps) => {
   const campaignImageInputRef = useRef<HTMLInputElement>(null);
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
@@ -260,6 +267,70 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
       setIsEnhancing(false);
     }
   }, [value.offer, value.adGoal, value.emotionalTone, businessName, messageQuality.wordCount]);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setIsTranscribing(true);
+        try {
+          // Convert to base64 and send to AI for transcription
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const base64 = (reader.result as string).split(',')[1];
+            const { data, error } = await supabase.functions.invoke('ai-chat', {
+              body: {
+                message: `תמלל את ההקלטה הזו לטקסט בעברית. תן רק את הטקסט המדובר, בלי הסברים. אם אין דיבור, כתוב "לא זוהה דיבור".`,
+                audioBase64: base64,
+                audioFormat: 'webm',
+                skipHistory: true,
+              },
+            });
+            if (!error && data?.response) {
+              const transcribed = data.response.trim();
+              if (transcribed && transcribed !== 'לא זוהה דיבור') {
+                const current = value.offer.trim();
+                updateBrief({ offer: current ? `${current} ${transcribed}` : transcribed });
+                toast.success('ההקלטה תומללה בהצלחה! 🎙️');
+              } else {
+                toast.error('לא זוהה דיבור בהקלטה');
+              }
+            } else {
+              toast.error('שגיאה בתמלול ההקלטה');
+            }
+          };
+          reader.readAsDataURL(audioBlob);
+        } catch {
+          toast.error('שגיאה בתמלול');
+        } finally {
+          setIsTranscribing(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      toast.info('מקליט... לחץ שוב לעצירה');
+    } catch {
+      toast.error('לא הצלחנו לגשת למיקרופון');
+    }
+  }, [value.offer]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }, []);
 
   const handleCampaignImage = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -692,16 +763,40 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             </span>
             מה הבשורה המרכזית שלנו הפעם? *
           </Label>
-          <Textarea
-            id="campaign-offer"
-            value={value.offer}
-            onChange={(e) => updateBrief({ offer: e.target.value })}
-            placeholder="ספרו לנו על המהלך, המוצר או השירות. מה המהות שלו ומה הכי חשוב להדגיש? לדוגמה: השקת טכנולוגיה חדשה להשתלות שיניים ללא כאב שחוסכת לכם זמן יקר..."
-            className={cn(
-              "min-h-[130px] text-base transition-all",
-              messageQuality.level === 'weak' && 'border-orange-400/60 focus:border-orange-400',
-            )}
-          />
+          <div className="relative">
+            <Textarea
+              id="campaign-offer"
+              value={value.offer}
+              onChange={(e) => updateBrief({ offer: e.target.value })}
+              placeholder="ספרו לנו על המהלך, המוצר או השירות. מה המהות שלו ומה הכי חשוב להדגיש? לדוגמה: השקת טכנולוגיה חדשה להשתלות שיניים ללא כאב שחוסכת לכם זמן יקר..."
+              className={cn(
+                "min-h-[130px] text-base transition-all pl-14",
+                messageQuality.level === 'weak' && 'border-orange-400/60 focus:border-orange-400',
+              )}
+            />
+            <button
+              type="button"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isTranscribing}
+              className={cn(
+                "absolute bottom-3 left-3 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-md",
+                isRecording 
+                  ? "bg-destructive text-destructive-foreground animate-pulse" 
+                  : isTranscribing
+                    ? "bg-muted text-muted-foreground"
+                    : "bg-primary/15 text-primary hover:bg-primary/25"
+              )}
+              title={isRecording ? 'עצור הקלטה' : isTranscribing ? 'מתמלל...' : 'הקלט את הבשורה בקול'}
+            >
+              {isTranscribing ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : isRecording ? (
+                <Square className="w-4 h-4" />
+              ) : (
+                <Mic className="w-5 h-5" />
+              )}
+            </button>
+          </div>
           
           {/* Quality Meter */}
           {value.offer.trim().length > 0 && (

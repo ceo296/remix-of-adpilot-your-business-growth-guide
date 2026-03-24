@@ -540,9 +540,9 @@ export const StudioPromptStep = ({
                   <span className="font-medium">
                     {selectedTemplate ? selectedTemplate.name : 'בחר תבנית מוכנה'}
                   </span>
-                  {selectedTemplate && (
+                   {selectedTemplate && (
                     <span className="text-xs text-muted-foreground block">
-                      {selectedTemplate.description} • {selectedTemplate.dimensions.width}×{selectedTemplate.dimensions.height}
+                      {selectedTemplate.description}
                     </span>
                   )}
                 </div>
