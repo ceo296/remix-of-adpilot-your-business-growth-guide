@@ -2856,10 +2856,9 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                     images={generatedImages}
                     businessName={clientProfile?.business_name}
                     onRequestFix={(imageId, feedback) => {
-                      // Trigger targeted revision for this image
                       const img = generatedImages.find(i => i.id === imageId);
                       if (img) {
-                        handleComponentFeedback([{ component: 'headline' as AdComponent, feedback }], img.url, imageId);
+                        handleSubmitFeedback([{ component: 'headline' as AdComponent, text: feedback }]);
                       }
                     }}
                     onApproveAndDownload={(imageIds) => {
