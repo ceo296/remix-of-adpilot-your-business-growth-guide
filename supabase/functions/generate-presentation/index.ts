@@ -188,12 +188,10 @@ ${profileContext}
                   image_prompt: { type: "string", description: "Start with 'Human Connection:', 'Conceptual Objects:', or 'Abstract Atmosphere:' then detailed English scene description. NO TEXT, NO LETTERS, NO WOMEN." },
                 },
                 required: ["type", "title", "image_prompt"],
-                additionalProperties: false
               }
             }
           },
           required: ["slides"],
-          additionalProperties: false
         }
       }
     }];
