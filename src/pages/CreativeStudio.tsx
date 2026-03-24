@@ -2570,6 +2570,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
     }
   };
 
+  const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email', 'whatsapp'].includes(t));
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
@@ -2876,18 +2878,18 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             {/* CLIENT VIEW — clean, no pipeline, no kosher notes */}
             {!isAdmin ? (
               <>
-                {generatedImages.length === 0 && isGenerating ? (
+                {!isTextOnlyFlow && generatedImages.length === 0 && isGenerating ? (
                   <ClientLoadingTimer 
                     isGenerating={isGenerating} 
                     sketchCount={3} 
                     completedCount={generatedImages.filter(img => img.status !== 'pending').length} 
                   />
-                ) : generatedImages.length === 0 ? (
+                ) : !isTextOnlyFlow && generatedImages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                     <ImageIcon className="h-16 w-16 mb-4 opacity-30" />
                     <p>לא נוצרו תמונות</p>
                   </div>
-                ) : (
+                ) : !isTextOnlyFlow ? (
                   <ClientResultsView
                     images={generatedImages}
                     businessName={clientProfile?.business_name}
@@ -2916,7 +2918,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                       setCurrentStep(0);
                     }}
                   />
-                )}
+                ) : null}
               </>
             ) : (
             /* ADMIN VIEW — full pipeline, debug, kosher notes */
@@ -2924,7 +2926,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold flex items-center gap-2">
                 <Sparkles className="h-6 w-6 text-primary" />
-                הסקיצות שלך
+                {isTextOnlyFlow ? 'התוצרים שלך' : 'הסקיצות שלך'}
               </h2>
               <div className="flex gap-2">
                 {/* PDF export button hidden - available after approval in media flow */}
@@ -2942,17 +2944,17 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             {/* Agent Pipeline Debug Panel */}
             <AgentPipelineDebug steps={pipelineSteps} isVisible={showPipeline} />
 
-            {generatedImages.length === 0 && isGenerating ? (
+            {!isTextOnlyFlow && generatedImages.length === 0 && isGenerating ? (
               <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                 <Loader2 className="h-12 w-12 animate-spin mb-4" />
                 <p>מייצר את העיצובים שלך...</p>
               </div>
-            ) : generatedImages.length === 0 ? (
+            ) : !isTextOnlyFlow && generatedImages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                 <ImageIcon className="h-16 w-16 mb-4 opacity-30" />
                 <p>לא נוצרו תמונות</p>
               </div>
-            ) : (
+            ) : generatedImages.length > 0 ? (
               <>
                 {/* Dynamic grid based on media type */}
                 <div className={
@@ -3399,13 +3401,168 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   </div>
                 )}
               </>
+            ) : (
+              <>
+                {/* Text-only flow — show radio/article/email/whatsapp sections */}
+                {showAutopilotRadio && (
+                  <div className="mt-4 pt-4">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center">
+                        <Radio className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">ספוט רדיו</h3>
+                        <p className="text-sm text-muted-foreground">תשדיר רדיו מקצועי</p>
+                      </div>
+                    </div>
+                    {isGeneratingRadio ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב תשדיר רדיו...</span>
+                      </div>
+                    ) : autopilotRadioScript ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <h4 className="text-lg font-bold text-foreground">{autopilotRadioScript.title}</h4>
+                            {autopilotRadioScript.duration && (
+                              <Badge variant="secondary">{autopilotRadioScript.duration}</Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                            {autopilotRadioScript.script}
+                          </div>
+                          {autopilotRadioScript.voiceNotes && (
+                            <div className="text-xs text-muted-foreground mb-4">הנחיות קריינות: {autopilotRadioScript.voiceNotes}</div>
+                          )}
+                          <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(autopilotRadioScript.script); toast.success('התשדיר הועתק!'); }}>
+                            העתק תשדיר
+                          </Button>
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
+
+                {showAutopilotArticle && (
+                  <div className="mt-6 pt-4">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/30 flex items-center justify-center">
+                        <Newspaper className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">כתבה פרסומית</h3>
+                        <p className="text-sm text-muted-foreground">כתבת Advertorial מקצועית</p>
+                      </div>
+                    </div>
+                    {isGeneratingArticle ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב כתבה פרסומית...</span>
+                      </div>
+                    ) : autopilotArticle ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <h4 className="text-xl font-bold text-foreground mb-2">{autopilotArticle.headline}</h4>
+                          {autopilotArticle.subheadline && <p className="text-sm text-muted-foreground mb-4">{autopilotArticle.subheadline}</p>}
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">{autopilotArticle.body}</div>
+                          {autopilotArticle.pullQuote && (
+                            <blockquote className="border-r-4 border-primary pr-4 my-4 text-lg font-medium italic text-foreground/80">{autopilotArticle.pullQuote}</blockquote>
+                          )}
+                          {autopilotArticle.callToAction && <div className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium text-sm">{autopilotArticle.callToAction}</div>}
+                          <div className="mt-4">
+                            <Button variant="outline" size="sm" onClick={() => {
+                              const text = `${autopilotArticle.headline}\n${autopilotArticle.subheadline || ''}\n\n${autopilotArticle.body}\n\n${autopilotArticle.pullQuote || ''}\n\n${autopilotArticle.callToAction || ''}`;
+                              navigator.clipboard.writeText(text); toast.success('הכתבה הועתקה!');
+                            }}>העתק כתבה</Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
+
+                {showAutopilotEmail && (
+                  <div className="mt-6 pt-4">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-amber-500/30 flex items-center justify-center">
+                        <Mail className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">מייל שיווקי</h3>
+                        <p className="text-sm text-muted-foreground">דיוור אלקטרוני מעוצב</p>
+                      </div>
+                    </div>
+                    {isGeneratingEmail ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב מייל שיווקי...</span>
+                      </div>
+                    ) : autopilotEmailContent ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <div className="text-xs text-muted-foreground mb-1">נושא:</div>
+                          <h4 className="text-xl font-bold text-foreground mb-4">{autopilotEmailContent.subject}</h4>
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">{autopilotEmailContent.body}</div>
+                          {autopilotEmailContent.cta && <div className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium text-sm">{autopilotEmailContent.cta}</div>}
+                          <div className="mt-4">
+                            <Button variant="outline" size="sm" onClick={() => {
+                              const text = `נושא: ${autopilotEmailContent.subject}\n\n${autopilotEmailContent.body}\n\n${autopilotEmailContent.cta}`;
+                              navigator.clipboard.writeText(text); toast.success('המייל הועתק!');
+                            }}>העתק מייל</Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
+
+                {showAutopilotWhatsapp && (
+                  <div className="mt-6 pt-4">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/30 flex items-center justify-center">
+                        <MessageSquare className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">מסר וואטסאפ</h3>
+                        <p className="text-sm text-muted-foreground">מסר קצר וקליט לשיתוף</p>
+                      </div>
+                    </div>
+                    {isGeneratingWhatsapp ? (
+                      <div className="flex items-center justify-center p-8 gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-muted-foreground">כותב מסר וואטסאפ...</span>
+                      </div>
+                    ) : autopilotWhatsappContent ? (
+                      <Card className="border-primary/20">
+                        <div className="p-6" dir="rtl">
+                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{autopilotWhatsappContent.message}</div>
+                          <div className="mt-4">
+                            <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(autopilotWhatsappContent.message); toast.success('המסר הועתק!'); }}>
+                              העתק מסר
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+                )}
+
+                <div className="mt-6 flex justify-center">
+                  <Button variant="outline" onClick={() => { setShowResults(false); setCurrentStep(0); }}>
+                    התחל מחדש
+                  </Button>
+                </div>
+              </>
             )}
 
-            {/* Kosher Check Info */}
-            <div className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
-              <Shield className="h-4 w-4" />
-              כל תמונה עוברת בדיקת כשרות אוטומטית
-            </div>
+            {/* Kosher Check Info — only for visual flows */}
+            {!isTextOnlyFlow && (
+              <div className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+                <Shield className="h-4 w-4" />
+                כל תמונה עוברת בדיקת כשרות אוטומטית
+              </div>
+            )}
             </>
             )}
           </div>
