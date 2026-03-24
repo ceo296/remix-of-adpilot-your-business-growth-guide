@@ -11,7 +11,7 @@ import { useClientProfile } from '@/hooks/useClientProfile';
 import TopNavbar from '@/components/dashboard/TopNavbar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import html2canvas from 'html-to-image';
+import { toPng } from 'html-to-image';
 
 const OCCASIONS = [
   { id: 'rosh-hashana', label: 'ראש השנה', emoji: '🍯', color: 'from-amber-500/20 to-yellow-500/20 border-amber-500/30' },
