@@ -2570,6 +2570,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
     }
   };
 
+  const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email', 'whatsapp'].includes(t));
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
