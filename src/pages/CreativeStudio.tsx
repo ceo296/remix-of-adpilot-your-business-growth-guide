@@ -2720,6 +2720,29 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                         <CheckCircle2 className="h-4 w-4 ml-2" />
                         {assetChoice === 'full-campaign' ? 'שלח קמפיין' : 'שלח ויז\'ואל לעיבוד'}
                       </Button>
+                    ) : mediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(mediaTypes[0]) ? (
+                      // Text-only media — generate the specific content type
+                      <Button
+                        onClick={() => {
+                          // Route to the autopilot concept generation which handles all media types
+                          handleGenerateConcepts();
+                        }}
+                        disabled={!canProceed() || isGeneratingConcepts || isGenerating}
+                        variant="gradient"
+                        className="min-w-[160px]"
+                      >
+                        {isGeneratingConcepts || isGenerating ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                            מייצר...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 ml-2" />
+                            {mediaTypes[0] === 'article' ? 'צור כתבה' : mediaTypes[0] === 'email' ? 'צור מייל' : 'צור הודעת וואטסאפ'}
+                          </>
+                        )}
+                      </Button>
                     ) : (
                       // Generation flows - generate visuals
                       <Button
