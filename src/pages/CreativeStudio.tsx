@@ -3154,10 +3154,10 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                         <p className="text-sm text-muted-foreground">{mediaTypes.includes('all') ? 'חלק מקמפיין 360° שלך' : 'ספוט רדיו מוכן לשידור'}</p>
                       </div>
                     </div>
-                    {isGeneratingRadio ? (
+                    {isGeneratingRadio || isRegenerating === 'radio' ? (
                       <div className="flex items-center justify-center p-8 gap-3">
                         <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                        <span className="text-muted-foreground">כותב תשדיר רדיו...</span>
+                        <span className="text-muted-foreground">{isRegenerating === 'radio' ? 'מעדכן תשדיר...' : 'כותב תשדיר רדיו...'}</span>
                       </div>
                     ) : autopilotRadioScript ? (
                       <Card className="border-primary/20">
@@ -3168,22 +3168,58 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                               <Badge variant="secondary">{autopilotRadioScript.duration}</Badge>
                             )}
                           </div>
-                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
-                            {autopilotRadioScript.script}
-                          </div>
-                          {autopilotRadioScript.voiceNotes && (
+                          {editingRadio ? (
+                            <Textarea
+                              value={autopilotRadioScript.script}
+                              onChange={(e) => setAutopilotRadioScript({ ...autopilotRadioScript, script: e.target.value })}
+                              className="min-h-[150px] text-sm mb-4"
+                              dir="rtl"
+                            />
+                          ) : (
+                            <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                              {autopilotRadioScript.script}
+                            </div>
+                          )}
+                          {autopilotRadioScript.voiceNotes && !editingRadio && (
                             <div className="text-xs text-muted-foreground mb-4">הנחיות קריינות: {autopilotRadioScript.voiceNotes}</div>
                           )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              navigator.clipboard.writeText(autopilotRadioScript.script);
-                              toast.success('התשדיר הועתק!');
-                            }}
-                          >
-                            העתק תשדיר
-                          </Button>
+                          
+                          {/* Fix request form */}
+                          {fixRequestPlatform === 'radio' && (
+                            <Card className="p-4 mb-4 border-2 border-primary/30 bg-primary/5 animate-fade-in">
+                              <p className="text-sm font-medium mb-2">מה לשנות בתשדיר?</p>
+                              <Textarea
+                                value={platformFixText}
+                                onChange={(e) => setPlatformFixText(e.target.value)}
+                                placeholder="למשל: הטון צריך להיות יותר מכירתי, תוסיף את המספר טלפון..."
+                                className="min-h-[80px] text-sm mb-3"
+                                dir="rtl"
+                              />
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => handlePlatformFix('radio')} disabled={!platformFixText.trim()}>
+                                  <Sparkles className="h-3.5 w-3.5 ml-1.5" />
+                                  עדכן
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setFixRequestPlatform(null); setPlatformFixText(''); }}>ביטול</Button>
+                              </div>
+                            </Card>
+                          )}
+                          
+                          <div className="flex gap-2 flex-wrap">
+                            <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(autopilotRadioScript.script); toast.success('התשדיר הועתק!'); }}>
+                              העתק תשדיר
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setEditingRadio(!editingRadio)}>
+                              <Pencil className="h-3.5 w-3.5 ml-1.5" />
+                              {editingRadio ? 'סיום עריכה' : 'ערוך'}
+                            </Button>
+                            {!editingRadio && fixRequestPlatform !== 'radio' && (
+                              <Button variant="outline" size="sm" onClick={() => setFixRequestPlatform('radio')}>
+                                <MessageSquare className="h-3.5 w-3.5 ml-1.5" />
+                                בקש תיקונים
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </Card>
                     ) : (
@@ -3206,39 +3242,107 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                         <p className="text-sm text-muted-foreground">חלק מקמפיין 360° שלך</p>
                       </div>
                     </div>
-                    {isGeneratingArticle ? (
+                    {isGeneratingArticle || isRegenerating === 'article' ? (
                       <div className="flex items-center justify-center p-8 gap-3">
                         <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                        <span className="text-muted-foreground">כותב כתבה פרסומית...</span>
+                        <span className="text-muted-foreground">{isRegenerating === 'article' ? 'מעדכן כתבה...' : 'כותב כתבה פרסומית...'}</span>
                       </div>
                     ) : autopilotArticle ? (
                       <Card className="border-primary/20">
                         <div className="p-6" dir="rtl">
-                          <h4 className="text-xl font-bold text-foreground mb-1">{autopilotArticle.headline}</h4>
-                          <h5 className="text-base text-muted-foreground mb-4">{autopilotArticle.subheadline}</h5>
-                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
-                            {autopilotArticle.body}
-                          </div>
-                          {autopilotArticle.pullQuote && (
-                            <div className="border-r-4 border-primary pr-3 py-2 my-4 bg-primary/5 rounded-l-lg">
-                              <p className="text-sm font-medium italic">"{autopilotArticle.pullQuote}"</p>
+                          {editingArticle ? (
+                            <div className="space-y-3">
+                              <input
+                                value={autopilotArticle.headline}
+                                onChange={(e) => setAutopilotArticle({ ...autopilotArticle, headline: e.target.value })}
+                                className="w-full text-xl font-bold bg-transparent border-b border-primary/30 pb-1 focus:outline-none focus:border-primary"
+                                dir="rtl"
+                              />
+                              <input
+                                value={autopilotArticle.subheadline}
+                                onChange={(e) => setAutopilotArticle({ ...autopilotArticle, subheadline: e.target.value })}
+                                className="w-full text-base text-muted-foreground bg-transparent border-b border-border pb-1 focus:outline-none focus:border-primary"
+                                dir="rtl"
+                              />
+                              <Textarea
+                                value={autopilotArticle.body}
+                                onChange={(e) => setAutopilotArticle({ ...autopilotArticle, body: e.target.value })}
+                                className="min-h-[200px] text-sm"
+                                dir="rtl"
+                              />
+                              <input
+                                value={autopilotArticle.pullQuote}
+                                onChange={(e) => setAutopilotArticle({ ...autopilotArticle, pullQuote: e.target.value })}
+                                className="w-full text-sm italic bg-transparent border-b border-border pb-1 focus:outline-none focus:border-primary"
+                                placeholder="ציטוט"
+                                dir="rtl"
+                              />
+                              <input
+                                value={autopilotArticle.callToAction}
+                                onChange={(e) => setAutopilotArticle({ ...autopilotArticle, callToAction: e.target.value })}
+                                className="w-full text-sm bg-transparent border-b border-border pb-1 focus:outline-none focus:border-primary text-primary"
+                                placeholder="הנעה לפעולה"
+                                dir="rtl"
+                              />
                             </div>
+                          ) : (
+                            <>
+                              <h4 className="text-xl font-bold text-foreground mb-1">{autopilotArticle.headline}</h4>
+                              <h5 className="text-base text-muted-foreground mb-4">{autopilotArticle.subheadline}</h5>
+                              <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                                {autopilotArticle.body}
+                              </div>
+                              {autopilotArticle.pullQuote && (
+                                <div className="border-r-4 border-primary pr-3 py-2 my-4 bg-primary/5 rounded-l-lg">
+                                  <p className="text-sm font-medium italic">"{autopilotArticle.pullQuote}"</p>
+                                </div>
+                              )}
+                              {autopilotArticle.callToAction && (
+                                <p className="text-sm text-primary font-medium">{autopilotArticle.callToAction}</p>
+                              )}
+                            </>
                           )}
-                          {autopilotArticle.callToAction && (
-                            <p className="text-sm text-primary font-medium">{autopilotArticle.callToAction}</p>
+                          
+                          {/* Fix request form */}
+                          {fixRequestPlatform === 'article' && (
+                            <Card className="p-4 my-4 border-2 border-primary/30 bg-primary/5 animate-fade-in">
+                              <p className="text-sm font-medium mb-2">מה לשנות בכתבה?</p>
+                              <Textarea
+                                value={platformFixText}
+                                onChange={(e) => setPlatformFixText(e.target.value)}
+                                placeholder="למשל: הכותרת לא מספיק חזקה, תשנה את הטון ליותר מקצועי..."
+                                className="min-h-[80px] text-sm mb-3"
+                                dir="rtl"
+                              />
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => handlePlatformFix('article')} disabled={!platformFixText.trim()}>
+                                  <Sparkles className="h-3.5 w-3.5 ml-1.5" />
+                                  עדכן
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setFixRequestPlatform(null); setPlatformFixText(''); }}>ביטול</Button>
+                              </div>
+                            </Card>
                           )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-4"
-                            onClick={() => {
+                          
+                          <div className="flex gap-2 flex-wrap mt-4">
+                            <Button variant="outline" size="sm" onClick={() => {
                               const text = `${autopilotArticle.headline}\n${autopilotArticle.subheadline}\n\n${autopilotArticle.body}\n\n"${autopilotArticle.pullQuote}"\n\n${autopilotArticle.callToAction}`;
                               navigator.clipboard.writeText(text);
                               toast.success('הכתבה הועתקה!');
-                            }}
-                          >
-                            העתק כתבה
-                          </Button>
+                            }}>
+                              העתק כתבה
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setEditingArticle(!editingArticle)}>
+                              <Pencil className="h-3.5 w-3.5 ml-1.5" />
+                              {editingArticle ? 'סיום עריכה' : 'ערוך'}
+                            </Button>
+                            {!editingArticle && fixRequestPlatform !== 'article' && (
+                              <Button variant="outline" size="sm" onClick={() => setFixRequestPlatform('article')}>
+                                <MessageSquare className="h-3.5 w-3.5 ml-1.5" />
+                                בקש תיקונים
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </Card>
                     ) : null}
@@ -3282,36 +3386,93 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                         <p className="text-sm text-muted-foreground">{mediaTypes.includes('all') ? 'חלק מקמפיין 360° שלך' : 'דיוור אלקטרוני מעוצב'}</p>
                       </div>
                     </div>
-                    {isGeneratingEmail ? (
+                    {isGeneratingEmail || isRegenerating === 'email' ? (
                       <div className="flex items-center justify-center p-8 gap-3">
                         <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                        <span className="text-muted-foreground">כותב מייל שיווקי...</span>
+                        <span className="text-muted-foreground">{isRegenerating === 'email' ? 'מעדכן מייל...' : 'כותב מייל שיווקי...'}</span>
                       </div>
                     ) : autopilotEmailContent ? (
                       <Card className="border-primary/20">
                         <div className="p-6" dir="rtl">
-                          <div className="text-xs text-muted-foreground mb-1">נושא:</div>
-                          <h4 className="text-xl font-bold text-foreground mb-4">{autopilotEmailContent.subject}</h4>
-                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
-                            {autopilotEmailContent.body}
-                          </div>
-                          {autopilotEmailContent.cta && (
-                            <div className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium text-sm">
-                              {autopilotEmailContent.cta}
+                          {editingEmail ? (
+                            <div className="space-y-3">
+                              <div>
+                                <span className="text-xs text-muted-foreground">נושא:</span>
+                                <input
+                                  value={autopilotEmailContent.subject}
+                                  onChange={(e) => setAutopilotEmailContent({ ...autopilotEmailContent, subject: e.target.value })}
+                                  className="w-full text-xl font-bold bg-transparent border-b border-primary/30 pb-1 focus:outline-none focus:border-primary"
+                                  dir="rtl"
+                                />
+                              </div>
+                              <Textarea
+                                value={autopilotEmailContent.body}
+                                onChange={(e) => setAutopilotEmailContent({ ...autopilotEmailContent, body: e.target.value })}
+                                className="min-h-[150px] text-sm"
+                                dir="rtl"
+                              />
+                              <input
+                                value={autopilotEmailContent.cta}
+                                onChange={(e) => setAutopilotEmailContent({ ...autopilotEmailContent, cta: e.target.value })}
+                                className="w-full text-sm bg-transparent border-b border-border pb-1 focus:outline-none focus:border-primary"
+                                placeholder="כפתור הנעה לפעולה"
+                                dir="rtl"
+                              />
                             </div>
+                          ) : (
+                            <>
+                              <div className="text-xs text-muted-foreground mb-1">נושא:</div>
+                              <h4 className="text-xl font-bold text-foreground mb-4">{autopilotEmailContent.subject}</h4>
+                              <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                                {autopilotEmailContent.body}
+                              </div>
+                              {autopilotEmailContent.cta && (
+                                <div className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium text-sm">
+                                  {autopilotEmailContent.cta}
+                                </div>
+                              )}
+                            </>
                           )}
-                          <div className="mt-4">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const text = `נושא: ${autopilotEmailContent.subject}\n\n${autopilotEmailContent.body}\n\n${autopilotEmailContent.cta}`;
-                                navigator.clipboard.writeText(text);
-                                toast.success('המייל הועתק!');
-                              }}
-                            >
+                          
+                          {/* Fix request form */}
+                          {fixRequestPlatform === 'email' && (
+                            <Card className="p-4 my-4 border-2 border-primary/30 bg-primary/5 animate-fade-in">
+                              <p className="text-sm font-medium mb-2">מה לשנות במייל?</p>
+                              <Textarea
+                                value={platformFixText}
+                                onChange={(e) => setPlatformFixText(e.target.value)}
+                                placeholder="למשל: הנושא לא מושך, תקצר את הגוף, תשנה את הכפתור..."
+                                className="min-h-[80px] text-sm mb-3"
+                                dir="rtl"
+                              />
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => handlePlatformFix('email')} disabled={!platformFixText.trim()}>
+                                  <Sparkles className="h-3.5 w-3.5 ml-1.5" />
+                                  עדכן
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setFixRequestPlatform(null); setPlatformFixText(''); }}>ביטול</Button>
+                              </div>
+                            </Card>
+                          )}
+                          
+                          <div className="flex gap-2 flex-wrap mt-4">
+                            <Button variant="outline" size="sm" onClick={() => {
+                              const text = `נושא: ${autopilotEmailContent.subject}\n\n${autopilotEmailContent.body}\n\n${autopilotEmailContent.cta}`;
+                              navigator.clipboard.writeText(text);
+                              toast.success('המייל הועתק!');
+                            }}>
                               העתק מייל
                             </Button>
+                            <Button variant="outline" size="sm" onClick={() => setEditingEmail(!editingEmail)}>
+                              <Pencil className="h-3.5 w-3.5 ml-1.5" />
+                              {editingEmail ? 'סיום עריכה' : 'ערוך'}
+                            </Button>
+                            {!editingEmail && fixRequestPlatform !== 'email' && (
+                              <Button variant="outline" size="sm" onClick={() => setFixRequestPlatform('email')}>
+                                <MessageSquare className="h-3.5 w-3.5 ml-1.5" />
+                                בקש תיקונים
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </Card>
@@ -3331,28 +3492,65 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                         <p className="text-sm text-muted-foreground">{mediaTypes.includes('all') ? 'חלק מקמפיין 360° שלך' : 'מסר קצר וקליט לשיתוף'}</p>
                       </div>
                     </div>
-                    {isGeneratingWhatsapp ? (
+                    {isGeneratingWhatsapp || isRegenerating === 'whatsapp' ? (
                       <div className="flex items-center justify-center p-8 gap-3">
                         <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                        <span className="text-muted-foreground">כותב מסר וואטסאפ...</span>
+                        <span className="text-muted-foreground">{isRegenerating === 'whatsapp' ? 'מעדכן מסר...' : 'כותב מסר וואטסאפ...'}</span>
                       </div>
                     ) : autopilotWhatsappContent ? (
                       <Card className="border-primary/20">
                         <div className="p-6" dir="rtl">
-                          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
-                            {autopilotWhatsappContent.message}
-                          </div>
-                          <div className="mt-4">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                navigator.clipboard.writeText(autopilotWhatsappContent.message);
-                                toast.success('המסר הועתק!');
-                              }}
-                            >
+                          {editingWhatsapp ? (
+                            <Textarea
+                              value={autopilotWhatsappContent.message}
+                              onChange={(e) => setAutopilotWhatsappContent({ ...autopilotWhatsappContent, message: e.target.value })}
+                              className="min-h-[100px] text-sm"
+                              dir="rtl"
+                            />
+                          ) : (
+                            <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
+                              {autopilotWhatsappContent.message}
+                            </div>
+                          )}
+                          
+                          {/* Fix request form */}
+                          {fixRequestPlatform === 'whatsapp' && (
+                            <Card className="p-4 my-4 border-2 border-primary/30 bg-primary/5 animate-fade-in">
+                              <p className="text-sm font-medium mb-2">מה לשנות במסר?</p>
+                              <Textarea
+                                value={platformFixText}
+                                onChange={(e) => setPlatformFixText(e.target.value)}
+                                placeholder="למשל: תוסיף אימוג'ים, תקצר, תשנה את הטון..."
+                                className="min-h-[80px] text-sm mb-3"
+                                dir="rtl"
+                              />
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => handlePlatformFix('whatsapp')} disabled={!platformFixText.trim()}>
+                                  <Sparkles className="h-3.5 w-3.5 ml-1.5" />
+                                  עדכן
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setFixRequestPlatform(null); setPlatformFixText(''); }}>ביטול</Button>
+                              </div>
+                            </Card>
+                          )}
+                          
+                          <div className="flex gap-2 flex-wrap mt-4">
+                            <Button variant="outline" size="sm" onClick={() => {
+                              navigator.clipboard.writeText(autopilotWhatsappContent.message);
+                              toast.success('המסר הועתק!');
+                            }}>
                               העתק מסר
                             </Button>
+                            <Button variant="outline" size="sm" onClick={() => setEditingWhatsapp(!editingWhatsapp)}>
+                              <Pencil className="h-3.5 w-3.5 ml-1.5" />
+                              {editingWhatsapp ? 'סיום עריכה' : 'ערוך'}
+                            </Button>
+                            {!editingWhatsapp && fixRequestPlatform !== 'whatsapp' && (
+                              <Button variant="outline" size="sm" onClick={() => setFixRequestPlatform('whatsapp')}>
+                                <MessageSquare className="h-3.5 w-3.5 ml-1.5" />
+                                בקש תיקונים
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </Card>
