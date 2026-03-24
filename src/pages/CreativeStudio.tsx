@@ -3452,7 +3452,11 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                           </Button>
                         </div>
                       </Card>
-                    ) : null}
+                    ) : (
+                      <div className="text-center p-8 text-muted-foreground">
+                        <p>לא הצלחנו ליצור תשדיר רדיו. נסה שוב.</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
