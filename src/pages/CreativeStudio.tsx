@@ -3371,6 +3371,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               <Shield className="h-4 w-4" />
               כל תמונה עוברת בדיקת כשרות אוטומטית
             </div>
+            </>
+            )}
           </div>
         )}
       </div>
