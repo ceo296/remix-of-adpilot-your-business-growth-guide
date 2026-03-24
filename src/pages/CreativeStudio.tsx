@@ -1943,17 +1943,25 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             .update({ kosher_status: kosherResult.status, kosher_analysis: kosherResult.recommendation })
             .eq('image_url', imageUrl);
 
-          // Auto-retry if rejected (up to 2 retries)
-          if (kosherResult.status === 'rejected') {
-            // Mark kosher step as rejected
+          // Auto-retry if rejected OR needs-review with specific issues
+          const hasSpecificIssues = kosherResult.recommendation && 
+            kosherResult.recommendation.length > 20 && 
+            kosherResult.status !== 'approved';
+          
+          if (kosherResult.status === 'rejected' || (kosherResult.status === 'needs-review' && hasSpecificIssues)) {
+            const isRejected = kosherResult.status === 'rejected';
+            // Mark kosher step
             updatePipelineStep(kosherId, { 
-              status: 'rejected' as AgentStepStatus, 
+              status: isRejected ? 'rejected' as AgentStepStatus : 'done',
               completedAt: Date.now(),
-              output: `❌ נדחה: ${kosherResult.recommendation || 'לא עמד בדרישות'}`,
+              output: isRejected 
+                ? `❌ נדחה: ${kosherResult.recommendation || 'לא עמד בדרישות'}`
+                : `⚠️ נמצאו הערות לתיקון: ${kosherResult.recommendation}\n🔄 מייצר גרסה מתוקנת אוטומטית...`,
             });
 
             let retrySuccess = false;
-            for (let retry = 0; retry < 2 && !retrySuccess; retry++) {
+            const maxRetries = isRejected ? 2 : 1; // needs-review gets 1 retry, rejected gets 2
+            for (let retry = 0; retry < maxRetries && !retrySuccess; retry++) {
               const retryStepId = `retry-${i+1}-${retry+1}`;
               const retryKosherStepId = `retry-kosher-${i+1}-${retry+1}`;
               
@@ -1961,18 +1969,27 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               addPipelineStepAfter(retry === 0 ? kosherId : `retry-kosher-${i+1}-${retry}`, {
                 id: retryStepId,
                 agent: 'Retry Generator',
-                label: `🔄 ייצור חלופה לסקיצה ${i+1} (ניסיון ${retry + 1})`,
+                label: isRejected 
+                  ? `🔄 ייצור חלופה לסקיצה ${i+1} (ניסיון ${retry + 1})`
+                  : `🔧 תיקון סקיצה ${i+1} לפי הערות`,
                 icon: 'retry',
                 status: 'retrying' as AgentStepStatus,
                 startedAt: Date.now(),
-                details: `הסקיצה נדחתה — מייצר חלופה שנמנעת מ: ${kosherResult.recommendation}`,
+                details: `${isRejected ? 'הסקיצה נדחתה' : 'נמצאו הערות'} — מייצר גרסה מתוקנת: ${kosherResult.recommendation}`,
               });
 
-              toast.info(`סקיצה ${i + 1} נדחתה, מייצר חלופה (ניסיון ${retry + 1})... 🔄`);
+              toast.info(isRejected 
+                ? `סקיצה ${i + 1} נדחתה, מייצר חלופה (ניסיון ${retry + 1})... 🔄`
+                : `מתקן סקיצה ${i + 1} לפי הערות הבדיקה... 🔧`
+              );
+
+              const corrections = isRejected
+                ? [`הסקיצה הקודמת נדחתה: ${kosherResult.recommendation}. יש להימנע מהבעיה הזו.`]
+                : [`נמצאו הערות בבדיקה שחייבות תיקון: ${kosherResult.recommendation}. תקן את הבעיות האלו בדיוק תוך שמירה על שאר העיצוב.`];
 
               const retryImageUrl = await generateImageForConcept(
                 concept, i + 10 + retry, brandContext, campaignContext,
-                [`הסקיצה הקודמת נדחתה: ${kosherResult.recommendation}. יש להימנע מהבעיה הזו.`]
+                corrections
               );
 
               if (retryImageUrl) {
@@ -1980,13 +1997,13 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                 addPipelineStepAfter(retryStepId, {
                   id: retryKosherStepId,
                   agent: 'Kosher Filter',
-                  label: `בדיקת כשרות חלופה ${i+1} (ניסיון ${retry + 1})`,
+                  label: `בדיקת כשרות ${isRejected ? 'חלופה' : 'תיקון'} ${i+1} (ניסיון ${retry + 1})`,
                   icon: 'shield',
                   status: 'running',
                   startedAt: Date.now(),
                 });
 
-                updatePipelineStep(retryStepId, { status: 'done', completedAt: Date.now(), output: `✅ סקיצה חלופית נוצרה` });
+                updatePipelineStep(retryStepId, { status: 'done', completedAt: Date.now(), output: `✅ סקיצה ${isRejected ? 'חלופית' : 'מתוקנת'} נוצרה` });
 
                 const retryKosher = await runKosherCheck(retryImageUrl);
                 if (retryKosher.status !== 'rejected') {
@@ -1998,7 +2015,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   updatePipelineStep(retryKosherStepId, { 
                     status: 'done', 
                     completedAt: Date.now(),
-                    output: `סטטוס חלופי: ${retryKosher.status === 'approved' ? '✅ מאושר' : '⚠️ דורש בדיקה'}\n${retryKosher.recommendation || ''}`,
+                    output: `סטטוס: ${retryKosher.status === 'approved' ? '✅ מאושר' : '⚠️ דורש בדיקה'}\n${retryKosher.recommendation || ''}`,
                   });
 
                   // Add "lesson learned" step
@@ -2014,7 +2031,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                     output: `🚫 הבעיה: ${kosherResult.recommendation}\n✅ הפתרון: המערכת תימנע מבעיה זו בייצורים הבאים.\n📝 התיקון הועבר כהנחיה לכל הסוכנים.`,
                   });
 
-                  toast.success(`סקיצה ${i + 1} הוחלפה בהצלחה! ✅`);
+                  toast.success(`סקיצה ${i + 1} ${isRejected ? 'הוחלפה' : 'תוקנה'} בהצלחה! ✅`);
                   retrySuccess = true;
 
                   await supabase.from('generated_images')
@@ -2031,8 +2048,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                 updatePipelineStep(retryStepId, { status: 'error', completedAt: Date.now(), error: 'לא התקבלה תמונה מהמודל' });
               }
             }
-            if (!retrySuccess) {
-              // Add failure lesson
+            if (!retrySuccess && isRejected) {
+              // Add failure lesson only for rejected (not needs-review)
               addPipelineStepAfter(`retry-${i+1}-2`, {
                 id: `lesson-fail-${i+1}`,
                 agent: 'System Learning',
@@ -2041,7 +2058,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                 status: 'error',
                 startedAt: Date.now(),
                 completedAt: Date.now(),
-                output: `🚫 הבעיה שנמשכה: ${kosherResult.recommendation}\n❌ לא הצלחנו לתקן אחרי 2 ניסיונות.\n📝 הבעיה נרשמה ותטופל ידנית.`,
+                output: `🚫 הבעיה שנמשכה: ${kosherResult.recommendation}\n❌ לא הצלחנו לתקן אחרי ${maxRetries} ניסיונות.\n📝 הבעיה נרשמה ותטופל ידנית.`,
               });
             }
           }
