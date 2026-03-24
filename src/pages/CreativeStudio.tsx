@@ -3142,8 +3142,14 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                               dir="rtl"
                             />
                           ) : (
-                            <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
+                            <div 
+                              className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4 cursor-pointer rounded-lg p-3 -m-3 transition-all hover:bg-primary/5 hover:ring-1 hover:ring-primary/20 group relative"
+                              onClick={() => { if (fixRequestPlatform !== 'radio') setFixRequestPlatform('radio'); }}
+                            >
                               {autopilotRadioScript.script}
+                              <span className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-primary flex items-center gap-1">
+                                <Pencil className="h-3 w-3" /> לחץ לתיקונים
+                              </span>
                             </div>
                           )}
                           {autopilotRadioScript.voiceNotes && !editingRadio && (
@@ -3252,7 +3258,13 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                               />
                             </div>
                           ) : (
-                            <>
+                            <div 
+                              className="cursor-pointer rounded-lg p-3 -m-3 transition-all hover:bg-primary/5 hover:ring-1 hover:ring-primary/20 group relative"
+                              onClick={() => { if (fixRequestPlatform !== 'article') setFixRequestPlatform('article'); }}
+                            >
+                              <span className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-primary flex items-center gap-1">
+                                <Pencil className="h-3 w-3" /> לחץ לתיקונים
+                              </span>
                               <h4 className="text-xl font-bold text-foreground mb-1">{autopilotArticle.headline}</h4>
                               <h5 className="text-base text-muted-foreground mb-4">{autopilotArticle.subheadline}</h5>
                               <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
@@ -3266,7 +3278,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                               {autopilotArticle.callToAction && (
                                 <p className="text-sm text-primary font-medium">{autopilotArticle.callToAction}</p>
                               )}
-                            </>
+                            </div>
                           )}
                           
                           {/* Fix request form */}
@@ -3386,7 +3398,13 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                               />
                             </div>
                           ) : (
-                            <>
+                            <div 
+                              className="cursor-pointer rounded-lg p-3 -m-3 transition-all hover:bg-primary/5 hover:ring-1 hover:ring-primary/20 group relative"
+                              onClick={() => { if (fixRequestPlatform !== 'email') setFixRequestPlatform('email'); }}
+                            >
+                              <span className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-primary flex items-center gap-1">
+                                <Pencil className="h-3 w-3" /> לחץ לתיקונים
+                              </span>
                               <div className="text-xs text-muted-foreground mb-1">נושא:</div>
                               <h4 className="text-xl font-bold text-foreground mb-4">{autopilotEmailContent.subject}</h4>
                               <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line mb-4">
@@ -3397,7 +3415,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                                   {autopilotEmailContent.cta}
                                 </div>
                               )}
-                            </>
+                            </div>
                           )}
                           
                           {/* Fix request form */}
