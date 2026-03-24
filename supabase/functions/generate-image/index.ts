@@ -409,6 +409,68 @@ function normalizeCorrections(rawCorrections: any): NormalizedCorrection[] {
     .filter((item) => item.text.length > 0);
 }
 
+const TOPIC_INFERENCE_RULES: Record<string, RegExp> = {
+  food: /(אלכוהול|יין|יינות|וויסקי|ו(?:ו|ד)דקה|ליקר|ליקרים|בירה|בירות|משקה|משקאות|פיצוחים|סופר|מכולת|מעדניה)/i,
+  real_estate: /(נדל"?ן|דירה|דירות|דיור|משכנתא|פרויקט|תיווך)/i,
+  health: /(רפואה|רפואי|רופא|מרפאה|שיניים|טיפול|אורתודונט|קליניקה)/i,
+  beauty: /(קוסמטיקה|טיפוח|עור|פנים|איפור|ספא|פאה|פאות)/i,
+  education: /(חינוך|לימוד|ישיבה|סמינר|בית ספר|קורס|חוג)/i,
+};
+
+const NIGHTLIFE_HEADLINE_PATTERNS: RegExp[] = [
+  /תפתח\s+מועדון/i,
+  /חיי\s*לילה/i,
+  /מסיבה/i,
+  /פאב/i,
+  /צ[׳']?ייסר/i,
+  /שוטים?/i,
+  /תמ(?:לא|זוג|רים).{0,12}כוס/i,
+];
+
+function inferTopicCategoryFromText(input: string): string | null {
+  const text = normalizePromptText(input).toLowerCase();
+  if (!text) return null;
+
+  for (const [topic, regex] of Object.entries(TOPIC_INFERENCE_RULES)) {
+    if (regex.test(text)) return topic;
+  }
+
+  return null;
+}
+
+function getVariationDirective(variationIndex?: number): string {
+  const directives = [
+    'כיוון וריאציה: הדגשת מוצר/שירות בתקריב נקי עם מסר חד וקצר.',
+    'כיוון וריאציה: סצנת שימוש יומיומית אותנטית ומכובדת, עם זווית צילום שונה מהסקיצה הקודמת.',
+    'כיוון וריאציה: קומפוזיציה טיפוגרפית-גרפית נועזת עם ויזואל מינימלי.',
+    'כיוון וריאציה: פריסת פרימיום מאוזנת עם היררכיה שונה וכותרת בזווית רעיונית חדשה.',
+  ];
+
+  const index = Number.isFinite(variationIndex)
+    ? Math.abs(Math.trunc(variationIndex as number)) % directives.length
+    : 0;
+
+  return directives[index];
+}
+
+function isHeadlineSafeForAudience(headline: string, contextText: string): boolean {
+  const normalizedHeadline = normalizePromptText(headline);
+  if (!normalizedHeadline) return false;
+
+  const normalizedContext = normalizePromptText(contextText);
+  const hasLoyaltyClubContext = /(מועדון\s*לקוחות|כרטיס\s*הטבות|הטבות|נקודות)/i.test(normalizedContext);
+
+  if (!hasLoyaltyClubContext && /מועדון/i.test(normalizedHeadline)) {
+    return false;
+  }
+
+  if (NIGHTLIFE_HEADLINE_PATTERNS.some((pattern) => pattern.test(normalizedHeadline))) {
+    return false;
+  }
+
+  return true;
+}
+
 function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicCategory?: string): string {
   // Priority: explicit textPrompt > offer from brief
   const source = normalizePromptText(rawHeadline || campaignContext?.offer || '');
@@ -498,7 +560,18 @@ serve(async (req) => {
     const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, designApproach, corrections, variationIndex, headlinePosition, _visualOnlyUrl, sourceImageUrl } = body;
     const revisionSourceImageUrl = sourceImageUrl || _visualOnlyUrl || null;
     const normalizedCorrections = normalizeCorrections(corrections);
+    const inferredTopicCategory = inferTopicCategoryFromText([
+      visualPrompt,
+      textPrompt,
+      campaignContext?.offer,
+      campaignContext?.title,
+      brandContext?.winningFeature,
+      Array.isArray(brandContext?.services) ? brandContext.services.join(' ') : '',
+    ].filter(Boolean).join(' '));
+    const effectiveTopicCategory = topicCategory || inferredTopicCategory;
+
     console.log("Received request:", { visualPrompt, textPrompt, style, engine, templateId, mediaType, topicCategory, holidaySeason, aspectRatio, headlinePosition, hasRevisionSource: !!revisionSourceImageUrl, brandContext: brandContext ? { businessName: brandContext.businessName, colors: brandContext.colors, logoUrl: !!brandContext.logoUrl } : null, corrections: normalizedCorrections.length });
+    console.log('[Topic Detection] requested:', topicCategory, '| inferred:', inferredTopicCategory, '| effective:', effectiveTopicCategory);
 
     // Initialize Supabase to fetch model config + sector brain
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -512,12 +585,13 @@ serve(async (req) => {
     let sectorQuery = supabase
       .from('sector_brain_examples')
       .select('zone, name, text_content, stream_type, gender_audience, topic_category')
+      .is('topic_category', null)
       .limit(30);
-    if (topicCategory) {
+    if (effectiveTopicCategory) {
       sectorQuery = supabase
         .from('sector_brain_examples')
         .select('zone, name, text_content, stream_type, gender_audience, topic_category')
-        .or(`topic_category.eq.${topicCategory},topic_category.is.null`)
+        .or(`topic_category.eq.${effectiveTopicCategory},topic_category.is.null`)
         .limit(30);
     }
 
@@ -645,9 +719,9 @@ ABSOLUTELY FORBIDDEN — ANY of these objects will RUIN the ad and make it unusa
 ❌ Religious candles (Shabbat/Hanukkah)
 ❌ Hamantaschen / Mishloach manot
 
-These objects are ONLY relevant for holiday-specific campaigns. Including them in a ${topicCategory || 'commercial'} ad is like putting a Christmas tree in a summer ad — a CATASTROPHIC professional error.
+        These objects are ONLY relevant for holiday-specific campaigns. Including them in a ${effectiveTopicCategory || 'commercial'} ad is like putting a Christmas tree in a summer ad — a CATASTROPHIC professional error.
 
-The ad is for: ${topicCategory || 'a business/service'}. Show ONLY imagery relevant to that specific product/service.
+        The ad is for: ${effectiveTopicCategory || 'a business/service'}. Show ONLY imagery relevant to that specific product/service.
 A dental ad = dental imagery. A real estate ad = architecture. A food ad = food. NOTHING religious unless holiday-tagged.`;
     }
 
@@ -683,6 +757,10 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     const brandServices = brandContext?.services?.length ? brandContext.services.join(', ') : '';
     const brandXFactor = brandContext?.primaryXFactor || brandContext?.winningFeature || '';
     const offerTextForAI = campaignContext?.offer || textPrompt || '';
+    const variationDirective = revisionSourceImageUrl
+      ? 'תיקון ממוקד בלבד — שמירה על אותה סקיצה.'
+      : getVariationDirective(variationIndex);
+    const headlineValidationContext = [offerTextForAI, campaignContext?.goal, campaignContext?.adGoal, brandServices].filter(Boolean).join(' | ');
     
     // Generate headline + subtitle in parallel
     let headline = '';
@@ -705,7 +783,8 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
 4. אסור קלישאות: "הכי טוב", "מקצועי ואיכותי", "שירות מעולה", "פתרון מושלם"
 5. אסור סימני פיסוק (פסיקים, נקודות). אסור גרשיים. אסור מספרים
 6. עדיף לא לכלול את שם העסק — הוא בלוגו. שם העסק מותר רק אם הוא חלק אינטגרלי מהטוויסט
-7. תחזיר רק את הכותרת עצמה — בלי הסברים
+7. לקהל חרדי: אסור סלנג לילה/ברים/מועדונים כמו "תפתח מועדון", "תמלא את הכוס", "פאב", "מסיבה"
+8. תחזיר רק את הכותרת עצמה — בלי הסברים
 
 דוגמאות לכותרות חזקות:
 - נדל"ן: "חלון שמתגשם" (טוויסט על "חלום")
@@ -715,7 +794,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
 - טיפוח: "כי מגיע לך להרגיש מושלמת"
 
 כלל מגדרי קריטי: ${genderDirective}` },
-            { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
+            { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\nוריאציה נדרשת: ${variationDirective}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
           ],
         }),
       }).then(r => r.ok ? r.json() : null).catch(() => null);
@@ -734,9 +813,10 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
 2. קרא את כל הבריף — חפש הטבות, מבצעים, מחירים ותמצת אותם בחדות
 3. ללא גרשיים. תחזיר רק את הכותרת עצמה
 4. אם יש מחיר/הטבה ספציפית בבריף — שלב אותה בכותרת המשנה
+5. אסור ניסוחים של חיי לילה/אלכוהול פרוע/מועדונים
 
 כלל מגדרי קריטי: ${genderDirective}` },
-            { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
+            { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nוריאציה נדרשת: ${variationDirective}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
           ],
         }),
       }).then(r => r.ok ? r.json() : null).catch(() => null);
@@ -745,8 +825,13 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
       
       const aiHeadline = headlineData?.choices?.[0]?.message?.content?.trim();
       if (aiHeadline && aiHeadline.length > 2 && aiHeadline.length <= 40) {
-        headline = aiHeadline.replace(/["""''`.!?]/g, '').trim();
-        console.log('[Headline AI] Generated:', headline);
+        const sanitizedHeadline = aiHeadline.replace(/["""''`.!?]/g, '').replace(/\s{2,}/g, ' ').trim();
+        if (isHeadlineSafeForAudience(sanitizedHeadline, headlineValidationContext)) {
+          headline = sanitizedHeadline;
+          console.log('[Headline AI] Generated:', headline);
+        } else {
+          console.warn('[Headline AI] Rejected unsafe headline:', sanitizedHeadline);
+        }
       }
       
       const aiSubtitle = subtitleData?.choices?.[0]?.message?.content?.trim();
@@ -757,7 +842,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     }
     
     // Fallbacks
-    if (!headline) headline = buildCreativeHeadline(rawHeadline, campaignContext, topicCategory);
+    if (!headline) headline = buildCreativeHeadline(rawHeadline, campaignContext, effectiveTopicCategory);
     if (!subtitle && brandContext?.winningFeature) subtitle = brandContext.winningFeature.slice(0, 56);
     else if (!subtitle && brandContext?.primaryXFactor) subtitle = brandContext.primaryXFactor.slice(0, 56);
 
@@ -947,6 +1032,10 @@ ${designApproach === 'brand-follower' ? `BRAND FOLLOWER: Replicate EXACT same gr
   designApproach === 'visual-refresh' ? `VISUAL REFRESH: Same grid structure, fresh visual style.` : 
   designApproach === 'structural-flex' ? `STRUCTURAL FLEX: Keep brand DNA, new grid/layout.` : 
   `CREATIVE FREEDOM: Full freedom, design from scratch.`}
+
+${!revisionSourceImageUrl ? `VARIATION INSTRUCTION (MANDATORY DIFFERENTIATION):
+- ${variationDirective}
+- This sketch must feel clearly different from other variations in concept framing, composition, and visual rhythm while keeping the same brand DNA.` : ''}
 
 ${visualApproach === 'product-focus' ? `PRODUCT-FOCUSED: Show ONLY the product/service. ZERO people.` : 
   visualApproach === 'lifestyle' ? `LIFESTYLE: May include ONE Orthodox Jewish man/boy if relevant.` : 
