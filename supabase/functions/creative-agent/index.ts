@@ -457,7 +457,17 @@ serve(async (req) => {
       }
     }
 
-    const SYSTEM_PROMPT = await fetchAgentPrompt('creative-agent', DEFAULT_SYSTEM_PROMPT);
+    const BASE_SYSTEM_PROMPT = await fetchAgentPrompt('creative-agent', DEFAULT_SYSTEM_PROMPT);
+    const ENFORCED_SAFETY_AND_BRIEF_LOCK = `
+=== ENFORCED_SAFETY_AND_BRIEF_LOCK ===
+חוק עליון בלתי ניתן לעקיפה:
+1) איסור מוחלט על רמיזות מיניות / פלרטטניות / דו-משמעות מינית בקופי, בכותרת, בסאב וב-CTA.
+2) אסור ניסוחים זוגיים/אינטימיים כמו: "מחכה לך", "מחכה לחבר", "תשוקה", "פיתוי", "לגעת", "להתמסר" כשהם עלולים להישמע מיניים.
+3) אסור שפה של חיי לילה: "מועדון", "מסיבה", "פאב", "בר", אלא אם מדובר מפורשות ב"מועדון לקוחות".
+4) לפני החזרת תשובה בצע בדיקת-עצמי: אם יש אפילו ספק לדו-משמעות מינית — כתוב כותרת חדשה, נקייה ומכבדת.
+5) הבשורה מהבריף (campaignContext.offer) חייבת להופיע באופן ברור בכותרת/סאב. אסור להחליף אותה במסר כללי.
+=== END ENFORCED_SAFETY_AND_BRIEF_LOCK ===`;
+    const SYSTEM_PROMPT = `${BASE_SYSTEM_PROMPT}\n\n${ENFORCED_SAFETY_AND_BRIEF_LOCK}`;
     const messages: Array<{role: string; content: string}> = [
       { role: 'system', content: SYSTEM_PROMPT + contextBlock }
     ];
