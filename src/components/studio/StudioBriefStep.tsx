@@ -332,7 +332,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
     }
   }, []);
 
-
+  const handleCampaignImage = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const file = files[0];
     if (!file.type.startsWith('image/')) return;
