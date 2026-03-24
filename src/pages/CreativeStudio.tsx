@@ -1123,7 +1123,7 @@ const CreativeStudio = () => {
     setFixRequestPlatform(null);
     
     const concept = selectedConcept;
-    const offer = brief.offer || autopilotBrief?.offer || '';
+    const offer = campaignBrief.offer || '';
     const fixInstruction = platformFixText.trim();
     setPlatformFixText('');
     
@@ -1188,7 +1188,7 @@ const CreativeStudio = () => {
       } else if (platform === 'radio') {
         const { data, error } = await supabase.functions.invoke('generate-radio-script', {
           body: {
-            brief: { offer, adGoal: brief.adGoal, goal: brief.goal },
+            brief: { offer, adGoal: campaignBrief.adGoal, goal: campaignBrief.goal },
             brandContext: clientProfile ? { businessName: clientProfile.business_name, targetAudience: clientProfile.target_audience } : null,
             fixInstruction,
             existingScript: autopilotRadioScript?.script,
