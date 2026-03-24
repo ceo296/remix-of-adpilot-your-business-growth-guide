@@ -2442,6 +2442,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
 
       // For non-visual-only types, ensure results view is shown
       if (!needsVisuals) {
+        setShowResults(true);
         setIsGenerating(false);
       }
     } catch (error) {
