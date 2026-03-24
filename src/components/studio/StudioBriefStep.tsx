@@ -763,16 +763,40 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             </span>
             מה הבשורה המרכזית שלנו הפעם? *
           </Label>
-          <Textarea
-            id="campaign-offer"
-            value={value.offer}
-            onChange={(e) => updateBrief({ offer: e.target.value })}
-            placeholder="ספרו לנו על המהלך, המוצר או השירות. מה המהות שלו ומה הכי חשוב להדגיש? לדוגמה: השקת טכנולוגיה חדשה להשתלות שיניים ללא כאב שחוסכת לכם זמן יקר..."
-            className={cn(
-              "min-h-[130px] text-base transition-all",
-              messageQuality.level === 'weak' && 'border-orange-400/60 focus:border-orange-400',
-            )}
-          />
+          <div className="relative">
+            <Textarea
+              id="campaign-offer"
+              value={value.offer}
+              onChange={(e) => updateBrief({ offer: e.target.value })}
+              placeholder="ספרו לנו על המהלך, המוצר או השירות. מה המהות שלו ומה הכי חשוב להדגיש? לדוגמה: השקת טכנולוגיה חדשה להשתלות שיניים ללא כאב שחוסכת לכם זמן יקר..."
+              className={cn(
+                "min-h-[130px] text-base transition-all pl-14",
+                messageQuality.level === 'weak' && 'border-orange-400/60 focus:border-orange-400',
+              )}
+            />
+            <button
+              type="button"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isTranscribing}
+              className={cn(
+                "absolute bottom-3 left-3 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-md",
+                isRecording 
+                  ? "bg-destructive text-destructive-foreground animate-pulse" 
+                  : isTranscribing
+                    ? "bg-muted text-muted-foreground"
+                    : "bg-primary/15 text-primary hover:bg-primary/25"
+              )}
+              title={isRecording ? 'עצור הקלטה' : isTranscribing ? 'מתמלל...' : 'הקלט את הבשורה בקול'}
+            >
+              {isTranscribing ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : isRecording ? (
+                <Square className="w-4 h-4" />
+              ) : (
+                <Mic className="w-5 h-5" />
+              )}
+            </button>
+          </div>
           
           {/* Quality Meter */}
           {value.offer.trim().length > 0 && (
