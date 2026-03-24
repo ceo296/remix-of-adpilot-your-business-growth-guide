@@ -234,7 +234,7 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
 
 התיאור שהמשתמש כתב: "${value.offer}"
 ${businessName ? `שם העסק: ${businessName}` : ''}
-${value.adGoal ? `מטרת המודעה: ${value.adGoal}` : ''}
+${value.adGoal ? `מטרת הקמפיין: ${value.adGoal}` : ''}
 ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
 
 כתוב גרסה משופרת ומורחבת (לפחות 15 מילים) שכוללת:
@@ -391,7 +391,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
           <Target className="w-8 h-8 text-primary" />
         </div>
         <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-          בוא נגדיר את המודעה
+          בוא נגדיר את הקמפיין
         </h2>
         <p className="text-muted-foreground">
           {businessName ? `עבור ${businessName} — ` : ''}כמה שאלות קצרות וניצור את הקריאייטיב המושלם
@@ -402,7 +402,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
       <div className="space-y-4">
         <Label className="text-foreground font-semibold text-base flex items-center gap-2">
           <span className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">1</span>
-          מה המטרה העיקרית של המודעה היום?
+          מה המטרה העיקרית של הקמפיין היום?
         </Label>
         <div className="grid grid-cols-2 gap-4">
           {AD_GOAL_OPTIONS.map((option) => {
@@ -447,7 +447,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
         <div className="space-y-4 animate-fade-in">
           <Label className="text-foreground font-semibold text-base flex items-center gap-2">
             <span className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">2</span>
-            האם נרצה להציג מחיר או הטבה ספציפית במודעה?
+            האם נרצה להציג מחיר או הטבה ספציפית בקמפיין?
           </Label>
           <div className="grid grid-cols-2 gap-4">
             <div
@@ -593,7 +593,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             <span className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-bold">
               {showPriceQuestion ? (showTimeLimitQuestion ? '4' : '3') : '2'}
             </span>
-            איך היית רוצה שהלקוח ירגיש כשיצפה במודעה?
+            איך היית רוצה שהלקוח ירגיש כשיצפה בקמפיין?
           </Label>
           <div className="grid grid-cols-2 gap-4">
             {EMOTIONAL_TONE_OPTIONS.map((option) => {
@@ -939,7 +939,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
           {!hasSelectedContact && value.structure && (
             <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-2 rounded-lg">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>יש לסמן לפחות אפשרות אחת להצגה במודעה</span>
+              <span>יש לסמן לפחות אפשרות אחת להצגה בקמפיין</span>
             </div>
           )}
           <Card>
@@ -1011,7 +1011,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                 <div className="space-y-2 pt-2 border-t border-border/50">
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <Building2 className="w-4 h-4 text-primary" />
-                    <span>סניפים להצגה במודעה:</span>
+                    <span>סניפים להצגה בקמפיין:</span>
                   </div>
                   {branchesList.map((branch, idx) => (
                     <div key={idx} className="flex items-center gap-3 mr-6">
