@@ -3469,10 +3469,10 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                           {autopilotArticle.pullQuote && (
                             <blockquote className="border-r-4 border-primary pr-4 my-4 text-lg font-medium italic text-foreground/80">{autopilotArticle.pullQuote}</blockquote>
                           )}
-                          {autopilotArticle.cta && <div className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium text-sm">{autopilotArticle.cta}</div>}
+                          {autopilotArticle.callToAction && <div className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium text-sm">{autopilotArticle.callToAction}</div>}
                           <div className="mt-4">
                             <Button variant="outline" size="sm" onClick={() => {
-                              const text = `${autopilotArticle.headline}\n${autopilotArticle.subheadline || ''}\n\n${autopilotArticle.body}\n\n${autopilotArticle.pullQuote || ''}\n\n${autopilotArticle.cta || ''}`;
+                              const text = `${autopilotArticle.headline}\n${autopilotArticle.subheadline || ''}\n\n${autopilotArticle.body}\n\n${autopilotArticle.pullQuote || ''}\n\n${autopilotArticle.callToAction || ''}`;
                               navigator.clipboard.writeText(text); toast.success('הכתבה הועתקה!');
                             }}>העתק כתבה</Button>
                           </div>
