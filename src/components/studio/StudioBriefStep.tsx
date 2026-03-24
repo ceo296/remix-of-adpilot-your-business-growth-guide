@@ -268,7 +268,71 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
     }
   }, [value.offer, value.adGoal, value.emotionalTone, businessName, messageQuality.wordCount]);
 
-  const handleCampaignImage = (files: FileList | null) => {
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setIsTranscribing(true);
+        try {
+          // Convert to base64 and send to AI for transcription
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const base64 = (reader.result as string).split(',')[1];
+            const { data, error } = await supabase.functions.invoke('ai-chat', {
+              body: {
+                message: `תמלל את ההקלטה הזו לטקסט בעברית. תן רק את הטקסט המדובר, בלי הסברים. אם אין דיבור, כתוב "לא זוהה דיבור".`,
+                audioBase64: base64,
+                audioFormat: 'webm',
+                skipHistory: true,
+              },
+            });
+            if (!error && data?.response) {
+              const transcribed = data.response.trim();
+              if (transcribed && transcribed !== 'לא זוהה דיבור') {
+                const current = value.offer.trim();
+                updateBrief({ offer: current ? `${current} ${transcribed}` : transcribed });
+                toast.success('ההקלטה תומללה בהצלחה! 🎙️');
+              } else {
+                toast.error('לא זוהה דיבור בהקלטה');
+              }
+            } else {
+              toast.error('שגיאה בתמלול ההקלטה');
+            }
+          };
+          reader.readAsDataURL(audioBlob);
+        } catch {
+          toast.error('שגיאה בתמלול');
+        } finally {
+          setIsTranscribing(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      toast.info('מקליט... לחץ שוב לעצירה');
+    } catch {
+      toast.error('לא הצלחנו לגשת למיקרופון');
+    }
+  }, [value.offer]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }, []);
+
+
     if (!files || files.length === 0) return;
     const file = files[0];
     if (!file.type.startsWith('image/')) return;
