@@ -3448,7 +3448,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                   <div className="mt-6 pt-4">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/30 flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-white" />
+                        <Newspaper className="h-5 w-5 text-white" />
                       </div>
                       <div>
                         <h3 className="text-xl font-bold">כתבה פרסומית</h3>
