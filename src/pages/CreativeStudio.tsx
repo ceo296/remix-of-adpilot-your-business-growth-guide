@@ -932,11 +932,23 @@ const CreativeStudio = () => {
             kosher_analysis: kosherResult.recommendation,
           });
 
-          // Auto-retry if rejected (up to 2 retries)
-          if (kosherResult.status === 'rejected') {
+          // Auto-retry if rejected OR needs-review with specific issues
+          const hasSpecificIssues = kosherResult.recommendation && 
+            kosherResult.recommendation.length > 20 && 
+            kosherResult.status !== 'approved';
+          
+          if (kosherResult.status === 'rejected' || (kosherResult.status === 'needs-review' && hasSpecificIssues)) {
+            const isRejected = kosherResult.status === 'rejected';
             let retrySuccess = false;
-            for (let retry = 0; retry < 2 && !retrySuccess; retry++) {
-              toast.info(`סקיצה ${i + 1} נדחתה, מייצר חלופה (ניסיון ${retry + 1})... 🔄`);
+            const maxRetries = isRejected ? 2 : 1;
+            for (let retry = 0; retry < maxRetries && !retrySuccess; retry++) {
+              toast.info(isRejected 
+                ? `סקיצה ${i + 1} נדחתה, מייצר חלופה (ניסיון ${retry + 1})... 🔄`
+                : `מתקן סקיצה ${i + 1} לפי הערות הבדיקה... 🔧`
+              );
+              const corrections = isRejected
+                ? [`הסקיצה הקודמת נדחתה: ${kosherResult.recommendation}. יש להימנע מהבעיה הזו.`]
+                : [`נמצאו הערות בבדיקה שחייבות תיקון: ${kosherResult.recommendation}. תקן את הבעיות האלו בדיוק תוך שמירה על שאר העיצוב.`];
               const retryData = await supabase.functions.invoke('generate-image', {
                 body: {
                   visualPrompt,
@@ -952,14 +964,13 @@ const CreativeStudio = () => {
                   holidaySeason: selectedHoliday || null,
                   aspectRatio,
                   designApproach: designApproach || null,
-                  corrections: [`הסקיצה הקודמת נדחתה: ${kosherResult.recommendation}. יש להימנע מהבעיה הזו.`],
+                  corrections,
                   variationIndex: i + 10 + retry,
                   headlinePosition: headlinePositions[i],
                 }
               });
               if (retryData.error || !retryData.data?.imageUrl) continue;
 
-              // All-in-One: use the image directly, no overlay needed
               const retryFinalUrl = retryData.data.imageUrl;
 
               const retryKosher = await runKosherCheck(retryData.data.imageUrl);
@@ -970,7 +981,7 @@ const CreativeStudio = () => {
                 newImage.visualOnlyUrl = retryData.data.visualOnlyUrl || retryData.data.imageUrl;
                 newImage.textMeta = retryData.data.textMeta || undefined;
                 setGeneratedImages([...results]);
-                toast.success(`סקיצה ${i + 1} הוחלפה בהצלחה! ✅`);
+                toast.success(`סקיצה ${i + 1} ${isRejected ? 'הוחלפה' : 'תוקנה'} בהצלחה! ✅`);
                 retrySuccess = true;
 
                 await supabase.from('generated_images').insert({
