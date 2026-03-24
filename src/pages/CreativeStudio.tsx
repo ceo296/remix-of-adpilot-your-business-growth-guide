@@ -264,6 +264,7 @@ function sanitizeVisualPrompt(prompt: string): string {
 
 const CreativeStudio = () => {
   const [searchParams] = useSearchParams();
+  const { isAdmin } = useIsAdmin();
   
   // Client profile state
   const [clientProfile, setClientProfile] = useState<ClientProfile | null>(null);
