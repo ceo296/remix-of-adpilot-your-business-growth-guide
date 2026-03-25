@@ -55,6 +55,14 @@ export const ClientResultsView = ({
   const [fixProgress, setFixProgress] = useState(0);
   const [fixStepLabel, setFixStepLabel] = useState('');
 
+  // Reset fix-in-progress when images change (fix completed)
+  useEffect(() => {
+    if (fixInProgress) {
+      setFixInProgress(false);
+      setFixProgress(100);
+    }
+  }, [images]);
+
   // Filter out rejected images — client doesn't see them
   const visibleImages = images.filter(img => img.status !== 'rejected');
 
