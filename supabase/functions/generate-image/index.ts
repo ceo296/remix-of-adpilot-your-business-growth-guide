@@ -1100,14 +1100,22 @@ CLIENT REVISIONS:
 ${normalizedCorrections.map((c) => `- [${c.type === 'copy' || c.type === 'headline' || c.type === 'subtitle' ? 'TEXT' : c.type === 'visual' ? 'VISUAL' : 'GENERAL'}]: ${c.text}`).join('\n')}
 ` : ''}
 
+NEGATIVE PROMPT — NEVER include in image:
+Split-screens, multiple panels, stock-photo look, low-quality CGI, immodest clothing, distorted limbs.
+No religious objects unless holiday-tagged.
+No English text labels like "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", "TOP", "CENTER", "BOTTOM", "CONTACT", "HEADLINE".
+Only HEBREW text from the brief should be visible.
+
 FINAL CHECKLIST:
-✓ Hebrew text is correct, right-to-left, perfectly readable
-✓ 3-zone grid: headline top, visual center, contact strip bottom
+✓ Hebrew text is correct, right-to-left, perfectly readable — NO typos or garbled letters
+✓ 3-area grid: headline top, visual center, contact strip bottom
 ✓ Contact details are accurate and complete
 ✓ Logo is properly placed (if provided)
 ✓ Visual is cinematic and premium
 ✓ No clipped/cut Hebrew text at edges or overlays
-✓ All community rules respected`;
+✓ All community rules respected
+✓ NO English layout labels (ZONE, etc.) visible anywhere in the image
+✓ The OFFER/NEWS from the brief is clearly communicated in the headline — not replaced by generic text`;
 
     const engineVersion = engine === 'nano-banana-pro' ? 'nano-banana-pro' : 'nano-banana';
     console.log(`[Pipeline] Starting All-in-One generation (engine: ${engineVersion})`);
