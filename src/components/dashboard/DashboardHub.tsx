@@ -583,6 +583,9 @@ const DashboardHub = () => {
           </CardContent>
         </Card>
 
+        {/* Final Package View */}
+        <FinalPackageView campaignId={activeCampaign.id} />
+
         {/* Budget Card with Pie Chart */}
         <Card>
           <CardContent className="p-6">
