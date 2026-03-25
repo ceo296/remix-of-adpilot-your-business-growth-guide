@@ -19,40 +19,45 @@ import {
   Bell,
   ChevronDown,
   AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
 
 type MediaScope = 'national' | 'local' | 'both';
 
-type GeneralCategory =
-  | 'national_press'
-  | 'local_press'
-  | 'magazines'
-  | 'women_magazines'
-  | 'digital'
-  | 'whatsapp'
-  | 'email'
-  | 'radio'
-  | 'outdoor'
-  | 'influencers';
-
-interface GeneralPackageItem {
+interface RealMediaItem {
   id: string;
-  category: GeneralCategory;
-  label: string;
-  gender: string;
-  count: number;
+  outletName: string;
+  outletId: string;
+  categoryName: string;
+  categoryEn: string;
+  productName: string;
+  productId: string;
+  productType: string;
   price: number;
-  name: string;
+  genderTarget: string;
+  city: string | null;
+  stream: string | null;
+  vibeHe: string | null;
 }
 
-interface GeneralPackage {
+interface PackageItem {
+  id: string;
+  outletName: string;
+  categoryName: string;
+  productName: string;
+  price: number;
+  count: number;
+}
+
+interface MediaPackage {
   id: string;
   name: string;
   description: string;
   totalPrice: number;
-  items: GeneralPackageItem[];
+  items: PackageItem[];
   recommended?: boolean;
 }
 
@@ -98,154 +103,137 @@ const CITIES = [
   { id: 'elad', label: 'אלעד' },
 ];
 
-const CATEGORY_LABELS: Record<GeneralCategory, string> = {
-  national_press: 'עיתונות ארצית',
-  local_press: 'עיתונות מקומית',
-  magazines: 'מגזינים',
-  women_magazines: 'מגזינים לנשים',
-  digital: 'דיגיטל ואתרים',
-  whatsapp: 'חבילות ווטסאפ',
-  email: 'ניוזלטרים ומיילים',
-  radio: 'רדיו',
-  outdoor: 'שילוט חוצות',
-  influencers: 'משפיענים',
-};
-
-const CATEGORY_WEIGHT: Record<GeneralCategory, number> = {
-  national_press: 1.5,
-  local_press: 1.1,
-  magazines: 1.2,
-  women_magazines: 1.2,
-  digital: 1.25,
-  whatsapp: 1,
-  email: 0.8,
-  radio: 1,
-  outdoor: 1.6,
-  influencers: 1.4,
-};
-
-const MEDIA_TYPE_CATEGORY_MAP: Record<string, GeneralCategory[]> = {
-  // From CreativeStudio media types
-  ad: ['national_press', 'local_press', 'magazines', 'women_magazines'],
-  banner: ['digital', 'email', 'whatsapp', 'influencers'],
-  social: ['digital', 'email', 'whatsapp', 'influencers'],
-  billboard: ['outdoor'],
+// Map media type selections to DB category names
+const MEDIA_TYPE_TO_DB_CATEGORY: Record<string, string[]> = {
+  ad: ['newspapers', 'magazines'],
+  banner: ['digital', 'whatsapp'],
+  social: ['digital', 'whatsapp'],
   radio: ['radio'],
-  // From FastTrackWizard media types
-  newspapers: ['national_press', 'local_press', 'magazines', 'women_magazines'],
-  signage: ['outdoor'],
-  digital: ['digital', 'email', 'influencers'],
-  email: ['email'],
+  email: ['newsletters'],
   whatsapp: ['whatsapp'],
+  newspapers: ['newspapers', 'magazines'],
+  digital: ['digital'],
+  all: [],
 };
 
-const ALL_CATEGORIES: GeneralCategory[] = [
-  'national_press',
-  'local_press',
-  'magazines',
-  'women_magazines',
-  'digital',
-  'whatsapp',
-  'email',
-  'radio',
-  'outdoor',
-  'influencers',
-];
-
-const getAudienceGenderLabel = (targetGender: string) => {
-  if (targetGender === 'women') return 'נשים';
-  if (targetGender === 'men') return 'גברים';
-  if (targetGender === 'family') return 'משפחה';
-  return 'כללי';
+// Category priority weights for budget allocation
+const CATEGORY_PRIORITY: Record<string, number> = {
+  newspapers: 1.5,
+  magazines: 1.2,
+  whatsapp: 1.0,
+  digital: 1.25,
+  newsletters: 0.8,
+  influencers: 1.4,
+  radio: 1.0,
 };
 
-const resolveAllowedCategories = ({
-  selectedMediaTypes,
-  mediaScope,
-  targetGender,
-}: {
-  selectedMediaTypes: MediaType[];
-  mediaScope?: MediaScope;
-  targetGender: string;
-}): GeneralCategory[] => {
-  const set = new Set<GeneralCategory>();
+const filterMediaByAudience = (
+  items: RealMediaItem[],
+  targetGender: string,
+  targetCity: string,
+): RealMediaItem[] => {
+  let filtered = [...items];
 
-  if (!selectedMediaTypes.length) {
-    ALL_CATEGORIES.forEach((c) => set.add(c));
-  } else {
-    selectedMediaTypes.forEach((type) => {
-      const mapped = MEDIA_TYPE_CATEGORY_MAP[type] || [];
-      mapped.forEach((c) => set.add(c));
-    });
-  }
-
-  if (mediaScope === 'national') {
-    set.delete('local_press');
-  }
-  if (mediaScope === 'local') {
-    set.delete('national_press');
-  }
-
+  // Gender filtering
   if (targetGender === 'men') {
-    set.delete('women_magazines');
+    filtered = filtered.filter(item =>
+      item.genderTarget !== 'נשים' && !item.outletName.includes('לנשים')
+    );
+  } else if (targetGender === 'women') {
+    // Keep women-targeted + general
+    filtered = filtered.filter(item =>
+      item.genderTarget !== 'גברים'
+    );
   }
 
-  if (targetGender === 'women') {
-    set.delete('magazines');
+  // City filtering — if specific city, prefer local + national
+  if (targetCity && targetCity !== 'nationwide') {
+    const cityMap: Record<string, string> = {
+      'jerusalem': 'ירושלים',
+      'bnei-brak': 'בני ברק',
+      'ashdod': 'אשדוד',
+      'bet-shemesh': 'בית שמש',
+      'modiin-illit': 'מודיעין עילית',
+      'elad': 'אלעד',
+    };
+    const hebrewCity = cityMap[targetCity] || '';
+    // Prioritize city-specific outlets, but also include national (no city)
+    filtered = filtered.filter(item =>
+      !item.city || item.city === hebrewCity || item.city === ''
+    );
   }
 
-  return Array.from(set);
+  return filtered;
 };
 
-const buildTierItems = ({
-  tierId,
-  tierBudget,
-  categories,
-  targetGender,
-}: {
-  tierId: string;
-  tierBudget: number;
-  categories: GeneralCategory[];
-  targetGender: string;
-}): GeneralPackageItem[] => {
-  if (!categories.length || tierBudget <= 0) return [];
+const buildPackageFromMedia = (
+  tierId: string,
+  tierBudget: number,
+  mediaItems: RealMediaItem[],
+  allowedCategories: string[] | null,
+): PackageItem[] => {
+  if (!mediaItems.length || tierBudget <= 0) return [];
 
-  const weightSum = categories.reduce((sum, cat) => sum + (CATEGORY_WEIGHT[cat] || 1), 0);
-  const genderLabel = getAudienceGenderLabel(targetGender);
+  // Filter by allowed categories if specified
+  let pool = allowedCategories?.length
+    ? mediaItems.filter(item => allowedCategories.some(cat =>
+        item.categoryEn.toLowerCase().includes(cat.toLowerCase())
+      ))
+    : [...mediaItems];
 
-  const items = categories.map((category, index) => {
-    const weight = CATEGORY_WEIGHT[category] || 1;
-    const rawPrice = (tierBudget * weight) / Math.max(weightSum, 1);
-    const roundedPrice = Math.max(500, Math.round(rawPrice / 50) * 50);
+  if (!pool.length) pool = [...mediaItems];
 
-    const count = roundedPrice >= 4500 ? 3 : roundedPrice >= 2500 ? 2 : 1;
-    const label = CATEGORY_LABELS[category];
-
-    return {
-      id: `${tierId}-${category}-${index}`,
-      category,
-      label,
-      gender: genderLabel,
-      count,
-      price: roundedPrice,
-      name: `${label} (${genderLabel})${count > 1 ? ` ×${count}` : ''}`,
-    };
+  // Group by category
+  const byCategory = new Map<string, RealMediaItem[]>();
+  pool.forEach(item => {
+    const key = item.categoryName;
+    if (!byCategory.has(key)) byCategory.set(key, []);
+    byCategory.get(key)!.push(item);
   });
 
-  const currentTotal = items.reduce((sum, item) => sum + item.price, 0);
-  const targetTotal = Math.max(1000, Math.round(tierBudget / 50) * 50);
-  const delta = targetTotal - currentTotal;
+  const categories = Array.from(byCategory.keys());
+  const prioritySum = categories.reduce((sum, cat) => {
+    const catEn = byCategory.get(cat)![0].categoryEn;
+    return sum + (CATEGORY_PRIORITY[catEn] || 1);
+  }, 0);
 
-  if (items.length > 0 && Math.abs(delta) >= 50) {
-    items[0] = {
-      ...items[0],
-      price: Math.max(500, items[0].price + delta),
-    };
-    items[0] = {
-      ...items[0],
-      count: items[0].price >= 4500 ? 3 : items[0].price >= 2500 ? 2 : 1,
-      name: `${items[0].label} (${items[0].gender})${items[0].price >= 2500 ? ` ×${items[0].price >= 4500 ? 3 : 2}` : ''}`,
-    };
+  const items: PackageItem[] = [];
+  let remainingBudget = tierBudget;
+
+  for (const cat of categories) {
+    const catItems = byCategory.get(cat)!;
+    const catEn = catItems[0].categoryEn;
+    const weight = CATEGORY_PRIORITY[catEn] || 1;
+    const catBudget = (tierBudget * weight) / Math.max(prioritySum, 1);
+
+    // Pick items that fit the category budget
+    // Sort by price ascending to fit more items
+    const sorted = [...catItems].sort((a, b) => a.price - b.price);
+
+    let spent = 0;
+    const pickedOutlets = new Set<string>();
+
+    for (const item of sorted) {
+      if (pickedOutlets.has(item.outletId)) continue;
+      if (spent + item.price > catBudget * 1.3 && items.length > 0) break;
+      if (remainingBudget - item.price < 0 && items.length > 0) break;
+
+      // Determine count based on tier
+      const count = tierId === 'premium' ? 3 : tierId === 'standard' ? 2 : 2;
+
+      items.push({
+        id: `${tierId}-${item.outletId}-${item.productId}`,
+        outletName: item.outletName,
+        categoryName: item.categoryName,
+        productName: item.productName,
+        price: item.price,
+        count,
+      });
+
+      spent += item.price;
+      remainingBudget -= item.price;
+      pickedOutlets.add(item.outletId);
+    }
   }
 
   return items;
@@ -269,28 +257,80 @@ export const BudgetAudienceStep = ({
   selectedMediaTypes = [],
   mediaScope,
 }: BudgetAudienceStepProps) => {
-  const [packages, setPackages] = useState<GeneralPackage[]>([]);
+  const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [packageConfirmed, setPackageConfirmed] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [allMediaItems, setAllMediaItems] = useState<RealMediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(false);
 
+  // Fetch real media data from database
   useEffect(() => {
-    if (budget > 0 && targetStream && targetGender) {
-      generateGeneralPackages();
+    const fetchMedia = async () => {
+      setLoadingMedia(true);
+      try {
+        const [outletsRes, productsRes, categoriesRes] = await Promise.all([
+          supabase.from('media_outlets').select('*').eq('is_active', true),
+          supabase.from('media_products').select('*').eq('is_active', true),
+          supabase.from('media_categories').select('*').order('sort_order'),
+        ]);
+
+        const outlets = outletsRes.data || [];
+        const products = productsRes.data || [];
+        const categories = categoriesRes.data || [];
+
+        const catMap = new Map(categories.map(c => [c.id, c]));
+
+        const items: RealMediaItem[] = [];
+        for (const product of products) {
+          const outlet = outlets.find(o => o.id === product.outlet_id);
+          if (!outlet) continue;
+          const category = catMap.get(outlet.category_id);
+          if (!category) continue;
+
+          items.push({
+            id: `${outlet.id}-${product.id}`,
+            outletName: outlet.name_he || outlet.name,
+            outletId: outlet.id,
+            categoryName: category.name_he,
+            categoryEn: category.name,
+            productName: product.name_he || product.name,
+            productId: product.id,
+            productType: product.product_type,
+            price: product.client_price || 0,
+            genderTarget: product.gender_target || 'כללי',
+            city: outlet.city,
+            stream: outlet.stream,
+            vibeHe: outlet.vibe_he,
+          });
+        }
+
+        setAllMediaItems(items);
+      } catch (err) {
+        console.error('Failed to fetch media data:', err);
+      } finally {
+        setLoadingMedia(false);
+      }
+    };
+
+    fetchMedia();
+  }, []);
+
+  // Generate packages when params change
+  useEffect(() => {
+    if (budget > 0 && targetStream && targetGender && allMediaItems.length > 0) {
+      generatePackages();
       setPackageConfirmed(false);
     } else {
       setPackages([]);
       setValidationError(null);
     }
-  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes]);
+  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes, allMediaItems]);
 
-  const generateGeneralPackages = () => {
-    const allowedCategories = resolveAllowedCategories({
-      selectedMediaTypes,
-      mediaScope,
-      targetGender,
-    });
+  const generatePackages = () => {
+    // Filter by audience
+    const filtered = filterMediaByAudience(allMediaItems, targetGender, targetCity);
 
-    if (!allowedCategories.length) {
+    if (!filtered.length) {
       setPackages([]);
       setValidationError('לא נמצאו ערוצי מדיה תואמים לבחירות שלך. עדכן סוג מדיה/קהל יעד.');
       return;
@@ -298,32 +338,26 @@ export const BudgetAudienceStep = ({
 
     setValidationError(null);
 
-    const lowerBudget = Math.max(1000, Math.round((budget * 0.85) / 50) * 50);
-    const exactBudget = Math.max(1000, Math.round(budget / 50) * 50);
-    const higherBudget = Math.max(1000, Math.round((budget * 1.15) / 50) * 50);
+    // Determine allowed DB categories from selected media types
+    let allowedCategories: string[] | null = null;
+    if (selectedMediaTypes.length > 0 && !selectedMediaTypes.includes('all')) {
+      const cats = new Set<string>();
+      selectedMediaTypes.forEach(type => {
+        const mapped = MEDIA_TYPE_TO_DB_CATEGORY[type] || [];
+        mapped.forEach(c => cats.add(c));
+      });
+      allowedCategories = Array.from(cats);
+    }
 
-    const economyItems = buildTierItems({
-      tierId: 'economy',
-      tierBudget: lowerBudget,
-      categories: allowedCategories,
-      targetGender,
-    });
+    const lowerBudget = Math.round(budget * 0.85);
+    const exactBudget = budget;
+    const higherBudget = Math.round(budget * 1.15);
 
-    const standardItems = buildTierItems({
-      tierId: 'standard',
-      tierBudget: exactBudget,
-      categories: allowedCategories,
-      targetGender,
-    });
+    const economyItems = buildPackageFromMedia('economy', lowerBudget, filtered, allowedCategories);
+    const standardItems = buildPackageFromMedia('standard', exactBudget, filtered, allowedCategories);
+    const premiumItems = buildPackageFromMedia('premium', higherBudget, filtered, allowedCategories);
 
-    const premiumItems = buildTierItems({
-      tierId: 'premium',
-      tierBudget: higherBudget,
-      categories: allowedCategories,
-      targetGender,
-    });
-
-    const builtPackages: GeneralPackage[] = [
+    const builtPackages: MediaPackage[] = [
       {
         id: 'economy',
         name: 'חבילה חסכונית',
@@ -358,7 +392,7 @@ export const BudgetAudienceStep = ({
       maximumFractionDigits: 0,
     }).format(price);
 
-  const handleSelectPackage = (pkg: GeneralPackage) => {
+  const handleSelectPackage = (pkg: MediaPackage) => {
     onPackageSelect(pkg);
     setPackageConfirmed(false);
   };
@@ -526,7 +560,16 @@ export const BudgetAudienceStep = ({
         </Card>
       )}
 
-      {showPackages && !validationError && !packageConfirmed && (
+      {loadingMedia && showPackages && (
+        <Card className="border-2 border-primary/20">
+          <CardContent className="p-8 flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            <p className="text-muted-foreground">טוען מאגר מדיה...</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {showPackages && !validationError && !packageConfirmed && !loadingMedia && packages.length > 0 && (
         <Card className="border-2 border-primary/20">
           <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-center gap-2 mb-2">
@@ -570,9 +613,9 @@ export const BudgetAudienceStep = ({
                       {pkg.items.map((item) => (
                         <div key={item.id} className="flex justify-between text-sm items-center">
                           <div className="flex items-center gap-2">
-                            <span className="text-foreground font-medium">{item.label}</span>
+                            <span className="text-foreground font-medium">{item.outletName}</span>
                             <Badge variant="outline" className="text-[10px]">
-                              {item.gender}
+                              {item.categoryName}
                             </Badge>
                           </div>
                           <div className="text-left">
@@ -627,7 +670,7 @@ export const BudgetAudienceStep = ({
                 <Bell className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                 <p className="text-sm text-right text-muted-foreground">
                   תקבל הודעה באזור האישי שלך בהקדם עם <strong className="text-foreground">חבילה סופית מפורטת</strong>{' '}
-                  הכוללת שמות מדיה ספציפיים, גדלים ומחירים מדויקים.
+                  הכוללת גדלים ומחירים מדויקים.
                 </p>
               </div>
             </div>
