@@ -20,6 +20,7 @@ import { StudioTreatmentStep } from '@/components/studio/StudioTreatmentStep';
 import { StudioStyleStep, StyleChoice } from '@/components/studio/StudioStyleStep';
 import { StudioPromptStep, AspectRatio } from '@/components/studio/StudioPromptStep';
 import { StudioModeToggle, StudioMode, CampaignScope } from '@/components/studio/StudioModeToggle';
+import { StudioProductPicker, ProductScope } from '@/components/studio/StudioProductPicker';
 import { StudioAutopilot, CreativeConcept, HolidaySeason, HOLIDAY_LABELS } from '@/components/studio/StudioAutopilot';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
 import { StudioBriefStep, CampaignBrief, CampaignStructure } from '@/components/studio/StudioBriefStep';
@@ -288,25 +289,43 @@ const CreativeStudio = () => {
     }
   }, [clientProfile]);
   
-  const handleModeSelect = (selectedMode: StudioMode) => {
-    if (selectedMode === 'upload') {
-      // copy-only scope: user has visual, needs copy → brief first, then upload visual
+  const handleProductPickerComplete = (selectedMediaTypes: MediaType[], scope: ProductScope) => {
+    setMediaTypes(selectedMediaTypes);
+    
+    const isAll = selectedMediaTypes.includes('all');
+    const isOnlyRadio = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'radio';
+    const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(selectedMediaTypes[0]);
+    const isVisualMedia = selectedMediaTypes.some(t => ['ad', 'banner'].includes(t));
+    
+    if (scope === 'copy-only') {
+      // Has visual, needs copy
       setMode('manual');
       setAssetChoice('has-visual');
-      // Start at brief (step 0) so we understand context for the copy
-    } else if (selectedMode === 'manual') {
-      // visual-only scope: user has copy, needs visual → brief first, then paste copy
+    } else if (scope === 'visual-only') {
+      // Has copy, needs visual
       setMode('manual');
       setAssetChoice('has-copy');
-      // Start at brief (step 0) so we understand context for the visual
+    } else if (isAll) {
+      // 360° campaign → autopilot
+      setMode('autopilot');
+      setAssetChoice(null);
+    } else if (isVisualMedia && scope === 'full') {
+      // Ad/Banner full → autopilot
+      setMode('autopilot');
+      setAssetChoice(null);
     } else {
-      // full campaign = autopilot
-      setMode(selectedMode);
+      // Radio, Article, Email, WhatsApp, or text-have-script → manual wizard (brief first)
+      setMode('manual');
+      setAssetChoice(null);
     }
   };
   
+  const handleModeSelect = (selectedMode: StudioMode) => {
+    setMode(selectedMode);
+  };
+  
   const handleScopeSelect = (scope: CampaignScope) => {
-    // Handled via handleModeSelect mapping
+    // Handled via handleProductPickerComplete
   };
   
   // Track if we should skip to asset step (for upload mode)
@@ -637,29 +656,28 @@ const CreativeStudio = () => {
   }, [activeCustomTemplate?.id]);
 
   const getSteps = () => {
-    // Steps: 0=Brief, 1=MediaType, 2=Asset, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
+    // Media type is now selected before entering the wizard, so step 1 (MediaType) is removed
+    // Steps: 0=Brief, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
     const isTextOnlyMedia = mediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(mediaTypes[0]);
     
     if (isOnlyRadio) {
-      return [0, 1, 8]; // Brief, MediaType, Radio Script (self-contained)
+      return [0, 8]; // Brief, Radio Script
     }
     if (isTextOnlyMedia) {
-      // Text-only media: Brief → MediaType → then auto-generate (no visual steps needed)
-      return [0, 1]; // Final step triggers text generation
+      return [0]; // Brief only, final step triggers text generation
     }
     if (assetChoice === 'full-campaign') {
-      return [0, 1, 3]; // Brief, MediaType, Upload (skip asset choice - already selected)
+      return [0, 3]; // Brief, Upload
     }
     if (assetChoice === 'has-visual') {
-      // User has visual, needs copy: Brief → MediaType → Upload image → (generate copy)
-      return [0, 1, 3]; // Brief, MediaType, Upload
+      return [0, 3]; // Brief, Upload image
     }
     if (assetChoice === 'has-copy') {
-      // User has copy, needs visual: Brief → MediaType → Copy → DesignApproach → Style → Prompt
-      return [0, 1, 4, 7, 5, 6];
+      return [0, 4, 7, 5, 6]; // Brief, Copy, DesignApproach, Style, Prompt
     }
-    return [0, 1, 2]; // Default includes asset choice step
+    // Default for autopilot (full) with visual media
+    return [0]; // Brief only, then autopilot generates
   };
 
   // Check if this is the final step that should trigger generation/submission
@@ -764,14 +782,6 @@ const CreativeStudio = () => {
   };
 
   const handleNext = () => {
-    const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
-    
-    // Special navigation for radio - go to radio script step
-    if (currentStep === 1 && isOnlyRadio) {
-      setCurrentStep(8);
-      return;
-    }
-    
     // Normal progression using steps array
     if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
@@ -779,21 +789,14 @@ const CreativeStudio = () => {
   };
 
   const handleBack = () => {
-    const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
-    
-    // Special back navigation for radio
-    if (currentStep === 8 && isOnlyRadio) {
-      setCurrentStep(1);
-      return;
-    }
-    
     // Normal back progression using steps array
     if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
     } else {
-      // On first step, go back to mode selection and reset asset choice
+      // On first step, go back to product picker
       setMode(null);
       setAssetChoice(null);
+      setMediaTypes([]);
     }
   };
 
@@ -2580,10 +2583,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             } : undefined}
           />
         );
-      case 1:
-        return <StudioMediaTypeStep value={mediaTypes} onChange={setMediaTypes} />;
-      case 2:
-        return <StudioAssetStep value={assetChoice} onChange={setAssetChoice} />;
+      // Steps 1 and 2 are now handled by StudioProductPicker before wizard
       case 3:
         return (
           <StudioTreatmentStep
@@ -2697,21 +2697,21 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       <div className="container mx-auto px-4 py-6">
         {!showResults ? (
           <div className="max-w-3xl mx-auto">
-            {/* Mode Selection Screen - shown first before any wizard steps */}
+            {/* Product Picker Screen - shown first before any wizard steps */}
             {mode === null ? (
-              <div className="py-8">
-                <StudioModeToggle value={mode} onChange={handleModeSelect} onScopeSelect={handleScopeSelect} detectedIndustry={detectedIndustry} />
+              <div className="py-4">
+                <StudioProductPicker onComplete={handleProductPickerComplete} detectedIndustry={detectedIndustry} />
               </div>
             ) : mode === 'autopilot' ? (
               /* Autopilot Mode */
               <div>
-                {/* Back to mode selection */}
+                {/* Back to product picker */}
                 <button
-                  onClick={() => setMode(null)}
+                  onClick={() => { setMode(null); setMediaTypes([]); setAssetChoice(null); }}
                   className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
                 >
                   <ChevronRight className="h-4 w-4" />
-                  <span>חזרה לבחירת מסלול</span>
+                  <span>חזרה לבחירת מוצר</span>
                 </button>
                 {/* Engine Version Selector */}
                 <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-muted/50 border border-border" dir="rtl">
