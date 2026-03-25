@@ -950,6 +950,7 @@ TYPOGRAPHY RULES:
 - Phone number: LARGE and clear with area code
 - Use PROFESSIONAL Hebrew typography — clean, modern, well-kerned
 - Text must be SHARP and PERFECTLY READABLE — no blurry or distorted letters
+- CONTACT STRIP TEXT QUALITY: Every single character in the contact strip must be a REAL, READABLE Hebrew letter, digit, or standard punctuation (| : -). NO gibberish, garbled characters, random dots (•••), or placeholder symbols. If you cannot render a word clearly — OMIT IT. Garbled text is worse than no text.
 ═══════════════════════════════════════════════════════════════════
 `;
     }
