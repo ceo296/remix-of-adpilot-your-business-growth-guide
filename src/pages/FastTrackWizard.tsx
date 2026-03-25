@@ -200,10 +200,14 @@ const FastTrackWizard = () => {
 
   const handleBackFromMedia = () => {
     if (isMediaOnlyMode) {
-      if (needsScopeQuestion) {
-        setCurrentStep('mediaScope');
+      if (mediaPath === 'self') {
+        if (needsScopeQuestion) {
+          setCurrentStep('mediaScope');
+        } else {
+          setCurrentStep('mediaType');
+        }
       } else {
-        setCurrentStep('mediaType');
+        setCurrentStep('mediaChoice');
       }
     } else {
       setCurrentStep('brief');
