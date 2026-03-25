@@ -27,10 +27,12 @@ import {
   Mail,
   UserCheck,
   BookOpen,
+  ArrowLeft,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
+import { MediaIntakeForm, initialMediaIntake, type MediaIntakeData } from './MediaIntakeForm';
 
 type MediaScope = 'national' | 'local' | 'both';
 
@@ -115,36 +117,69 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   radio: <Radio className="h-4 w-4" />,
 };
 
-// 3 different allocation strategies
-const ALLOCATION_PROFILES: Record<string, Record<string, number>> = {
-  focused: {
-    newspapers: 0.45,
-    magazines: 0.20,
-    whatsapp: 0.15,
-    digital: 0.05,
-    newsletters: 0.05,
-    influencers: 0.05,
-    radio: 0.05,
-  },
-  balanced: {
-    newspapers: 0.25,
-    magazines: 0.15,
-    whatsapp: 0.15,
-    digital: 0.15,
-    newsletters: 0.10,
-    influencers: 0.10,
-    radio: 0.10,
-  },
-  digital_heavy: {
-    newspapers: 0.15,
-    magazines: 0.10,
-    whatsapp: 0.25,
-    digital: 0.20,
-    newsletters: 0.10,
-    influencers: 0.15,
-    radio: 0.05,
-  },
-};
+// Dynamic allocation profiles based on intake answers
+function buildAllocationProfiles(intake: MediaIntakeData): Record<string, Record<string, number>> {
+  const { campaignGoal, brandTone, channelPreference } = intake;
+
+  // Base profiles adjusted by goal
+  let focused: Record<string, number>;
+  let balanced: Record<string, number>;
+  let digital_heavy: Record<string, number>;
+
+  // Start with defaults, then adjust based on intake
+  if (campaignGoal === 'sales') {
+    // Sales → more digital/whatsapp for clicks
+    focused = { newspapers: 0.30, magazines: 0.10, whatsapp: 0.25, digital: 0.20, newsletters: 0.05, influencers: 0.05, radio: 0.05 };
+    balanced = { newspapers: 0.20, magazines: 0.10, whatsapp: 0.20, digital: 0.20, newsletters: 0.10, influencers: 0.10, radio: 0.10 };
+    digital_heavy = { newspapers: 0.10, magazines: 0.05, whatsapp: 0.30, digital: 0.25, newsletters: 0.10, influencers: 0.15, radio: 0.05 };
+  } else if (campaignGoal === 'awareness') {
+    // Awareness → more magazines, newspapers, radio
+    focused = { newspapers: 0.35, magazines: 0.30, whatsapp: 0.05, digital: 0.10, newsletters: 0.05, influencers: 0.05, radio: 0.10 };
+    balanced = { newspapers: 0.25, magazines: 0.20, whatsapp: 0.10, digital: 0.15, newsletters: 0.10, influencers: 0.05, radio: 0.15 };
+    digital_heavy = { newspapers: 0.15, magazines: 0.15, whatsapp: 0.15, digital: 0.20, newsletters: 0.10, influencers: 0.15, radio: 0.10 };
+  } else if (campaignGoal === 'launch') {
+    // Launch → broad + strong first impression
+    focused = { newspapers: 0.30, magazines: 0.20, whatsapp: 0.15, digital: 0.15, newsletters: 0.05, influencers: 0.10, radio: 0.05 };
+    balanced = { newspapers: 0.20, magazines: 0.15, whatsapp: 0.15, digital: 0.15, newsletters: 0.10, influencers: 0.15, radio: 0.10 };
+    digital_heavy = { newspapers: 0.10, magazines: 0.10, whatsapp: 0.20, digital: 0.20, newsletters: 0.10, influencers: 0.20, radio: 0.10 };
+  } else if (campaignGoal === 'event') {
+    // Event → time-sensitive, quick reach
+    focused = { newspapers: 0.25, magazines: 0.05, whatsapp: 0.30, digital: 0.15, newsletters: 0.10, influencers: 0.10, radio: 0.05 };
+    balanced = { newspapers: 0.20, magazines: 0.10, whatsapp: 0.20, digital: 0.15, newsletters: 0.15, influencers: 0.10, radio: 0.10 };
+    digital_heavy = { newspapers: 0.10, magazines: 0.05, whatsapp: 0.30, digital: 0.25, newsletters: 0.10, influencers: 0.15, radio: 0.05 };
+  } else {
+    // Fallback
+    focused = { newspapers: 0.45, magazines: 0.20, whatsapp: 0.15, digital: 0.05, newsletters: 0.05, influencers: 0.05, radio: 0.05 };
+    balanced = { newspapers: 0.25, magazines: 0.15, whatsapp: 0.15, digital: 0.15, newsletters: 0.10, influencers: 0.10, radio: 0.10 };
+    digital_heavy = { newspapers: 0.15, magazines: 0.10, whatsapp: 0.25, digital: 0.20, newsletters: 0.10, influencers: 0.15, radio: 0.05 };
+  }
+
+  // Adjust for premium brand tone — reduce whatsapp/influencers, boost magazines/newspapers
+  if (brandTone === 'premium') {
+    for (const profile of [focused, balanced, digital_heavy]) {
+      const whatsappReduction = profile.whatsapp * 0.5;
+      profile.whatsapp *= 0.5;
+      profile.magazines += whatsappReduction * 0.6;
+      profile.newspapers += whatsappReduction * 0.4;
+      // Remove influencers for premium
+      const infReduction = profile.influencers * 0.7;
+      profile.influencers *= 0.3;
+      profile.magazines += infReduction;
+    }
+  }
+
+  // Adjust for popular tone — boost whatsapp/digital
+  if (brandTone === 'popular') {
+    for (const profile of [focused, balanced, digital_heavy]) {
+      const magazineReduction = profile.magazines * 0.3;
+      profile.magazines *= 0.7;
+      profile.whatsapp += magazineReduction * 0.6;
+      profile.digital += magazineReduction * 0.4;
+    }
+  }
+
+  return { focused, balanced, digital_heavy };
+}
 
 export const BudgetAudienceStep = ({
   budget,
@@ -173,6 +208,10 @@ export const BudgetAudienceStep = ({
   const [loadingMedia, setLoadingMedia] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedCampaignId, setSavedCampaignId] = useState<string | null>(null);
+  const [mediaIntake, setMediaIntake] = useState<MediaIntakeData>(initialMediaIntake);
+  const [intakeCompleted, setIntakeCompleted] = useState(false);
+
+  const intakeReady = mediaIntake.campaignGoal && mediaIntake.brandTone && mediaIntake.channelPreference;
 
   // Fetch categories and product stats from database
   useEffect(() => {
@@ -220,14 +259,14 @@ export const BudgetAudienceStep = ({
 
   // Generate packages when params change
   useEffect(() => {
-    if (budget > 0 && targetStream && targetGender && availableCategories.length > 0) {
+    if (budget > 0 && targetStream && targetGender && intakeCompleted && availableCategories.length > 0) {
       generatePackages();
       setPackageConfirmed(false);
     } else {
       setPackages([]);
       setValidationError(null);
     }
-  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes, availableCategories]);
+  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes, availableCategories, intakeCompleted, mediaIntake]);
 
   const generatePackages = () => {
     if (!availableCategories.length) {
@@ -238,31 +277,36 @@ export const BudgetAudienceStep = ({
 
     setValidationError(null);
 
+    const profiles = buildAllocationProfiles(mediaIntake);
     const availableCatNames = new Set(availableCategories.map(c => c.name));
+
+    // Determine recommended package based on channel preference
+    const recommendedId = mediaIntake.channelPreference === 'traditional' ? 'focused'
+      : mediaIntake.channelPreference === 'digital' ? 'digital_heavy'
+      : 'balanced';
 
     // Build 3 packages with different allocation profiles
     const packageDefs = [
       {
         id: 'focused',
-        name: 'חבילה ממוקדת',
-        description: 'דגש על עיתונות ומגזינים — חשיפה מסורתית חזקה',
+        name: 'חבילה מסורתית',
+        description: 'דגש על עיתונות, מגזינים ורדיו',
         budgetMultiplier: 0.92,
-        profile: ALLOCATION_PROFILES.focused,
+        profile: profiles.focused,
       },
       {
         id: 'balanced',
         name: 'חבילה מאוזנת',
         description: 'פריסה רחבה על פני כל הפלטפורמות',
         budgetMultiplier: 1.0,
-        profile: ALLOCATION_PROFILES.balanced,
-        recommended: true,
+        profile: profiles.balanced,
       },
       {
         id: 'digital_heavy',
         name: 'חבילה דיגיטלית',
         description: 'דגש על WhatsApp, אתרים ומשפיענים',
         budgetMultiplier: 1.08,
-        profile: ALLOCATION_PROFILES.digital_heavy,
+        profile: profiles.digital_heavy,
       },
     ];
 
@@ -275,8 +319,8 @@ export const BudgetAudienceStep = ({
 
       for (const [catName, weight] of Object.entries(def.profile)) {
         if (availableCatNames.has(catName)) {
-          rawAllocations.push({ catName, weight });
-          totalWeight += weight;
+          rawAllocations.push({ catName, weight: weight as number });
+          totalWeight += weight as number;
         }
       }
 
@@ -310,7 +354,7 @@ export const BudgetAudienceStep = ({
         description: def.description,
         totalPrice,
         allocations,
-        recommended: def.recommended,
+        recommended: def.id === recommendedId,
       };
     });
 
@@ -365,6 +409,12 @@ export const BudgetAudienceStep = ({
           packageName: selectedPackage.name,
           totalPrice: selectedPackage.totalPrice,
           allocations: allocationsForDb,
+          intake: {
+            campaignGoal: mediaIntake.campaignGoal,
+            brandTone: mediaIntake.brandTone,
+            channelPreference: mediaIntake.channelPreference,
+            additionalNotes: mediaIntake.additionalNotes,
+          },
         },
       };
 
@@ -406,10 +456,52 @@ export const BudgetAudienceStep = ({
     }
   };
 
-  const showPackages = budget > 0 && targetStream && targetGender;
+  const showPackages = budget > 0 && targetStream && targetGender && intakeCompleted;
+
+  // If intake not completed, show intake form first
+  if (!intakeCompleted) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-bold text-foreground">לפני שנבנה חבילה — כמה שאלות קצרות</h2>
+          <p className="text-muted-foreground text-sm mt-1">כדי שנתאים לך את המדיה הכי רלוונטית</p>
+        </div>
+
+        <MediaIntakeForm data={mediaIntake} onChange={setMediaIntake} />
+
+        {intakeReady && (
+          <div className="text-center">
+            <Button size="lg" onClick={() => setIntakeCompleted(true)} className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              קדימה לבניית חבילה
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Intake summary badge */}
+      <Card className="bg-muted/30">
+        <CardContent className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <Badge variant="secondary">
+              {mediaIntake.campaignGoal === 'sales' ? 'מכירות' : mediaIntake.campaignGoal === 'awareness' ? 'חשיפה' : mediaIntake.campaignGoal === 'launch' ? 'השקה' : 'אירוע'}
+            </Badge>
+            <Badge variant="secondary">
+              {mediaIntake.brandTone === 'premium' ? 'יוקרתי' : mediaIntake.brandTone === 'popular' ? 'עממי' : 'מאוזן'}
+            </Badge>
+            <Badge variant="secondary">
+              {mediaIntake.channelPreference === 'traditional' ? 'מסורתי' : mediaIntake.channelPreference === 'digital' ? 'דיגיטלי' : 'משולב'}
+            </Badge>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setIntakeCompleted(false)} className="text-xs">
+            שנה העדפות
+          </Button>
+        </CardContent>
+      </Card>
       {onStartDateChange && (
         <Card>
           <CardHeader>
