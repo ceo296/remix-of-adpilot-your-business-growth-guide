@@ -191,6 +191,13 @@ async function generateVisualLayer(
     });
     // In revision mode, REPLACE the entire prompt with a minimal, focused revision prompt
     // This prevents the AI from being overwhelmed by the full creative brief and generating new concepts
+    // ═══ TARGETED REVISION: Parse corrections to determine what's locked ═══
+    const correctionText = fullPrompt.match(/CLIENT REVISIONS:\n([\s\S]*?)(?:\n\n|FINAL CHECKLIST)/)?.[1] || '';
+    const correctionsLower = correctionText.toLowerCase();
+    const isHeadlineChangeRequested = /headline|כותרת ראשית|כותרת/i.test(correctionText) && !/כותרת משנה/i.test(correctionText);
+    const isSubtitleChangeRequested = /subtitle|כותרת משנה/i.test(correctionText);
+    const isContactChangeRequested = /phone|טלפון|כתובת|address|contact|פרטים טכניים/i.test(correctionText);
+
     messageContent[0].text = `
 ════════════════════════════════════════════════════════════════════
          ⚠️  TARGETED REVISION MODE — THIS IS NOT A NEW AD  ⚠️
@@ -198,24 +205,28 @@ async function generateVisualLayer(
 
 You are receiving an EXISTING advertisement that needs SMALL CORRECTIONS.
 
-🔒 LOCKED (DO NOT CHANGE):
+🔒 LOCKED (DO NOT CHANGE — ANY CHANGE TO THESE IS A CRITICAL ERROR):
 - The overall composition, layout, and grid structure
 - The logo (keep EXACTLY as it appears — do NOT redraw, replace, or invent a new logo)
 - The color palette and brand identity
 - The visual style and photography
+${!isHeadlineChangeRequested ? '- ❗ The HEADLINE TEXT — keep the EXACT SAME headline text, word for word. The client did NOT ask to change the headline.' : ''}
+${!isSubtitleChangeRequested ? '- ❗ The SUBTITLE TEXT — keep the EXACT SAME subtitle, word for word. The client did NOT ask to change the subtitle.' : ''}
+${!isContactChangeRequested ? '- The contact details strip — keep phone, address, branches EXACTLY as shown' : ''}
 - Any elements NOT mentioned in the corrections below
 
-✏️ CORRECTIONS TO APPLY:
-${fullPrompt.match(/CLIENT REVISIONS:\n([\s\S]*?)(?:\n\n|FINAL CHECKLIST)/)?.[1] || '(see below)'}
+✏️ CORRECTIONS TO APPLY (ONLY THESE — NOTHING ELSE):
+${correctionText || '(see below)'}
 
 📐 RULES:
 1. Output exactly ONE corrected version of this ad
-2. Keep 95%+ of the image IDENTICAL — only change what's requested
+2. Keep 95%+ of the image IDENTICAL — only change what's requested above
 3. All Hebrew text must be RIGHT-TO-LEFT, sharp, and fully readable
 4. No text may be clipped, cut off, or extend beyond edges (keep 5% safety margin)
 5. Do NOT generate a new concept, new layout, or new visual approach
 6. Do NOT invent, redraw, or modify the logo — keep it EXACTLY as shown
 7. The corrected ad must look like a MINOR EDIT of the original, not a redesign
+8. CONTACT STRIP: Every character must be a real, readable Hebrew letter or digit. NO gibberish, garbled text, random dots, or placeholder symbols. If unsure of a character — OMIT IT entirely rather than render garbage.
 
 ${fullPrompt.match(/═══ HEBREW TEXT TO INCLUDE[\s\S]*?═══════════════════════════════════════════════════════════════════/)?.[0] || ''}
 
@@ -939,6 +950,7 @@ TYPOGRAPHY RULES:
 - Phone number: LARGE and clear with area code
 - Use PROFESSIONAL Hebrew typography — clean, modern, well-kerned
 - Text must be SHARP and PERFECTLY READABLE — no blurry or distorted letters
+- CONTACT STRIP TEXT QUALITY: Every single character in the contact strip must be a REAL, READABLE Hebrew letter, digit, or standard punctuation (| : -). NO gibberish, garbled characters, random dots (•••), or placeholder symbols. If you cannot render a word clearly — OMIT IT. Garbled text is worse than no text.
 ═══════════════════════════════════════════════════════════════════
 `;
     }
@@ -1109,7 +1121,8 @@ Only HEBREW text from the brief should be visible.
 FINAL CHECKLIST:
 ✓ Hebrew text is correct, right-to-left, perfectly readable — NO typos or garbled letters
 ✓ 3-area grid: headline top, visual center, contact strip bottom
-✓ Contact details are accurate and complete
+✓ Contact details are accurate and complete — NO gibberish, random dots (•••), or garbled characters anywhere
+✓ Every character in the contact strip is a real Hebrew letter, digit, or standard separator (| : -)
 ✓ Logo is properly placed (if provided)
 ✓ Visual is cinematic and premium
 ✓ No clipped/cut Hebrew text at edges or overlays

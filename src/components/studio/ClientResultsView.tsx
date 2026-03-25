@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Sparkles, ZoomIn, ChevronRight, Wrench, Heart } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, ZoomIn, ChevronRight, Wrench, Heart, Loader2, CheckCircle2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { ComponentFeedbackPicker } from '@/components/studio/ComponentFeedbackPicker';
 import { Card } from '@/components/ui/card';
@@ -50,6 +51,17 @@ export const ClientResultsView = ({
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [approvedIds, setApprovedIds] = useState<Set<string>>(new Set());
   const [showFixMode, setShowFixMode] = useState(false);
+  const [fixInProgress, setFixInProgress] = useState(false);
+  const [fixProgress, setFixProgress] = useState(0);
+  const [fixStepLabel, setFixStepLabel] = useState('');
+
+  // Reset fix-in-progress when images change (fix completed)
+  useEffect(() => {
+    if (fixInProgress) {
+      setFixInProgress(false);
+      setFixProgress(100);
+    }
+  }, [images]);
 
   // Filter out rejected images — client doesn't see them
   const visibleImages = images.filter(img => img.status !== 'rejected');
@@ -154,18 +166,50 @@ export const ClientResultsView = ({
             יש לי כמה תיקונים
           </Button>
         </div>
+      ) : fixInProgress ? (
+        <div className="pt-6 max-w-md mx-auto space-y-5 text-center animate-fade-in">
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <Loader2 className="h-12 w-12 text-primary animate-spin" />
+              <Wrench className="h-5 w-5 text-primary absolute -bottom-1 -right-1" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground">מתקן את הסקיצה...</h3>
+            <p className="text-sm text-muted-foreground">{fixStepLabel}</p>
+          </div>
+          <Progress value={fixProgress} className="h-2" />
+          <div className="flex justify-center gap-6 text-xs text-muted-foreground">
+            <span className={fixProgress >= 20 ? 'text-primary font-medium' : ''}>
+              <CheckCircle2 className="h-3.5 w-3.5 inline ml-1" />
+              מנתח בקשה
+            </span>
+            <span className={fixProgress >= 50 ? 'text-primary font-medium' : ''}>
+              <CheckCircle2 className="h-3.5 w-3.5 inline ml-1" />
+              מעדכן עיצוב
+            </span>
+            <span className={fixProgress >= 80 ? 'text-primary font-medium' : ''}>
+              <CheckCircle2 className="h-3.5 w-3.5 inline ml-1" />
+              בדיקת איכות
+            </span>
+          </div>
+        </div>
       ) : (
         <div className="pt-6 max-w-lg mx-auto space-y-4">
           <ComponentFeedbackPicker
             sketchLabel="הסקיצות"
             onSubmit={(feedbacks) => {
               const combinedFeedback = feedbacks.map(f => `[${f.component}] ${f.text}`).join('\n');
-              // Apply fix to first visible image (or all)
               if (visibleImages.length > 0) {
                 onRequestFix(visibleImages[0].id, combinedFeedback);
               }
               setShowFixMode(false);
-              toast.success('הבקשה נשלחה! נעדכן אותך כשהתיקון מוכן 🔧');
+              setFixInProgress(true);
+              setFixProgress(10);
+              setFixStepLabel('קורא את הבקשה שלך...');
+              // Simulate progress steps
+              setTimeout(() => { setFixProgress(30); setFixStepLabel('מעדכן את הסקיצה לפי התיקונים...'); }, 2000);
+              setTimeout(() => { setFixProgress(55); setFixStepLabel('שומר על הקו העיצובי המקורי...'); }, 5000);
+              setTimeout(() => { setFixProgress(75); setFixStepLabel('בודק איכות טקסט ופרטים...'); }, 9000);
+              setTimeout(() => { setFixProgress(90); setFixStepLabel('כמעט מוכן! 🎨'); }, 14000);
             }}
             onCancel={() => setShowFixMode(false)}
           />
