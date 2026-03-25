@@ -11,7 +11,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { brief, brandContext, targetGender, targetStream, contactPhone, profileData } = body;
+    const { brief, brandContext, targetGender, targetStream, contactPhone, profileData, fixInstruction, fixType, originalScript } = body;
     
     // Support both brandContext and profileData (fallback)
     const businessName = brandContext?.businessName || profileData?.businessName || 'העסק';
@@ -20,8 +20,10 @@ serve(async (req) => {
     const services = profileData?.services?.join(', ') || brandContext?.services || '';
     const winningFeature = profileData?.winningFeature || brandContext?.winningFeature || '';
 
-    // Determine voice direction
-    const voiceGender = targetGender === "women" ? "נשי" : "גברי";
+    // Auto-detect voice gender: women-focused businesses get female voice
+    const isWomenFocused = targetGender === "women" || 
+      /נשים|נשי|כלות|אופנה נשית|בגדי נשים|קוסמטיקה|שמלות|תכשיטים/i.test(targetAudience || '');
+    const voiceGender = isWomenFocused ? "נשי" : "גברי";
     const voiceStyle = getVoiceStyle(targetStream);
     const toneDirection = getToneDirection(brief);
 
@@ -85,7 +87,19 @@ serve(async (req) => {
 - סגנון: ${voiceStyle}
 - טון: ${toneDirection}`;
 
-    const userPrompt = `צור 2 גרסאות תסריט רדיו עבור הקמפיין הבא:
+    let fixContext = '';
+    if (fixInstruction && originalScript) {
+      fixContext = `\n\n=== הנחיות תיקון ===
+הלקוח ביקש לתקן את התסריט הבא:
+"${originalScript}"
+
+סוג התיקון: ${fixType === 'message' ? 'שינוי מסר' : fixType === 'length' ? 'שינוי אורך' : 'הוספת תוכן'}
+הנחיות: ${fixInstruction}
+
+צור 2 גרסאות מתוקנות בהתאם לבקשה. שמור על כל מה שלא ביקש לשנות.`;
+    }
+
+    const userPrompt = `צור 2 גרסאות תסריט רדיו עבור הקמפיין הבא:${fixContext}
 
 === נתוני העסק (חובה להשתמש רק בנתונים הבאים!) ===
 שם העסק: ${businessName}
