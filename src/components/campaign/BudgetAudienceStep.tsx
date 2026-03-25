@@ -332,7 +332,7 @@ export const BudgetAudienceStep = ({
       setPackages([]);
       setValidationError(null);
     }
-  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes, allMediaItems]);
+  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes, allMediaItems, startDate, endDate]);
 
   const generatePackages = () => {
     // Filter by audience
