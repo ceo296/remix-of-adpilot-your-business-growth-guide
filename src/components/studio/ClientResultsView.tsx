@@ -148,7 +148,7 @@ export const ClientResultsView = ({
         <div className="flex flex-col gap-3 items-center pt-6 max-w-md mx-auto">
           {/* Primary CTA */}
           <Button 
-            onClick={handleSendToMedia} 
+            onClick={handleApproveAll} 
             variant="gradient" 
             size="xl" 
             className="w-full gap-2.5 text-lg"
