@@ -195,6 +195,8 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
   };
