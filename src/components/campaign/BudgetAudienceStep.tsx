@@ -450,10 +450,52 @@ export const BudgetAudienceStep = ({
     }
   };
 
-  const showPackages = budget > 0 && targetStream && targetGender;
+  const showPackages = budget > 0 && targetStream && targetGender && intakeCompleted;
+
+  // If intake not completed, show intake form first
+  if (!intakeCompleted) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-bold text-foreground">לפני שנבנה חבילה — כמה שאלות קצרות</h2>
+          <p className="text-muted-foreground text-sm mt-1">כדי שנתאים לך את המדיה הכי רלוונטית</p>
+        </div>
+
+        <MediaIntakeForm data={mediaIntake} onChange={setMediaIntake} />
+
+        {intakeReady && (
+          <div className="text-center">
+            <Button size="lg" onClick={() => setIntakeCompleted(true)} className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              קדימה לבניית חבילה
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Intake summary badge */}
+      <Card className="bg-muted/30">
+        <CardContent className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <Badge variant="secondary">
+              {mediaIntake.campaignGoal === 'sales' ? 'מכירות' : mediaIntake.campaignGoal === 'awareness' ? 'חשיפה' : mediaIntake.campaignGoal === 'launch' ? 'השקה' : 'אירוע'}
+            </Badge>
+            <Badge variant="secondary">
+              {mediaIntake.brandTone === 'premium' ? 'יוקרתי' : mediaIntake.brandTone === 'popular' ? 'עממי' : 'מאוזן'}
+            </Badge>
+            <Badge variant="secondary">
+              {mediaIntake.channelPreference === 'traditional' ? 'מסורתי' : mediaIntake.channelPreference === 'digital' ? 'דיגיטלי' : 'משולב'}
+            </Badge>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setIntakeCompleted(false)} className="text-xs">
+            שנה העדפות
+          </Button>
+        </CardContent>
+      </Card>
       {onStartDateChange && (
         <Card>
           <CardHeader>
