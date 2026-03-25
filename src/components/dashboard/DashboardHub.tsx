@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RadioScriptsGallery } from './RadioScriptsGallery';
+import { FinalPackageView } from './FinalPackageView';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,7 +84,7 @@ const DashboardHub = () => {
         .from('campaigns')
         .select('id, name, status, budget, start_date, end_date, selected_media')
         .eq('user_id', user.id)
-        .in('status', ['active', 'pending_approval', 'draft'])
+        .in('status', ['active', 'pending_approval', 'pending_review', 'draft'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -539,7 +540,8 @@ const DashboardHub = () => {
     const STATUS_LABELS: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline'; color: string }> = {
       none: { label: 'אין קמפיין', variant: 'secondary', color: 'text-muted-foreground' },
       draft: { label: 'טיוטה', variant: 'secondary', color: 'text-muted-foreground' },
-      pending_approval: { label: 'ממתין לאישור', variant: 'outline', color: 'text-amber-600' },
+      pending_review: { label: 'בבדיקת צוות', variant: 'outline', color: 'text-amber-600' },
+      pending_approval: { label: 'ממתין לאישורך', variant: 'outline', color: 'text-primary' },
       active: { label: 'באוויר', variant: 'default', color: 'text-green-600' },
     };
 
@@ -580,6 +582,9 @@ const DashboardHub = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Final Package View */}
+        <FinalPackageView campaignId={activeCampaign.id} />
 
         {/* Budget Card with Pie Chart */}
         <Card>

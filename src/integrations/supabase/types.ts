@@ -277,6 +277,127 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_final_package_items: {
+        Row: {
+          created_at: string
+          dimensions: string | null
+          id: string
+          notes: string | null
+          outlet_id: string | null
+          outlet_name: string
+          package_id: string
+          price: number
+          product_id: string | null
+          product_name: string
+          publication_date: string | null
+          quantity: number
+          spec_id: string | null
+          spec_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          dimensions?: string | null
+          id?: string
+          notes?: string | null
+          outlet_id?: string | null
+          outlet_name: string
+          package_id: string
+          price?: number
+          product_id?: string | null
+          product_name: string
+          publication_date?: string | null
+          quantity?: number
+          spec_id?: string | null
+          spec_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          dimensions?: string | null
+          id?: string
+          notes?: string | null
+          outlet_id?: string | null
+          outlet_name?: string
+          package_id?: string
+          price?: number
+          product_id?: string | null
+          product_name?: string
+          publication_date?: string | null
+          quantity?: number
+          spec_id?: string | null
+          spec_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_final_package_items_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "media_outlets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_final_package_items_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_final_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_final_package_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "media_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_final_package_items_spec_id_fkey"
+            columns: ["spec_id"]
+            isOneToOne: false
+            referencedRelation: "product_specs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_final_packages: {
+        Row: {
+          admin_notes: string | null
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          status: string
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          campaign_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          campaign_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_final_packages_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_media_proofs: {
         Row: {
           admin_notes: string | null
