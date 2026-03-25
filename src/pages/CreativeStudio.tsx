@@ -2580,10 +2580,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             } : undefined}
           />
         );
-      case 1:
-        return <StudioMediaTypeStep value={mediaTypes} onChange={setMediaTypes} />;
-      case 2:
-        return <StudioAssetStep value={assetChoice} onChange={setAssetChoice} />;
+      // Steps 1 and 2 are now handled by StudioProductPicker before wizard
       case 3:
         return (
           <StudioTreatmentStep
