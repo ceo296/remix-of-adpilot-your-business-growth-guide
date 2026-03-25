@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { MediaType } from '@/components/studio/StudioMediaTypeStep';
 import { Input } from '@/components/ui/input';
