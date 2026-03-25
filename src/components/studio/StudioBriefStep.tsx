@@ -971,55 +971,88 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             צבעי המותג לקמפיין
           </Label>
           
-          <Card className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="grid grid-cols-3 border-b">
-                <button
-                  type="button"
-                  className={cn(
-                    'p-4 text-center transition-all border-l',
-                    value.colorSelection.mode === 'brand' ? 'bg-primary/10 border-b-2 border-b-primary' : 'hover:bg-muted/50'
-                  )}
-                  onClick={() => setColorMode('brand')}
-                >
-                  <div className="flex justify-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: brandColors?.primary_color || '#ccc' }} />
-                    <div className="w-6 h-6 rounded-full border-2 border-white shadow-md mt-1" style={{ backgroundColor: brandColors?.secondary_color || '#ccc' }} />
+          {/* Default: Continue existing design line */}
+          <Card className={cn(
+            'overflow-hidden border-2 transition-all',
+            value.colorSelection.mode === 'continue-past' ? 'border-primary bg-primary/5' : 'border-border'
+          )}>
+            <CardContent className="p-4">
+              <button
+                type="button"
+                className="w-full flex items-center gap-3 text-right"
+                onClick={() => setColorMode('continue-past')}
+              >
+                <div className={cn(
+                  'w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                  value.colorSelection.mode === 'continue-past' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                )}>
+                  <History className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">המשך קו עיצובי</p>
+                  <p className="text-xs text-muted-foreground">ממשיכים עם הצבעוניות הקיימת של המותג</p>
+                </div>
+                {value.colorSelection.mode === 'continue-past' && (
+                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 text-primary-foreground" />
                   </div>
-                  <p className="text-sm font-medium">צבעי המותג</p>
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    'p-4 text-center transition-all border-l',
-                    value.colorSelection.mode === 'swapped' ? 'bg-primary/10 border-b-2 border-b-primary' : 'hover:bg-muted/50'
-                  )}
-                  onClick={() => setColorMode('swapped')}
-                >
-                  <div className="flex justify-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: brandColors?.secondary_color || '#ccc' }} />
-                    <div className="w-6 h-6 rounded-full border-2 border-white shadow-md mt-1" style={{ backgroundColor: brandColors?.primary_color || '#ccc' }} />
-                  </div>
-                  <p className="text-sm font-medium">החלפת צבעים</p>
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    'p-4 text-center transition-all',
-                    value.colorSelection.mode === 'continue-past' ? 'bg-primary/10 border-b-2 border-b-primary' : 'hover:bg-muted/50'
-                  )}
-                  onClick={() => setColorMode('continue-past')}
-                >
-                  <div className="flex justify-center mb-2">
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      <History className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                  </div>
-                  <p className="text-sm font-medium">המשך קו עיצובי</p>
-                </button>
-              </div>
+                )}
+              </button>
             </CardContent>
           </Card>
+
+          {/* Expand to change colors */}
+          {value.colorSelection.mode === 'continue-past' ? (
+            <button
+              type="button"
+              className="w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors py-2"
+              onClick={() => setColorMode('brand')}
+            >
+              🎨 אני רוצה לשנות את הקו העיצובי
+            </button>
+          ) : (
+            <Card className="overflow-hidden animate-fade-in">
+              <CardContent className="p-0">
+                <div className="grid grid-cols-2">
+                  <button
+                    type="button"
+                    className={cn(
+                      'p-4 text-center transition-all border-l',
+                      value.colorSelection.mode === 'brand' ? 'bg-primary/10 border-b-2 border-b-primary' : 'hover:bg-muted/50'
+                    )}
+                    onClick={() => setColorMode('brand')}
+                  >
+                    <div className="flex justify-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: brandColors?.primary_color || '#ccc' }} />
+                      <div className="w-6 h-6 rounded-full border-2 border-white shadow-md mt-1" style={{ backgroundColor: brandColors?.secondary_color || '#ccc' }} />
+                    </div>
+                    <p className="text-sm font-medium">צבעי המותג</p>
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      'p-4 text-center transition-all',
+                      value.colorSelection.mode === 'swapped' ? 'bg-primary/10 border-b-2 border-b-primary' : 'hover:bg-muted/50'
+                    )}
+                    onClick={() => setColorMode('swapped')}
+                  >
+                    <div className="flex justify-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: brandColors?.secondary_color || '#ccc' }} />
+                      <div className="w-6 h-6 rounded-full border-2 border-white shadow-md mt-1" style={{ backgroundColor: brandColors?.primary_color || '#ccc' }} />
+                    </div>
+                    <p className="text-sm font-medium">החלפת צבעים</p>
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="w-full text-center text-xs text-muted-foreground hover:text-primary transition-colors py-2 border-t"
+                  onClick={() => setColorMode('continue-past')}
+                >
+                  ← חזרה להמשך קו עיצובי
+                </button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
