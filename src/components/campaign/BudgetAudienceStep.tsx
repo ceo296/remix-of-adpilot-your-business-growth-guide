@@ -409,6 +409,12 @@ export const BudgetAudienceStep = ({
           packageName: selectedPackage.name,
           totalPrice: selectedPackage.totalPrice,
           allocations: allocationsForDb,
+          intake: {
+            campaignGoal: mediaIntake.campaignGoal,
+            brandTone: mediaIntake.brandTone,
+            channelPreference: mediaIntake.channelPreference,
+            additionalNotes: mediaIntake.additionalNotes,
+          },
         },
       };
 
