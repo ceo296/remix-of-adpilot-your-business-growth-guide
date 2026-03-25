@@ -1121,7 +1121,8 @@ Only HEBREW text from the brief should be visible.
 FINAL CHECKLIST:
 ✓ Hebrew text is correct, right-to-left, perfectly readable — NO typos or garbled letters
 ✓ 3-area grid: headline top, visual center, contact strip bottom
-✓ Contact details are accurate and complete
+✓ Contact details are accurate and complete — NO gibberish, random dots (•••), or garbled characters anywhere
+✓ Every character in the contact strip is a real Hebrew letter, digit, or standard separator (| : -)
 ✓ Logo is properly placed (if provided)
 ✓ Visual is cinematic and premium
 ✓ No clipped/cut Hebrew text at edges or overlays
