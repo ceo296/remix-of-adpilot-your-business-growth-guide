@@ -87,7 +87,19 @@ serve(async (req) => {
 - סגנון: ${voiceStyle}
 - טון: ${toneDirection}`;
 
-    const userPrompt = `צור 2 גרסאות תסריט רדיו עבור הקמפיין הבא:
+    let fixContext = '';
+    if (fixInstruction && originalScript) {
+      fixContext = `\n\n=== הנחיות תיקון ===
+הלקוח ביקש לתקן את התסריט הבא:
+"${originalScript}"
+
+סוג התיקון: ${fixType === 'message' ? 'שינוי מסר' : fixType === 'length' ? 'שינוי אורך' : 'הוספת תוכן'}
+הנחיות: ${fixInstruction}
+
+צור 2 גרסאות מתוקנות בהתאם לבקשה. שמור על כל מה שלא ביקש לשנות.`;
+    }
+
+    const userPrompt = `צור 2 גרסאות תסריט רדיו עבור הקמפיין הבא:${fixContext}
 
 === נתוני העסק (חובה להשתמש רק בנתונים הבאים!) ===
 שם העסק: ${businessName}
