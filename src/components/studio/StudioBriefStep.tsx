@@ -195,6 +195,8 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
   };
@@ -340,6 +342,8 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
 
       mediaRecorder.start();
       setIsRecording(true);
+      setRecordingSeconds(0);
+      recordingTimerRef.current = setInterval(() => setRecordingSeconds(s => s + 1), 1000);
       toast.info('מקליט... לחץ שוב לעצירה');
     } catch {
       toast.error('לא הצלחנו לגשת למיקרופון');
@@ -350,6 +354,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      if (recordingTimerRef.current) { clearInterval(recordingTimerRef.current); recordingTimerRef.current = null; }
     }
   }, []);
 
@@ -797,17 +802,22 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
             />
             {/* Audio level indicator */}
             {isRecording && (
-              <div className="absolute bottom-3 left-14 flex items-end gap-[3px] h-8">
-                {[0.3, 0.5, 0.7, 0.9, 1.0].map((threshold, i) => (
-                  <div
-                    key={i}
-                    className="w-[3px] rounded-full bg-destructive transition-all duration-75"
-                    style={{
-                      height: `${Math.max(4, audioLevel >= threshold ? (audioLevel * 28) : 4 + i * 2)}px`,
-                      opacity: audioLevel >= threshold * 0.5 ? 1 : 0.3,
-                    }}
-                  />
-                ))}
+              <div className="absolute bottom-3 left-14 flex items-center gap-2 h-8">
+                <span className="text-xs font-mono text-destructive font-semibold tabular-nums">
+                  {Math.floor(recordingSeconds / 60).toString().padStart(2, '0')}:{(recordingSeconds % 60).toString().padStart(2, '0')}
+                </span>
+                <div className="flex items-end gap-[3px] h-6">
+                  {[0.3, 0.5, 0.7, 0.9, 1.0].map((threshold, i) => (
+                    <div
+                      key={i}
+                      className="w-[3px] rounded-full bg-destructive transition-all duration-75"
+                      style={{
+                        height: `${Math.max(4, audioLevel >= threshold ? (audioLevel * 22) : 4 + i * 2)}px`,
+                        opacity: audioLevel >= threshold * 0.5 ? 1 : 0.3,
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             )}
             <button
