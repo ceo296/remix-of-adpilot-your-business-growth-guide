@@ -991,23 +991,27 @@ ${revisionInstructions}
 ${textBlock}
 ${logoBlock}
 
-═══ 3-ZONE AD GRID (MANDATORY STRUCTURE) ═══
-ZONE 1 — HEADLINE / HOOK (top 15-20% of ad):
+═══ AD LAYOUT STRUCTURE (MANDATORY — but NEVER render these labels as text in the image!) ═══
+TOP AREA — HEADLINE / HOOK (top 15-20% of ad):
   - Main promotional headline in BOLD Hebrew typography
   - Subtitle below in smaller text
   - May include a decorative accent or price callout
 
-ZONE 2 — HERO VISUAL (center 55-65% of ad):
+CENTER AREA — HERO VISUAL (center 55-65% of ad):
   - The emotional/visual core of the ad
   - High quality, cinematic product/lifestyle photography
   - This is where the visual storytelling happens
 
-ZONE 3 — CONTACT STRIP (bottom 15-25% of ad):
+BOTTOM AREA — CONTACT STRIP (bottom 15-25% of ad):
   - DARK or BRAND-COLORED background bar for contrast and readability
   - Logo anchored on LEFT side (RTL Hebrew layout)
   - RIGHT side: branch locations, phone numbers, website
   - Phone number: LARGE and clear
   - Multiple branches separated by pipes (|) if applicable
+
+⚠️ CRITICAL WARNING: The area labels above (TOP AREA, CENTER AREA, BOTTOM AREA) are INTERNAL LAYOUT INSTRUCTIONS.
+They must NEVER appear as visible text in the generated image! Do NOT write "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", or any English layout labels anywhere in the ad.
+Only HEBREW text from the brief should appear in the final ad.
 ═══════════════════════════════════════════════
 
 VISUAL IMPACT — MAKE IT EXTRAORDINARY:
