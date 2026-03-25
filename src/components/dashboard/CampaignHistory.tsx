@@ -22,6 +22,8 @@ interface Campaign {
 
 const STATUS_LABELS: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
   draft: { label: 'טיוטה', variant: 'secondary' },
+  pending_review: { label: 'בבדיקת צוות', variant: 'outline' },
+  pending_approval: { label: 'ממתין לאישורך', variant: 'outline' },
   active: { label: 'פעיל', variant: 'default' },
   completed: { label: 'הושלם', variant: 'outline' },
   paused: { label: 'מושהה', variant: 'destructive' },
