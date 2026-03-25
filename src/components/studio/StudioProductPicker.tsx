@@ -164,7 +164,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
     setSelectedProduct(id);
     setSelectedScope(null);
     
-    const prod = ALL_PRODUCTS.find(p => p.id === id);
+    const prod = ALL_PRODUCTS.find(p => p.id === id) as any;
     // For products that don't need scope, auto-complete
     if (!prod?.needsScope && !prod?.hasRadioScope) {
       onComplete([id], 'full');
