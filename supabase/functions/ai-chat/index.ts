@@ -157,7 +157,7 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: allMessages,
-        stream: true,
+        stream: !isSingleShot,
         max_completion_tokens: 2048,
       }),
     });
@@ -177,6 +177,15 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
       }
       return new Response(JSON.stringify({ error: "שגיאה בתקשורת עם AI" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Single-shot: parse JSON response and return
+    if (isSingleShot) {
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content || '';
+      return new Response(JSON.stringify({ response: text }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
