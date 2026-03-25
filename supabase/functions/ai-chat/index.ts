@@ -24,13 +24,16 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { messages, message, context, skipHistory } = body;
+    const { messages, message, context, skipHistory, audioBase64, audioFormat } = body;
     
     const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
       throw new Error('No AI API key configured');
     }
+
+    // ═══ AUDIO TRANSCRIPTION MODE ═══
+    const hasAudio = !!audioBase64;
 
     // Support both: { messages: [...] } (chat widget) and { message: "..." } (single-shot)
     const isSingleShot = !messages && message;
