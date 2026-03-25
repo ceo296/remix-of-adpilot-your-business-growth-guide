@@ -259,14 +259,14 @@ export const BudgetAudienceStep = ({
 
   // Generate packages when params change
   useEffect(() => {
-    if (budget > 0 && targetStream && targetGender && availableCategories.length > 0) {
+    if (budget > 0 && targetStream && targetGender && intakeCompleted && availableCategories.length > 0) {
       generatePackages();
       setPackageConfirmed(false);
     } else {
       setPackages([]);
       setValidationError(null);
     }
-  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes, availableCategories]);
+  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes, availableCategories, intakeCompleted, mediaIntake]);
 
   const generatePackages = () => {
     if (!availableCategories.length) {
@@ -277,31 +277,36 @@ export const BudgetAudienceStep = ({
 
     setValidationError(null);
 
+    const profiles = buildAllocationProfiles(mediaIntake);
     const availableCatNames = new Set(availableCategories.map(c => c.name));
+
+    // Determine recommended package based on channel preference
+    const recommendedId = mediaIntake.channelPreference === 'traditional' ? 'focused'
+      : mediaIntake.channelPreference === 'digital' ? 'digital_heavy'
+      : 'balanced';
 
     // Build 3 packages with different allocation profiles
     const packageDefs = [
       {
         id: 'focused',
-        name: 'חבילה ממוקדת',
-        description: 'דגש על עיתונות ומגזינים — חשיפה מסורתית חזקה',
+        name: 'חבילה מסורתית',
+        description: 'דגש על עיתונות, מגזינים ורדיו',
         budgetMultiplier: 0.92,
-        profile: ALLOCATION_PROFILES.focused,
+        profile: profiles.focused,
       },
       {
         id: 'balanced',
         name: 'חבילה מאוזנת',
         description: 'פריסה רחבה על פני כל הפלטפורמות',
         budgetMultiplier: 1.0,
-        profile: ALLOCATION_PROFILES.balanced,
-        recommended: true,
+        profile: profiles.balanced,
       },
       {
         id: 'digital_heavy',
         name: 'חבילה דיגיטלית',
         description: 'דגש על WhatsApp, אתרים ומשפיענים',
         budgetMultiplier: 1.08,
-        profile: ALLOCATION_PROFILES.digital_heavy,
+        profile: profiles.digital_heavy,
       },
     ];
 
@@ -314,8 +319,8 @@ export const BudgetAudienceStep = ({
 
       for (const [catName, weight] of Object.entries(def.profile)) {
         if (availableCatNames.has(catName)) {
-          rawAllocations.push({ catName, weight });
-          totalWeight += weight;
+          rawAllocations.push({ catName, weight: weight as number });
+          totalWeight += weight as number;
         }
       }
 
