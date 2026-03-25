@@ -61,8 +61,9 @@ const MEDIA_TYPES = [
   { id: 'whatsapp', label: 'ווטסאפ', description: 'הודעות ממוקדות', icon: MessageCircle, gradient: 'from-green-600 to-green-700' },
 ];
 
-type WizardStep = 'brief' | 'mediaType' | 'mediaScope' | 'media' | 'quote';
+type WizardStep = 'brief' | 'mediaChoice' | 'mediaType' | 'mediaScope' | 'media' | 'quote';
 type MediaScope = 'national' | 'local' | 'both';
+type MediaPath = 'self' | 'guided' | null;
 
 const FastTrackWizard = () => {
   const navigate = useNavigate();
