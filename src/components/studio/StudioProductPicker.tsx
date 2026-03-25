@@ -15,7 +15,8 @@ interface StudioProductPickerProps {
   detectedIndustry?: string | null;
 }
 
-const PRODUCTS = [
+// Primary products - most used, shown prominently
+const PRIMARY_PRODUCTS = [
   { 
     id: 'ad' as MediaType, 
     label: 'מודעה', 
@@ -23,15 +24,28 @@ const PRODUCTS = [
     icon: Newspaper,
     gradient: 'from-blue-500 to-cyan-500',
     needsScope: true,
+    hero: true,
   },
   { 
-    id: 'banner' as MediaType, 
-    label: 'באנרים', 
-    description: 'אתרים ופלטפורמות דיגיטליות',
-    icon: Monitor,
-    gradient: 'from-emerald-500 to-teal-500',
-    needsScope: true,
+    id: 'whatsapp' as MediaType, 
+    label: 'וואטסאפ', 
+    description: 'הודעה שיווקית לוואטסאפ',
+    icon: MessageCircle,
+    gradient: 'from-green-500 to-emerald-600',
+    needsScope: false,
   },
+  { 
+    id: 'email' as MediaType, 
+    label: 'מייל שיווקי', 
+    description: 'דיוור אלקטרוני מעוצב',
+    icon: Mail,
+    gradient: 'from-orange-500 to-amber-500',
+    needsScope: false,
+  },
+];
+
+// Secondary products - less common
+const SECONDARY_PRODUCTS = [
   { 
     id: 'radio' as MediaType, 
     label: 'תשדיר רדיו', 
@@ -43,38 +57,33 @@ const PRODUCTS = [
   },
   { 
     id: 'article' as MediaType, 
-    label: 'כתבה פרסומית', 
+    label: 'כתבה', 
     description: 'כתבת תוכן שיווקית',
     icon: FileText,
     gradient: 'from-pink-500 to-rose-500',
     needsScope: false,
   },
   { 
-    id: 'email' as MediaType, 
-    label: 'מייל שיווקי', 
-    description: 'דיוור אלקטרוני מעוצב',
-    icon: Mail,
-    gradient: 'from-orange-500 to-amber-500',
-    needsScope: false,
-  },
-  { 
-    id: 'whatsapp' as MediaType, 
-    label: 'וואטסאפ', 
-    description: 'הודעה שיווקית לוואטסאפ',
-    icon: MessageCircle,
-    gradient: 'from-green-500 to-emerald-600',
-    needsScope: false,
-  },
-  { 
-    id: 'all' as MediaType, 
-    label: 'קמפיין 360°', 
-    description: 'הכל ביחד — מודעה, באנר, רדיו, כתבה, מייל ווואטסאפ',
-    icon: Layers,
-    gradient: 'from-primary to-red-500',
-    needsScope: false,
-    recommended: true,
+    id: 'banner' as MediaType, 
+    label: 'באנרים', 
+    description: 'אתרים ודיגיטל',
+    icon: Monitor,
+    gradient: 'from-emerald-500 to-teal-500',
+    needsScope: true,
   },
 ];
+
+const CAMPAIGN_360 = { 
+  id: 'all' as MediaType, 
+  label: 'קמפיין 360°', 
+  description: 'הכל ביחד — מודעה, באנר, רדיו, כתבה, מייל ווואטסאפ',
+  icon: Layers,
+  gradient: 'from-primary to-red-500',
+  needsScope: false,
+  recommended: true,
+};
+
+const ALL_PRODUCTS = [...PRIMARY_PRODUCTS, ...SECONDARY_PRODUCTS, CAMPAIGN_360];
 
 const SCOPE_OPTIONS = [
   {
