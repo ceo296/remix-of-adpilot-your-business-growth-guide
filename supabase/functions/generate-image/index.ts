@@ -44,14 +44,12 @@ PEOPLE: Men only — dark suits, white shirts, kippot, neatly groomed beards.
 ABSOLUTELY NO women or girls in any image.
 ENVIRONMENT: Upscale, clean, prestigious settings.
 
-[AD GRID - 3 ZONES]
-ZONE 1 — HEADLINE (top 15-20%): Bold Hebrew headline + subtitle
-ZONE 2 — HERO VISUAL (center 55-65%): Cinematic product/lifestyle photography
-ZONE 3 — CONTACT STRIP (bottom 15-25%): Dark/branded bar with logo (LEFT), phone, address, branches (RIGHT)
+[AD GRID — 3 AREAS (describe layout, NEVER render these labels as visible text!)]
+TOP AREA — HEADLINE (top 15-20%): Bold Hebrew headline + subtitle
+CENTER AREA — HERO VISUAL (center 55-65%): Cinematic product/lifestyle photography
+BOTTOM AREA — CONTACT STRIP (bottom 15-25%): Dark/branded bar with logo (LEFT), phone, address, branches (RIGHT)
 
-[NEGATIVE PROMPT] Split-screens, multiple panels, stock-photo look, low-quality CGI, immodest clothing, distorted limbs. No religious objects unless holiday-tagged.
-
-[LOGO RULE] If client logo is attached, place it EXACTLY as-is in bottom-left of contact strip (15-25% width). If no logo attached, leave space empty — do NOT invent logos.
+⚠️ CRITICAL: The words "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", "TOP AREA", "CENTER AREA", "BOTTOM AREA" are INTERNAL LAYOUT INSTRUCTIONS ONLY. They must NEVER appear as visible text anywhere in the generated image! If you render any of these labels in the image, the ad is RUINED.
 
 [VISUAL QA]
 - Children: smooth faces, NO facial hair. Hands: exactly 5 fingers.
@@ -993,23 +991,27 @@ ${revisionInstructions}
 ${textBlock}
 ${logoBlock}
 
-═══ 3-ZONE AD GRID (MANDATORY STRUCTURE) ═══
-ZONE 1 — HEADLINE / HOOK (top 15-20% of ad):
+═══ AD LAYOUT STRUCTURE (MANDATORY — but NEVER render these labels as text in the image!) ═══
+TOP AREA — HEADLINE / HOOK (top 15-20% of ad):
   - Main promotional headline in BOLD Hebrew typography
   - Subtitle below in smaller text
   - May include a decorative accent or price callout
 
-ZONE 2 — HERO VISUAL (center 55-65% of ad):
+CENTER AREA — HERO VISUAL (center 55-65% of ad):
   - The emotional/visual core of the ad
   - High quality, cinematic product/lifestyle photography
   - This is where the visual storytelling happens
 
-ZONE 3 — CONTACT STRIP (bottom 15-25% of ad):
+BOTTOM AREA — CONTACT STRIP (bottom 15-25% of ad):
   - DARK or BRAND-COLORED background bar for contrast and readability
   - Logo anchored on LEFT side (RTL Hebrew layout)
   - RIGHT side: branch locations, phone numbers, website
   - Phone number: LARGE and clear
   - Multiple branches separated by pipes (|) if applicable
+
+⚠️ CRITICAL WARNING: The area labels above (TOP AREA, CENTER AREA, BOTTOM AREA) are INTERNAL LAYOUT INSTRUCTIONS.
+They must NEVER appear as visible text in the generated image! Do NOT write "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", or any English layout labels anywhere in the ad.
+Only HEBREW text from the brief should appear in the final ad.
 ═══════════════════════════════════════════════
 
 VISUAL IMPACT — MAKE IT EXTRAORDINARY:
@@ -1098,14 +1100,22 @@ CLIENT REVISIONS:
 ${normalizedCorrections.map((c) => `- [${c.type === 'copy' || c.type === 'headline' || c.type === 'subtitle' ? 'TEXT' : c.type === 'visual' ? 'VISUAL' : 'GENERAL'}]: ${c.text}`).join('\n')}
 ` : ''}
 
+NEGATIVE PROMPT — NEVER include in image:
+Split-screens, multiple panels, stock-photo look, low-quality CGI, immodest clothing, distorted limbs.
+No religious objects unless holiday-tagged.
+No English text labels like "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", "TOP", "CENTER", "BOTTOM", "CONTACT", "HEADLINE".
+Only HEBREW text from the brief should be visible.
+
 FINAL CHECKLIST:
-✓ Hebrew text is correct, right-to-left, perfectly readable
-✓ 3-zone grid: headline top, visual center, contact strip bottom
+✓ Hebrew text is correct, right-to-left, perfectly readable — NO typos or garbled letters
+✓ 3-area grid: headline top, visual center, contact strip bottom
 ✓ Contact details are accurate and complete
 ✓ Logo is properly placed (if provided)
 ✓ Visual is cinematic and premium
 ✓ No clipped/cut Hebrew text at edges or overlays
-✓ All community rules respected`;
+✓ All community rules respected
+✓ NO English layout labels (ZONE, etc.) visible anywhere in the image
+✓ The OFFER/NEWS from the brief is clearly communicated in the headline — not replaced by generic text`;
 
     const engineVersion = engine === 'nano-banana-pro' ? 'nano-banana-pro' : 'nano-banana';
     console.log(`[Pipeline] Starting All-in-One generation (engine: ${engineVersion})`);
