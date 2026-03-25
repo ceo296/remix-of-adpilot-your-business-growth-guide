@@ -162,12 +162,16 @@ export const BudgetAudienceStep = ({
   onPackageSelect,
   selectedMediaTypes = [],
   mediaScope,
+  clientProfileId,
+  campaignName,
 }: BudgetAudienceStepProps) => {
   const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [packageConfirmed, setPackageConfirmed] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [availableCategories, setAvailableCategories] = useState<CategoryData[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedCampaignId, setSavedCampaignId] = useState<string | null>(null);
 
   // Fetch categories and product stats from database
   useEffect(() => {
