@@ -354,6 +354,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      if (recordingTimerRef.current) { clearInterval(recordingTimerRef.current); recordingTimerRef.current = null; }
     }
   }, []);
 
