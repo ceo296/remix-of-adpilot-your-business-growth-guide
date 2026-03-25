@@ -795,6 +795,21 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                 messageQuality.level === 'weak' && 'border-orange-400/60 focus:border-orange-400',
               )}
             />
+            {/* Audio level indicator */}
+            {isRecording && (
+              <div className="absolute bottom-3 left-14 flex items-end gap-[3px] h-8">
+                {[0.3, 0.5, 0.7, 0.9, 1.0].map((threshold, i) => (
+                  <div
+                    key={i}
+                    className="w-[3px] rounded-full bg-destructive transition-all duration-75"
+                    style={{
+                      height: `${Math.max(4, audioLevel >= threshold ? (audioLevel * 28) : 4 + i * 2)}px`,
+                      opacity: audioLevel >= threshold * 0.5 ? 1 : 0.3,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
             <button
               type="button"
               onClick={isRecording ? stopRecording : startRecording}
