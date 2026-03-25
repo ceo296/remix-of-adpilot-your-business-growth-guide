@@ -44,14 +44,12 @@ PEOPLE: Men only — dark suits, white shirts, kippot, neatly groomed beards.
 ABSOLUTELY NO women or girls in any image.
 ENVIRONMENT: Upscale, clean, prestigious settings.
 
-[AD GRID - 3 ZONES]
-ZONE 1 — HEADLINE (top 15-20%): Bold Hebrew headline + subtitle
-ZONE 2 — HERO VISUAL (center 55-65%): Cinematic product/lifestyle photography
-ZONE 3 — CONTACT STRIP (bottom 15-25%): Dark/branded bar with logo (LEFT), phone, address, branches (RIGHT)
+[AD GRID — 3 AREAS (describe layout, NEVER render these labels as visible text!)]
+TOP AREA — HEADLINE (top 15-20%): Bold Hebrew headline + subtitle
+CENTER AREA — HERO VISUAL (center 55-65%): Cinematic product/lifestyle photography
+BOTTOM AREA — CONTACT STRIP (bottom 15-25%): Dark/branded bar with logo (LEFT), phone, address, branches (RIGHT)
 
-[NEGATIVE PROMPT] Split-screens, multiple panels, stock-photo look, low-quality CGI, immodest clothing, distorted limbs. No religious objects unless holiday-tagged.
-
-[LOGO RULE] If client logo is attached, place it EXACTLY as-is in bottom-left of contact strip (15-25% width). If no logo attached, leave space empty — do NOT invent logos.
+⚠️ CRITICAL: The words "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", "TOP AREA", "CENTER AREA", "BOTTOM AREA" are INTERNAL LAYOUT INSTRUCTIONS ONLY. They must NEVER appear as visible text anywhere in the generated image! If you render any of these labels in the image, the ad is RUINED.
 
 [VISUAL QA]
 - Children: smooth faces, NO facial hair. Hands: exactly 5 fingers.
