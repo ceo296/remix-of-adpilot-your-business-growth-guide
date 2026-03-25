@@ -308,31 +308,34 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setIsTranscribing(true);
         try {
-          const reader = new FileReader();
-          reader.onload = async () => {
-            const base64 = (reader.result as string).split(',')[1];
-            const { data, error } = await supabase.functions.invoke('ai-chat', {
-              body: {
-                message: `תמלל את ההקלטה הזו לטקסט בעברית. תן רק את הטקסט המדובר, בלי הסברים. אם אין דיבור, כתוב "לא זוהה דיבור".`,
-                audioBase64: base64,
-                audioFormat: 'webm',
-                skipHistory: true,
-              },
-            });
-            if (!error && data?.response) {
-              const transcribed = data.response.trim();
-              if (transcribed && transcribed !== 'לא זוהה דיבור') {
-                const current = value.offer.trim();
-                updateBrief({ offer: current ? `${current} ${transcribed}` : transcribed });
-                toast.success('ההקלטה תומללה בהצלחה! 🎙️');
-              } else {
-                toast.error('לא זוהה דיבור בהקלטה');
-              }
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const fileReader = new FileReader();
+            fileReader.onload = () => resolve((fileReader.result as string).split(',')[1]);
+            fileReader.onerror = () => reject(new Error('Failed to read audio'));
+            fileReader.readAsDataURL(audioBlob);
+          });
+          const { data, error } = await supabase.functions.invoke('ai-chat', {
+            body: {
+              message: `תמלל את ההקלטה הזו לטקסט בעברית. תן רק את הטקסט המדובר, בלי הסברים. אם אין דיבור, כתוב "לא זוהה דיבור".`,
+              audioBase64: base64,
+              audioFormat: 'webm',
+              skipHistory: true,
+            },
+          });
+          if (!error && data?.response) {
+            const transcribed = data.response.trim();
+            if (transcribed && transcribed !== 'לא זוהה דיבור') {
+              // Use ref to get latest offer value to avoid stale closure
+              const offerField = document.getElementById('campaign-offer') as HTMLTextAreaElement | null;
+              const currentOffer = offerField?.value?.trim() || '';
+              updateBrief({ offer: currentOffer ? `${currentOffer} ${transcribed}` : transcribed });
+              toast.success('ההקלטה תומללה בהצלחה! 🎙️');
             } else {
-              toast.error('שגיאה בתמלול ההקלטה');
+              toast.error('לא זוהה דיבור בהקלטה');
             }
-          };
-          reader.readAsDataURL(audioBlob);
+          } else {
+            toast.error('שגיאה בתמלול ההקלטה');
+          }
         } catch {
           toast.error('שגיאה בתמלול');
         } finally {
@@ -348,7 +351,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
     } catch {
       toast.error('לא הצלחנו לגשת למיקרופון');
     }
-  }, [value.offer]);
+  }, []);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
