@@ -24,13 +24,16 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { messages, message, context, skipHistory } = body;
+    const { messages, message, context, skipHistory, audioBase64, audioFormat } = body;
     
     const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
       throw new Error('No AI API key configured');
     }
+
+    // ═══ AUDIO TRANSCRIPTION MODE ═══
+    const hasAudio = !!audioBase64;
 
     // Support both: { messages: [...] } (chat widget) and { message: "..." } (single-shot)
     const isSingleShot = !messages && message;
@@ -89,8 +92,20 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
       ? 'אתה עוזר AI שעונה בעברית. ענה בקצרה ולעניין.'
       : systemPrompt;
 
+    // Build user message content — include audio if present
+    let userContent: any = message || '';
+    if (hasAudio && isSingleShot) {
+      // Build multimodal content with audio
+      const formatMap: Record<string, string> = { 'webm': 'audio/webm', 'mp3': 'audio/mpeg', 'wav': 'audio/wav', 'ogg': 'audio/ogg', 'm4a': 'audio/mp4' };
+      const mimeType = formatMap[audioFormat || 'webm'] || 'audio/webm';
+      userContent = [
+        { type: 'text', text: message || 'תמלל את ההקלטה הזו לטקסט בעברית. תן רק את הטקסט המדובר, בלי הסברים.' },
+        { type: 'input_audio', input_audio: { data: audioBase64, format: audioFormat === 'wav' ? 'wav' : 'mp3' } },
+      ];
+    }
+
     const chatMessages = isSingleShot
-      ? [{ role: 'user', content: message }]
+      ? [{ role: 'user', content: userContent }]
       : (Array.isArray(messages) ? messages : []);
 
     const allMessages = [
@@ -98,8 +113,40 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
       ...chatMessages,
     ];
 
-    // Try Google Gemini API first
-    if (GOOGLE_GEMINI_API_KEY) {
+    // For audio transcription, go directly to Lovable AI Gateway (supports multimodal)
+    // Skip Google direct API as it doesn't support input_audio format easily
+    if (hasAudio && LOVABLE_API_KEY) {
+      console.log('[ai-chat] Audio transcription mode, using Lovable AI Gateway');
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: allMessages,
+          max_completion_tokens: 2048,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error('[ai-chat] Audio transcription error:', response.status, errText);
+        return new Response(JSON.stringify({ error: 'שגיאה בתמלול', details: errText }), {
+          status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content || '';
+      return new Response(JSON.stringify({ response: text || 'לא זוהה דיבור' }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Try Google Gemini API first (text-only)
+    if (GOOGLE_GEMINI_API_KEY && !hasAudio) {
       try {
         const geminiMessages = allMessages.filter(m => m.role !== 'system');
         const systemText = allMessages.find(m => m.role === 'system')?.content || '';
@@ -112,7 +159,7 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
               systemInstruction: { parts: [{ text: systemText }] },
               contents: geminiMessages.map(m => ({
                 role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }],
+                parts: [{ text: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }],
               })),
               generationConfig: { maxOutputTokens: 2048 },
             }),
@@ -123,13 +170,11 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
           const data = await directResponse.json();
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
           if (text) {
-            // Single-shot: return JSON response
             if (isSingleShot) {
               return new Response(JSON.stringify({ response: text }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
               });
             }
-            // Chat: return SSE
             const sseData = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
             return new Response(sseData, {
               headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
