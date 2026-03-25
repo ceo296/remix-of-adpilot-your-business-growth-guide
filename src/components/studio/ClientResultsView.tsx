@@ -102,8 +102,8 @@ export const ClientResultsView = ({
         {visibleImages.map((image, idx) => {
           const isApproved = approvedIds.has(image.id);
           return (
-            <Card key={image.id} className={`overflow-hidden group relative transition-all duration-200 ${isApproved ? 'ring-2 ring-green-500 shadow-lg shadow-green-500/10' : 'hover:shadow-md'}`}>
-              {/* Image */}
+            <Card key={image.id} className="overflow-hidden group relative transition-all duration-200 hover:shadow-md">
+              {/* Image — click to zoom */}
               <div className="relative cursor-pointer" onClick={() => setZoomedImage(image.url)}>
                 <img src={image.url} alt={`סקיצה ${idx + 1}`} className="w-full object-contain bg-muted/30" loading="lazy" />
                 
@@ -116,13 +116,6 @@ export const ClientResultsView = ({
                 <Badge className="absolute top-2 right-2 bg-background/80 text-foreground backdrop-blur-sm text-xs">
                   סקיצה {idx + 1}
                 </Badge>
-
-                {/* Approved checkmark */}
-                {isApproved && (
-                  <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center animate-scale-in">
-                    <CheckCircle2 className="h-5 w-5 text-white" />
-                  </div>
-                )}
               </div>
 
               {/* Action buttons */}
