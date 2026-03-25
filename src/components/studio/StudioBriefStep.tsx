@@ -192,7 +192,9 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
   const [isTranscribing, setIsTranscribing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const [audioLevel, setAudioLevel] = useState(0);
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
   };
