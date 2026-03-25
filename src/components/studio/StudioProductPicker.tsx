@@ -278,7 +278,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
   }
 
   // Phase 1: Product selection — hierarchical layout
-  const renderProductButton = (product: typeof CAMPAIGN_360 & { hero?: boolean }, size: 'lg' | 'md' | 'sm' = 'md') => {
+  const renderProductButton = (product: any, size: 'lg' | 'md' | 'sm' = 'md') => {
     const sizeClasses = {
       lg: 'p-6 rounded-2xl',
       md: 'p-4 rounded-xl',
