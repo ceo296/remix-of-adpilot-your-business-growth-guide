@@ -651,11 +651,20 @@ export const BudgetAudienceStep = ({
               ))}
             </div>
 
-            {selectedPackage && (
+            {selectedPackage && !savedCampaignId && (
               <div className="mt-6 text-center">
-                <Button onClick={() => setPackageConfirmed(true)} size="lg" className="gap-2">
-                  <Check className="w-5 h-5" />
-                  זה הכיוון שלי, קדימה!
+                <Button onClick={handleConfirmAndSave} size="lg" className="gap-2" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      שומר...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5" />
+                      זה הכיוון שלי, קדימה!
+                    </>
+                  )}
                 </Button>
               </div>
             )}
