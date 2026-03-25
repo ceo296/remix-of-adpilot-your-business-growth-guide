@@ -162,11 +162,43 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
         </p>
       </div>
 
-      {/* Media Type Selection */}
-      <div className="space-y-4">
-        <Label className="text-foreground font-medium">סוג המדיה *</Label>
-        <div className="grid md:grid-cols-3 gap-4">
-          {MEDIA_OPTIONS.map((option) => (
+      {/* Media Type Selection — Tiered hierarchy */}
+      <div className="space-y-5 max-w-3xl mx-auto">
+        {/* Tier 1: Hero — מודעות */}
+        {(() => {
+          const hero = MEDIA_OPTIONS.find(o => o.id === 'ad')!;
+          return (
+            <Card
+              className={cn(
+                'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.01]',
+                isSelected(hero.id)
+                  ? 'border-transparent bg-card shadow-xl ring-2 ring-cyan-400/30'
+                  : 'border-border hover:border-primary/50'
+              )}
+              onClick={() => handleToggle(hero.id)}
+            >
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className={cn(
+                  'w-18 h-18 rounded-2xl flex items-center justify-center mb-3 transition-all',
+                  `bg-gradient-to-br ${hero.gradient} shadow-lg ${hero.shadowColor}`
+                )}>
+                  <hero.icon className="w-9 h-9 text-white transition-transform group-hover:scale-110" />
+                </div>
+                <h4 className="text-xl font-bold text-foreground">{hero.label}</h4>
+                <p className="text-sm text-muted-foreground mt-1">{hero.description}</p>
+                {isSelected(hero.id) && (
+                  <div className={cn("absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center shadow-md", `bg-gradient-to-br ${hero.gradient}`)}>
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
+
+        {/* Tier 2: Secondary — מייל + וואטסאפ */}
+        <div className="grid grid-cols-2 gap-4">
+          {MEDIA_OPTIONS.filter(o => o.id === 'email' || o.id === 'whatsapp').map((option) => (
             <Card
               key={option.id}
               className={cn(
@@ -177,37 +209,17 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
               )}
               onClick={() => handleToggle(option.id)}
             >
-              <CardContent className="p-6 flex items-start gap-4">
+              <CardContent className="p-5 flex flex-col items-center text-center">
                 <div className={cn(
-                  'w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all',
-                  isSelected(option.id) 
-                    ? `bg-gradient-to-br ${option.gradient} shadow-lg ${option.shadowColor}` 
-                    : `bg-gradient-to-br ${option.gradient} shadow-md ${option.shadowColor}`
+                  'w-14 h-14 rounded-xl flex items-center justify-center mb-2 transition-all',
+                  `bg-gradient-to-br ${option.gradient} shadow-md ${option.shadowColor}`
                 )}>
                   <option.icon className="w-7 h-7 text-white transition-transform group-hover:scale-110" />
                 </div>
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-foreground">{option.label}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {option.description}
-                  </p>
-                  <div className="flex gap-2 mt-3 flex-wrap">
-                    {option.tags.map((tag) => (
-                      <Badge 
-                        key={tag} 
-                        variant={option.id === 'all' && tag === 'מומלץ' ? 'default' : 'secondary'} 
-                        className="text-xs"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                <h4 className="text-lg font-bold text-foreground">{option.label}</h4>
+                <p className="text-xs text-muted-foreground mt-1">{option.description}</p>
                 {isSelected(option.id) && (
-                  <div className={cn(
-                    "absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center shadow-md",
-                    `bg-gradient-to-br ${option.gradient}`
-                  )}>
+                  <div className={cn("absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center shadow-md", `bg-gradient-to-br ${option.gradient}`)}>
                     <Check className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -215,6 +227,74 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
             </Card>
           ))}
         </div>
+
+        {/* Tier 3: Tertiary — באנרים, כתבה, רדיו */}
+        <div className="grid grid-cols-3 gap-3">
+          {MEDIA_OPTIONS.filter(o => ['banner', 'article', 'radio'].includes(o.id)).map((option) => (
+            <Card
+              key={option.id}
+              className={cn(
+                'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
+                isSelected(option.id)
+                  ? 'border-transparent bg-card shadow-lg'
+                  : 'border-border hover:border-primary/50'
+              )}
+              onClick={() => handleToggle(option.id)}
+            >
+              <CardContent className="p-4 flex flex-col items-center text-center">
+                <div className={cn(
+                  'w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all',
+                  `bg-gradient-to-br ${option.gradient} shadow-md ${option.shadowColor}`
+                )}>
+                  <option.icon className="w-6 h-6 text-white transition-transform group-hover:scale-110" />
+                </div>
+                <h4 className="text-base font-bold text-foreground">{option.label}</h4>
+                {isSelected(option.id) && (
+                  <div className={cn("absolute top-2 left-2 w-5 h-5 rounded-full flex items-center justify-center shadow-md", `bg-gradient-to-br ${option.gradient}`)}>
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Tier 4: CTA — קמפיין 360° */}
+        {(() => {
+          const allOption = MEDIA_OPTIONS.find(o => o.id === 'all')!;
+          return (
+            <Card
+              className={cn(
+                'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.01]',
+                isSelected(allOption.id)
+                  ? 'border-transparent bg-gradient-to-r from-primary/10 to-red-500/10 shadow-xl ring-2 ring-primary/30'
+                  : 'border-dashed border-primary/40 hover:border-primary/70 hover:bg-primary/5'
+              )}
+              onClick={() => handleToggle(allOption.id)}
+            >
+              <CardContent className="p-5 flex items-center gap-4 justify-center">
+                <div className={cn(
+                  'w-12 h-12 rounded-xl flex items-center justify-center transition-all',
+                  `bg-gradient-to-br ${allOption.gradient} shadow-lg ${allOption.shadowColor}`
+                )}>
+                  <allOption.icon className="w-6 h-6 text-white transition-transform group-hover:scale-110" />
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-lg font-bold text-foreground">{allOption.label}</h4>
+                    <Badge variant="default" className="text-xs">מומלץ</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{allOption.description}</p>
+                </div>
+                {isSelected(allOption.id) && (
+                  <div className={cn("absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center shadow-md", `bg-gradient-to-br ${allOption.gradient}`)}>
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
       </div>
 
       {/* Info message based on selection */}
