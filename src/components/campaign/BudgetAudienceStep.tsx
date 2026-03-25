@@ -354,7 +354,7 @@ export const BudgetAudienceStep = ({
         description: def.description,
         totalPrice,
         allocations,
-        recommended: def.recommended,
+        recommended: def.id === recommendedId,
       };
     });
 
