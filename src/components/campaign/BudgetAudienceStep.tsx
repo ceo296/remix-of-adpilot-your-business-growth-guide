@@ -171,6 +171,7 @@ const buildPackageFromMedia = (
   tierBudget: number,
   mediaItems: RealMediaItem[],
   allowedCategories: string[] | null,
+  campaignWeeks: number,
 ): PackageItem[] => {
   if (!mediaItems.length || tierBudget <= 0) return [];
 
@@ -198,28 +199,36 @@ const buildPackageFromMedia = (
   }, 0);
 
   const items: PackageItem[] = [];
-  let remainingBudget = tierBudget;
+  let totalSpent = 0;
 
+  // Determine how many insertions per outlet based on campaign weeks
+  const baseInsertions = Math.max(1, Math.ceil(campaignWeeks / 2));
+  const tierMultiplier = tierId === 'premium' ? 1.3 : tierId === 'standard' ? 1 : 0.7;
+  
   for (const cat of categories) {
     const catItems = byCategory.get(cat)!;
     const catEn = catItems[0].categoryEn;
     const weight = CATEGORY_PRIORITY[catEn] || 1;
     const catBudget = (tierBudget * weight) / Math.max(prioritySum, 1);
 
-    // Pick items that fit the category budget
-    // Sort by price ascending to fit more items
+    // Sort by price ascending to diversify
     const sorted = [...catItems].sort((a, b) => a.price - b.price);
-
-    let spent = 0;
     const pickedOutlets = new Set<string>();
 
     for (const item of sorted) {
       if (pickedOutlets.has(item.outletId)) continue;
-      if (spent + item.price > catBudget * 1.3 && items.length > 0) break;
-      if (remainingBudget - item.price < 0 && items.length > 0) break;
 
-      // Determine count based on tier
-      const count = tierId === 'premium' ? 3 : tierId === 'standard' ? 2 : 2;
+      // Calculate insertions for this item
+      const count = Math.max(1, Math.round(baseInsertions * tierMultiplier));
+      const lineTotal = item.price * count;
+
+      // Check if adding this blows the category or total budget
+      const catSpent = items
+        .filter(i => i.categoryName === cat)
+        .reduce((s, i) => s + i.price * i.count, 0);
+      
+      if (catSpent + lineTotal > catBudget * 1.4 && items.length > 0) break;
+      if (totalSpent + lineTotal > tierBudget * 1.05 && items.length > 0) break;
 
       items.push({
         id: `${tierId}-${item.outletId}-${item.productId}`,
@@ -230,8 +239,7 @@ const buildPackageFromMedia = (
         count,
       });
 
-      spent += item.price;
-      remainingBudget -= item.price;
+      totalSpent += lineTotal;
       pickedOutlets.add(item.outletId);
     }
   }
@@ -324,7 +332,7 @@ export const BudgetAudienceStep = ({
       setPackages([]);
       setValidationError(null);
     }
-  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes, allMediaItems]);
+  }, [budget, targetStream, targetGender, targetCity, mediaScope, selectedMediaTypes, allMediaItems, startDate, endDate]);
 
   const generatePackages = () => {
     // Filter by audience
@@ -349,35 +357,44 @@ export const BudgetAudienceStep = ({
       allowedCategories = Array.from(cats);
     }
 
+    // Calculate campaign duration in weeks
+    let campaignWeeks = 4; // default 1 month
+    if (startDate && endDate) {
+      const diffMs = endDate.getTime() - startDate.getTime();
+      campaignWeeks = Math.max(1, Math.round(diffMs / (7 * 24 * 60 * 60 * 1000)));
+    }
+
     const lowerBudget = Math.round(budget * 0.85);
     const exactBudget = budget;
-    const higherBudget = Math.round(budget * 1.15);
+    const higherBudget = Math.round(budget * 1.2);
 
-    const economyItems = buildPackageFromMedia('economy', lowerBudget, filtered, allowedCategories);
-    const standardItems = buildPackageFromMedia('standard', exactBudget, filtered, allowedCategories);
-    const premiumItems = buildPackageFromMedia('premium', higherBudget, filtered, allowedCategories);
+    const essentialItems = buildPackageFromMedia('economy', lowerBudget, filtered, allowedCategories, campaignWeeks);
+    const standardItems = buildPackageFromMedia('standard', exactBudget, filtered, allowedCategories, campaignWeeks);
+    const premiumItems = buildPackageFromMedia('premium', higherBudget, filtered, allowedCategories, campaignWeeks);
+
+    const calcTotal = (items: PackageItem[]) => items.reduce((sum, item) => sum + item.price * item.count, 0);
 
     const builtPackages: MediaPackage[] = [
       {
-        id: 'economy',
-        name: 'חבילה חסכונית',
-        description: 'טווח תקציב נמוך יותר לתחילת קמפיין מדויקת',
-        totalPrice: economyItems.reduce((sum, item) => sum + item.price, 0),
-        items: economyItems,
+        id: 'essential',
+        name: 'חבילה ממוקדת',
+        description: 'פחות ערוצים, יותר דיוק — מתאימה להתחלה חכמה',
+        totalPrice: calcTotal(essentialItems),
+        items: essentialItems,
       },
       {
         id: 'standard',
-        name: 'חבילה מדויקת',
-        description: 'מותאמת בדיוק לתקציב שהוגדר',
-        totalPrice: standardItems.reduce((sum, item) => sum + item.price, 0),
+        name: 'חבילה מאוזנת',
+        description: 'פריסה רחבה ומותאמת לתקציב שהגדרת',
+        totalPrice: calcTotal(standardItems),
         items: standardItems,
         recommended: true,
       },
       {
         id: 'premium',
-        name: 'חבילה מורחבת',
-        description: 'מעט רחבה יותר לחשיפה חזקה יותר',
-        totalPrice: premiumItems.reduce((sum, item) => sum + item.price, 0),
+        name: 'חבילה מוגברת',
+        description: 'חשיפה מקסימלית עם יותר סבבים וערוצים',
+        totalPrice: calcTotal(premiumItems),
         items: premiumItems,
       },
     ].filter((pkg) => pkg.items.length > 0);
@@ -618,9 +635,9 @@ export const BudgetAudienceStep = ({
                               {item.categoryName}
                             </Badge>
                           </div>
-                          <div className="text-left">
-                            {item.count > 1 && <div className="text-[10px] text-muted-foreground">×{item.count}</div>}
-                            <div className="font-medium text-primary">{formatPrice(item.price)}</div>
+                          <div className="text-left flex items-center gap-1.5">
+                            {item.count > 1 && <span className="text-[10px] text-muted-foreground">×{item.count}</span>}
+                            <span className="font-medium text-primary">{formatPrice(item.price * item.count)}</span>
                           </div>
                         </div>
                       ))}
