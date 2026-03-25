@@ -154,7 +154,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
   const [selectedProduct, setSelectedProduct] = useState<MediaType | null>(null);
   const [selectedScope, setSelectedScope] = useState<ProductScope | null>(null);
 
-  const product = PRODUCTS.find(p => p.id === selectedProduct);
+  const product = ALL_PRODUCTS.find(p => p.id === selectedProduct);
   const showScopeOptions = product?.needsScope;
   const showRadioScope = product?.hasRadioScope;
   const showFollowUp = showScopeOptions || showRadioScope;
@@ -164,7 +164,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
     setSelectedProduct(id);
     setSelectedScope(null);
     
-    const prod = PRODUCTS.find(p => p.id === id);
+    const prod = ALL_PRODUCTS.find(p => p.id === id);
     // For products that don't need scope, auto-complete
     if (!prod?.needsScope && !prod?.hasRadioScope) {
       onComplete([id], 'full');
@@ -189,7 +189,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
   // Phase 2: Scope selection
   if (showFollowUp && selectedProduct) {
     const scopeOptions = showRadioScope ? RADIO_SCOPE_OPTIONS : SCOPE_OPTIONS;
-    const productInfo = PRODUCTS.find(p => p.id === selectedProduct)!;
+    const productInfo = ALL_PRODUCTS.find(p => p.id === selectedProduct)!;
 
     return (
       <div className="w-full max-w-2xl mx-auto py-8 animate-fade-in">
@@ -289,7 +289,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {PRODUCTS.map((product) => (
+        {ALL_PRODUCTS.map((product) => (
           <button
             key={product.id}
             onClick={() => handleProductSelect(product.id)}
