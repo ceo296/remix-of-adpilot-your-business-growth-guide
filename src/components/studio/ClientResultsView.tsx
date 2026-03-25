@@ -126,17 +126,10 @@ export const ClientResultsView = ({
               </div>
 
               {/* Action buttons */}
-              <div className="p-3 flex gap-2">
-                <Button size="sm" variant={isApproved ? "default" : "outline"} className="flex-1 gap-1.5 text-xs"
-                  onClick={() => handleApprove(image.id)}>
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {isApproved ? 'מאושר ✓' : 'אשר'}
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1 gap-1.5 text-xs"
-                  onClick={() => { setFeedbackImageId(image.id); setFeedbackText(''); }}>
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  בקש תיקון
-                </Button>
+              <div className="p-3 flex justify-center">
+                <Badge variant="secondary" className="text-xs">
+                  סקיצה {idx + 1}
+                </Badge>
               </div>
             </Card>
           );
