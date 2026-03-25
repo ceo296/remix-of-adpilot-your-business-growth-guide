@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Send, CheckCircle2, Sparkles, ZoomIn, ChevronRight, Wrench, Heart } from 'lucide-react';
+import { Sparkles, ZoomIn, ChevronRight, Wrench, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ComponentFeedbackPicker } from '@/components/studio/ComponentFeedbackPicker';
 import { Card } from '@/components/ui/card';
