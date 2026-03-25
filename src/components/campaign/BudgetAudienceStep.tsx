@@ -77,6 +77,8 @@ interface BudgetAudienceStepProps {
   onPackageSelect: (pkg: any) => void;
   selectedMediaTypes?: MediaType[];
   mediaScope?: MediaScope;
+  clientProfileId?: string;
+  campaignName?: string;
 }
 
 const STREAMS = [
