@@ -342,6 +342,8 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
 
       mediaRecorder.start();
       setIsRecording(true);
+      setRecordingSeconds(0);
+      recordingTimerRef.current = setInterval(() => setRecordingSeconds(s => s + 1), 1000);
       toast.info('מקליט... לחץ שוב לעצירה');
     } catch {
       toast.error('לא הצלחנו לגשת למיקרופון');
