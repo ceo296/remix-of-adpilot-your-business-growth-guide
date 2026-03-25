@@ -61,8 +61,9 @@ const MEDIA_TYPES = [
   { id: 'whatsapp', label: 'ווטסאפ', description: 'הודעות ממוקדות', icon: MessageCircle, gradient: 'from-green-600 to-green-700' },
 ];
 
-type WizardStep = 'brief' | 'mediaType' | 'mediaScope' | 'media' | 'quote';
+type WizardStep = 'brief' | 'mediaChoice' | 'mediaType' | 'mediaScope' | 'media' | 'quote';
 type MediaScope = 'national' | 'local' | 'both';
+type MediaPath = 'self' | 'guided' | null;
 
 const FastTrackWizard = () => {
   const navigate = useNavigate();
@@ -75,7 +76,8 @@ const FastTrackWizard = () => {
   const isMediaOnlyMode = searchParams.get('mode') === 'media-only';
   
   // Current step
-  const [currentStep, setCurrentStep] = useState<WizardStep>(isMediaOnlyMode ? 'mediaType' : 'brief');
+  const [currentStep, setCurrentStep] = useState<WizardStep>(isMediaOnlyMode ? 'mediaChoice' : 'brief');
+  const [mediaPath, setMediaPath] = useState<MediaPath>(null);
   
   // Media Type Selection (for media-only mode)
   const [selectedMediaTypes, setSelectedMediaTypes] = useState<string[]>([]);
@@ -138,7 +140,7 @@ const FastTrackWizard = () => {
   // Update step when mode changes
   useEffect(() => {
     if (isMediaOnlyMode) {
-      setCurrentStep('mediaType');
+      setCurrentStep('mediaChoice');
       setCampaignBrief(prev => ({ ...prev, title: 'רכישת מדיה' }));
     }
   }, [isMediaOnlyMode]);
@@ -189,15 +191,23 @@ const FastTrackWizard = () => {
   };
 
   const handleBackFromMediaType = () => {
-    navigate('/dashboard');
+    if (isMediaOnlyMode) {
+      setCurrentStep('mediaChoice');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   const handleBackFromMedia = () => {
     if (isMediaOnlyMode) {
-      if (needsScopeQuestion) {
-        setCurrentStep('mediaScope');
+      if (mediaPath === 'self') {
+        if (needsScopeQuestion) {
+          setCurrentStep('mediaScope');
+        } else {
+          setCurrentStep('mediaType');
+        }
       } else {
-        setCurrentStep('mediaType');
+        setCurrentStep('mediaChoice');
       }
     } else {
       setCurrentStep('brief');
@@ -398,6 +408,77 @@ const FastTrackWizard = () => {
   const removeUploadedCreative = () => {
     setUploadedCreativeUrl(null);
   };
+
+  // Render Media Choice Step — routing question
+  const renderMediaChoiceStep = () => (
+    <div className="space-y-10 animate-fade-in">
+      <div className="text-center">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center mb-6 shadow-lg shadow-primary/30">
+          <Newspaper className="w-10 h-10 text-primary-foreground" />
+        </div>
+        <h2 className="text-3xl font-bold text-foreground mb-3">רכישת מדיה</h2>
+        <p className="text-lg text-muted-foreground">איך תרצה להתחיל?</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Option 1: I know what I want */}
+        <button
+          type="button"
+          onClick={() => {
+            setMediaPath('self');
+            setCurrentStep('mediaType');
+          }}
+          className={`flex flex-col items-center gap-4 p-8 rounded-2xl border-2 text-center transition-all hover:scale-[1.02] cursor-pointer ${
+            mediaPath === 'self'
+              ? 'border-primary bg-primary/5 shadow-lg shadow-primary/20'
+              : 'border-border hover:border-primary/40 hover:shadow-md bg-card'
+          }`}
+        >
+          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+            <Check className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <p className="text-xl font-bold text-foreground mb-2">אני יודע מה אני צריך</p>
+            <p className="text-sm text-muted-foreground">
+              אבחר בעצמי את סוגי המדיה — עיתונות, רדיו, דיגיטל וכו׳
+            </p>
+          </div>
+        </button>
+
+        {/* Option 2: Build me a plan */}
+        <button
+          type="button"
+          onClick={() => {
+            setMediaPath('guided');
+            setCurrentStep('media');
+          }}
+          className={`flex flex-col items-center gap-4 p-8 rounded-2xl border-2 text-center transition-all hover:scale-[1.02] cursor-pointer ${
+            mediaPath === 'guided'
+              ? 'border-primary bg-primary/5 shadow-lg shadow-primary/20'
+              : 'border-border hover:border-primary/40 hover:shadow-md bg-card'
+          }`}
+        >
+          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md">
+            <Wand2 className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <p className="text-xl font-bold text-foreground mb-2">תבנו לי תוכנית</p>
+            <p className="text-sm text-muted-foreground">
+              ענו על כמה שאלות קצרות ונבנה לכם חבילת מדיה מותאמת אישית
+            </p>
+          </div>
+        </button>
+      </div>
+
+      {/* Back */}
+      <div className="flex justify-start pt-4">
+        <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+          <ArrowRight className="w-4 h-4 ml-2" />
+          חזרה לדאשבורד
+        </Button>
+      </div>
+    </div>
+  );
 
   // Render Media Type Selection Step (for media-only mode)
   const renderMediaTypeStep = () => (
@@ -714,6 +795,7 @@ const FastTrackWizard = () => {
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         {currentStep === 'brief' && renderBriefStep()}
+        {currentStep === 'mediaChoice' && renderMediaChoiceStep()}
         {currentStep === 'mediaType' && renderMediaTypeStep()}
         {currentStep === 'mediaScope' && renderMediaScopeStep()}
         {currentStep === 'media' && renderMediaStep()}
