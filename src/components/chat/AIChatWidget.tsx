@@ -76,8 +76,14 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'שגיאה בתקשורת');
+        let errorMsg = 'שגיאה בתקשורת';
+        try {
+          const error = await response.json();
+          errorMsg = error.error || errorMsg;
+        } catch {
+          // Response wasn't JSON
+        }
+        throw new Error(errorMsg);
       }
 
       if (!response.body) {
@@ -94,25 +100,23 @@ export function AIChatWidget({ context, className }: AIChatWidgetProps) {
 
         buffer += decoder.decode(value, { stream: true });
         
-        let newlineIndex: number;
-        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-          let line = buffer.slice(0, newlineIndex);
-          buffer = buffer.slice(newlineIndex + 1);
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // keep incomplete last line in buffer
 
-          if (line.endsWith('\r')) line = line.slice(0, -1);
+        for (const rawLine of lines) {
+          const line = rawLine.replace(/\r$/, '');
           if (line.startsWith(':') || line.trim() === '') continue;
           if (!line.startsWith('data: ')) continue;
 
           const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
+          if (jsonStr === '[DONE]') continue;
 
           try {
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) updateAssistant(content);
           } catch {
-            buffer = line + '\n' + buffer;
-            break;
+            // Skip unparseable chunks
           }
         }
       }
