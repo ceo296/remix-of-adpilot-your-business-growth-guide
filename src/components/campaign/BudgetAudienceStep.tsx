@@ -171,6 +171,7 @@ const buildPackageFromMedia = (
   tierBudget: number,
   mediaItems: RealMediaItem[],
   allowedCategories: string[] | null,
+  campaignWeeks: number,
 ): PackageItem[] => {
   if (!mediaItems.length || tierBudget <= 0) return [];
 
@@ -198,28 +199,36 @@ const buildPackageFromMedia = (
   }, 0);
 
   const items: PackageItem[] = [];
-  let remainingBudget = tierBudget;
+  let totalSpent = 0;
 
+  // Determine how many insertions per outlet based on campaign weeks
+  const baseInsertions = Math.max(1, Math.ceil(campaignWeeks / 2));
+  const tierMultiplier = tierId === 'premium' ? 1.3 : tierId === 'standard' ? 1 : 0.7;
+  
   for (const cat of categories) {
     const catItems = byCategory.get(cat)!;
     const catEn = catItems[0].categoryEn;
     const weight = CATEGORY_PRIORITY[catEn] || 1;
     const catBudget = (tierBudget * weight) / Math.max(prioritySum, 1);
 
-    // Pick items that fit the category budget
-    // Sort by price ascending to fit more items
+    // Sort by price ascending to diversify
     const sorted = [...catItems].sort((a, b) => a.price - b.price);
-
-    let spent = 0;
     const pickedOutlets = new Set<string>();
 
     for (const item of sorted) {
       if (pickedOutlets.has(item.outletId)) continue;
-      if (spent + item.price > catBudget * 1.3 && items.length > 0) break;
-      if (remainingBudget - item.price < 0 && items.length > 0) break;
 
-      // Determine count based on tier
-      const count = tierId === 'premium' ? 3 : tierId === 'standard' ? 2 : 2;
+      // Calculate insertions for this item
+      const count = Math.max(1, Math.round(baseInsertions * tierMultiplier));
+      const lineTotal = item.price * count;
+
+      // Check if adding this blows the category or total budget
+      const catSpent = items
+        .filter(i => i.categoryName === cat)
+        .reduce((s, i) => s + i.price * i.count, 0);
+      
+      if (catSpent + lineTotal > catBudget * 1.4 && items.length > 0) break;
+      if (totalSpent + lineTotal > tierBudget * 1.05 && items.length > 0) break;
 
       items.push({
         id: `${tierId}-${item.outletId}-${item.productId}`,
@@ -230,8 +239,7 @@ const buildPackageFromMedia = (
         count,
       });
 
-      spent += item.price;
-      remainingBudget -= item.price;
+      totalSpent += lineTotal;
       pickedOutlets.add(item.outletId);
     }
   }
