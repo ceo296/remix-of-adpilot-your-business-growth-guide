@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Download, MessageSquare, Send, CheckCircle2, Sparkles, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquare, Send, CheckCircle2, Sparkles, ZoomIn, ChevronRight, Wrench, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ComponentFeedbackPicker } from '@/components/studio/ComponentFeedbackPicker';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
