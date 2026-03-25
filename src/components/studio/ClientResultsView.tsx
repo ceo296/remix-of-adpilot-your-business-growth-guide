@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Sparkles, ZoomIn, ChevronRight, Wrench, Heart } from 'lucide-react';
+import { Sparkles, ZoomIn, ChevronRight, Wrench, Heart, Loader2, CheckCircle2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { ComponentFeedbackPicker } from '@/components/studio/ComponentFeedbackPicker';
 import { Card } from '@/components/ui/card';
