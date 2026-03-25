@@ -117,36 +117,69 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   radio: <Radio className="h-4 w-4" />,
 };
 
-// 3 different allocation strategies
-const ALLOCATION_PROFILES: Record<string, Record<string, number>> = {
-  focused: {
-    newspapers: 0.45,
-    magazines: 0.20,
-    whatsapp: 0.15,
-    digital: 0.05,
-    newsletters: 0.05,
-    influencers: 0.05,
-    radio: 0.05,
-  },
-  balanced: {
-    newspapers: 0.25,
-    magazines: 0.15,
-    whatsapp: 0.15,
-    digital: 0.15,
-    newsletters: 0.10,
-    influencers: 0.10,
-    radio: 0.10,
-  },
-  digital_heavy: {
-    newspapers: 0.15,
-    magazines: 0.10,
-    whatsapp: 0.25,
-    digital: 0.20,
-    newsletters: 0.10,
-    influencers: 0.15,
-    radio: 0.05,
-  },
-};
+// Dynamic allocation profiles based on intake answers
+function buildAllocationProfiles(intake: MediaIntakeData): Record<string, Record<string, number>> {
+  const { campaignGoal, brandTone, channelPreference } = intake;
+
+  // Base profiles adjusted by goal
+  let focused: Record<string, number>;
+  let balanced: Record<string, number>;
+  let digital_heavy: Record<string, number>;
+
+  // Start with defaults, then adjust based on intake
+  if (campaignGoal === 'sales') {
+    // Sales → more digital/whatsapp for clicks
+    focused = { newspapers: 0.30, magazines: 0.10, whatsapp: 0.25, digital: 0.20, newsletters: 0.05, influencers: 0.05, radio: 0.05 };
+    balanced = { newspapers: 0.20, magazines: 0.10, whatsapp: 0.20, digital: 0.20, newsletters: 0.10, influencers: 0.10, radio: 0.10 };
+    digital_heavy = { newspapers: 0.10, magazines: 0.05, whatsapp: 0.30, digital: 0.25, newsletters: 0.10, influencers: 0.15, radio: 0.05 };
+  } else if (campaignGoal === 'awareness') {
+    // Awareness → more magazines, newspapers, radio
+    focused = { newspapers: 0.35, magazines: 0.30, whatsapp: 0.05, digital: 0.10, newsletters: 0.05, influencers: 0.05, radio: 0.10 };
+    balanced = { newspapers: 0.25, magazines: 0.20, whatsapp: 0.10, digital: 0.15, newsletters: 0.10, influencers: 0.05, radio: 0.15 };
+    digital_heavy = { newspapers: 0.15, magazines: 0.15, whatsapp: 0.15, digital: 0.20, newsletters: 0.10, influencers: 0.15, radio: 0.10 };
+  } else if (campaignGoal === 'launch') {
+    // Launch → broad + strong first impression
+    focused = { newspapers: 0.30, magazines: 0.20, whatsapp: 0.15, digital: 0.15, newsletters: 0.05, influencers: 0.10, radio: 0.05 };
+    balanced = { newspapers: 0.20, magazines: 0.15, whatsapp: 0.15, digital: 0.15, newsletters: 0.10, influencers: 0.15, radio: 0.10 };
+    digital_heavy = { newspapers: 0.10, magazines: 0.10, whatsapp: 0.20, digital: 0.20, newsletters: 0.10, influencers: 0.20, radio: 0.10 };
+  } else if (campaignGoal === 'event') {
+    // Event → time-sensitive, quick reach
+    focused = { newspapers: 0.25, magazines: 0.05, whatsapp: 0.30, digital: 0.15, newsletters: 0.10, influencers: 0.10, radio: 0.05 };
+    balanced = { newspapers: 0.20, magazines: 0.10, whatsapp: 0.20, digital: 0.15, newsletters: 0.15, influencers: 0.10, radio: 0.10 };
+    digital_heavy = { newspapers: 0.10, magazines: 0.05, whatsapp: 0.30, digital: 0.25, newsletters: 0.10, influencers: 0.15, radio: 0.05 };
+  } else {
+    // Fallback
+    focused = { newspapers: 0.45, magazines: 0.20, whatsapp: 0.15, digital: 0.05, newsletters: 0.05, influencers: 0.05, radio: 0.05 };
+    balanced = { newspapers: 0.25, magazines: 0.15, whatsapp: 0.15, digital: 0.15, newsletters: 0.10, influencers: 0.10, radio: 0.10 };
+    digital_heavy = { newspapers: 0.15, magazines: 0.10, whatsapp: 0.25, digital: 0.20, newsletters: 0.10, influencers: 0.15, radio: 0.05 };
+  }
+
+  // Adjust for premium brand tone — reduce whatsapp/influencers, boost magazines/newspapers
+  if (brandTone === 'premium') {
+    for (const profile of [focused, balanced, digital_heavy]) {
+      const whatsappReduction = profile.whatsapp * 0.5;
+      profile.whatsapp *= 0.5;
+      profile.magazines += whatsappReduction * 0.6;
+      profile.newspapers += whatsappReduction * 0.4;
+      // Remove influencers for premium
+      const infReduction = profile.influencers * 0.7;
+      profile.influencers *= 0.3;
+      profile.magazines += infReduction;
+    }
+  }
+
+  // Adjust for popular tone — boost whatsapp/digital
+  if (brandTone === 'popular') {
+    for (const profile of [focused, balanced, digital_heavy]) {
+      const magazineReduction = profile.magazines * 0.3;
+      profile.magazines *= 0.7;
+      profile.whatsapp += magazineReduction * 0.6;
+      profile.digital += magazineReduction * 0.4;
+    }
+  }
+
+  return { focused, balanced, digital_heavy };
+}
 
 export const BudgetAudienceStep = ({
   budget,
