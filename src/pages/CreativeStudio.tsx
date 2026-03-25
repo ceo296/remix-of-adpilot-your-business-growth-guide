@@ -292,27 +292,30 @@ const CreativeStudio = () => {
   const handleProductPickerComplete = (selectedMediaTypes: MediaType[], scope: ProductScope) => {
     setMediaTypes(selectedMediaTypes);
     
+    const isAll = selectedMediaTypes.includes('all');
+    const isOnlyRadio = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'radio';
+    const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(selectedMediaTypes[0]);
+    const isVisualMedia = selectedMediaTypes.some(t => ['ad', 'banner'].includes(t));
+    
     if (scope === 'copy-only') {
+      // Has visual, needs copy
       setMode('manual');
       setAssetChoice('has-visual');
     } else if (scope === 'visual-only') {
+      // Has copy, needs visual
       setMode('manual');
       setAssetChoice('has-copy');
-    } else if (scope === 'text-have-script') {
-      // Radio with existing script - go to radio step with script
-      setMode('manual');
+    } else if (isAll) {
+      // 360° campaign → autopilot
+      setMode('autopilot');
+      setAssetChoice(null);
+    } else if (isVisualMedia && scope === 'full') {
+      // Ad/Banner full → autopilot
+      setMode('autopilot');
       setAssetChoice(null);
     } else {
-      // full or text-full
-      const isOnlyRadio = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'radio';
-      const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(selectedMediaTypes[0]);
-      const isAll = selectedMediaTypes.includes('all');
-      
-      if (isOnlyRadio || isTextOnlyMedia || isAll) {
-        setMode('autopilot');
-      } else {
-        setMode('autopilot');
-      }
+      // Radio, Article, Email, WhatsApp, or text-have-script → manual wizard (brief first)
+      setMode('manual');
       setAssetChoice(null);
     }
   };
