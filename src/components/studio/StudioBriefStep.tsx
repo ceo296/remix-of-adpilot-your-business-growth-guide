@@ -349,7 +349,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
     } catch {
       toast.error('לא הצלחנו לגשת למיקרופון');
     }
-  }, []);
+  }, [value]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
