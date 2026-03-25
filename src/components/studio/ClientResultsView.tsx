@@ -5,7 +5,6 @@ import { ComponentFeedbackPicker } from '@/components/studio/ComponentFeedbackPi
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
 interface GeneratedImage {
