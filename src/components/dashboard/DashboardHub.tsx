@@ -540,7 +540,8 @@ const DashboardHub = () => {
     const STATUS_LABELS: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline'; color: string }> = {
       none: { label: 'אין קמפיין', variant: 'secondary', color: 'text-muted-foreground' },
       draft: { label: 'טיוטה', variant: 'secondary', color: 'text-muted-foreground' },
-      pending_approval: { label: 'ממתין לאישור', variant: 'outline', color: 'text-amber-600' },
+      pending_review: { label: 'בבדיקת צוות', variant: 'outline', color: 'text-amber-600' },
+      pending_approval: { label: 'ממתין לאישורך', variant: 'outline', color: 'text-primary' },
       active: { label: 'באוויר', variant: 'default', color: 'text-green-600' },
     };
 
