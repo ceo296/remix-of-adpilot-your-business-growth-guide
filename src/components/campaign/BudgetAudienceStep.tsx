@@ -357,35 +357,44 @@ export const BudgetAudienceStep = ({
       allowedCategories = Array.from(cats);
     }
 
+    // Calculate campaign duration in weeks
+    let campaignWeeks = 4; // default 1 month
+    if (startDate && endDate) {
+      const diffMs = endDate.getTime() - startDate.getTime();
+      campaignWeeks = Math.max(1, Math.round(diffMs / (7 * 24 * 60 * 60 * 1000)));
+    }
+
     const lowerBudget = Math.round(budget * 0.85);
     const exactBudget = budget;
-    const higherBudget = Math.round(budget * 1.15);
+    const higherBudget = Math.round(budget * 1.2);
 
-    const economyItems = buildPackageFromMedia('economy', lowerBudget, filtered, allowedCategories);
-    const standardItems = buildPackageFromMedia('standard', exactBudget, filtered, allowedCategories);
-    const premiumItems = buildPackageFromMedia('premium', higherBudget, filtered, allowedCategories);
+    const essentialItems = buildPackageFromMedia('economy', lowerBudget, filtered, allowedCategories, campaignWeeks);
+    const standardItems = buildPackageFromMedia('standard', exactBudget, filtered, allowedCategories, campaignWeeks);
+    const premiumItems = buildPackageFromMedia('premium', higherBudget, filtered, allowedCategories, campaignWeeks);
+
+    const calcTotal = (items: PackageItem[]) => items.reduce((sum, item) => sum + item.price * item.count, 0);
 
     const builtPackages: MediaPackage[] = [
       {
-        id: 'economy',
-        name: 'חבילה חסכונית',
-        description: 'טווח תקציב נמוך יותר לתחילת קמפיין מדויקת',
-        totalPrice: economyItems.reduce((sum, item) => sum + item.price, 0),
-        items: economyItems,
+        id: 'essential',
+        name: 'חבילה ממוקדת',
+        description: 'פחות ערוצים, יותר דיוק — מתאימה להתחלה חכמה',
+        totalPrice: calcTotal(essentialItems),
+        items: essentialItems,
       },
       {
         id: 'standard',
-        name: 'חבילה מדויקת',
-        description: 'מותאמת בדיוק לתקציב שהוגדר',
-        totalPrice: standardItems.reduce((sum, item) => sum + item.price, 0),
+        name: 'חבילה מאוזנת',
+        description: 'פריסה רחבה ומותאמת לתקציב שהגדרת',
+        totalPrice: calcTotal(standardItems),
         items: standardItems,
         recommended: true,
       },
       {
         id: 'premium',
-        name: 'חבילה מורחבת',
-        description: 'מעט רחבה יותר לחשיפה חזקה יותר',
-        totalPrice: premiumItems.reduce((sum, item) => sum + item.price, 0),
+        name: 'חבילה מוגברת',
+        description: 'חשיפה מקסימלית עם יותר סבבים וערוצים',
+        totalPrice: calcTotal(premiumItems),
         items: premiumItems,
       },
     ].filter((pkg) => pkg.items.length > 0);
