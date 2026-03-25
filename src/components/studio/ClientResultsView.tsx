@@ -148,45 +148,49 @@ export const ClientResultsView = ({
         })}
       </div>
 
-      {/* Bottom Action Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-4 border-t border-border/50">
-        <Button onClick={handleDownloadApproved} className="gap-2 min-w-[180px]" variant="default" 
-          disabled={visibleImages.length === 0}>
-          <Download className="h-4 w-4" />
-          {approvedIds.size > 0 ? `הורד ${approvedIds.size} סקיצות` : 'הורד הכל'}
-        </Button>
-        <Button onClick={handleSendToMedia} className="gap-2 min-w-[180px]" variant="outline">
-          <Send className="h-4 w-4" />
-          שלח לדפוס / מדיה
-        </Button>
-        <Button onClick={onStartOver} variant="ghost" className="text-muted-foreground text-sm">
-          התחל מחדש
-        </Button>
-      </div>
+      {/* Bottom Action Bar — Two clear choices */}
+      {!showFixMode ? (
+        <div className="flex flex-col gap-3 items-center pt-6 max-w-md mx-auto">
+          {/* Primary CTA */}
+          <Button 
+            onClick={handleSendToMedia} 
+            variant="gradient" 
+            size="xl" 
+            className="w-full gap-2.5 text-lg"
+          >
+            <Heart className="h-5 w-5" />
+            אהבתי! בואו נמשיך
+            <ChevronRight className="h-5 w-5 mr-auto" />
+          </Button>
 
-      {/* Feedback Dialog */}
-      <Dialog open={!!feedbackImageId} onOpenChange={() => setFeedbackImageId(null)}>
-        <DialogContent className="max-w-md" dir="rtl">
-          <h3 className="text-lg font-semibold mb-3">מה לתקן? ✏️</h3>
-          {feedbackImageId && (
-            <img src={visibleImages.find(i => i.id === feedbackImageId)?.url} 
-              alt="סקיצה לתיקון" className="w-full max-h-48 object-contain rounded-lg mb-3 bg-muted/30" />
-          )}
-          <Textarea 
-            value={feedbackText} 
-            onChange={e => setFeedbackText(e.target.value)} 
-            placeholder="תארו מה תרצו לשנות — כותרת, צבע, תמונה, טקסט..."
-            className="min-h-[100px] text-right"
+          {/* Secondary — fixes */}
+          <Button 
+            onClick={() => setShowFixMode(true)} 
+            variant="outline" 
+            size="lg" 
+            className="w-full gap-2"
+          >
+            <Wrench className="h-4 w-4" />
+            יש לי כמה תיקונים
+          </Button>
+        </div>
+      ) : (
+        <div className="pt-6 max-w-lg mx-auto space-y-4">
+          <ComponentFeedbackPicker
+            sketchLabel="הסקיצות"
+            onSubmit={(feedbacks) => {
+              const combinedFeedback = feedbacks.map(f => `[${f.component}] ${f.text}`).join('\n');
+              // Apply fix to first visible image (or all)
+              if (visibleImages.length > 0) {
+                onRequestFix(visibleImages[0].id, combinedFeedback);
+              }
+              setShowFixMode(false);
+              toast.success('הבקשה נשלחה! נעדכן אותך כשהתיקון מוכן 🔧');
+            }}
+            onCancel={() => setShowFixMode(false)}
           />
-          <div className="flex gap-2 justify-end mt-3">
-            <Button variant="ghost" onClick={() => setFeedbackImageId(null)}>ביטול</Button>
-            <Button onClick={handleSubmitFeedback} disabled={!feedbackText.trim()} className="gap-1.5">
-              <Send className="h-4 w-4" />
-              שלח בקשה
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
       {/* Zoom Dialog */}
       <Dialog open={!!zoomedImage} onOpenChange={() => setZoomedImage(null)}>
