@@ -779,14 +779,6 @@ const CreativeStudio = () => {
   };
 
   const handleNext = () => {
-    const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
-    
-    // Special navigation for radio - go to radio script step
-    if (currentStep === 1 && isOnlyRadio) {
-      setCurrentStep(8);
-      return;
-    }
-    
     // Normal progression using steps array
     if (actualStepIndex < totalSteps - 1) {
       setCurrentStep(steps[actualStepIndex + 1]);
@@ -794,21 +786,14 @@ const CreativeStudio = () => {
   };
 
   const handleBack = () => {
-    const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
-    
-    // Special back navigation for radio
-    if (currentStep === 8 && isOnlyRadio) {
-      setCurrentStep(1);
-      return;
-    }
-    
     // Normal back progression using steps array
     if (actualStepIndex > 0) {
       setCurrentStep(steps[actualStepIndex - 1]);
     } else {
-      // On first step, go back to mode selection and reset asset choice
+      // On first step, go back to product picker
       setMode(null);
       setAssetChoice(null);
+      setMediaTypes([]);
     }
   };
 
