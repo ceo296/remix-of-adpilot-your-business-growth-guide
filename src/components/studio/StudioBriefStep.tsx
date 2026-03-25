@@ -1005,10 +1005,11 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
           {value.colorSelection.mode === 'continue-past' ? (
             <button
               type="button"
-              className="w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors py-2"
+              className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 rounded-xl py-3 px-4 transition-all hover:bg-primary/5"
               onClick={() => setColorMode('brand')}
             >
-              🎨 אני רוצה לשנות את הקו העיצובי
+              <Palette className="w-4 h-4" />
+              אני רוצה לשנות את הקו העיצובי
             </button>
           ) : (
             <Card className="overflow-hidden animate-fade-in">
