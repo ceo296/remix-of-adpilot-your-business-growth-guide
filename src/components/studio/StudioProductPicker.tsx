@@ -15,7 +15,8 @@ interface StudioProductPickerProps {
   detectedIndustry?: string | null;
 }
 
-const PRODUCTS = [
+// Primary products - most used, shown prominently
+const PRIMARY_PRODUCTS = [
   { 
     id: 'ad' as MediaType, 
     label: 'מודעה', 
@@ -23,15 +24,28 @@ const PRODUCTS = [
     icon: Newspaper,
     gradient: 'from-blue-500 to-cyan-500',
     needsScope: true,
+    hero: true,
   },
   { 
-    id: 'banner' as MediaType, 
-    label: 'באנרים', 
-    description: 'אתרים ופלטפורמות דיגיטליות',
-    icon: Monitor,
-    gradient: 'from-emerald-500 to-teal-500',
-    needsScope: true,
+    id: 'whatsapp' as MediaType, 
+    label: 'וואטסאפ', 
+    description: 'הודעה שיווקית לוואטסאפ',
+    icon: MessageCircle,
+    gradient: 'from-green-500 to-emerald-600',
+    needsScope: false,
   },
+  { 
+    id: 'email' as MediaType, 
+    label: 'מייל שיווקי', 
+    description: 'דיוור אלקטרוני מעוצב',
+    icon: Mail,
+    gradient: 'from-orange-500 to-amber-500',
+    needsScope: false,
+  },
+];
+
+// Secondary products - less common
+const SECONDARY_PRODUCTS = [
   { 
     id: 'radio' as MediaType, 
     label: 'תשדיר רדיו', 
@@ -43,38 +57,33 @@ const PRODUCTS = [
   },
   { 
     id: 'article' as MediaType, 
-    label: 'כתבה פרסומית', 
+    label: 'כתבה', 
     description: 'כתבת תוכן שיווקית',
     icon: FileText,
     gradient: 'from-pink-500 to-rose-500',
     needsScope: false,
   },
   { 
-    id: 'email' as MediaType, 
-    label: 'מייל שיווקי', 
-    description: 'דיוור אלקטרוני מעוצב',
-    icon: Mail,
-    gradient: 'from-orange-500 to-amber-500',
-    needsScope: false,
-  },
-  { 
-    id: 'whatsapp' as MediaType, 
-    label: 'וואטסאפ', 
-    description: 'הודעה שיווקית לוואטסאפ',
-    icon: MessageCircle,
-    gradient: 'from-green-500 to-emerald-600',
-    needsScope: false,
-  },
-  { 
-    id: 'all' as MediaType, 
-    label: 'קמפיין 360°', 
-    description: 'הכל ביחד — מודעה, באנר, רדיו, כתבה, מייל ווואטסאפ',
-    icon: Layers,
-    gradient: 'from-primary to-red-500',
-    needsScope: false,
-    recommended: true,
+    id: 'banner' as MediaType, 
+    label: 'באנרים', 
+    description: 'אתרים ודיגיטל',
+    icon: Monitor,
+    gradient: 'from-emerald-500 to-teal-500',
+    needsScope: true,
   },
 ];
+
+const CAMPAIGN_360 = { 
+  id: 'all' as MediaType, 
+  label: 'קמפיין 360°', 
+  description: 'הכל ביחד — מודעה, באנר, רדיו, כתבה, מייל ווואטסאפ',
+  icon: Layers,
+  gradient: 'from-primary to-red-500',
+  needsScope: false,
+  recommended: true,
+};
+
+const ALL_PRODUCTS = [...PRIMARY_PRODUCTS, ...SECONDARY_PRODUCTS, CAMPAIGN_360];
 
 const SCOPE_OPTIONS = [
   {
@@ -145,7 +154,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
   const [selectedProduct, setSelectedProduct] = useState<MediaType | null>(null);
   const [selectedScope, setSelectedScope] = useState<ProductScope | null>(null);
 
-  const product = PRODUCTS.find(p => p.id === selectedProduct);
+  const product = ALL_PRODUCTS.find(p => p.id === selectedProduct) as any;
   const showScopeOptions = product?.needsScope;
   const showRadioScope = product?.hasRadioScope;
   const showFollowUp = showScopeOptions || showRadioScope;
@@ -155,7 +164,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
     setSelectedProduct(id);
     setSelectedScope(null);
     
-    const prod = PRODUCTS.find(p => p.id === id);
+    const prod = ALL_PRODUCTS.find(p => p.id === id) as any;
     // For products that don't need scope, auto-complete
     if (!prod?.needsScope && !prod?.hasRadioScope) {
       onComplete([id], 'full');
@@ -180,7 +189,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
   // Phase 2: Scope selection
   if (showFollowUp && selectedProduct) {
     const scopeOptions = showRadioScope ? RADIO_SCOPE_OPTIONS : SCOPE_OPTIONS;
-    const productInfo = PRODUCTS.find(p => p.id === selectedProduct)!;
+    const productInfo = ALL_PRODUCTS.find(p => p.id === selectedProduct)!;
 
     return (
       <div className="w-full max-w-2xl mx-auto py-8 animate-fade-in">
@@ -268,7 +277,60 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
     );
   }
 
-  // Phase 1: Product selection
+  // Phase 1: Product selection — hierarchical layout
+  const renderProductButton = (product: any, size: 'lg' | 'md' | 'sm' = 'md') => {
+    const sizeClasses = {
+      lg: 'p-6 rounded-2xl',
+      md: 'p-4 rounded-xl',
+      sm: 'p-3 rounded-xl',
+    };
+    const iconSizes = {
+      lg: 'w-16 h-16 rounded-2xl',
+      md: 'w-12 h-12 rounded-xl',
+      sm: 'w-10 h-10 rounded-lg',
+    };
+    const iconInner = {
+      lg: 'w-8 h-8',
+      md: 'w-6 h-6',
+      sm: 'w-5 h-5',
+    };
+
+    return (
+      <button
+        key={product.id}
+        onClick={() => handleProductSelect(product.id)}
+        className={cn(
+          "relative flex flex-col items-center gap-2 border-2 border-border bg-card",
+          "transition-all duration-300 hover:shadow-lg hover:border-primary/50 hover:scale-[1.02]",
+          "group text-center",
+          sizeClasses[size]
+        )}
+      >
+        <div className={cn(
+          "bg-gradient-to-br flex items-center justify-center shadow-md transition-transform group-hover:scale-110",
+          iconSizes[size],
+          product.gradient
+        )}>
+          <product.icon className={cn("text-white", iconInner[size])} />
+        </div>
+        <div>
+          <h3 className={cn(
+            "font-bold mb-0.5",
+            size === 'lg' ? 'text-lg' : size === 'md' ? 'text-base' : 'text-sm'
+          )}>{product.label}</h3>
+          {size !== 'sm' && (
+            <p className="text-xs text-muted-foreground leading-snug">{product.description}</p>
+          )}
+        </div>
+        {product.recommended && (
+          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px]">
+            מומלץ
+          </Badge>
+        )}
+      </button>
+    );
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto py-8">
       <div className="text-center mb-8">
@@ -276,38 +338,29 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
           <Sparkles className="w-8 h-8 text-primary" />
         </div>
         <h2 className="text-2xl font-bold mb-2">מה תרצה ליצור?</h2>
-        <p className="text-muted-foreground">בחר את סוג הקמפיין שאתה צריך</p>
+        <p className="text-muted-foreground">בחר את סוג החומר הפרסומי</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {PRODUCTS.map((product) => (
-          <button
-            key={product.id}
-            onClick={() => handleProductSelect(product.id)}
-            className={cn(
-              "relative flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-border bg-card",
-              "transition-all duration-300 hover:shadow-lg hover:border-primary/50 hover:scale-[1.02]",
-              "group text-center",
-              product.id === 'all' && 'col-span-2'
-            )}
-          >
-            <div className={cn(
-              "w-14 h-14 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md transition-transform group-hover:scale-110",
-              product.gradient
-            )}>
-              <product.icon className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold mb-0.5">{product.label}</h3>
-              <p className="text-xs text-muted-foreground leading-snug">{product.description}</p>
-            </div>
-            {product.recommended && (
-              <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px]">
-                מומלץ
-              </Badge>
-            )}
-          </button>
-        ))}
+      {/* Hero: Ad in center, large */}
+      <div className="flex justify-center mb-4">
+        <div className="w-full max-w-xs">
+          {renderProductButton(PRIMARY_PRODUCTS[0], 'lg')}
+        </div>
+      </div>
+
+      {/* Primary row: WhatsApp + Email */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        {PRIMARY_PRODUCTS.slice(1).map(p => renderProductButton(p, 'md'))}
+      </div>
+
+      {/* Secondary row: Radio, Article, Banners */}
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        {SECONDARY_PRODUCTS.map(p => renderProductButton(p, 'sm'))}
+      </div>
+
+      {/* 360 Campaign - full width */}
+      <div className="mt-2">
+        {renderProductButton(CAMPAIGN_360, 'lg')}
       </div>
     </div>
   );
