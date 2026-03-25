@@ -123,6 +123,13 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
           const data = await directResponse.json();
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
           if (text) {
+            // Single-shot: return JSON response
+            if (isSingleShot) {
+              return new Response(JSON.stringify({ response: text }), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              });
+            }
+            // Chat: return SSE
             const sseData = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
             return new Response(sseData, {
               headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
