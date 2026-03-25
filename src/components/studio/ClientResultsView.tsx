@@ -72,13 +72,8 @@ export const ClientResultsView = ({
     toast.success('הבקשה נשלחה! נעדכן אותך כשהתיקון מוכן 🔧');
   };
 
-  const handleDownloadApproved = () => {
-    const ids = approvedIds.size > 0 ? Array.from(approvedIds) : visibleImages.map(img => img.id);
-    onApproveAndDownload(ids);
-  };
-
-  const handleSendToMedia = () => {
-    const ids = approvedIds.size > 0 ? Array.from(approvedIds) : visibleImages.map(img => img.id);
+  const handleApproveAll = () => {
+    const ids = visibleImages.map(img => img.id);
     onSendToMedia(ids);
   };
 
