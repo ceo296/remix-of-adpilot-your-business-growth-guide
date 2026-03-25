@@ -83,7 +83,7 @@ const DashboardHub = () => {
         .from('campaigns')
         .select('id, name, status, budget, start_date, end_date, selected_media')
         .eq('user_id', user.id)
-        .in('status', ['active', 'pending_approval', 'draft'])
+        .in('status', ['active', 'pending_approval', 'pending_review', 'draft'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
