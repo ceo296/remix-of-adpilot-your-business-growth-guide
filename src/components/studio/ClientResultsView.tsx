@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Download, MessageSquare, Send, CheckCircle2, Sparkles, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, ZoomIn, ChevronRight, Wrench, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ComponentFeedbackPicker } from '@/components/studio/ComponentFeedbackPicker';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
 interface GeneratedImage {
@@ -49,6 +49,7 @@ export const ClientResultsView = ({
   const [feedbackText, setFeedbackText] = useState('');
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [approvedIds, setApprovedIds] = useState<Set<string>>(new Set());
+  const [showFixMode, setShowFixMode] = useState(false);
 
   // Filter out rejected images — client doesn't see them
   const visibleImages = images.filter(img => img.status !== 'rejected');
@@ -70,13 +71,8 @@ export const ClientResultsView = ({
     toast.success('הבקשה נשלחה! נעדכן אותך כשהתיקון מוכן 🔧');
   };
 
-  const handleDownloadApproved = () => {
-    const ids = approvedIds.size > 0 ? Array.from(approvedIds) : visibleImages.map(img => img.id);
-    onApproveAndDownload(ids);
-  };
-
-  const handleSendToMedia = () => {
-    const ids = approvedIds.size > 0 ? Array.from(approvedIds) : visibleImages.map(img => img.id);
+  const handleApproveAll = () => {
+    const ids = visibleImages.map(img => img.id);
     onSendToMedia(ids);
   };
 
@@ -105,8 +101,8 @@ export const ClientResultsView = ({
         {visibleImages.map((image, idx) => {
           const isApproved = approvedIds.has(image.id);
           return (
-            <Card key={image.id} className={`overflow-hidden group relative transition-all duration-200 ${isApproved ? 'ring-2 ring-green-500 shadow-lg shadow-green-500/10' : 'hover:shadow-md'}`}>
-              {/* Image */}
+            <Card key={image.id} className="overflow-hidden group relative transition-all duration-200 hover:shadow-md">
+              {/* Image — click to zoom */}
               <div className="relative cursor-pointer" onClick={() => setZoomedImage(image.url)}>
                 <img src={image.url} alt={`סקיצה ${idx + 1}`} className="w-full object-contain bg-muted/30" loading="lazy" />
                 
@@ -119,72 +115,62 @@ export const ClientResultsView = ({
                 <Badge className="absolute top-2 right-2 bg-background/80 text-foreground backdrop-blur-sm text-xs">
                   סקיצה {idx + 1}
                 </Badge>
-
-                {/* Approved checkmark */}
-                {isApproved && (
-                  <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center animate-scale-in">
-                    <CheckCircle2 className="h-5 w-5 text-white" />
-                  </div>
-                )}
               </div>
 
               {/* Action buttons */}
-              <div className="p-3 flex gap-2">
-                <Button size="sm" variant={isApproved ? "default" : "outline"} className="flex-1 gap-1.5 text-xs"
-                  onClick={() => handleApprove(image.id)}>
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {isApproved ? 'מאושר ✓' : 'אשר'}
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1 gap-1.5 text-xs"
-                  onClick={() => { setFeedbackImageId(image.id); setFeedbackText(''); }}>
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  בקש תיקון
-                </Button>
+              <div className="p-3 flex justify-center">
+                <Badge variant="secondary" className="text-xs">
+                  סקיצה {idx + 1}
+                </Badge>
               </div>
             </Card>
           );
         })}
       </div>
 
-      {/* Bottom Action Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-4 border-t border-border/50">
-        <Button onClick={handleDownloadApproved} className="gap-2 min-w-[180px]" variant="default" 
-          disabled={visibleImages.length === 0}>
-          <Download className="h-4 w-4" />
-          {approvedIds.size > 0 ? `הורד ${approvedIds.size} סקיצות` : 'הורד הכל'}
-        </Button>
-        <Button onClick={handleSendToMedia} className="gap-2 min-w-[180px]" variant="outline">
-          <Send className="h-4 w-4" />
-          שלח לדפוס / מדיה
-        </Button>
-        <Button onClick={onStartOver} variant="ghost" className="text-muted-foreground text-sm">
-          התחל מחדש
-        </Button>
-      </div>
+      {/* Bottom Action Bar — Two clear choices */}
+      {!showFixMode ? (
+        <div className="flex flex-col gap-3 items-center pt-6 max-w-md mx-auto">
+          {/* Primary CTA */}
+          <Button 
+            onClick={handleApproveAll} 
+            variant="gradient" 
+            size="xl" 
+            className="w-full gap-2.5 text-lg"
+          >
+            <Heart className="h-5 w-5" />
+            אהבתי! בואו נמשיך
+            <ChevronRight className="h-5 w-5 mr-auto" />
+          </Button>
 
-      {/* Feedback Dialog */}
-      <Dialog open={!!feedbackImageId} onOpenChange={() => setFeedbackImageId(null)}>
-        <DialogContent className="max-w-md" dir="rtl">
-          <h3 className="text-lg font-semibold mb-3">מה לתקן? ✏️</h3>
-          {feedbackImageId && (
-            <img src={visibleImages.find(i => i.id === feedbackImageId)?.url} 
-              alt="סקיצה לתיקון" className="w-full max-h-48 object-contain rounded-lg mb-3 bg-muted/30" />
-          )}
-          <Textarea 
-            value={feedbackText} 
-            onChange={e => setFeedbackText(e.target.value)} 
-            placeholder="תארו מה תרצו לשנות — כותרת, צבע, תמונה, טקסט..."
-            className="min-h-[100px] text-right"
+          {/* Secondary — fixes */}
+          <Button 
+            onClick={() => setShowFixMode(true)} 
+            variant="outline" 
+            size="lg" 
+            className="w-full gap-2"
+          >
+            <Wrench className="h-4 w-4" />
+            יש לי כמה תיקונים
+          </Button>
+        </div>
+      ) : (
+        <div className="pt-6 max-w-lg mx-auto space-y-4">
+          <ComponentFeedbackPicker
+            sketchLabel="הסקיצות"
+            onSubmit={(feedbacks) => {
+              const combinedFeedback = feedbacks.map(f => `[${f.component}] ${f.text}`).join('\n');
+              // Apply fix to first visible image (or all)
+              if (visibleImages.length > 0) {
+                onRequestFix(visibleImages[0].id, combinedFeedback);
+              }
+              setShowFixMode(false);
+              toast.success('הבקשה נשלחה! נעדכן אותך כשהתיקון מוכן 🔧');
+            }}
+            onCancel={() => setShowFixMode(false)}
           />
-          <div className="flex gap-2 justify-end mt-3">
-            <Button variant="ghost" onClick={() => setFeedbackImageId(null)}>ביטול</Button>
-            <Button onClick={handleSubmitFeedback} disabled={!feedbackText.trim()} className="gap-1.5">
-              <Send className="h-4 w-4" />
-              שלח בקשה
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
       {/* Zoom Dialog */}
       <Dialog open={!!zoomedImage} onOpenChange={() => setZoomedImage(null)}>
