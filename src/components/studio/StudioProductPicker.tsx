@@ -154,7 +154,7 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
   const [selectedProduct, setSelectedProduct] = useState<MediaType | null>(null);
   const [selectedScope, setSelectedScope] = useState<ProductScope | null>(null);
 
-  const product = ALL_PRODUCTS.find(p => p.id === selectedProduct);
+  const product = ALL_PRODUCTS.find(p => p.id === selectedProduct) as any;
   const showScopeOptions = product?.needsScope;
   const showRadioScope = product?.hasRadioScope;
   const showFollowUp = showScopeOptions || showRadioScope;
