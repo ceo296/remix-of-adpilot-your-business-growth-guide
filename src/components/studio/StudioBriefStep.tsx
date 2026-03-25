@@ -192,7 +192,9 @@ export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, br
   const [isTranscribing, setIsTranscribing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const [audioLevel, setAudioLevel] = useState(0);
   const updateBrief = (updates: Partial<CampaignBrief>) => {
     onChange({ ...value, ...updates });
   };
@@ -275,16 +277,35 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
+      // Set up audio analyser for level visualization
+      const audioCtx = new AudioContext();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const updateLevel = () => {
+        analyser.getByteFrequencyData(dataArray);
+        const avg = dataArray.reduce((sum, v) => sum + v, 0) / dataArray.length;
+        setAudioLevel(Math.min(avg / 128, 1)); // normalize 0-1
+        animFrameRef.current = requestAnimationFrame(updateLevel);
+      };
+      updateLevel();
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach(t => t.stop());
+        audioCtx.close();
+        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+        setAudioLevel(0);
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setIsTranscribing(true);
         try {
-          // Convert to base64 and send to AI for transcription
           const reader = new FileReader();
           reader.onload = async () => {
             const base64 = (reader.result as string).split(',')[1];
@@ -774,6 +795,21 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
                 messageQuality.level === 'weak' && 'border-orange-400/60 focus:border-orange-400',
               )}
             />
+            {/* Audio level indicator */}
+            {isRecording && (
+              <div className="absolute bottom-3 left-14 flex items-end gap-[3px] h-8">
+                {[0.3, 0.5, 0.7, 0.9, 1.0].map((threshold, i) => (
+                  <div
+                    key={i}
+                    className="w-[3px] rounded-full bg-destructive transition-all duration-75"
+                    style={{
+                      height: `${Math.max(4, audioLevel >= threshold ? (audioLevel * 28) : 4 + i * 2)}px`,
+                      opacity: audioLevel >= threshold * 0.5 ? 1 : 0.3,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
             <button
               type="button"
               onClick={isRecording ? stopRecording : startRecording}
