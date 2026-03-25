@@ -329,6 +329,83 @@ export const BudgetAudienceStep = ({
     setPackageConfirmed(false);
   };
 
+  const handleConfirmAndSave = async () => {
+    if (!selectedPackage) return;
+
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('יש להתחבר כדי לשמור את הבחירה');
+        return;
+      }
+
+      // Serialize allocations without React icons for DB storage
+      const allocationsForDb = selectedPackage.allocations.map((a: CategoryAllocation) => ({
+        categoryId: a.categoryId,
+        categoryName: a.categoryName,
+        categoryNameHe: a.categoryNameHe,
+        amount: a.amount,
+        percentage: a.percentage,
+      }));
+
+      const campaignData = {
+        user_id: user.id,
+        client_profile_id: clientProfileId || user.id,
+        name: campaignName || `קמפיין ${new Date().toLocaleDateString('he-IL')}`,
+        budget,
+        target_stream: targetStream,
+        target_gender: targetGender,
+        target_city: targetCity,
+        start_date: startDate?.toISOString().split('T')[0] || null,
+        end_date: endDate?.toISOString().split('T')[0] || null,
+        status: 'pending_review',
+        selected_media: {
+          packageId: selectedPackage.id,
+          packageName: selectedPackage.name,
+          totalPrice: selectedPackage.totalPrice,
+          allocations: allocationsForDb,
+        },
+      };
+
+      const { data: campaign, error } = await supabase
+        .from('campaigns')
+        .insert(campaignData)
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      setSavedCampaignId(campaign.id);
+      setPackageConfirmed(true);
+      toast.success('הבחירה נשמרה! הצוות שלנו יטפל בזה בהקדם');
+
+      // Notify admin via edge function
+      try {
+        await supabase.functions.invoke('notify-admin-package', {
+          body: {
+            campaignId: campaign.id,
+            userId: user.id,
+            packageName: selectedPackage.name,
+            totalPrice: selectedPackage.totalPrice,
+            allocations: allocationsForDb,
+            targetStream,
+            targetGender,
+            targetCity,
+            budget,
+          },
+        });
+      } catch (notifyErr) {
+        console.warn('Admin notification failed (non-blocking):', notifyErr);
+      }
+    } catch (err) {
+      console.error('Failed to save package selection:', err);
+      toast.error('שגיאה בשמירת הבחירה. נסה שוב.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const showPackages = budget > 0 && targetStream && targetGender;
 
   return (
