@@ -208,6 +208,10 @@ export const BudgetAudienceStep = ({
   const [loadingMedia, setLoadingMedia] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedCampaignId, setSavedCampaignId] = useState<string | null>(null);
+  const [mediaIntake, setMediaIntake] = useState<MediaIntakeData>(initialMediaIntake);
+  const [intakeCompleted, setIntakeCompleted] = useState(false);
+
+  const intakeReady = mediaIntake.campaignGoal && mediaIntake.brandTone && mediaIntake.channelPreference;
 
   // Fetch categories and product stats from database
   useEffect(() => {
