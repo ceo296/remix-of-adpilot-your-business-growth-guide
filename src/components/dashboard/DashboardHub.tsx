@@ -146,22 +146,37 @@ const DashboardHub = () => {
         <p className="text-muted-foreground">{getWhatWouldYouLike(honorificPreference)}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto px-4">
         {/* Create Campaign with AI */}
         <Card 
           className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-violet-400 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100"
           onClick={() => handleNewCampaign('create')}
         >
-          <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Sparkles className="w-10 h-10 text-white" />
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 flex items-center justify-center mb-3">
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-violet-800 mb-2">קמפיין פרסומי</h3>
-            <p className="text-violet-600 mb-3 text-sm">
-              יצירה עם AI
-            </p>
+            <h3 className="text-lg font-bold text-violet-800 mb-1">קמפיין פרסומי</h3>
+            <p className="text-violet-600 text-sm mb-1">יצירה עם AI</p>
             <p className="text-xs text-muted-foreground">
-              נבנה יחד את המסר הפרסומי, נבחר סגנון ונייצר קריאייטיבים
+              מודעות, רדיו, באנרים ועוד
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Media Purchase */}
+        <Card 
+          className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100"
+          onClick={() => handleNewCampaign('media-only')}
+        >
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 flex items-center justify-center mb-3">
+              <Wallet className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-lg font-bold text-blue-800 mb-1">רכישת מדיה</h3>
+            <p className="text-blue-600 text-sm mb-1">קנייה חכמה</p>
+            <p className="text-xs text-muted-foreground">
+              קניית שטחי פרסום בעיתונות ובדיגיטל
             </p>
           </CardContent>
         </Card>
@@ -171,16 +186,14 @@ const DashboardHub = () => {
           className="cursor-pointer transition-all duration-300 hover:shadow-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100"
           onClick={() => handleNewCampaign('internal')}
         >
-          <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center mb-4">
-              <Building2 className="w-10 h-10 text-white" />
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center mb-3">
+              <Building2 className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-emerald-800 mb-2">חומרים פנימיים</h3>
-            <p className="text-emerald-600 mb-3 text-sm">
-              לשימוש עסקי
-            </p>
+            <h3 className="text-lg font-bold text-emerald-800 mb-1">חומרים פנימיים</h3>
+            <p className="text-emerald-600 text-sm mb-1">לשימוש עסקי</p>
             <p className="text-xs text-muted-foreground">
-              מצגות, כרטיסי ביקור, פרוספקטים וניירת
+              כרטיסי ביקור, מצגות וניירת
             </p>
           </CardContent>
         </Card>
