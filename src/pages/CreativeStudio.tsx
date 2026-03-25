@@ -2705,13 +2705,13 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             ) : mode === 'autopilot' ? (
               /* Autopilot Mode */
               <div>
-                {/* Back to mode selection */}
+                {/* Back to product picker */}
                 <button
-                  onClick={() => setMode(null)}
+                  onClick={() => { setMode(null); setMediaTypes([]); setAssetChoice(null); }}
                   className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
                 >
                   <ChevronRight className="h-4 w-4" />
-                  <span>חזרה לבחירת מסלול</span>
+                  <span>חזרה לבחירת מוצר</span>
                 </button>
                 {/* Engine Version Selector */}
                 <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-muted/50 border border-border" dir="rtl">
