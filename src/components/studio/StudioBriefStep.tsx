@@ -325,10 +325,8 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
           if (!error && data?.response) {
             const transcribed = data.response.trim();
             if (transcribed && transcribed !== 'לא זוהה דיבור') {
-              // Use ref to get latest offer value to avoid stale closure
-              const offerField = document.getElementById('campaign-offer') as HTMLTextAreaElement | null;
-              const currentOffer = offerField?.value?.trim() || '';
-              updateBrief({ offer: currentOffer ? `${currentOffer} ${transcribed}` : transcribed });
+              const current = value.offer.trim();
+              updateBrief({ offer: current ? `${current} ${transcribed}` : transcribed });
               toast.success('ההקלטה תומללה בהצלחה! 🎙️');
             } else {
               toast.error('לא זוהה דיבור בהקלטה');
@@ -351,7 +349,7 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
     } catch {
       toast.error('לא הצלחנו לגשת למיקרופון');
     }
-  }, []);
+  }, [value]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
