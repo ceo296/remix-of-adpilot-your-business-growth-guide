@@ -325,10 +325,10 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
           if (!error && data?.response) {
             const transcribed = data.response.trim();
             if (transcribed && transcribed !== 'לא זוהה דיבור') {
-              onChange(prev => ({
-                ...prev,
-                offer: prev.offer.trim() ? `${prev.offer.trim()} ${transcribed}` : transcribed,
-              }));
+              // Use ref to get latest offer value to avoid stale closure
+              const offerField = document.getElementById('campaign-offer') as HTMLTextAreaElement | null;
+              const currentOffer = offerField?.value?.trim() || '';
+              updateBrief({ offer: currentOffer ? `${currentOffer} ${transcribed}` : transcribed });
               toast.success('ההקלטה תומללה בהצלחה! 🎙️');
             } else {
               toast.error('לא זוהה דיבור בהקלטה');
