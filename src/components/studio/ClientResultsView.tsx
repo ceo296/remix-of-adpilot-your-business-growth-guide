@@ -51,6 +51,9 @@ export const ClientResultsView = ({
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [approvedIds, setApprovedIds] = useState<Set<string>>(new Set());
   const [showFixMode, setShowFixMode] = useState(false);
+  const [fixInProgress, setFixInProgress] = useState(false);
+  const [fixProgress, setFixProgress] = useState(0);
+  const [fixStepLabel, setFixStepLabel] = useState('');
 
   // Filter out rejected images — client doesn't see them
   const visibleImages = images.filter(img => img.status !== 'rejected');
