@@ -91,7 +91,7 @@ const FastTrackWizard = () => {
       youtube: false, facebook: false, instagram: false, logoOnly: false,
       customText: '', openingHours: false, selectedBranches: [],
     },
-    colorSelection: { mode: 'brand', primaryColor: null, secondaryColor: null, backgroundColor: null },
+    colorSelection: { mode: 'continue-past', primaryColor: null, secondaryColor: null, backgroundColor: null },
     adGoal: null,
     showPriceOrBenefit: null,
     priceOrBenefit: '',

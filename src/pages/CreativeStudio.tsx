@@ -366,7 +366,7 @@ const CreativeStudio = () => {
       selectedBranches: [],
     },
     colorSelection: {
-      mode: 'brand',
+      mode: 'continue-past',
       primaryColor: null,
       secondaryColor: null,
       backgroundColor: null,
@@ -1075,7 +1075,7 @@ const CreativeStudio = () => {
         selectedBranches: [],
       },
       colorSelection: {
-        mode: 'brand',
+        mode: 'continue-past',
         primaryColor: null,
         secondaryColor: null,
         backgroundColor: null,
