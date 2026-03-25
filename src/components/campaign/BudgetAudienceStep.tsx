@@ -635,9 +635,9 @@ export const BudgetAudienceStep = ({
                               {item.categoryName}
                             </Badge>
                           </div>
-                          <div className="text-left">
-                            {item.count > 1 && <div className="text-[10px] text-muted-foreground">×{item.count}</div>}
-                            <div className="font-medium text-primary">{formatPrice(item.price)}</div>
+                          <div className="text-left flex items-center gap-1.5">
+                            {item.count > 1 && <span className="text-[10px] text-muted-foreground">×{item.count}</span>}
+                            <span className="font-medium text-primary">{formatPrice(item.price * item.count)}</span>
                           </div>
                         </div>
                       ))}
