@@ -23,13 +23,17 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, context } = await req.json();
+    const body = await req.json();
+    const { messages, message, context, skipHistory } = body;
     
     const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) {
       throw new Error('No AI API key configured');
     }
+
+    // Support both: { messages: [...] } (chat widget) and { message: "..." } (single-shot)
+    const isSingleShot = !messages && message;
 
     // System prompt focused ONLY on system navigation
     const systemPrompt = `אתה עוזר ניווט במערכת ADKOP - מערכת פרסום חכמה לקהילה החרדית.
@@ -80,9 +84,18 @@ serve(async (req) => {
 
 ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${context.currentPage || 'לא ידוע'}\nשם עסק: ${context.businessName || 'לא ידוע'}` : ''}`;
 
+    // For single-shot messages (enhance brief, transcribe, etc.), use a simpler system prompt
+    const effectiveSystemPrompt = isSingleShot 
+      ? 'אתה עוזר AI שעונה בעברית. ענה בקצרה ולעניין.'
+      : systemPrompt;
+
+    const chatMessages = isSingleShot
+      ? [{ role: 'user', content: message }]
+      : (Array.isArray(messages) ? messages : []);
+
     const allMessages = [
-      { role: "system", content: systemPrompt },
-      ...messages,
+      { role: "system", content: effectiveSystemPrompt },
+      ...chatMessages,
     ];
 
     // Try Google Gemini API first
@@ -110,6 +123,13 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
           const data = await directResponse.json();
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
           if (text) {
+            // Single-shot: return JSON response
+            if (isSingleShot) {
+              return new Response(JSON.stringify({ response: text }), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              });
+            }
+            // Chat: return SSE
             const sseData = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
             return new Response(sseData, {
               headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
@@ -137,7 +157,7 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: allMessages,
-        stream: true,
+        stream: !isSingleShot,
         max_completion_tokens: 2048,
       }),
     });
@@ -157,6 +177,15 @@ ${context ? `\nמידע נוכחי על המשתמש:\nעמוד נוכחי: ${co
       }
       return new Response(JSON.stringify({ error: "שגיאה בתקשורת עם AI" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Single-shot: parse JSON response and return
+    if (isSingleShot) {
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content || '';
+      return new Response(JSON.stringify({ response: text }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
