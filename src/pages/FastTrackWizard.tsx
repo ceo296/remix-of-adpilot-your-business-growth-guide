@@ -76,7 +76,8 @@ const FastTrackWizard = () => {
   const isMediaOnlyMode = searchParams.get('mode') === 'media-only';
   
   // Current step
-  const [currentStep, setCurrentStep] = useState<WizardStep>(isMediaOnlyMode ? 'mediaType' : 'brief');
+  const [currentStep, setCurrentStep] = useState<WizardStep>(isMediaOnlyMode ? 'mediaChoice' : 'brief');
+  const [mediaPath, setMediaPath] = useState<MediaPath>(null);
   
   // Media Type Selection (for media-only mode)
   const [selectedMediaTypes, setSelectedMediaTypes] = useState<string[]>([]);
@@ -139,7 +140,7 @@ const FastTrackWizard = () => {
   // Update step when mode changes
   useEffect(() => {
     if (isMediaOnlyMode) {
-      setCurrentStep('mediaType');
+      setCurrentStep('mediaChoice');
       setCampaignBrief(prev => ({ ...prev, title: 'רכישת מדיה' }));
     }
   }, [isMediaOnlyMode]);
@@ -190,7 +191,11 @@ const FastTrackWizard = () => {
   };
 
   const handleBackFromMediaType = () => {
-    navigate('/dashboard');
+    if (isMediaOnlyMode) {
+      setCurrentStep('mediaChoice');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   const handleBackFromMedia = () => {
