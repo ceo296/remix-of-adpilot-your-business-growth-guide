@@ -186,7 +186,8 @@ const SCOPE_CONTEXT: Record<string, { icon: React.ElementType; label: string; de
   },
 };
 
-export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors, campaignScope }: StudioBriefStepProps) => {
+export const StudioBriefStep = ({ value, onChange, businessName, contactInfo, brandColors, campaignScope, mediaTypes = [] }: StudioBriefStepProps) => {
+  const isTextOnlyMedia = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email', 'whatsapp'].includes(t));
   const campaignImageInputRef = useRef<HTMLInputElement>(null);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
