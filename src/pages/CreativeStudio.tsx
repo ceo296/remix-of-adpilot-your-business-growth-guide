@@ -256,10 +256,16 @@ function detectTopicCategory(text: string): string | null {
   return null;
 }
 
-function sanitizeVisualPrompt(prompt: string): string {
-  return (prompt || '')
+function sanitizeVisualPrompt(prompt: string, stripHolidayTerms: boolean = false): string {
+  const base = (prompt || '')
     .replace(/\[(?:Visual\s*approach|Design\s*approach)[^\]]*\]/gi, '')
     .replace(/\b(CONTACT\s*DETAILS(?:\s*DARK)?|BOTTOM-LEFT|TOP-RIGHT|BRANCH\s*LOCATIONS?|PHONE\s*NUMBERS?|LOGO\s*ZONE)\b/gi, '')
+    .replace(/\s{2,}/g, ' ');
+
+  if (!stripHolidayTerms) return base.trim();
+
+  return base
+    .replace(/(פסח|חמץ|מצה|מצות|קערת\s*סדר|סדר\s*פסח|בדיקת\s*חמץ|ביעור\s*חמץ|הכשרת\s*כלים|לולב|אתרוג|שופר|חנוכיה|מנורה|סביבון|מגילה|משלוחי\s*מנות|hamantaschen|menorah|chanukiah|dreidel|seder|matzah|shofar)/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
@@ -866,7 +872,8 @@ const CreativeStudio = () => {
         secondary: clientProfile?.secondary_color || null,
         background: clientProfile?.background_color || null,
       };
-      const sanitizedVisualPrompt = sanitizeVisualPrompt(visualPrompt);
+      const isHolidayNeutral = !selectedHoliday || selectedHoliday === 'year_round';
+      const sanitizedVisualPrompt = sanitizeVisualPrompt(visualPrompt, isHolidayNeutral);
 
       // Resolve PDF logo to PNG if needed
       const resolvedLogo = await getResolvedLogoUrl();
@@ -985,7 +992,7 @@ const CreativeStudio = () => {
                 : [`נמצאו הערות בבדיקה שחייבות תיקון: ${kosherResult.recommendation}. תקן את הבעיות האלו בדיוק תוך שמירה על שאר העיצוב.`];
               const retryData = await supabase.functions.invoke('generate-image', {
                 body: {
-                  visualPrompt,
+                  visualPrompt: sanitizedVisualPrompt || visualPrompt,
                   textPrompt: textPrompt || null,
                   style: style || 'ultra-realistic',
                   engine: engineVersion,
@@ -1311,7 +1318,8 @@ const CreativeStudio = () => {
         };
 
         const detectedTopic = detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title);
-        const sanitizedVisualPrompt = sanitizeVisualPrompt(visualPrompt);
+        const isHolidayNeutral = !selectedHoliday || selectedHoliday === 'year_round';
+        const sanitizedVisualPrompt = sanitizeVisualPrompt(visualPrompt, isHolidayNeutral);
 
         toast.info(`מתקן ${targetImages.length} סקיצה${targetImages.length > 1 ? 'ות' : ''} ממוקדות... 🎯`);
 
@@ -1642,6 +1650,7 @@ const CreativeStudio = () => {
     const enhancedVisualPrompt = campaignBrief.offer 
       ? `[Visual approach: ${visualApproach}] ${concept.idea}. המסר המרכזי: ${campaignBrief.offer}`
       : `[Visual approach: ${visualApproach}] ${concept.idea}`;
+    const cleanedConceptVisualPrompt = sanitizeVisualPrompt(enhancedVisualPrompt, !selectedHoliday || selectedHoliday === 'year_round');
     
     const enhancedTextPrompt = campaignBrief.offer && !concept.copy.includes(campaignBrief.offer)
       ? `${concept.copy} - ${campaignBrief.offer}`
@@ -1651,7 +1660,7 @@ const CreativeStudio = () => {
 
     const { data, error } = await supabase.functions.invoke('generate-image', {
       body: {
-        visualPrompt: enhancedVisualPrompt,
+        visualPrompt: cleanedConceptVisualPrompt || enhancedVisualPrompt,
         textPrompt: enhancedTextPrompt,
         style: 'modern',
         engine: engineVersion,

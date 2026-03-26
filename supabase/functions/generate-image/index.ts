@@ -391,6 +391,75 @@ function normalizePromptText(value: string): string {
   return (value || '').replace(/\s+/g, ' ').trim();
 }
 
+function summarizeBriefForPrompt(value: string, maxLen: number = 180): string {
+  const normalized = normalizePromptText(value || '');
+  if (!normalized) return '';
+
+  const firstSentence = normalized.split(/[.!?\n]/).map((s) => s.trim()).find(Boolean) || normalized;
+  if (firstSentence.length <= maxLen) return firstSentence;
+
+  const cut = firstSentence.slice(0, maxLen);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim();
+}
+
+const HOLIDAY_NEUTRAL_FORBIDDEN_TERMS = /(פסח|חמץ|מצה|מצות|קערת\s*סדר|סדר\s*פסח|בדיקת\s*חמץ|ביעור\s*חמץ|הכשרת\s*כלים|לולב|אתרוג|שופר|חנוכיה|מנורה|סביבון|מגילה|משלוחי\s*מנות|hamantaschen|menorah|chanukiah|dreidel|seder|matzah|shofar)/gi;
+
+function sanitizeNarrativeText(value: string, options: { stripHolidayTerms?: boolean } = {}): string {
+  let cleaned = normalizePromptText(value || '');
+  if (!cleaned) return '';
+
+  cleaned = cleaned
+    .replace(/\[(?:Visual\s*approach|Design\s*approach|Layout|Zone)[^\]]*\]/gi, ' ')
+    .replace(/\b(?:ZONE(?:\s*\d+)?|TOP AREA|CENTER AREA|BOTTOM AREA|CONTACT DETAILS(?:\s*DARK)?|BOTTOM-LEFT|TOP-RIGHT|BRANCH LOCATIONS?|PHONE NUMBERS?|LOGO ZONE|HEADLINE|SUBHEADLINE)\b/gi, ' ')
+    .replace(/\b(?:brief|בריף\s*מלא|client revisions|system command|lorem ipsum|placeholder)\b\s*:?/gi, ' ')
+    .replace(/[•·●◦]{2,}/g, ' ')
+    .replace(/\b[xX]{3,}\b/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  if (options.stripHolidayTerms) {
+    cleaned = cleaned.replace(HOLIDAY_NEUTRAL_FORBIDDEN_TERMS, ' ').replace(/\s{2,}/g, ' ').trim();
+  }
+
+  return cleaned;
+}
+
+function sanitizeContactField(value: string): string {
+  return sanitizeNarrativeText(value || '')
+    .replace(/\b(?:n\/?a|none|null|undefined)\b/gi, ' ')
+    .replace(/[•·●◦]+/g, ' ')
+    .replace(/\b[xX]{2,}\b/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function normalizeIsraeliPhone(value: string): string {
+  const cleaned = sanitizeContactField(value).replace(/[^\d+]/g, '');
+  if (!cleaned) return '';
+
+  const digits = cleaned.replace(/\D/g, '');
+  if (/^972\d{8,9}$/.test(digits)) return `0${digits.slice(-9)}`;
+  if (/^0\d{8,9}$/.test(digits)) return digits;
+  return '';
+}
+
+function normalizeEmail(value: string): string {
+  const cleaned = sanitizeContactField(value).toLowerCase();
+  if (!cleaned) return '';
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned) ? cleaned : '';
+}
+
+function normalizeWebsite(value: string): string {
+  const cleaned = sanitizeContactField(value)
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/+$/g, '')
+    .trim();
+
+  if (!cleaned) return '';
+  return /[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(cleaned) ? cleaned : '';
+}
+
 type NormalizedCorrection = { type: string; text: string };
 
 function normalizeCorrections(rawCorrections: any): NormalizedCorrection[] {
@@ -480,13 +549,17 @@ function isHeadlineSafeForAudience(headline: string, contextText: string): boole
   return true;
 }
 
-function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicCategory?: string): string {
+function buildCreativeHeadline(rawHeadline: string, campaignContext: any, topicCategory?: string, isHolidayNeutral: boolean = false): string {
   // Priority: explicit textPrompt > offer from brief
-  const source = normalizePromptText(rawHeadline || campaignContext?.offer || '');
+  const source = sanitizeNarrativeText(rawHeadline || campaignContext?.offer || '', { stripHolidayTerms: isHolidayNeutral });
   if (!source) return '';
 
   // Clean up: strip trailing punctuation, limit to 40 chars max (punchy headline)
-  let cleaned = source.replace(/[.!?،,]+$/g, '').trim();
+  let cleaned = source
+    .replace(/[.!?،,]+$/g, '')
+    .replace(/\b(?:אני|רוצה|שיהיה|שהמערכת|בבקשה|תוסיף|תוריד|לעדכן|בריף)\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
   
   // If over 40 chars, try to find a natural break point
   if (cleaned.length > 40) {
@@ -569,6 +642,9 @@ serve(async (req) => {
     const { visualPrompt, textPrompt, style, engine, templateId, templateHints, dimensions, brandContext, campaignContext, mediaType, topicCategory, holidaySeason, aspectRatio, visualApproach, designApproach, corrections, variationIndex, headlinePosition, _visualOnlyUrl, sourceImageUrl } = body;
     const revisionSourceImageUrl = sourceImageUrl || _visualOnlyUrl || null;
     const normalizedCorrections = normalizeCorrections(corrections);
+    const isHolidayNeutral = !holidaySeason || holidaySeason === 'year_round' || holidaySeason === '';
+    const sanitizedCampaignOffer = sanitizeNarrativeText(campaignContext?.offer || '', { stripHolidayTerms: isHolidayNeutral });
+    const sanitizedUserTextPrompt = sanitizeNarrativeText(textPrompt || '', { stripHolidayTerms: isHolidayNeutral });
     const inferredTopicCategory = inferTopicCategoryFromText([
       visualPrompt,
       textPrompt,
@@ -628,9 +704,17 @@ serve(async (req) => {
     // Get style description
     const styleDesc = STYLE_DESCRIPTIONS[style] || STYLE_DESCRIPTIONS['ultra-realistic'];
     const templatePrompt = templateId ? TEMPLATE_PROMPTS[templateId] || '' : '';
-    const rawVisualPrompt = visualPrompt || campaignContext?.offer || brandContext?.winningFeature || 'עיצוב פרסומי מקצועי';
+    const rawVisualPrompt =
+      sanitizeNarrativeText(visualPrompt || '', { stripHolidayTerms: isHolidayNeutral }) ||
+      sanitizedCampaignOffer ||
+      sanitizeNarrativeText(brandContext?.winningFeature || '', { stripHolidayTerms: isHolidayNeutral }) ||
+      'עיצוב פרסומי מקצועי';
     // Sanitize placeholder phones from AI-generated visual prompts
-    const effectiveVisualPrompt = rawVisualPrompt.replace(/0[2-9]X?[-\s]?X{3,7}/gi, '').replace(/05\d[-\s]?\d{7}/g, brandContext?.contactPhone || '').trim() || 'עיצוב פרסומי מקצועי';
+    const effectiveVisualPrompt = rawVisualPrompt
+      .replace(/\b0[2-9][\-\s]?[Xx]{5,7}\b/g, '')
+      .replace(/\b[Xx]{3,}\b/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim() || 'עיצוב פרסומי מקצועי';
     
     // Brand color instructions — STRICT ENFORCEMENT
     let colorInstructions = '';
@@ -728,9 +812,13 @@ ABSOLUTELY FORBIDDEN — ANY of these objects will RUIN the ad and make it unusa
 ❌ Religious candles (Shabbat/Hanukkah)
 ❌ Hamantaschen / Mishloach manot
 
-        These objects are ONLY relevant for holiday-specific campaigns. Including them in a ${effectiveTopicCategory || 'commercial'} ad is like putting a Christmas tree in a summer ad — a CATASTROPHIC professional error.
+These objects are ONLY relevant for holiday-specific campaigns. Including them in a ${effectiveTopicCategory || 'commercial'} ad is like putting a Christmas tree in a summer ad — a CATASTROPHIC professional error.
 
-        The ad is for: ${effectiveTopicCategory || 'a business/service'}. Show ONLY imagery relevant to that specific product/service.
+ABSOLUTELY FORBIDDEN ALSO:
+❌ Passover cleaning/"chametz" tools, kashering utensils, feather+burning candle ritual props
+❌ Any explicit holiday table setup or ritual object
+
+The ad is for: ${effectiveTopicCategory || 'a business/service'}. Show ONLY imagery relevant to that specific product/service.
 A dental ad = dental imagery. A real estate ad = architecture. A food ad = food. NOTHING religious unless holiday-tagged.`;
     }
 
@@ -765,7 +853,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
       : 'פנה בלשון רבים (אתם, שלכם). אסור לשון יחיד.';
     const brandServices = brandContext?.services?.length ? brandContext.services.join(', ') : '';
     const brandXFactor = brandContext?.primaryXFactor || brandContext?.winningFeature || '';
-    const offerTextForAI = campaignContext?.offer || textPrompt || '';
+    const offerTextForAI = sanitizedCampaignOffer || sanitizedUserTextPrompt;
     const variationDirective = revisionSourceImageUrl
       ? 'תיקון ממוקד בלבד — שמירה על אותה סקיצה.'
       : getVariationDirective(variationIndex);
@@ -803,6 +891,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
 7. עדיף לא לכלול את שם העסק — הוא בלוגו
 8. לקהל חרדי: אסור סלנג לילה/ברים/מועדונים
 9. תחזיר רק 3 כותרות — כל אחת בשורה נפרדת, בלי מספור, בלי הסברים
+10. אסור להעתיק משפטים מלאים מהבריף כפי שהם — חובה ניסוח מחודש וקצר
 
 דוגמאות לכותרות חזקות:
 - נדל"ן: "חלון שמתגשם" (טוויסט על "חלום")
@@ -812,7 +901,7 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
 
 כלל מגדרי קריטי: ${genderDirective}`;
 
-      const headlineUserContent = `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\nוריאציה נדרשת: ${variationDirective}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`;
+      const headlineUserContent = `קלט קמפיין: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nטון: ${campaignContext?.emotionalTone || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nפעולה רצויה: ${campaignContext?.desiredAction || campaignContext?.desiredActions?.[0] || ''}\nוריאציה נדרשת: ${variationDirective}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}`;
 
       const headlinePromise = fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -842,9 +931,10 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
 3. ללא גרשיים. תחזיר רק את הכותרת עצמה
 4. אם יש מחיר/הטבה ספציפית בבריף — שלב אותה בכותרת המשנה
 5. אסור ניסוחים של חיי לילה/אלכוהול פרוע/מועדונים
+6. אסור להעתיק משפט שלם מהבריף; נסח בצורה קצרה ושיווקית
 
 כלל מגדרי קריטי: ${genderDirective}` },
-            { role: 'user', content: `בריף מלא: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nוריאציה נדרשת: ${variationDirective}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
+            { role: 'user', content: `קלט קמפיין: ${offerTextForAI.slice(0, 800)}\nשם העסק: ${businessName}\nמטרה: ${campaignContext?.adGoal || ''}\nבידול: ${brandXFactor}\nשירותים: ${brandServices}\nוריאציה נדרשת: ${variationDirective}\n${campaignContext?.priceOrBenefit ? `מחיר/הטבה: ${campaignContext.priceOrBenefit}` : ''}\n${campaignContext?.timeLimitText ? `מוגבל בזמן: ${campaignContext.timeLimitText}` : ''}` }
           ],
         }),
       }).then(r => r.ok ? r.json() : null).catch(() => null);
@@ -889,21 +979,21 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     }
     
     // Fallbacks
-    if (!headline) headline = buildCreativeHeadline(rawHeadline, campaignContext, effectiveTopicCategory);
+    if (!headline) headline = buildCreativeHeadline(rawHeadline, campaignContext, effectiveTopicCategory, isHolidayNeutral);
     if (!subtitle && brandContext?.winningFeature) subtitle = brandContext.winningFeature.slice(0, 56);
     else if (!subtitle && brandContext?.primaryXFactor) subtitle = brandContext.primaryXFactor.slice(0, 56);
 
     // Build contact details string for the ad — NEVER invent placeholder data
-    const phone = brandContext?.contactPhone || '';
-    const email = brandContext?.contactEmail || '';
-    const address = brandContext?.contactAddress || '';
-    const whatsapp = brandContext?.contactWhatsapp || '';
-    const website = brandContext?.websiteUrl || '';
-    const openingHours = brandContext?.openingHours || '';
-    const branches = brandContext?.branches || '';
-    
-    // Sanitize visual prompt — strip placeholder phone numbers the AI may have hallucinated
-    const sanitizedVisualPrompt = (visualPrompt || '').replace(/0[2-9]X?[-\s]?X{3,7}/gi, '').replace(/05\d[-\s]?\d{7}/g, phone || '').trim();
+    const phone = normalizeIsraeliPhone(brandContext?.contactPhone || '');
+    const whatsapp = normalizeIsraeliPhone(brandContext?.contactWhatsapp || '');
+    const email = normalizeEmail(brandContext?.contactEmail || '');
+    const address = sanitizeContactField(brandContext?.contactAddress || '');
+    const website = normalizeWebsite(brandContext?.websiteUrl || '');
+    const openingHours = sanitizeContactField(brandContext?.openingHours || '');
+    const branches = sanitizeContactField(brandContext?.branches || '');
+    const primaryPhone = phone || whatsapp;
+    const hasContactDetails = !!(primaryPhone || email || address || website || branches || openingHours);
+    const campaignSummary = summarizeBriefForPrompt(offerTextForAI, 180);
     
     // CTA text
     const CTA_MAP: Record<string, string> = {
@@ -923,13 +1013,14 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     // ═══ STEP 2: Build the All-in-One prompt ═══
     // Build the Hebrew text block for the ad
     let textBlock = '';
-    if (headline || subtitle || phone || businessName) {
+    if (headline || subtitle || primaryPhone || businessName || hasContactDetails) {
       const textParts: string[] = [];
       if (headline) textParts.push(`כותרת ראשית (גדולה, בולטת, עברית): "${headline}"`);
       if (subtitle) textParts.push(`כותרת משנה (קטנה יותר, מתחת לכותרת): "${subtitle}"`);
       if (ctaText) textParts.push(`קריאה לפעולה (כפתור/באנר): "${ctaText}"`);
-      if (phone) textParts.push(`טלפון (בולט בסטריפ תחתון): ${phone}`);
-      if (whatsapp && whatsapp !== phone) textParts.push(`וואטסאפ: ${whatsapp}`);
+      if (primaryPhone) textParts.push(`טלפון (בולט בסטריפ תחתון): ${primaryPhone}`);
+      if (whatsapp && whatsapp !== primaryPhone) textParts.push(`וואטסאפ: ${whatsapp}`);
+      if (email) textParts.push(`אימייל: ${email}`);
       if (address) textParts.push(`כתובת: ${address}`);
       if (branches) textParts.push(`סניפים: ${branches}`);
       if (website) textParts.push(`אתר: ${website}`);
@@ -951,9 +1042,14 @@ TYPOGRAPHY RULES:
 - Use PROFESSIONAL Hebrew typography — clean, modern, well-kerned
 - Text must be SHARP and PERFECTLY READABLE — no blurry or distorted letters
 - CONTACT STRIP TEXT QUALITY: Every single character in the contact strip must be a REAL, READABLE Hebrew letter, digit, or standard punctuation (| : -). NO gibberish, garbled characters, random dots (•••), or placeholder symbols. If you cannot render a word clearly — OMIT IT. Garbled text is worse than no text.
+- STRICT BAN: Never render placeholder numbers such as XXXXX, XXX-XXXX, 00X-XXXXXXX, "...", or "•••".
 ═══════════════════════════════════════════════════════════════════
 `;
     }
+
+    const contactStripRule = hasContactDetails
+      ? 'Use ONLY the exact contact values listed above. If a field is missing, omit it — never invent data.'
+      : 'No contact details were provided. Keep a clean branded strip with logo area only, and DO NOT invent phone numbers/placeholders.';
 
     // Logo instructions
     let logoBlock = '';
@@ -997,6 +1093,7 @@ THIS IS A COMPLETE AD — NOT JUST A PHOTO:
 - The output must look like a FINISHED print/digital advertisement
 - Visual + text + contact details + logo — all integrated into ONE harmonious composition
 - Think of how a professional graphic designer would create a complete ad in Photoshop/InDesign
+- CRITICAL: Never copy the full client brief as visible text. Use only the short curated ad copy from the HEBREW TEXT block below.
 
 ${revisionInstructions}
 
@@ -1018,12 +1115,13 @@ BOTTOM AREA — CONTACT STRIP (bottom 15-25% of ad):
   - DARK or BRAND-COLORED background bar for contrast and readability
   - Logo anchored on LEFT side (RTL Hebrew layout)
   - RIGHT side: branch locations, phone numbers, website
-  - Phone number: LARGE and clear
+  - ${primaryPhone ? 'Phone number: LARGE and clear' : 'No phone was supplied: do NOT show any phone placeholder'}
   - Multiple branches separated by pipes (|) if applicable
+  - ${contactStripRule}
 
 ⚠️ CRITICAL WARNING: The area labels above (TOP AREA, CENTER AREA, BOTTOM AREA) are INTERNAL LAYOUT INSTRUCTIONS.
 They must NEVER appear as visible text in the generated image! Do NOT write "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", or any English layout labels anywhere in the ad.
-Only HEBREW text from the brief should appear in the final ad.
+Only HEBREW text from the curated text block above should appear in the final ad.
 ═══════════════════════════════════════════════
 
 VISUAL IMPACT — MAKE IT EXTRAORDINARY:
@@ -1068,7 +1166,7 @@ Audience Tone: ${brandContext.audienceTone || 'Not specified'}
 ═══════════════════════════════════════════════════════════
 ` : ''}
 
-${campaignContext ? `CAMPAIGN: "${campaignContext.offer || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
+${campaignContext ? `CAMPAIGN CONTEXT (for ideation only, never copy verbatim): "${campaignSummary || ''}" - Goal: ${campaignContext.goal || 'marketing'}${campaignContext.vibe ? `, Vibe: ${campaignContext.vibe}` : ''}` : ''}
 ${campaignContext?.adGoal ? `
 AD GOAL: "${campaignContext.adGoal}"
 ${campaignContext.adGoal === 'sell' ? '→ SALES ad: product visibility, pricing emphasis, urgency.' : ''}
@@ -1116,7 +1214,8 @@ NEGATIVE PROMPT — NEVER include in image:
 Split-screens, multiple panels, stock-photo look, low-quality CGI, immodest clothing, distorted limbs.
 No religious objects unless holiday-tagged.
 No English text labels like "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", "TOP", "CENTER", "BOTTOM", "CONTACT", "HEADLINE".
-Only HEBREW text from the brief should be visible.
+No placeholder symbols like "XXXXX", "XXX-XXXX", "...", or "•••".
+Only HEBREW text from the curated text block should be visible.
 
 FINAL CHECKLIST:
 ✓ Hebrew text is correct, right-to-left, perfectly readable — NO typos or garbled letters
