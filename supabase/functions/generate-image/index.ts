@@ -1013,13 +1013,14 @@ A dental ad = dental imagery. A real estate ad = architecture. A food ad = food.
     // ═══ STEP 2: Build the All-in-One prompt ═══
     // Build the Hebrew text block for the ad
     let textBlock = '';
-    if (headline || subtitle || phone || businessName) {
+    if (headline || subtitle || primaryPhone || businessName || hasContactDetails) {
       const textParts: string[] = [];
       if (headline) textParts.push(`כותרת ראשית (גדולה, בולטת, עברית): "${headline}"`);
       if (subtitle) textParts.push(`כותרת משנה (קטנה יותר, מתחת לכותרת): "${subtitle}"`);
       if (ctaText) textParts.push(`קריאה לפעולה (כפתור/באנר): "${ctaText}"`);
       if (primaryPhone) textParts.push(`טלפון (בולט בסטריפ תחתון): ${primaryPhone}`);
-      if (whatsapp && whatsapp !== phone) textParts.push(`וואטסאפ: ${whatsapp}`);
+      if (whatsapp && whatsapp !== primaryPhone) textParts.push(`וואטסאפ: ${whatsapp}`);
+      if (email) textParts.push(`אימייל: ${email}`);
       if (address) textParts.push(`כתובת: ${address}`);
       if (branches) textParts.push(`סניפים: ${branches}`);
       if (website) textParts.push(`אתר: ${website}`);
@@ -1214,7 +1215,7 @@ Split-screens, multiple panels, stock-photo look, low-quality CGI, immodest clot
 No religious objects unless holiday-tagged.
 No English text labels like "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", "TOP", "CENTER", "BOTTOM", "CONTACT", "HEADLINE".
 No placeholder symbols like "XXXXX", "XXX-XXXX", "...", or "•••".
-Only HEBREW text from the brief should be visible.
+Only HEBREW text from the curated text block should be visible.
 
 FINAL CHECKLIST:
 ✓ Hebrew text is correct, right-to-left, perfectly readable — NO typos or garbled letters
