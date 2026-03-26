@@ -90,6 +90,21 @@ async function fetchAgentPrompt(agentKey: string, fallback: string): Promise<str
   }
 }
 
+function summarizeBriefForContext(value: string, maxLen: number = 220): string {
+  const normalized = (value || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+
+  const stripped = normalized
+    .replace(/\b(?:בריף\s*מלא|brief|client\s*brief|system\s*command|instructions?)\b\s*:?/gi, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  if (stripped.length <= maxLen) return stripped;
+  const cut = stripped.slice(0, maxLen);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim();
+}
+
 const DEFAULT_SYSTEM_PROMPT = `זהות ותפקיד:
 אתה מעצב גרפי, ארט-דירקטור (Art Director) ומומחה לתקשורת חזותית במגזר החרדי. אתה לא רק "מנהל", אתה מעצב-על שחי ונושם טיפוגרפיה, פלטות צבעים וקומפוזיציה. יש לך ניסיון רב-שנים בהובלת קמפיינים במגזר החרדי.
 
@@ -306,7 +321,11 @@ serve(async (req) => {
     }
     if (campaignContext) {
       contextBlock += `\n=== הקשר קמפיין ===\n`;
-      if (campaignContext.offer) contextBlock += `🔴 בריף מלא: ${campaignContext.offer}\n`;
+      const offerSummary = summarizeBriefForContext(campaignContext.offer || '');
+      if (offerSummary) {
+        contextBlock += `🔴 תמצית בריף (להבנה בלבד — אסור להעתיק מילה במילה): ${offerSummary}\n`;
+        contextBlock += `⚠️ חוק: חל איסור מוחלט להחזיר את הבריף הגולמי כטקסט במודעה. חובה לנסח קופי קצר ומקצועי בלבד.\n`;
+      }
       if (campaignContext.goal) contextBlock += `מטרה: ${campaignContext.goal}\n`;
       if (campaignContext.structure) contextBlock += `מבנה: ${campaignContext.structure}\n`;
       if (campaignContext.priceOrBenefit) contextBlock += `💰 מחיר/הטבה: ${campaignContext.priceOrBenefit}\n`;
