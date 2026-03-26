@@ -8,7 +8,9 @@ import {
   MessageCircle,
   Check,
   X,
-  Send
+  Send,
+  Circle,
+  ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +23,8 @@ export type AdComponent =
   | 'subtitle' 
   | 'visual' 
   | 'grid-layout'
+  | 'badge-stamp'
+  | 'kosher-logo'
   | 'general';
 
 interface ComponentFeedback {
@@ -68,6 +72,20 @@ const AD_COMPONENTS: {
     description: 'לוגו, טלפון, כתובת, מיקום אלמנטים',
     icon: LayoutGrid,
     placeholder: 'מה לשנות? למשל: "הלוגו גדול מדי", "הטלפון לא קריא", "כתובת חסרה"...',
+  },
+  {
+    id: 'badge-stamp',
+    label: 'עיגול / פלאג / חותמת',
+    description: 'תוספת מבצע, חדש, שעות פתיחה וכדומה',
+    icon: Circle,
+    placeholder: 'מה לכתוב בחותמת? למשל: "מבצע השקה!", "שעות מורחבות", "חדש!"...',
+  },
+  {
+    id: 'kosher-logo',
+    label: 'לוגו כשרות',
+    description: 'הוספת או עדכון סמל כשרות במודעה',
+    icon: ShieldCheck,
+    placeholder: 'איזה כשרות? למשל: "בד״ץ העדה החרדית", "רבנות מהדרין", "בד״ץ בית יוסף"...',
   },
   {
     id: 'general',

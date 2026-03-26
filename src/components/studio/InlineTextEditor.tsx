@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Send, Heading1, Heading2, Image as ImageIcon, LayoutGrid, Check } from 'lucide-react';
+import { Loader2, Send, Heading1, Heading2, Image as ImageIcon, LayoutGrid, Check, Circle, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -11,7 +11,7 @@ export interface TextMeta {
   phone: string;
 }
 
-type FeedbackCategory = 'headline' | 'subtitle' | 'visual' | 'grid-layout';
+type FeedbackCategory = 'headline' | 'subtitle' | 'visual' | 'grid-layout' | 'badge-stamp' | 'kosher-logo';
 
 interface InlineTextEditorProps {
   imageUrl: string;
@@ -50,6 +50,18 @@ const FEEDBACK_CATEGORIES: {
     label: 'פרטים טכניים בגריד',
     icon: LayoutGrid,
     placeholder: 'מה לשנות? למשל: "הלוגו גדול מדי", "הטלפון לא קריא"...',
+  },
+  {
+    id: 'badge-stamp',
+    label: 'עיגול / פלאג / חותמת',
+    icon: Circle,
+    placeholder: 'מה לכתוב? למשל: "מבצע השקה!", "שעות מורחבות", "חדש!"...',
+  },
+  {
+    id: 'kosher-logo',
+    label: 'לוגו כשרות',
+    icon: ShieldCheck,
+    placeholder: 'איזה כשרות? למשל: "בד״ץ העדה החרדית", "רבנות מהדרין"...',
   },
 ];
 
