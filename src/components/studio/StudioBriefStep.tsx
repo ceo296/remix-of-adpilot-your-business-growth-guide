@@ -906,8 +906,8 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
         </div>
       )}
 
-      {/* Campaign Image Upload - after core message */}
-      {value.desiredAction && (
+      {/* Campaign Image Upload - after core message (hide for text-only media) */}
+      {!isTextOnlyMedia && value.desiredAction && (
         <div className="space-y-3 animate-fade-in">
           <Label className="text-foreground font-medium flex items-center gap-2">
             <ImagePlus className="w-4 h-4 text-primary" />
@@ -954,8 +954,8 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
         </div>
       )}
 
-      {/* Campaign Structure - after all questions */}
-      {value.desiredAction && (
+      {/* Campaign Structure - after all questions (hide for text-only media) */}
+      {!isTextOnlyMedia && value.desiredAction && (
         <div id="campaign-structure" className="space-y-4 animate-fade-in">
           <Label className="text-foreground font-medium">מבנה הקמפיין *</Label>
           <div className="grid md:grid-cols-2 gap-4">
@@ -1012,8 +1012,8 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
         </div>
       )}
 
-      {/* Brand Colors Selection */}
-      {hasBrandColors && value.structure && (
+      {/* Brand Colors Selection (hide for text-only media) */}
+      {!isTextOnlyMedia && hasBrandColors && value.structure && (
         <div className="space-y-4 animate-fade-in">
           <Label className="text-foreground font-medium flex items-center gap-2">
             <Palette className="w-4 h-4 text-primary" />
@@ -1106,8 +1106,8 @@ ${value.emotionalTone ? `טון רגשי: ${value.emotionalTone}` : ''}
         </div>
       )}
 
-      {/* Contact Info Selection */}
-      {hasAnyContact && value.structure && (
+      {/* Contact Info Selection (hide for text-only media) */}
+      {!isTextOnlyMedia && hasAnyContact && value.structure && (
         <div className="space-y-4 animate-fade-in">
           <Label className="text-foreground font-medium flex items-center gap-2">
             <LinkIcon className="w-4 h-4 text-primary" />
