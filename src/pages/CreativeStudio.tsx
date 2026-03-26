@@ -403,6 +403,9 @@ const CreativeStudio = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
   const [enlargedImage, setEnlargedImage] = useState<GeneratedImage | null>(null);
+  const [enlargedFeedbackOpen, setEnlargedFeedbackOpen] = useState(false);
+  const [enlargedFeedbackSelections, setEnlargedFeedbackSelections] = useState<Set<AdComponent>>(new Set());
+  const [enlargedFeedbackTexts, setEnlargedFeedbackTexts] = useState<Record<string, string>>({});
   const [overlayEditImage, setOverlayEditImage] = useState<{ id: string; url: string } | null>(null);
   const [fabricEditImage, setFabricEditImage] = useState<{ id: string; url: string } | null>(null);
   const [printDialogImage, setPrintDialogImage] = useState<GeneratedImage | null>(null);
