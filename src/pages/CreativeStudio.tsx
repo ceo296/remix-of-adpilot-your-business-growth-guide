@@ -2576,6 +2576,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             onChange={setCampaignBrief}
             businessName={clientProfile?.business_name}
             campaignScope={assetChoice}
+            mediaTypes={mediaTypes}
             contactInfo={clientProfile ? {
               contact_phone: clientProfile.contact_phone,
               contact_whatsapp: clientProfile.contact_whatsapp,
