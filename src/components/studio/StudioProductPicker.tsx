@@ -341,24 +341,12 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
         <p className="text-muted-foreground">בחר את סוג החומר הפרסומי</p>
       </div>
 
-      {/* Hero: Ad in center, large */}
-      <div className="flex justify-center mb-4">
-        <div className="w-full max-w-xs">
-          {renderProductButton(PRIMARY_PRODUCTS[0], 'lg')}
-        </div>
-      </div>
-
-      {/* Primary row: WhatsApp + Email */}
+      {/* Uniform 2-column grid for all products */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        {PRIMARY_PRODUCTS.slice(1).map(p => renderProductButton(p, 'md'))}
+        {[...PRIMARY_PRODUCTS, ...SECONDARY_PRODUCTS].map(p => renderProductButton(p, 'md'))}
       </div>
 
-      {/* Secondary row: Radio, Article, Banners */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        {SECONDARY_PRODUCTS.map(p => renderProductButton(p, 'sm'))}
-      </div>
-
-      {/* 360 Campaign - full width */}
+      {/* 360 Campaign - full width CTA */}
       <div className="mt-2">
         {renderProductButton(CAMPAIGN_360, 'lg')}
       </div>
