@@ -694,10 +694,19 @@ const CreativeStudio = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 0: {
-        // Validate guided brief: need adGoal, emotionalTone, desiredAction, core message (12+ words), structure, and at least one contact option
+        // Validate guided brief: need adGoal, emotionalTone, desiredAction, core message (12+ words)
         const offer = campaignBrief.offer.trim();
         const words = offer.split(/\s+/).filter(w => w.length > 0);
         const hasValidOffer = words.length >= 12 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
+        
+        const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email', 'whatsapp'].includes(t));
+        
+        if (isTextOnlyFlow) {
+          // Text-only media: skip structure, colors, contacts validation
+          return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
+        }
+        
+        // Visual media: full validation
         const cs = campaignBrief.contactSelection;
         const hasContactSelected = cs.phone || cs.whatsapp || cs.email || cs.address || cs.youtube || cs.facebook || cs.instagram || cs.logoOnly || cs.openingHours || (cs.selectedBranches || []).length > 0;
         return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer && campaignBrief.structure !== null && hasContactSelected;
@@ -2567,6 +2576,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             onChange={setCampaignBrief}
             businessName={clientProfile?.business_name}
             campaignScope={assetChoice}
+            mediaTypes={mediaTypes}
             contactInfo={clientProfile ? {
               contact_phone: clientProfile.contact_phone,
               contact_whatsapp: clientProfile.contact_whatsapp,

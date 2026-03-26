@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Radio, Mic, Play, Pause, Check, Loader2, Volume2, RefreshCw, Heart, Wrench, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -110,9 +110,11 @@ export const RadioScriptStep = ({
   }, [brief, brandContext, targetGender, targetStream, contactPhone]);
 
   // Auto-generate on first render
-  if (!hasGenerated && phase === 'generating') {
-    generateScripts();
-  }
+  useEffect(() => {
+    if (!hasGenerated && phase === 'generating') {
+      generateScripts();
+    }
+  }, [hasGenerated, phase, generateScripts]);
 
   const handleSelectScript = (scriptId: string) => {
     setSelectedScriptId(scriptId);
