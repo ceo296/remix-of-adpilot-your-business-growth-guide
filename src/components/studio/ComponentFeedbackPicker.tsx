@@ -38,7 +38,7 @@ interface ComponentFeedbackPickerProps {
   onCancel: () => void;
 }
 
-const AD_COMPONENTS: {
+export const AD_COMPONENTS: {
   id: AdComponent;
   label: string;
   description: string;
