@@ -1146,6 +1146,9 @@ const CreativeStudio = () => {
           body: {
             brief: { offer, adGoal: campaignBrief.adGoal, goal: campaignBrief.goal },
             brandContext: clientProfile ? { businessName: clientProfile.business_name, targetAudience: clientProfile.target_audience } : null,
+            fixInstruction,
+            fixType: 'message',
+            originalScript: autopilotRadioScript?.script || '',
           },
         });
         if (!error && data?.scripts?.length) {
