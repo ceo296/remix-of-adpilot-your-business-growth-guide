@@ -3916,40 +3916,123 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         } : undefined}
       />
       
-      {/* Enlarged Image Modal with Inline Text Editing */}
-      <Dialog open={!!enlargedImage} onOpenChange={() => setEnlargedImage(null)}>
-        <DialogContent className="max-w-5xl max-h-[92vh] p-0 overflow-hidden">
+      {/* Enlarged Image Modal with Inline Text Editing + Side Feedback */}
+      <Dialog open={!!enlargedImage} onOpenChange={() => { setEnlargedImage(null); setEnlargedFeedbackOpen(false); }}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95 border-none">
           <button 
-            onClick={() => setEnlargedImage(null)}
-            className="absolute top-2 left-2 z-10 p-1 rounded-full bg-background/80 hover:bg-background transition-colors"
+            onClick={() => { setEnlargedImage(null); setEnlargedFeedbackOpen(false); }}
+            className="absolute top-3 left-3 z-20 p-1.5 rounded-full bg-background/80 hover:bg-background transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
-          {enlargedImage && enlargedImage.visualOnlyUrl && enlargedImage.textMeta ? (
-            <InlineTextEditor
-              imageUrl={enlargedImage.url}
-              visualOnlyUrl={enlargedImage.visualOnlyUrl}
-              textMeta={enlargedImage.textMeta}
-              onImageUpdate={(newUrl, newMeta) => {
-                setGeneratedImages(prev => prev.map(img =>
-                  img.id === enlargedImage.id ? { ...img, url: newUrl, textMeta: newMeta } : img
-                ));
-                setEnlargedImage(prev => prev ? { ...prev, url: newUrl, textMeta: newMeta } : null);
-              }}
-              onOpenFullEditor={() => {
-                setOverlayEditImage({ id: enlargedImage.id, url: enlargedImage.url });
-                setEnlargedImage(null);
-              }}
-            />
-          ) : enlargedImage ? (
-            <div className="p-4">
-              <img 
-                src={enlargedImage.url} 
-                alt="תמונה מוגדלת" 
-                className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
-              />
+          
+          <div className="flex h-[90vh]">
+            {/* Image Area */}
+            <div className="flex-1 flex items-center justify-center p-4 min-w-0">
+              {enlargedImage && enlargedImage.visualOnlyUrl && enlargedImage.textMeta ? (
+                <InlineTextEditor
+                  imageUrl={enlargedImage.url}
+                  visualOnlyUrl={enlargedImage.visualOnlyUrl}
+                  textMeta={enlargedImage.textMeta}
+                  onImageUpdate={(newUrl, newMeta) => {
+                    setGeneratedImages(prev => prev.map(img =>
+                      img.id === enlargedImage.id ? { ...img, url: newUrl, textMeta: newMeta } : img
+                    ));
+                    setEnlargedImage(prev => prev ? { ...prev, url: newUrl, textMeta: newMeta } : null);
+                  }}
+                  onOpenFullEditor={() => {
+                    setOverlayEditImage({ id: enlargedImage.id, url: enlargedImage.url });
+                    setEnlargedImage(null);
+                    setEnlargedFeedbackOpen(false);
+                  }}
+                />
+              ) : enlargedImage ? (
+                <img 
+                  src={enlargedImage.url} 
+                  alt="תמונה מוגדלת" 
+                  className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                />
+              ) : null}
             </div>
-          ) : null}
+
+            {/* Side Feedback Panel */}
+            {enlargedImage && (
+              <div className="w-80 shrink-0 bg-card border-r border-border overflow-y-auto" dir="rtl">
+                <div className="p-4 border-b border-border">
+                  <h3 className="font-bold text-base text-foreground">תיקונים על המודעה</h3>
+                  <p className="text-xs text-muted-foreground mt-1">סמן מה לתקן ופרט</p>
+                </div>
+                <div className="p-4 space-y-3">
+                  {AD_COMPONENTS.map((comp) => {
+                    const isSelected = enlargedFeedbackSelections.has(comp.id);
+                    return (
+                      <div key={comp.id} className="space-y-2">
+                        <button
+                          onClick={() => {
+                            setEnlargedFeedbackSelections(prev => {
+                              const next = new Set(prev);
+                              if (next.has(comp.id)) next.delete(comp.id);
+                              else next.add(comp.id);
+                              return next;
+                            });
+                          }}
+                          className={cn(
+                            'w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-2 transition-all text-sm font-medium text-right',
+                            isSelected
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                          )}
+                        >
+                          <comp.icon className="h-4 w-4 shrink-0" />
+                          <span className="flex-1">{comp.label}</span>
+                          {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}
+                        </button>
+                        {isSelected && (
+                          <Textarea
+                            value={enlargedFeedbackTexts[comp.id] || ''}
+                            onChange={(e) => setEnlargedFeedbackTexts(prev => ({ ...prev, [comp.id]: e.target.value }))}
+                            placeholder={comp.placeholder}
+                            className="min-h-[70px] text-sm animate-fade-in"
+                            dir="rtl"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {enlargedFeedbackSelections.size > 0 && (
+                  <div className="p-4 border-t border-border">
+                    <Button
+                      onClick={() => {
+                        const feedbacks: { component: AdComponent; text: string }[] = [];
+                        for (const comp of enlargedFeedbackSelections) {
+                          const text = enlargedFeedbackTexts[comp]?.trim();
+                          if (text) feedbacks.push({ component: comp, text });
+                        }
+                        if (feedbacks.length === 0) {
+                          toast.error('נא לכתוב פירוט לתיקון');
+                          return;
+                        }
+                        // Set the sketch to fix and submit
+                        setSelectedSketchIds([enlargedImage.id]);
+                        setFeedbackMode('small-fixes');
+                        handleSubmitFeedback(feedbacks);
+                        setEnlargedImage(null);
+                        setEnlargedFeedbackOpen(false);
+                        setEnlargedFeedbackSelections(new Set());
+                        setEnlargedFeedbackTexts({});
+                      }}
+                      variant="gradient"
+                      className="w-full gap-2"
+                    >
+                      <Send className="h-4 w-4" />
+                      שלח תיקונים ({enlargedFeedbackSelections.size})
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
