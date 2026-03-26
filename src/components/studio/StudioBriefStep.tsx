@@ -129,6 +129,7 @@ interface StudioBriefStepProps {
   contactInfo?: ContactInfo;
   brandColors?: BrandColors;
   campaignScope?: BriefCampaignScope;
+  mediaTypes?: string[];
 }
 
 // Map adGoal to legacy CampaignGoal for backward compat
