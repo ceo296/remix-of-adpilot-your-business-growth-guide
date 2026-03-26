@@ -2264,7 +2264,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             },
           },
         }).then(({ data, error }) => {
-          if (error || data?.error) { toast.error(data?.error || 'שגיאה ביצירת כתבה'); return; }
+          if (error || data?.error) { toast.error(typeof data?.error === 'string' ? data.error : 'שגיאה ביצירת כתבה'); return; }
           if (data?.result) setAutopilotArticle(data.result);
         }).catch(() => toast.error('שגיאה ביצירת כתבה')).finally(() => setIsGeneratingArticle(false));
       }
@@ -2282,7 +2282,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             },
           },
         }).then(({ data, error }) => {
-          if (error || data?.error) { toast.error(data?.error || 'שגיאה ביצירת מייל'); return; }
+          if (error || data?.error) { toast.error(typeof data?.error === 'string' ? data.error : 'שגיאה ביצירת מייל'); return; }
           if (data?.result) setAutopilotEmailContent(data.result);
         }).catch(() => toast.error('שגיאה ביצירת מייל')).finally(() => setIsGeneratingEmail(false));
       }
@@ -2300,7 +2300,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             },
           },
         }).then(({ data, error }) => {
-          if (error || data?.error) { toast.error(data?.error || 'שגיאה ביצירת מסר וואטסאפ'); return; }
+          if (error || data?.error) { toast.error(typeof data?.error === 'string' ? data.error : 'שגיאה ביצירת מסר וואטסאפ'); return; }
           if (data?.result) setAutopilotWhatsappContent(data.result);
         }).catch(() => toast.error('שגיאה ביצירת מסר וואטסאפ')).finally(() => setIsGeneratingWhatsapp(false));
       }
@@ -2501,7 +2501,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             },
           },
         }).then(({ data, error }) => {
-          if (error || data?.error) { toast.error(data?.error || 'שגיאה ביצירת כתבה'); return; }
+          if (error || data?.error) { toast.error(typeof data?.error === 'string' ? data.error : 'שגיאה ביצירת כתבה'); return; }
           if (data?.result) { setAutopilotArticle(data.result); toast.success('כתבה פרסומית נוצרה! 📰'); }
         }).catch(() => toast.error('שגיאה ביצירת כתבה')).finally(() => setIsGeneratingArticle(false));
       }
@@ -2521,7 +2521,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             },
           },
         }).then(({ data, error }) => {
-          if (error || data?.error) { toast.error(data?.error || 'שגיאה ביצירת מייל'); return; }
+          if (error || data?.error) { toast.error(typeof data?.error === 'string' ? data.error : 'שגיאה ביצירת מייל'); return; }
           if (data?.result) { setAutopilotEmailContent(data.result); toast.success('מייל שיווקי נוצר! 📧'); }
         }).catch(() => toast.error('שגיאה ביצירת מייל')).finally(() => setIsGeneratingEmail(false));
       }
@@ -2541,7 +2541,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             },
           },
         }).then(({ data, error }) => {
-          if (error || data?.error) { toast.error(data?.error || 'שגיאה ביצירת מסר וואטסאפ'); return; }
+          if (error || data?.error) { toast.error(typeof data?.error === 'string' ? data.error : 'שגיאה ביצירת מסר וואטסאפ'); return; }
           if (data?.result) { setAutopilotWhatsappContent(data.result); toast.success('מסר וואטסאפ נוצר! 💬'); }
         }).catch(() => toast.error('שגיאה ביצירת מסר וואטסאפ')).finally(() => setIsGeneratingWhatsapp(false));
       }
