@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -99,7 +100,38 @@ serve(async (req) => {
 צור 2 גרסאות מתוקנות בהתאם לבקשה. שמור על כל מה שלא ביקש לשנות.`;
     }
 
-    const userPrompt = `צור 2 גרסאות תסריט רדיו עבור הקמפיין הבא:${fixContext}
+    // Fetch sector brain references for radio
+    let sectorContext = '';
+    try {
+      const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const { data: guidelines } = await supabase
+        .from('sector_brain_examples')
+        .select('text_content')
+        .eq('is_general_guideline', true)
+        .not('text_content', 'is', null)
+        .limit(5);
+      const { data: refs } = await supabase
+        .from('sector_brain_examples')
+        .select('name, text_content')
+        .eq('is_general_guideline', false)
+        .eq('example_type', 'good')
+        .not('text_content', 'is', null)
+        .in('media_type', ['radio', 'copy', 'ad_copy'])
+        .limit(4);
+      const { data: insights } = await supabase
+        .from('sector_brain_insights')
+        .select('content')
+        .eq('is_active', true)
+        .limit(3);
+
+      const parts: string[] = [];
+      if (guidelines?.length) parts.push(`## הנחיות סקטוריאליות\n${guidelines.map(g => g.text_content).join('\n')}`);
+      if (insights?.length) parts.push(`## תובנות\n${insights.map(i => i.content).join('\n')}`);
+      if (refs?.length) parts.push(`## דוגמאות מוצלחות כהשראה\n${refs.map((r, i) => `--- דוגמה ${i+1} (${r.name}) ---\n${(r.text_content || '').substring(0, 500)}`).join('\n\n')}`);
+      if (parts.length) sectorContext = `\n\n🧠 רפרנסים סקטוריאליים:\n${parts.join('\n\n')}`;
+    } catch (e) { console.warn('Sector brain fetch failed:', e); }
+
+    const userPrompt = `צור 2 גרסאות תסריט רדיו עבור הקמפיין הבא:${fixContext}${sectorContext}
 
 === נתוני העסק (חובה להשתמש רק בנתונים הבאים!) ===
 שם העסק: ${businessName}
