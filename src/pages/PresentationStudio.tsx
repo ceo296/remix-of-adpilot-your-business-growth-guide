@@ -1134,6 +1134,34 @@ const BriefScreen = ({
 
         <Card className="border-2">
           <CardContent className="p-6 space-y-5">
+            {/* Presentation type selector */}
+            <div>
+              <label className="text-sm font-bold text-foreground mb-3 block">סוג המצגת</label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {PRESENTATION_TYPES.map(pt => (
+                  <button
+                    key={pt.id}
+                    onClick={() => setPresentationType(pt.id)}
+                    className={`p-3 rounded-xl border-2 text-right transition-all flex items-start gap-3 ${
+                      presentationType === pt.id
+                        ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                        : 'border-border hover:border-primary/30 bg-card'
+                    }`}
+                  >
+                    <div className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      presentationType === pt.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {pt.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm text-foreground">{pt.label}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">{pt.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Theme selector */}
             <div>
               <label className="text-sm font-bold text-foreground mb-3 block">בחר סגנון עיצוב</label>
@@ -1174,16 +1202,16 @@ const BriefScreen = ({
             {/* Brief input - REQUIRED */}
             <div>
               <label className="text-sm font-bold text-foreground mb-2 block">
-                מה המטרה של המצגת? *
+                {presentationType === 'custom' ? 'תאר את המצגת שאתה צריך *' : 'מה המסר הספציפי של המצגת? *'}
               </label>
               <p className="text-xs text-muted-foreground mb-2">
-                למשל: "מצגת לפגישת משקיעים על הפרויקט החדש", "חומר תדמית לשותפים", "הצגת שירות חדש ללקוחות קיימים"...
+                {PRESENTATION_TYPES.find(pt => pt.id === presentationType)?.placeholder || 'ספר בכמה מילים: למי מיועדת המצגת? מה המסר המרכזי?'}
               </p>
               <div className="relative">
                 <Textarea
                   value={brief}
                   onChange={e => setBrief(e.target.value)}
-                  placeholder="ספר בכמה מילים: למי מיועדת המצגת? מה המסר המרכזי? מה המטרה?"
+                  placeholder={PRESENTATION_TYPES.find(pt => pt.id === presentationType)?.placeholder || ''}
                   rows={4}
                   className="text-base pl-14"
                   dir="rtl"
@@ -1231,7 +1259,7 @@ const BriefScreen = ({
 
             <Button
               className="w-full h-14 text-lg gap-2 font-bold"
-              onClick={() => onGenerate(effectiveBrief, slideCount, theme)}
+              onClick={() => onGenerate(effectiveBrief, slideCount, theme, presentationType)}
               disabled={!brief.trim() || isLoading}
             >
               {isLoading ? (
