@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PresentationViewer } from '@/components/studio/PresentationViewer';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowRight, Plus, Trash2, ChevronLeft, ChevronRight, Download,
-  Eye, Copy, Sparkles, Wand2, Loader2, Palette, Building2, Zap
+  Eye, Copy, Sparkles, Wand2, Loader2, Palette, Building2, Zap, Mic, Square
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
@@ -997,17 +997,80 @@ const BriefScreen = ({
   profile: any;
   generationProgress?: { phase: string; current: number; total: number } | null;
 }) => {
-  const profileBrief = profile ? buildBriefFromProfile(profile) : '';
-  const hasProfileData = profileBrief.length > 30;
-  
-  const [brief, setBrief] = useState(hasProfileData ? '' : '');
+  const [brief, setBrief] = useState('');
   const [slideCount, setSlideCount] = useState(7);
   const [theme, setTheme] = useState<PresentationTheme>('corporate');
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Always use profile data when available, user just adds notes
-  const effectiveBrief = hasProfileData
-    ? (profileBrief + (brief ? `\n\nדגשים נוספים: ${brief}` : ''))
-    : brief;
+  const hasProfile = !!(profile?.business_name);
+
+  // The profile data is sent as background context for branding, NOT as the brief content
+  const profileContext = hasProfile ? buildBriefFromProfile(profile) : '';
+
+  // The effective brief = user's specific message + profile as background context
+  const effectiveBrief = brief.trim()
+    ? `${brief.trim()}${profileContext ? `\n\n--- רקע מתיק הלקוח (לצבעוניות, בידול וזהות בלבד) ---\n${profileContext}` : ''}`
+    : '';
+
+  // Voice recording
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      chunksRef.current = [];
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        if (timerRef.current) clearInterval(timerRef.current);
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        await transcribeAudio(blob);
+      };
+      mediaRecorder.start(250);
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => setRecordingTime(p => p + 1), 1000);
+    } catch { toast.error('לא ניתן לגשת למיקרופון'); }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+  };
+
+  const transcribeAudio = async (blob: Blob) => {
+    setIsTranscribing(true);
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+        reader.readAsDataURL(blob);
+      });
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          messages: [{ role: 'user', content: 'תמלל את ההקלטה הזו לעברית. החזר רק את הטקסט המתומלל, בלי הסברים.' }],
+          input_audio: base64,
+          singleShot: true,
+        },
+      });
+      if (error) throw error;
+      const transcribed = data?.response || data?.text || '';
+      if (transcribed) {
+        setBrief(prev => prev ? `${prev}\n${transcribed}` : transcribed);
+        toast.success('התמלול הושלם!');
+      }
+    } catch { toast.error('שגיאה בתמלול'); }
+    finally { setIsTranscribing(false); }
+  };
+
+  const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-8">
@@ -1018,15 +1081,13 @@ const BriefScreen = ({
           </div>
           <h1 className="text-3xl font-black text-foreground">יצירת מצגת עם AI</h1>
           <p className="text-muted-foreground text-lg">
-            {hasProfileData
-              ? 'המערכת כבר מכירה את העסק שלך — בחר סגנון ולחץ צור!'
-              : 'ספר לנו על העסק שלך ואנחנו ניצור מצגת מקצועית תוך שניות'}
+            ספר לנו מה המטרה של המצגת ואנחנו ניצור אותה עם הזהות של העסק שלך
           </p>
         </div>
 
         <Card className="border-2">
           <CardContent className="p-6 space-y-5">
-            {/* Theme selector - visual cards */}
+            {/* Theme selector */}
             <div>
               <label className="text-sm font-bold text-foreground mb-3 block">בחר סגנון עיצוב</label>
               <div className="grid grid-cols-3 gap-3">
@@ -1052,33 +1113,61 @@ const BriefScreen = ({
               </div>
             </div>
 
-            {/* Profile data notice */}
-            {hasProfileData && (
+            {/* Profile brand context notice */}
+            {hasProfile && (
               <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-3">
                 <Building2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-bold text-foreground">המצגת תיבנה מתיק הלקוח שלך</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">שירותים, יתרונות, קהל יעד ופרטי קשר — הכל כבר במערכת ✓</p>
+                  <p className="text-sm font-bold text-foreground">צבעוניות, בידול וזהות — כבר אצלנו ✓</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">המצגת תיבנה עם הצבעים, הלוגו והשפה של המותג שלך. עכשיו ספר לנו מה המסר.</p>
                 </div>
               </div>
             )}
 
-            {/* Brief input */}
+            {/* Brief input - REQUIRED */}
             <div>
               <label className="text-sm font-bold text-foreground mb-2 block">
-                {hasProfileData ? 'רוצה להוסיף דגש? (אופציונלי)' : 'על מה המצגת? *'}
+                מה המטרה של המצגת? *
               </label>
-              <Textarea
-                value={brief}
-                onChange={e => setBrief(e.target.value)}
-                placeholder={hasProfileData
-                  ? 'למשל: "תדגיש את השירות החדש שלנו" או "המצגת היא לפגישה עם משקיעים"...'
-                  : `ספר בכמה מילים מה העסק שלך עושה, מה היתרונות ולמי המצגת מיועדת...`
-                }
-                rows={hasProfileData ? 2 : 4}
-                className="text-base"
-                dir="rtl"
-              />
+              <p className="text-xs text-muted-foreground mb-2">
+                למשל: "מצגת לפגישת משקיעים על הפרויקט החדש", "חומר תדמית לשותפים", "הצגת שירות חדש ללקוחות קיימים"...
+              </p>
+              <div className="relative">
+                <Textarea
+                  value={brief}
+                  onChange={e => setBrief(e.target.value)}
+                  placeholder="ספר בכמה מילים: למי מיועדת המצגת? מה המסר המרכזי? מה המטרה?"
+                  rows={4}
+                  className="text-base pl-14"
+                  dir="rtl"
+                />
+                {/* Voice record button */}
+                <div className="absolute left-2 bottom-2">
+                  {isTranscribing ? (
+                    <div className="flex items-center gap-1.5 bg-muted rounded-full px-3 py-1.5">
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      <span className="text-xs text-muted-foreground">מתמלל...</span>
+                    </div>
+                  ) : isRecording ? (
+                    <button
+                      onClick={stopRecording}
+                      className="flex items-center gap-1.5 bg-destructive/10 text-destructive rounded-full px-3 py-1.5 hover:bg-destructive/20 transition-colors"
+                    >
+                      <Square className="w-3.5 h-3.5 fill-current" />
+                      <span className="text-xs font-medium">{formatTime(recordingTime)}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={startRecording}
+                      className="flex items-center gap-1.5 bg-muted hover:bg-muted/80 rounded-full px-3 py-1.5 transition-colors"
+                      title="הקלט בריף קולי"
+                    >
+                      <Mic className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">הקלט</span>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Slide count */}
@@ -1096,7 +1185,7 @@ const BriefScreen = ({
             <Button
               className="w-full h-14 text-lg gap-2 font-bold"
               onClick={() => onGenerate(effectiveBrief, slideCount, theme)}
-              disabled={(!hasProfileData && !brief.trim()) || isLoading}
+              disabled={!brief.trim() || isLoading}
             >
               {isLoading ? (
                 <><Loader2 className="w-5 h-5 animate-spin" />
@@ -1115,7 +1204,6 @@ const BriefScreen = ({
     </div>
   );
 };
-
 // ── Main Component ──
 const PresentationStudio = () => {
   const navigate = useNavigate();
