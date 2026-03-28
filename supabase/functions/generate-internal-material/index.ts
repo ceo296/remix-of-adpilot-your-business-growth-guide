@@ -99,15 +99,22 @@ serve(async (req) => {
 - שעות פעילות: ${pd.openingHours || 'לא סופק'}
 `;
 
-    // Sector brain context - fetched for greeting & article types
+    // Sector brain context - fetched for ALL material types
     let sectorContext = '';
-    const needsSectorBrain = ['greeting', 'article', 'email', 'whatsapp'].includes(type);
+    const mediaTypeMap: Record<string, string[]> = {
+      'greeting': ['greeting', 'copy', 'ad_copy'],
+      'article': ['article', 'copy', 'ad_copy', 'strategy'],
+      'email': ['email', 'copy', 'ad_copy'],
+      'whatsapp': ['whatsapp', 'copy', 'ad_copy'],
+      'business-card': ['copy', 'ad_copy', 'strategy'],
+      'letterhead': ['copy', 'ad_copy', 'strategy'],
+    };
     
-    if (needsSectorBrain) {
+    {
       const [references, guidelines, insights] = await Promise.all([
         fetchSectorBrainReferences(
           supabase,
-          type === 'greeting' ? ['greeting', 'copy', 'ad_copy'] : ['article', 'copy', 'ad_copy', 'strategy', 'email', 'whatsapp'],
+          mediaTypeMap[type] || ['copy', 'ad_copy'],
           pd.topicCategory,
           6
         ),
@@ -130,7 +137,7 @@ serve(async (req) => {
       }
     }
 
-    const harediBrief = needsSectorBrain ? `
+    const harediBrief = `
 כללי חרדיות חובה:
 - שפה מכבדת, ללא סלנג חילוני
 - פנייה בלשון כבוד (רבים/יחיד בהתאם לקהל)
@@ -138,7 +145,7 @@ serve(async (req) => {
 - חגים ומועדים — יש להשתמש בנוסח המסורתי ("חג שמח", "שנה טובה ומתוקה")
 - אסור: תוכן פרובוקטיבי, הומור לא צנוע, הבטחות מופרזות
 - מותר: משחקי מילים, הומור עדין, ציטוטי חז"ל במינון
-` : '';
+`;
 
     let systemPrompt = '';
     let toolDef: any = null;

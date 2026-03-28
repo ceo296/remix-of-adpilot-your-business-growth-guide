@@ -26,11 +26,42 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { brief, businessName, industry, slideCount = 7, theme = 'corporate', profileData } = await req.json();
+    const { brief, businessName, industry, slideCount = 7, theme = 'corporate', profileData, revisionMode, originalSlide } = await req.json();
     
     const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!GOOGLE_GEMINI_API_KEY && !LOVABLE_API_KEY) throw new Error('No AI service configured');
+
+    // Fetch sector brain references
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    let sectorContext = '';
+    try {
+      const { data: guidelines } = await supabase
+        .from('sector_brain_examples')
+        .select('text_content')
+        .eq('is_general_guideline', true)
+        .not('text_content', 'is', null)
+        .limit(5);
+      const { data: insights } = await supabase
+        .from('sector_brain_insights')
+        .select('content')
+        .eq('is_active', true)
+        .limit(5);
+      const { data: refs } = await supabase
+        .from('sector_brain_examples')
+        .select('name, text_content')
+        .eq('is_general_guideline', false)
+        .eq('example_type', 'good')
+        .not('text_content', 'is', null)
+        .in('media_type', ['strategy', 'copy', 'ad_copy'])
+        .limit(6);
+
+      const parts: string[] = [];
+      if (guidelines?.length) parts.push(`## הנחיות סקטוריאליות\n${guidelines.map(g => g.text_content).join('\n')}`);
+      if (insights?.length) parts.push(`## תובנות\n${insights.map(i => i.content).join('\n')}`);
+      if (refs?.length) parts.push(`## דוגמאות מוצלחות כהשראה\n${refs.map((r, i) => `--- דוגמה ${i+1} (${r.name}) ---\n${(r.text_content || '').substring(0, 600)}`).join('\n\n')}`);
+      if (parts.length) sectorContext = `\n\n🧠 רפרנסים סקטוריאליים:\n${parts.join('\n\n')}`;
+    } catch (e) { console.warn('Sector brain fetch failed:', e); }
 
     const pd = profileData || {};
     
@@ -162,8 +193,8 @@ ${profileContext}
     // Load dynamic prompt from DB, fall back to hardcoded
     const dbPrompt = await fetchAgentPrompt('generate-presentation', '');
     const systemPrompt = dbPrompt 
-      ? dbPrompt + `\n\n═══ סגנון נבחר ═══\n${themeInstructions[theme] || themeInstructions.corporate}\n\n═══ image_prompt (חובה לכל שקופית!) ═══\n- פרומפט מפורט באנגלית. NO TEXT, NO LETTERS, NO WOMEN.\n- Cinematic quality, shallow depth of field, golden hour lighting.\n- If humans appear - Haredi Orthodox Jewish men/boys only.\n\n${profileContext}\n\nצור בדיוק ${slideCount} שקופיות.`
-      : DEFAULT_SYSTEM_PROMPT;
+      ? dbPrompt + `\n\n═══ סגנון נבחר ═══\n${themeInstructions[theme] || themeInstructions.corporate}\n\n═══ image_prompt (חובה לכל שקופית!) ═══\n- פרומפט מפורט באנגלית. NO TEXT, NO LETTERS, NO WOMEN.\n- Cinematic quality, shallow depth of field, golden hour lighting.\n- If humans appear - Haredi Orthodox Jewish men/boys only.\n\n${profileContext}${sectorContext}\n\nצור בדיוק ${slideCount} שקופיות.`
+      : DEFAULT_SYSTEM_PROMPT + sectorContext;
 
     const toolsSchema = [{
       type: "function",
