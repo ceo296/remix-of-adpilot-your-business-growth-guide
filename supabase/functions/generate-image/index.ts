@@ -1043,6 +1043,16 @@ TYPOGRAPHY RULES:
 - Text must be SHARP and PERFECTLY READABLE — no blurry or distorted letters
 - CONTACT STRIP TEXT QUALITY: Every single character in the contact strip must be a REAL, READABLE Hebrew letter, digit, or standard punctuation (| : -). NO gibberish, garbled characters, random dots (•••), or placeholder symbols. If you cannot render a word clearly — OMIT IT. Garbled text is worse than no text.
 - STRICT BAN: Never render placeholder numbers such as XXXXX, XXX-XXXX, 00X-XXXXXXX, "...", or "•••".
+
+═══ REAL TEXT ONLY — ZERO TOLERANCE FOR FAKES (MOST CRITICAL RULE) ═══
+You may ONLY render the EXACT text listed above in this block. Nothing else.
+- If a phone number is listed above → render EXACTLY that number, digit by digit.
+- If NO phone number is listed → leave that area BLANK. Do NOT invent "054-XXXXXXX" or "03-000-0000".
+- If NO email is listed → do NOT write any email address.
+- If NO address is listed → do NOT write any address.
+- EVERY visible character in the final image must trace back to the text block above.
+- If the AI model cannot render a Hebrew word clearly → OMIT that word entirely. A clean empty space is infinitely better than garbled/gibberish text.
+- ABSOLUTELY FORBIDDEN fabrications: fake phone numbers, placeholder emails (info@example.com), invented addresses, Lorem Ipsum, "כאן יהיה טקסט", or any text not explicitly provided above.
 ═══════════════════════════════════════════════════════════════════
 `;
     }
@@ -1210,24 +1220,46 @@ CLIENT REVISIONS:
 ${normalizedCorrections.map((c) => `- [${c.type === 'copy' || c.type === 'headline' || c.type === 'subtitle' ? 'TEXT' : c.type === 'visual' ? 'VISUAL' : 'GENERAL'}]: ${c.text}`).join('\n')}
 ` : ''}
 
-NEGATIVE PROMPT — NEVER include in image:
-Split-screens, multiple panels, stock-photo look, low-quality CGI, immodest clothing, distorted limbs.
-No religious objects unless holiday-tagged.
-No English text labels like "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", "TOP", "CENTER", "BOTTOM", "CONTACT", "HEADLINE".
-No placeholder symbols like "XXXXX", "XXX-XXXX", "...", or "•••".
-Only HEBREW text from the curated text block should be visible.
+═══ NEGATIVE PROMPT — ABSOLUTE BAN LIST (NEVER include in image) ═══
+LAYOUT CONTAMINATION:
+❌ English layout labels: "ZONE", "ZONE 1", "ZONE 2", "ZONE 3", "TOP", "CENTER", "BOTTOM", "CONTACT", "HEADLINE", "SUBHEADLINE", "HERO", "CTA", "FOOTER", "HEADER"
+❌ Technical markers: "[", "]", "{{", "}}", "TODO", "PLACEHOLDER", "INSERT HERE"
 
-FINAL CHECKLIST:
+PLACEHOLDER TEXT:
+❌ Fake phone numbers: "XXXXX", "XXX-XXXX", "054-XXXXXXX", "03-000-0000", "1-800-XXX", any X-pattern
+❌ Fake contact info: "info@example.com", "www.example.com", "רחוב ראשי 1", any generic/invented address
+❌ Filler text: "Lorem ipsum", "כאן יהיה טקסט", "טקסט לדוגמה", "שם העסק", dots as placeholders (•••, ..., ···)
+❌ Repeated characters used as fill: "■■■", "▬▬▬", "───", "===", "***"
+
+VISUAL ERRORS:
+❌ Split-screens, collages, multiple panels, grids of separate images
+❌ Stock-photo watermarks, low-quality CGI, clipart
+❌ Distorted limbs, extra fingers, uncanny faces
+❌ Immodest clothing, women/girls in any form
+❌ Religious objects (menorah, shofar, matzah, lulav, etc.) unless explicitly holiday-tagged above
+
+COPY LEAKAGE:
+❌ Copying the full client brief as visible text in the ad
+❌ Any sentence longer than 12 words appearing as text in the image (except the headline/subtitle provided above)
+❌ Marketing jargon visible in ad: "קהל יעד", "בידול", "USP", "CTA", "ROI"
+
+Only HEBREW text from the curated HEBREW TEXT block above should be visible in the final image.
+═══════════════════════════════════════════════════════════════════
+
+FINAL CHECKLIST (self-verify EVERY point before outputting):
 ✓ Hebrew text is correct, right-to-left, perfectly readable — NO typos or garbled letters
 ✓ 3-area grid: headline top, visual center, contact strip bottom
-✓ Contact details are accurate and complete — NO gibberish, random dots (•••), or garbled characters anywhere
-✓ Every character in the contact strip is a real Hebrew letter, digit, or standard separator (| : -)
+✓ EVERY visible character traces back to the HEBREW TEXT block — no invented text anywhere
+✓ ${primaryPhone ? `Phone number "${primaryPhone}" appears EXACTLY as written — digit by digit` : 'NO phone number appears anywhere (none was provided)'}
+✓ ${email ? `Email "${email}" appears exactly as written` : 'NO email appears (none was provided)'}
+✓ Contact strip contains ZERO gibberish, random dots (•••), garbled characters, or placeholder symbols
 ✓ Logo is properly placed (if provided)
 ✓ Visual is cinematic and premium
-✓ No clipped/cut Hebrew text at edges or overlays
+✓ No clipped/cut Hebrew text at edges (5% safety margin from all edges)
 ✓ All community rules respected
-✓ NO English layout labels (ZONE, etc.) visible anywhere in the image
-✓ The OFFER/NEWS from the brief is clearly communicated in the headline — not replaced by generic text`;
+✓ NO English text visible anywhere in the image
+✓ The OFFER/NEWS from the brief is clearly communicated in the headline — not replaced by generic text
+✓ No text was copied verbatim from the brief — only the curated headline/subtitle appear`;
 
     const engineVersion = engine === 'nano-banana-pro' ? 'nano-banana-pro' : 'nano-banana';
     console.log(`[Pipeline] Starting All-in-One generation (engine: ${engineVersion})`);
