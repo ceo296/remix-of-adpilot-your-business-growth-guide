@@ -42,6 +42,8 @@ const LetterheadStudio = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [letterType, setLetterType] = useState('general');
+  const [revisionNote, setRevisionNote] = useState('');
+  const [isRevising, setIsRevising] = useState(false);
 
   const color = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#2A2F33';
@@ -481,6 +483,64 @@ const LetterheadStudio = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* AI Revision Card */}
+            {letterData.letterContent && (
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <h3 className="text-sm font-bold text-foreground">בקש תיקון מה-AI</h3>
+                  <Textarea
+                    value={revisionNote}
+                    onChange={e => setRevisionNote(e.target.value)}
+                    placeholder="למשל: הארך את המכתב, שנה טון לרשמי יותר, הוסף סעיף על..."
+                    rows={2}
+                  />
+                  <Button
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={async () => {
+                      if (!revisionNote.trim()) return;
+                      setIsRevising(true);
+                      try {
+                        const { data, error } = await supabase.functions.invoke('generate-internal-material', {
+                          body: {
+                            type: 'letterhead',
+                            profileData: {
+                              businessName: profile?.business_name,
+                              phone: profile?.contact_phone,
+                              email: profile?.contact_email,
+                              address: profile?.contact_address,
+                              website: profile?.website_url,
+                            },
+                            extraContext: {
+                              letterType,
+                              recipientName: letterData.recipientName,
+                              revisionNote: revisionNote.trim(),
+                              originalContent: letterData.letterContent,
+                            },
+                          },
+                        });
+                        if (error) throw error;
+                        const result = data?.result;
+                        if (result?.letterContent) {
+                          setLetterData(prev => ({ ...prev, letterContent: result.letterContent }));
+                          setRevisionNote('');
+                          toast.success('המכתב עודכן!');
+                        }
+                      } catch (err: any) {
+                        toast.error(err.message || 'שגיאה בתיקון');
+                      } finally {
+                        setIsRevising(false);
+                      }
+                    }}
+                    disabled={isRevising || !revisionNote.trim()}
+                  >
+                    {isRevising ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                    {isRevising ? 'מתקן...' : 'בקש תיקון'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             <Button 
               className="w-full gap-2" 

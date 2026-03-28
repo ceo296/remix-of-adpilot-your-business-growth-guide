@@ -40,6 +40,8 @@ const BusinessCardStudio = () => {
   const [viewingSide, setViewingSide] = useState<'front' | 'back'>('front');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [revisionNote, setRevisionNote] = useState('');
+  const [isRevising, setIsRevising] = useState(false);
 
   const color = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#2A2F33';
