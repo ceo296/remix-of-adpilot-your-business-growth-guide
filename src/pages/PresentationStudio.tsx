@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PresentationViewer } from '@/components/studio/PresentationViewer';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowRight, Plus, Trash2, ChevronLeft, ChevronRight, Download,
-  Eye, Copy, Sparkles, Wand2, Loader2, Palette, Building2, Zap
+  Eye, Copy, Sparkles, Wand2, Loader2, Palette, Building2, Zap, Mic, Square
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
