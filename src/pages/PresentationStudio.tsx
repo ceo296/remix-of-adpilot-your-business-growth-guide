@@ -1335,7 +1335,7 @@ const PresentationStudio = () => {
     }
   }, [brandColor]);
 
-  const handleGenerate = async (brief: string, slideCount: number, theme: PresentationTheme) => {
+  const handleGenerate = async (brief: string, slideCount: number, theme: PresentationTheme, _presentationType?: PresentationType) => {
     setIsGenerating(true);
     setCurrentTheme(theme);
     try {
