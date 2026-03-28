@@ -476,7 +476,7 @@ ${designApproach === 'creative-freedom' ? 'חופש יצירתי מלא — עי
     const sectorBrainData = await fetchSectorBrainFromDB(holidaySeason || null, topicCategory || null);
     const sectorContext = sectorBrainData 
       ? `\n\n=== רפרנסים מ-Sector Brain (${sectorBrainData.total_examples} דוגמאות, ${sectorBrainData.holiday_specific_count || 0} ספציפיות ל"${holidayName || 'כל השנה'}") ===
-למד מהדוגמאות האלה! שים לב לסגנון הכותרות, משחקי המילים, הטוויסטים. העלה את הרמה שלך לפחות לרמה הזאת:
+🛡️ פרוטוקול מקוריות: למד מהדוגמאות את ה"איך" (מקצב, טוויסט, אווירה, אוצר מילים) — אך חל איסור מוחלט על העתקת "מילה במילה" או שחזור קומפוזיציות. פרק כל רפרנס לגורמים ("ניגודיות צבעים", "שאלה רטורית", "טוויסט על ביטוי") ואז הרכב מחדש בצורה מקורית. המטרה: קריאייטיב "פצצתי" שמרגיש כמו משרד פרסום חרדי ותיק, אך מביא בשורה חדשה בכל פעם:
 ${JSON.stringify(sectorBrainData.zones)}
 דוגמאות מ-"hall_of_fame" = השראה חיובית. "red_lines" = מה לא לעשות.
 בקמפיין עונתי — תעדיף את הדוגמאות הספציפיות לחג!
