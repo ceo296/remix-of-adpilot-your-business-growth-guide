@@ -1043,6 +1043,16 @@ TYPOGRAPHY RULES:
 - Text must be SHARP and PERFECTLY READABLE — no blurry or distorted letters
 - CONTACT STRIP TEXT QUALITY: Every single character in the contact strip must be a REAL, READABLE Hebrew letter, digit, or standard punctuation (| : -). NO gibberish, garbled characters, random dots (•••), or placeholder symbols. If you cannot render a word clearly — OMIT IT. Garbled text is worse than no text.
 - STRICT BAN: Never render placeholder numbers such as XXXXX, XXX-XXXX, 00X-XXXXXXX, "...", or "•••".
+
+═══ REAL TEXT ONLY — ZERO TOLERANCE FOR FAKES (MOST CRITICAL RULE) ═══
+You may ONLY render the EXACT text listed above in this block. Nothing else.
+- If a phone number is listed above → render EXACTLY that number, digit by digit.
+- If NO phone number is listed → leave that area BLANK. Do NOT invent "054-XXXXXXX" or "03-000-0000".
+- If NO email is listed → do NOT write any email address.
+- If NO address is listed → do NOT write any address.
+- EVERY visible character in the final image must trace back to the text block above.
+- If the AI model cannot render a Hebrew word clearly → OMIT that word entirely. A clean empty space is infinitely better than garbled/gibberish text.
+- ABSOLUTELY FORBIDDEN fabrications: fake phone numbers, placeholder emails (info@example.com), invented addresses, Lorem Ipsum, "כאן יהיה טקסט", or any text not explicitly provided above.
 ═══════════════════════════════════════════════════════════════════
 `;
     }
