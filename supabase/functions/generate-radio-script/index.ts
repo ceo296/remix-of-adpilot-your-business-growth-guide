@@ -128,7 +128,7 @@ serve(async (req) => {
       if (guidelines?.length) parts.push(`## הנחיות סקטוריאליות\n${guidelines.map(g => g.text_content).join('\n')}`);
       if (insights?.length) parts.push(`## תובנות\n${insights.map(i => i.content).join('\n')}`);
       if (refs?.length) parts.push(`## דוגמאות מוצלחות כהשראה\n${refs.map((r, i) => `--- דוגמה ${i+1} (${r.name}) ---\n${(r.text_content || '').substring(0, 500)}`).join('\n\n')}`);
-      if (parts.length) sectorContext = `\n\n🧠 רפרנסים סקטוריאליים:\n${parts.join('\n\n')}`;
+      if (parts.length) sectorContext = `\n\n🧠 רפרנסים סקטוריאליים:\n${parts.join('\n\n')}\n\n🛡️ פרוטוקול מקוריות: למד מהדוגמאות את הקצב, הטון, המבנה הדרמטי — אך אל תעתיק משפטים או מבני תסריט. פרק כל רפרנס לגורמים ("פתיחה דרמטית", "טוויסט באמצע", "סיום עם הוק") והרכב מחדש. המטרה: תסריט מקורי שמרגיש כמו משרד פרסום חרדי ותיק אך מביא בשורה חדשה.`;
     } catch (e) { console.warn('Sector brain fetch failed:', e); }
 
     const userPrompt = `צור 2 גרסאות תסריט רדיו עבור הקמפיין הבא:${fixContext}${sectorContext}
