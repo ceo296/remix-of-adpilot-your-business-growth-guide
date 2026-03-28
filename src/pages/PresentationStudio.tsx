@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowRight, Plus, Trash2, ChevronLeft, ChevronRight, Download,
-  Eye, Copy, Sparkles, Wand2, Loader2, Palette, Building2, Zap, Mic, Square
+  Eye, Copy, Sparkles, Wand2, Loader2, Palette, Building2, Zap, Mic, Square,
+  Briefcase, HandCoins, Users, FileText
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
@@ -19,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // ── Types ──
 export type PresentationTheme = 'minimal' | 'corporate' | 'creative';
+export type PresentationType = 'profile' | 'proposal' | 'investor' | 'custom';
 
 interface SlideData {
   id: string;
@@ -941,6 +943,49 @@ const THEMES: { id: PresentationTheme; label: string; desc: string; icon: React.
   { id: 'creative', label: 'יצירתי', desc: 'נועז, צבעוני, סוחף', icon: <Zap className="w-6 h-6" /> },
 ];
 
+// ── Presentation Types ──
+const PRESENTATION_TYPES: { id: PresentationType; label: string; desc: string; icon: React.ReactNode; placeholder: string }[] = [
+  { id: 'profile', label: 'תדמית', desc: 'מציגה את העסק, שירותים ויתרונות', icon: <Briefcase className="w-5 h-5" />, placeholder: 'ספר על השירות או התחום שהמצגת צריכה להדגיש, למי היא מיועדת...' },
+  { id: 'proposal', label: 'הצעת מחיר', desc: 'חבילות, מחירים, תנאים ויתרונות', icon: <HandCoins className="w-5 h-5" />, placeholder: 'מה השירות שמוצע? מהם המחירים/חבילות? מה כלול?' },
+  { id: 'investor', label: 'פגישת משקיעים', desc: 'בעיה, פתרון, שוק, צוות, תחזיות', icon: <Users className="w-5 h-5" />, placeholder: 'מהי הבעיה שאתם פותרים? מה הפתרון? מי קהל היעד? מה גודל השוק?' },
+  { id: 'custom', label: 'מותאם אישית', desc: 'ספר לנו בדיוק מה צריך', icon: <FileText className="w-5 h-5" />, placeholder: 'תאר את מטרת המצגת, למי מיועדת ומה המסר המרכזי...' },
+];
+
+const PRESENTATION_TYPE_INSTRUCTIONS: Record<PresentationType, string> = {
+  profile: `סוג המצגת: מצגת תדמית (Company Profile).
+מבנה שקופיות מומלץ:
+1. COVER - שער עם שם העסק ומשפט מפתח
+2. ABOUT - מי אנחנו, סיפור העסק
+3. SERVICES - השירותים/מוצרים העיקריים
+4. METHODOLOGY - איך אנחנו עובדים / התהליך שלנו
+5. SOCIAL_PROOF - למה לבחור בנו, הישגים, נכסי אמון
+6. TARGET_AUDIENCE - למי מתאים
+7. CTA - צור קשר + סיום מקצועי`,
+
+  proposal: `סוג המצגת: הצעת מחיר / הצעה עסקית (Business Proposal).
+מבנה שקופיות מומלץ:
+1. COVER - שער עם כותרת ההצעה
+2. ABOUT - מי אנחנו (תמצית קצרה)
+3. SERVICES - מה אנחנו מציעים (החבילות/שירותים)
+4. VALUE_PROP - למה דווקא אנחנו (יתרונות מובהקים)
+5. PROCESS - איך זה עובד / שלבי העבודה
+6. STATS - תוצאות מוכחות / נתונים
+7. CTA - סיכום + פרטי קשר + קריאה לפעולה`,
+
+  investor: `סוג המצגת: Pitch Deck / פגישת משקיעים.
+מבנה שקופיות מומלץ:
+1. COVER - שם החברה + Tagline חד
+2. ABOUT - הבעיה שאנחנו פותרים
+3. VISION - הפתרון שלנו
+4. SERVICES - המוצר / שירות
+5. STATS - גודל השוק, נתונים, טרקשן
+6. METHODOLOGY - מודל עסקי / איך מרוויחים
+7. SOCIAL_PROOF - הישגים, לקוחות, שותפויות
+8. CTA - מה אנחנו מחפשים (סכום גיוס, שיתוף פעולה)`,
+
+  custom: '',
+};
+
 // ── Build brief from profile ──
 const buildBriefFromProfile = (profile: any): string => {
   const parts: string[] = [];
@@ -991,7 +1036,7 @@ const buildBriefFromProfile = (profile: any): string => {
 const BriefScreen = ({
   onGenerate, businessName, isLoading, profile, generationProgress,
 }: {
-  onGenerate: (brief: string, count: number, theme: PresentationTheme) => void;
+  onGenerate: (brief: string, count: number, theme: PresentationTheme, presentationType: PresentationType) => void;
   businessName: string;
   isLoading: boolean;
   profile: any;
@@ -1000,6 +1045,7 @@ const BriefScreen = ({
   const [brief, setBrief] = useState('');
   const [slideCount, setSlideCount] = useState(7);
   const [theme, setTheme] = useState<PresentationTheme>('corporate');
+  const [presentationType, setPresentationType] = useState<PresentationType>('profile');
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -1013,8 +1059,9 @@ const BriefScreen = ({
   const profileContext = hasProfile ? buildBriefFromProfile(profile) : '';
 
   // The effective brief = user's specific message + profile as background context
+  const typeInstruction = PRESENTATION_TYPE_INSTRUCTIONS[presentationType];
   const effectiveBrief = brief.trim()
-    ? `${brief.trim()}${profileContext ? `\n\n--- רקע מתיק הלקוח (לצבעוניות, בידול וזהות בלבד) ---\n${profileContext}` : ''}`
+    ? `${typeInstruction ? `${typeInstruction}\n\n` : ''}${brief.trim()}${profileContext ? `\n\n--- רקע מתיק הלקוח (לצבעוניות, בידול וזהות בלבד) ---\n${profileContext}` : ''}`
     : '';
 
   // Voice recording
