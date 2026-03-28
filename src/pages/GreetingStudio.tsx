@@ -62,6 +62,8 @@ const GreetingStudio = () => {
   // Design step
   const [selectedLayout, setSelectedLayout] = useState('centered');
   const designRef = useRef<HTMLDivElement>(null);
+  const [revisionNote, setRevisionNote] = useState('');
+  const [isRevising, setIsRevising] = useState(false);
 
   const primaryColor = profile?.primary_color || '#E34870';
   const secondaryColor = profile?.secondary_color || '#333333';
@@ -270,6 +272,64 @@ const GreetingStudio = () => {
                 <p className="text-foreground/90 leading-relaxed whitespace-pre-line mb-3">{editBody}</p>
                 <p className="text-muted-foreground italic mb-1">{editClosing}</p>
                 <p className="text-sm font-medium" style={{ color: primaryColor }}>{businessName}</p>
+              </CardContent>
+            </Card>
+
+            {/* AI Revision */}
+            <Card className="mb-6">
+              <CardContent className="p-4 space-y-3" dir="rtl">
+                <Label className="text-sm font-medium">בקש תיקון מה-AI</Label>
+                <Textarea
+                  value={revisionNote}
+                  onChange={e => setRevisionNote(e.target.value)}
+                  placeholder="למשל: טון יותר חם, קצר יותר, הוסף ברכה אישית, שנה את הסגנון..."
+                  rows={2}
+                />
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    if (!revisionNote.trim()) return;
+                    setIsRevising(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke('generate-internal-material', {
+                        body: {
+                          type: 'greeting',
+                          profileData: {
+                            businessName: profile?.business_name,
+                            phone: profile?.contact_phone,
+                          },
+                          extraContext: {
+                            occasion: selectedOccasion,
+                            recipientName,
+                            revisionNote: revisionNote.trim(),
+                            originalContent: {
+                              headline: editHeadline,
+                              greetingText: editBody,
+                              closingLine: editClosing,
+                            },
+                          },
+                        },
+                      });
+                      if (error) throw error;
+                      const r = data?.result;
+                      if (r) {
+                        setEditHeadline(r.headline || editHeadline);
+                        setEditBody(r.greetingText || editBody);
+                        setEditClosing(r.closingLine || editClosing);
+                        setRevisionNote('');
+                        toast.success('הברכה עודכנה!');
+                      }
+                    } catch (err: any) {
+                      toast.error(err.message || 'שגיאה בתיקון');
+                    } finally {
+                      setIsRevising(false);
+                    }
+                  }}
+                  disabled={isRevising || !revisionNote.trim()}
+                >
+                  {isRevising ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <Sparkles className="w-4 h-4 ml-1" />}
+                  {isRevising ? 'מתקן...' : 'בקש תיקון'}
+                </Button>
               </CardContent>
             </Card>
 

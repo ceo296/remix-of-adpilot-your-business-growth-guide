@@ -1129,6 +1129,8 @@ const PresentationStudio = () => {
   const [currentTheme, setCurrentTheme] = useState<PresentationTheme>('corporate');
   const [imagesGenerating, setImagesGenerating] = useState(0);
   const [generationProgress, setGenerationProgress] = useState<{ phase: string; current: number; total: number } | null>(null);
+  const [slideRevisionNote, setSlideRevisionNote] = useState('');
+  const [isRevisingSlide, setIsRevisingSlide] = useState(false);
 
   const brandColor = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#1a1a2e';
@@ -1568,6 +1570,66 @@ const PresentationStudio = () => {
                 }}><Plus className="w-3 h-3 ml-1" />הוסף שלב</Button>
               </div>
             )}
+          </div>
+
+          {/* AI Revision */}
+          <div className="border-t border-border pt-4 space-y-3">
+            <h3 className="font-bold text-foreground text-sm">בקש תיקון מה-AI</h3>
+            <Textarea
+              value={slideRevisionNote}
+              onChange={e => setSlideRevisionNote(e.target.value)}
+              placeholder="למשל: שנה טון, הארך תוכן, הוסף נתון..."
+              className="text-sm min-h-[60px]"
+              dir="rtl"
+            />
+            <Button
+              size="sm"
+              className="w-full gap-2"
+              onClick={async () => {
+                if (!slideRevisionNote.trim()) return;
+                setIsRevisingSlide(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke('generate-presentation', {
+                    body: {
+                      brief: slideRevisionNote.trim(),
+                      businessName,
+                      slideCount: 1,
+                      theme: currentTheme,
+                      revisionMode: true,
+                      originalSlide: currentSlide,
+                      profileData: profile ? {
+                        businessName: profile.business_name,
+                        xFactors: profile.x_factors,
+                        targetAudience: profile.target_audience,
+                        services: profile.services,
+                      } : undefined,
+                    },
+                  });
+                  if (error) throw error;
+                  const revised = data?.slides?.[0];
+                  if (revised) {
+                    updateSlide(activeSlide, {
+                      title: revised.title || currentSlide.title,
+                      subtitle: revised.subtitle || currentSlide.subtitle,
+                      body: revised.body || currentSlide.body,
+                      bullets: revised.bullets || currentSlide.bullets,
+                      stats: revised.stats || currentSlide.stats,
+                      steps: revised.steps || currentSlide.steps,
+                    });
+                    setSlideRevisionNote('');
+                    toast.success('השקופית עודכנה!');
+                  }
+                } catch (err: any) {
+                  toast.error(err.message || 'שגיאה בתיקון');
+                } finally {
+                  setIsRevisingSlide(false);
+                }
+              }}
+              disabled={isRevisingSlide || !slideRevisionNote.trim()}
+            >
+              {isRevisingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {isRevisingSlide ? 'מתקן...' : 'תקן שקופית'}
+            </Button>
           </div>
         </div>
       </div>

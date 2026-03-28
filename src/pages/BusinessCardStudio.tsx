@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ArrowRight, Download, RotateCcw, Eye, FileText, Sparkles, Loader2 } from 'lucide-react';
@@ -40,6 +41,8 @@ const BusinessCardStudio = () => {
   const [viewingSide, setViewingSide] = useState<'front' | 'back'>('front');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [revisionNote, setRevisionNote] = useState('');
+  const [isRevising, setIsRevising] = useState(false);
 
   const color = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#2A2F33';
@@ -542,6 +545,66 @@ const BusinessCardStudio = () => {
               </CardContent>
             </Card>
 
+            {/* AI Revision */}
+            <Card>
+              <CardContent className="p-4 space-y-3">
+                <h3 className="text-sm font-bold text-foreground">בקש תיקון מה-AI</h3>
+                <Textarea
+                  value={revisionNote}
+                  onChange={e => setRevisionNote(e.target.value)}
+                  placeholder="למשל: שנה תפקיד, הצע תואר מקצועי יותר, הוסף tagline..."
+                  rows={2}
+                />
+                <Button
+                  size="sm"
+                  className="w-full gap-2"
+                  onClick={async () => {
+                    if (!revisionNote.trim()) return;
+                    setIsRevising(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke('generate-internal-material', {
+                        body: {
+                          type: 'business-card',
+                          profileData: {
+                            businessName: profile?.business_name,
+                            phone: profile?.contact_phone,
+                            email: profile?.contact_email,
+                            address: profile?.contact_address,
+                            website: profile?.website_url,
+                            xFactors: profile?.x_factors,
+                            winningFeature: profile?.winning_feature,
+                          },
+                          extraContext: {
+                            revisionNote: revisionNote.trim(),
+                            currentTitle: cardData.title,
+                            currentPersonName: cardData.personName,
+                          },
+                        },
+                      });
+                      if (error) throw error;
+                      const result = data?.result;
+                      if (result) {
+                        setCardData(prev => ({
+                          ...prev,
+                          ...(result.title && { title: result.title }),
+                          ...(result.personName && { personName: result.personName }),
+                        }));
+                        setRevisionNote('');
+                        toast.success('הכרטיס עודכן!');
+                      }
+                    } catch (err: any) {
+                      toast.error(err.message || 'שגיאה בתיקון');
+                    } finally {
+                      setIsRevising(false);
+                    }
+                  }}
+                  disabled={isRevising || !revisionNote.trim()}
+                >
+                  {isRevising ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {isRevising ? 'מתקן...' : 'בקש תיקון'}
+                </Button>
+              </CardContent>
+            </Card>
             <Button 
               className="w-full gap-2" 
               variant="outline"
