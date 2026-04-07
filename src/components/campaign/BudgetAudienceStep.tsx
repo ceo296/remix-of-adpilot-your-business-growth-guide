@@ -83,6 +83,7 @@ interface BudgetAudienceStepProps {
   clientProfileId?: string;
   campaignName?: string;
   skipIntake?: boolean;
+  audienceTone?: string | null;
 }
 
 const STREAMS = [
