@@ -259,6 +259,8 @@ export const useAdkopAgents = () => {
           targetStream: mri.conservatismLevel >= 7 ? 'חסידי' : mri.conservatismLevel >= 5 ? 'ליטאי' : 'כללי',
           targetGender: mri.targetAudience.includes('women') ? 'נשים' : mri.targetAudience.includes('men') ? 'גברים' : 'מעורב',
           campaignGoal: mri.productFunction,
+          selectedMediaTypes: campaign.mediaChannels,
+          budget: wizardData.budget || undefined,
         },
       });
 
