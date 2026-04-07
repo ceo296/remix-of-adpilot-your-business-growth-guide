@@ -17,72 +17,54 @@ serve(async (req) => {
     const GEMINI_KEY = Deno.env.get("GOOGLE_GEMINI_API_KEY");
     const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
 
+    const voiceName = selectVoice(voiceDirection);
     const voiceInstruction = buildVoiceInstruction(voiceDirection);
+    const ttsPrompt = voiceInstruction + "\n\nPlease read the following Hebrew radio advertisement script aloud with proper pronunciation, intonation, and emotion:\n\n" + script;
 
-    // Try Gemini TTS first
-    let audioPart: any = null;
+    const ttsPayload = {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: ttsPrompt }],
+        },
+      ],
+      generationConfig: {
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: voiceName,
+            },
+          },
+        },
+      },
+    };
+
+    // Attempt 1: Direct Gemini API
     if (GEMINI_KEY) {
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${GEMINI_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: "user",
-                  parts: [
-                    {
-                      text: `${voiceInstruction}\n\nPlease read the following Hebrew radio advertisement script aloud with proper pronunciation, intonation, and emotion:\n\n${script}`,
-                    },
-                  ],
-                },
-              ],
-              generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: {
-                  voiceConfig: {
-                    prebuiltVoiceConfig: {
-                      voiceName: selectVoice(voiceDirection),
-                    },
-                  },
-                },
-              },
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          audioPart = data.candidates?.[0]?.content?.parts?.find(
-            (p: any) => p.inlineData?.mimeType?.startsWith("audio/")
-          );
-        } else {
-          console.warn("Gemini TTS failed:", response.status);
-        }
-      } catch (e) {
-        console.warn("Gemini TTS error:", e);
+      const result = await tryGeminiDirect(GEMINI_KEY, ttsPayload);
+      if (result) {
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 
-    if (audioPart?.inlineData) {
-      return new Response(
-        JSON.stringify({ 
-          audioAvailable: true,
-          audioBase64: audioPart.inlineData.data,
-          mimeType: audioPart.inlineData.mimeType,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Attempt 2: Lovable AI Gateway
+    if (LOVABLE_KEY) {
+      const result = await tryLovableGateway(LOVABLE_KEY, ttsPrompt, voiceName);
+      if (result) {
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
-    // Fallback: no audio available
-    console.warn("No audio from Gemini TTS, returning text-only");
+    // Fallback: no audio
     return new Response(
-      JSON.stringify({ 
-        audioAvailable: false, 
-        message: "קריינות אינה זמינה כרגע. התסריט מוכן כטקסט." 
+      JSON.stringify({
+        audioAvailable: false,
+        message: "קריינות אינה זמינה כרגע. התסריט מוכן כטקסט.",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -95,27 +77,113 @@ serve(async (req) => {
   }
 });
 
+async function tryGeminiDirect(apiKey: string, payload: any): Promise<any | null> {
+  const models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"];
+  
+  for (const model of models) {
+    try {
+      console.log("Trying Gemini TTS model:", model);
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + apiKey;
+      
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        console.warn("Gemini TTS " + model + " returned " + resp.status + ": " + errText.substring(0, 500));
+        continue;
+      }
+
+      const data = await resp.json();
+      const audioPart = data.candidates?.[0]?.content?.parts?.find(
+        (p: any) => p.inlineData?.mimeType?.startsWith("audio/")
+      );
+
+      if (audioPart?.inlineData) {
+        console.log("TTS success with " + model);
+        return {
+          audioAvailable: true,
+          audioBase64: audioPart.inlineData.data,
+          mimeType: audioPart.inlineData.mimeType,
+        };
+      }
+    } catch (e) {
+      console.warn("Gemini TTS " + model + " error:", e);
+    }
+  }
+  return null;
+}
+
+async function tryLovableGateway(apiKey: string, prompt: string, voiceName: string): Promise<any | null> {
+  try {
+    console.log("Trying Lovable AI Gateway for TTS");
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + apiKey,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        modalities: ["audio"],
+        audio: {
+          voice: voiceName.toLowerCase(),
+          format: "mp3",
+        },
+      }),
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.warn("Lovable Gateway TTS failed (" + resp.status + "): " + errText.substring(0, 300));
+      return null;
+    }
+
+    const data = await resp.json();
+    const audioData = data.choices?.[0]?.message?.audio?.data;
+    if (audioData) {
+      console.log("TTS success via Lovable Gateway");
+      return {
+        audioAvailable: true,
+        audioBase64: audioData,
+        mimeType: "audio/mp3",
+      };
+    }
+  } catch (e) {
+    console.warn("Lovable Gateway TTS error:", e);
+  }
+  return null;
+}
+
 function selectVoice(voiceDirection: any): string {
-  // Gemini prebuilt voices - select based on gender
   const gender = voiceDirection?.gender || "גברי";
   if (gender === "נשי" || gender === "women") {
-    return "Zephyr"; // Female voice
+    return "Zephyr";
   }
-  return "Charon"; // Male voice
+  return "Charon";
 }
 
 function buildVoiceInstruction(voiceDirection: any): string {
   if (!voiceDirection) return "Read in a warm, professional tone in Hebrew.";
-  
+
   const parts = [
-    `Voice style: ${voiceDirection.style || "warm and professional"}`,
-    `Tone: ${voiceDirection.tone || "professional"}`,
-    `Pace: ${voiceDirection.pace || "medium"}`,
+    "Voice style: " + (voiceDirection.style || "warm and professional"),
+    "Tone: " + (voiceDirection.tone || "professional"),
+    "Pace: " + (voiceDirection.pace || "medium"),
   ];
-  
+
   if (voiceDirection.notes) {
-    parts.push(`Additional notes: ${voiceDirection.notes}`);
+    parts.push("Additional notes: " + voiceDirection.notes);
   }
-  
+
   return parts.join(". ") + ". Read clearly in Hebrew with proper nikud pronunciation.";
 }
