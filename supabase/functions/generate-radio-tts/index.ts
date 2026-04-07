@@ -15,80 +15,84 @@ serve(async (req) => {
     if (!script) throw new Error("Missing script text");
 
     const GEMINI_KEY = Deno.env.get("GOOGLE_GEMINI_API_KEY");
-    const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     const voiceInstruction = buildVoiceInstruction(voiceDirection);
+    const voiceName = selectVoice(voiceDirection);
 
-    // Try Gemini TTS first
-    let audioPart: any = null;
-    let ttsError: string | null = null;
+    const ttsPrompt = `${voiceInstruction}\n\nPlease read the following Hebrew radio advertisement script aloud with proper pronunciation, intonation, and emotion:\n\n${script}`;
+
+    // Try Gemini TTS
     if (GEMINI_KEY) {
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${GEMINI_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: "user",
-                  parts: [
-                    {
-                      text: `${voiceInstruction}\n\nPlease read the following Hebrew radio advertisement script aloud with proper pronunciation, intonation, and emotion:\n\n${script}`,
-                    },
-                  ],
-                },
-              ],
-              generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: {
-                  voiceConfig: {
-                    prebuiltVoiceConfig: {
-                      voiceName: selectVoice(voiceDirection),
-                    },
+      // Try multiple model variants
+      const models = [
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-pro-preview-tts",
+      ];
+
+      for (const model of models) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
+          
+          const payload = {
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: ttsPrompt }],
+              },
+            ],
+            generationConfig: {
+              responseModalities: ["AUDIO"],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: {
+                    voiceName: voiceName,
                   },
                 },
               },
-            }),
+            },
+          };
+
+          console.log(`Trying TTS model: ${model}, voice: ${voiceName}`);
+
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const audioPart = data.candidates?.[0]?.content?.parts?.find(
+              (p: any) => p.inlineData?.mimeType?.startsWith("audio/")
+            );
+
+            if (audioPart?.inlineData) {
+              console.log(`TTS success with model: ${model}`);
+              return new Response(
+                JSON.stringify({
+                  audioAvailable: true,
+                  audioBase64: audioPart.inlineData.data,
+                  mimeType: audioPart.inlineData.mimeType,
+                }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+              );
+            }
+          } else {
+            const errText = await response.text();
+            console.warn(`TTS model ${model} failed (${response.status}): ${errText.substring(0, 300)}`);
           }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          audioPart = data.candidates?.[0]?.content?.parts?.find(
-            (p: any) => p.inlineData?.mimeType?.startsWith("audio/")
-          );
-        } else {
-          ttsError = await response.text();
-          console.warn("Gemini TTS failed:", response.status, ttsError.substring(0, 500));
+        } catch (e) {
+          console.warn(`TTS model error:`, e);
         }
-      } catch (e) {
-        ttsError = e instanceof Error ? e.message : String(e);
-        console.warn("Gemini TTS error:", ttsError);
       }
-    } else {
-      ttsError = "No GEMINI_KEY";
-    }
-
-    if (audioPart?.inlineData) {
-      return new Response(
-        JSON.stringify({ 
-          audioAvailable: true,
-          audioBase64: audioPart.inlineData.data,
-          mimeType: audioPart.inlineData.mimeType,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
     }
 
     // Fallback: no audio available
-    console.warn("No audio from Gemini TTS, returning text-only");
+    console.warn("No TTS audio generated from any model");
     return new Response(
-      JSON.stringify({ 
-        audioAvailable: false, 
+      JSON.stringify({
+        audioAvailable: false,
         message: "קריינות אינה זמינה כרגע. התסריט מוכן כטקסט.",
-        debugError: ttsError?.substring(0, 500) || null
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -102,26 +106,25 @@ serve(async (req) => {
 });
 
 function selectVoice(voiceDirection: any): string {
-  // Gemini prebuilt voices - select based on gender
   const gender = voiceDirection?.gender || "גברי";
   if (gender === "נשי" || gender === "women") {
-    return "Zephyr"; // Female voice
+    return "Zephyr";
   }
-  return "Charon"; // Male voice
+  return "Charon";
 }
 
 function buildVoiceInstruction(voiceDirection: any): string {
   if (!voiceDirection) return "Read in a warm, professional tone in Hebrew.";
-  
+
   const parts = [
     `Voice style: ${voiceDirection.style || "warm and professional"}`,
     `Tone: ${voiceDirection.tone || "professional"}`,
     `Pace: ${voiceDirection.pace || "medium"}`,
   ];
-  
+
   if (voiceDirection.notes) {
     parts.push(`Additional notes: ${voiceDirection.notes}`);
   }
-  
+
   return parts.join(". ") + ". Read clearly in Hebrew with proper nikud pronunciation.";
 }
