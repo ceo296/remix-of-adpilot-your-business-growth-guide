@@ -166,6 +166,36 @@ serve(async (req) => {
       contextBlock += `\n=== הנחיות סוכן-העל ===\n${JSON.stringify(superAgentPayload, null, 2)}\n`;
     }
 
+    // === STRICT CONSTRAINTS ===
+    contextBlock += `\n=== אילוצים מחייבים (MUST FOLLOW) ===\n`;
+    
+    if (budget) {
+      contextBlock += `🔴 תקציב מקסימלי: ₪${budget}. אסור בשום אופן לחרוג מהתקציב הזה. סה"כ כל הפריטים בתוכנית חייב להיות שווה או נמוך מ-₪${budget}.\n`;
+    }
+    
+    if (selectedMediaTypes && selectedMediaTypes.length > 0) {
+      const mediaTypeMap: Record<string, string> = {
+        'newspapers': 'עיתונות (עיתונים ומגזינים)',
+        'radio': 'רדיו',
+        'digital': 'דיגיטל (אתרים ובאנרים)',
+        'signage': 'שילוט (חוצות)',
+        'email': 'מיילים/ניוזלטרים',
+        'whatsapp': 'וואטסאפ',
+      };
+      const requestedTypes = selectedMediaTypes.map((t: string) => mediaTypeMap[t] || t).join(', ');
+      contextBlock += `🔴 סוגי מדיה שנבחרו על ידי הלקוח: ${requestedTypes}. התמקד אך ורק בסוגי מדיה אלו! אל תציע ערוצים מסוגים אחרים אלא אם הלקוח ביקש במפורש.\n`;
+    }
+
+    if (mediaScope) {
+      const scopeMap: Record<string, string> = { national: 'ארצי בלבד', local: 'מקומי בלבד', both: 'ארצי + מקומי' };
+      contextBlock += `🔴 היקף גיאוגרפי: ${scopeMap[mediaScope] || mediaScope}\n`;
+    }
+
+    if (brandTone) {
+      const toneMap: Record<string, string> = { premium: 'יוקרתי — בחר רק ערוצים מכובדים', popular: 'עממי — הפצות רחבות ומשתלמות', balanced: 'מאוזן — שילוב של מכובד ונגיש' };
+      contextBlock += `🔴 אופי המותג: ${toneMap[brandTone] || brandTone}\n`;
+    }
+
     contextBlock += `\n=== פרמטרי קמפיין ===\n`;
     if (budget) contextBlock += `תקציב: ₪${budget}\n`;
     if (targetStream) contextBlock += `זרם: ${targetStream}\n`;
