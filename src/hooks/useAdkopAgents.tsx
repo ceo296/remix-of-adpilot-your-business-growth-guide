@@ -260,7 +260,6 @@ export const useAdkopAgents = () => {
           targetGender: mri.targetAudience.includes('women') ? 'נשים' : mri.targetAudience.includes('men') ? 'גברים' : 'מעורב',
           campaignGoal: mri.productFunction,
           selectedMediaTypes: campaign.mediaChannels,
-          budget: wizardData.budget || undefined,
         },
       });
 
