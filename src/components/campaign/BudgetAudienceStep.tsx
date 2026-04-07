@@ -481,7 +481,7 @@ export const BudgetAudienceStep = ({
           <p className="text-muted-foreground text-sm mt-1">כדי שנתאים לך את המדיה הכי רלוונטית</p>
         </div>
 
-        <MediaIntakeForm data={mediaIntake} onChange={setMediaIntake} />
+        <MediaIntakeForm data={mediaIntake} onChange={setMediaIntake} hideBrandTone={hasBrandToneFromProfile} />
 
         {intakeReady && (
           <div className="text-center">
