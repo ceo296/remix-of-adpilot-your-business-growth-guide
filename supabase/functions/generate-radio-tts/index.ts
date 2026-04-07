@@ -59,7 +59,8 @@ serve(async (req) => {
             (p: any) => p.inlineData?.mimeType?.startsWith("audio/")
           );
         } else {
-          console.warn("Gemini TTS failed:", response.status);
+          const errBody = await response.text();
+          console.warn("Gemini TTS failed:", response.status, errBody);
         }
       } catch (e) {
         console.warn("Gemini TTS error:", e);
