@@ -88,7 +88,7 @@ serve(async (req) => {
       JSON.stringify({ 
         audioAvailable: false, 
         message: "קריינות אינה זמינה כרגע. התסריט מוכן כטקסט.",
-        debug: audioPart === null ? "no_audio_part" : "no_inline_data"
+        debugError: ttsError?.substring(0, 500) || null
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
