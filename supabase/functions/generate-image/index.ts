@@ -337,7 +337,9 @@ The client's ACTUAL brand logo is attached as the LAST image.
     messageContent[0].text = `LOGO NOTE: No logo was provided. Leave the bottom-left corner of the contact strip clean for later logo placement. Do NOT invent any logo.\n\n` + messageContent[0].text;
   }
 
-  const MAX_RETRIES = 3;
+  const MAX_RETRIES = 5;
+  const RATE_LIMIT_DELAYS = [8000, 15000, 30000, 45000, 60000]; // Progressive backoff for 429
+  
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
   for (const tryModel of models) {
     console.log(`[All-in-One] Trying model: ${tryModel} (attempt ${attempt + 1}/${MAX_RETRIES})`);
@@ -361,7 +363,6 @@ The client's ACTUAL brand logo is attached as the LAST image.
         console.log("[All-in-One] Success with model:", tryModel);
         return { imageUrl, model: tryModel };
       }
-      // Model returned OK but no image — log details and retry
       const textContent = data.choices?.[0]?.message?.content || '(no text)';
       console.error(`[All-in-One] No image in response from ${tryModel}. Text: ${textContent.substring(0, 200)}`);
       console.log("[All-in-One] Retrying after no-image response...");
@@ -372,8 +373,17 @@ The client's ACTUAL brand logo is attached as the LAST image.
       const errorText = await response.text();
       console.error(`[All-in-One] ${tryModel} error:`, status, errorText);
 
-      if (status === 429) throw { status: 429, message: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." };
       if (status === 402) throw { status: 402, message: "נגמרו הקרדיטים. יש להוסיף קרדיטים בהגדרות." };
+
+      if (status === 429) {
+        const delay = RATE_LIMIT_DELAYS[attempt] || 60000;
+        console.log(`[All-in-One] Rate limited (429). Auto-waiting ${delay / 1000}s before retry ${attempt + 2}/${MAX_RETRIES}...`);
+        if (attempt < MAX_RETRIES - 1) {
+          await new Promise(r => setTimeout(r, delay));
+          break; // Break inner models loop to retry from outer loop
+        }
+        throw { status: 429, message: "הגעת למגבלת הבקשות. נסה שוב בעוד כמה דקות." };
+      }
 
       if (status === 500 && tryModel !== models[models.length - 1]) {
         await new Promise(r => setTimeout(r, 2000));
