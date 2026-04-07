@@ -132,6 +132,14 @@ export const RadioScriptStep = ({
     setPhase('text-approved');
   };
 
+  const handleApproveAndGenerate = () => {
+    if (!selectedScriptId) {
+      toast.error('בחר גרסה קודם');
+      return;
+    }
+    handleGenerateVoiceover();
+  };
+
   const handleSubmitTextFix = async () => {
     if (!fixInstruction.trim()) {
       toast.error('כתוב מה לתקן');
@@ -391,17 +399,27 @@ export const RadioScriptStep = ({
           {/* Bottom Actions */}
           <div className="flex flex-col gap-3 items-center max-w-md mx-auto pt-4">
             <Button
-              onClick={handleApproveText}
+              onClick={handleApproveAndGenerate}
               variant="gradient"
               size="lg"
               className="w-full gap-2"
               disabled={!selectedScriptId}
             >
-              <Heart className="h-5 w-5" />
-              אהבתי! בואו נמשיך
+              <Mic className="h-5 w-5" />
+              אהבתי! צור קריינות 🎙️
             </Button>
             <Button
+              onClick={handleApproveText}
               variant="outline"
+              size="lg"
+              className="w-full gap-2"
+              disabled={!selectedScriptId}
+            >
+              <Heart className="h-5 w-5" />
+              אשר טקסט בלבד
+            </Button>
+            <Button
+              variant="ghost"
               size="lg"
               className="w-full gap-2"
               onClick={() => {
