@@ -60,7 +60,7 @@ serve(async (req) => {
       if (guidelines?.length) parts.push(`## הנחיות סקטוריאליות\n${guidelines.map(g => g.text_content).join('\n')}`);
       if (insights?.length) parts.push(`## תובנות\n${insights.map(i => i.content).join('\n')}`);
       if (refs?.length) parts.push(`## דוגמאות מוצלחות כהשראה\n${refs.map((r, i) => `--- דוגמה ${i+1} (${r.name}) ---\n${(r.text_content || '').substring(0, 600)}`).join('\n\n')}`);
-      if (parts.length) sectorContext = `\n\n🧠 רפרנסים סקטוריאליים:\n${parts.join('\n\n')}\n\nif (parts.length) sectorContext = `\n\n🧠 רפרנסים סקטוריאליים:\n${parts.join('\n\n')}\n\n🛡️ פרוטוקול מקוריות:\n- למד מהרפרנסים הכל: מילים, ביטויים, מבנה שקופיות, טון, אווירה, קומפוזיציה.\n- ספוג את השפה הסקטוריאלית — זה הסגנון שלך.\n- אבל: אסור בהחלט להעתיק משפט שלם, שקופית, או מבנה אחד-לאחד.\n- פרק לגורמים → הרכב מחדש בצורה מקורית.\n- המטרה: מצגת שמרגישה כמו העולם הזה — אבל חדשה לגמרי.`;
+      if (parts.length) sectorContext = `\n\n🧠 רפרנסים סקטוריאליים:\n${parts.join('\n\n')}\n\n🛡️ פרוטוקול מקוריות:\n- למד מהרפרנסים הכל: מילים, ביטויים, מבנה שקופיות, טון, אווירה, קומפוזיציה.\n- ספוג את השפה הסקטוריאלית — זה הסגנון שלך.\n- אבל: אסור בהחלט להעתיק משפט שלם, שקופית, או מבנה אחד-לאחד.\n- פרק לגורמים → הרכב מחדש בצורה מקורית.\n- המטרה: מצגת שמרגישה כמו העולם הזה — אבל חדשה לגמרי.`;
     } catch (e) { console.warn('Sector brain fetch failed:', e); }
 
     const pd = profileData || {};
