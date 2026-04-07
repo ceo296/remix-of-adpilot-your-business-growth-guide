@@ -53,7 +53,7 @@ const CHANNEL_PREFS = [
   { id: 'mixed' as const, label: 'שילוב של הכול', desc: 'תנו לי פריסה רחבה — קצת מכל דבר', icon: <Users className="h-5 w-5" /> },
 ];
 
-export const MediaIntakeForm = ({ data, onChange }: MediaIntakeFormProps) => {
+export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFormProps) => {
   const update = (partial: Partial<MediaIntakeData>) => onChange({ ...data, ...partial });
 
   return (
