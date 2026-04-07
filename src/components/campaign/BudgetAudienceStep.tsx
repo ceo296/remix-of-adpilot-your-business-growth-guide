@@ -82,6 +82,7 @@ interface BudgetAudienceStepProps {
   mediaScope?: MediaScope;
   clientProfileId?: string;
   campaignName?: string;
+  skipIntake?: boolean;
 }
 
 const STREAMS = [

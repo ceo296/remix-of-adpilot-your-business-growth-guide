@@ -488,7 +488,7 @@ const FastTrackWizard = () => {
           <LayoutGrid className="w-10 h-10 text-white" />
         </div>
         <h2 className="text-3xl font-bold text-foreground mb-3">איזה סוגי מדיה אתה צריך?</h2>
-        <p className="text-lg text-muted-foreground">בחר את סוגי המדיה שברצונך לרכוש (ניתן לבחור כמה)</p>
+        <p className="text-lg text-muted-foreground">בחר את סוגי המדיה שברצונך לרכוש — <span className="text-primary font-semibold">ניתן לבחור כמה!</span></p>
       </div>
 
       {/* Media Type Cards */}
