@@ -132,6 +132,14 @@ export const RadioScriptStep = ({
     setPhase('text-approved');
   };
 
+  const handleApproveAndGenerate = () => {
+    if (!selectedScriptId) {
+      toast.error('בחר גרסה קודם');
+      return;
+    }
+    handleGenerateVoiceover();
+  };
+
   const handleSubmitTextFix = async () => {
     if (!fixInstruction.trim()) {
       toast.error('כתוב מה לתקן');
