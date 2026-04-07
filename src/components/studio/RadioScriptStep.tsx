@@ -399,7 +399,7 @@ export const RadioScriptStep = ({
           {/* Bottom Actions */}
           <div className="flex flex-col gap-3 items-center max-w-md mx-auto pt-4">
             <Button
-              onClick={handleApproveText}
+              onClick={handleApproveAndGenerate}
               variant="gradient"
               size="lg"
               className="w-full gap-2"
