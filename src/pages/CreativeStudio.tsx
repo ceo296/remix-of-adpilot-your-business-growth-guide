@@ -424,6 +424,10 @@ const CreativeStudio = () => {
   const [showAutopilotRadio, setShowAutopilotRadio] = useState(false);
   const [autopilotRadioScript, setAutopilotRadioScript] = useState<{ title: string; script: string; duration?: string; voiceNotes?: string } | null>(null);
   const [isGeneratingRadio, setIsGeneratingRadio] = useState(false);
+  const [isGeneratingTts, setIsGeneratingTts] = useState(false);
+  const [radioAudioUrl, setRadioAudioUrl] = useState<string | null>(null);
+  const [isPlayingRadio, setIsPlayingRadio] = useState(false);
+  const [radioAudioRef] = useState<{ current: HTMLAudioElement | null }>({ current: null });
   const [showAutopilotArticle, setShowAutopilotArticle] = useState(false);
   const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string } | null>(null);
   const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
