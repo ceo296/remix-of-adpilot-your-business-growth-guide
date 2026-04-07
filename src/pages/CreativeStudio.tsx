@@ -1137,6 +1137,9 @@ const CreativeStudio = () => {
     setShowAutopilotEmail(false);
     setShowAutopilotWhatsapp(false);
     setAutopilotRadioScript(null);
+    setRadioAudioUrl(null);
+    setIsPlayingRadio(false);
+    if (radioAudioRef.current) { radioAudioRef.current.pause(); radioAudioRef.current = null; }
     setAutopilotArticle(null);
     setAutopilotBannerUrl(null);
     setAutopilotEmailContent(null);
