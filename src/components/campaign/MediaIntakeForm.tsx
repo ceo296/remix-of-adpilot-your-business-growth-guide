@@ -31,6 +31,7 @@ export const initialMediaIntake: MediaIntakeData = {
 interface MediaIntakeFormProps {
   data: MediaIntakeData;
   onChange: (data: MediaIntakeData) => void;
+  hideBrandTone?: boolean;
 }
 
 const GOALS = [
@@ -52,7 +53,7 @@ const CHANNEL_PREFS = [
   { id: 'mixed' as const, label: 'שילוב של הכול', desc: 'תנו לי פריסה רחבה — קצת מכל דבר', icon: <Users className="h-5 w-5" /> },
 ];
 
-export const MediaIntakeForm = ({ data, onChange }: MediaIntakeFormProps) => {
+export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFormProps) => {
   const update = (partial: Partial<MediaIntakeData>) => onChange({ ...data, ...partial });
 
   return (
@@ -92,38 +93,40 @@ export const MediaIntakeForm = ({ data, onChange }: MediaIntakeFormProps) => {
         </CardContent>
       </Card>
 
-      {/* Brand Tone */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Crown className="h-5 w-5 text-primary" />
-            מה האופי של המותג?
-          </CardTitle>
-          <CardDescription>האם יש פלטפורמות שפחות מתאימות לאופי שלכם?</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-3">
-            {TONES.map((tone) => (
-              <button
-                key={tone.id}
-                type="button"
-                onClick={() => update({ brandTone: tone.id })}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all ${
-                  data.brandTone === tone.id
-                    ? 'border-primary bg-primary/5 shadow-sm'
-                    : 'border-border bg-card hover:border-primary/30'
-                }`}
-              >
-                <span className={data.brandTone === tone.id ? 'text-primary' : 'text-muted-foreground'}>
-                  {tone.icon}
-                </span>
-                <span className="font-semibold text-sm text-foreground">{tone.label}</span>
-                <span className="text-xs text-muted-foreground">{tone.desc}</span>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Brand Tone — hidden if already known from client profile */}
+      {!hideBrandTone && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Crown className="h-5 w-5 text-primary" />
+              מה האופי של המותג?
+            </CardTitle>
+            <CardDescription>האם יש פלטפורמות שפחות מתאימות לאופי שלכם?</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-3">
+              {TONES.map((tone) => (
+                <button
+                  key={tone.id}
+                  type="button"
+                  onClick={() => update({ brandTone: tone.id })}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all ${
+                    data.brandTone === tone.id
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-border bg-card hover:border-primary/30'
+                  }`}
+                >
+                  <span className={data.brandTone === tone.id ? 'text-primary' : 'text-muted-foreground'}>
+                    {tone.icon}
+                  </span>
+                  <span className="font-semibold text-sm text-foreground">{tone.label}</span>
+                  <span className="text-xs text-muted-foreground">{tone.desc}</span>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Channel Preference */}
       <Card>

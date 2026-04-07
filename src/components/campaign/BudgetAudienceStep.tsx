@@ -83,6 +83,7 @@ interface BudgetAudienceStepProps {
   clientProfileId?: string;
   campaignName?: string;
   skipIntake?: boolean;
+  audienceTone?: string | null;
 }
 
 const STREAMS = [
@@ -202,7 +203,15 @@ export const BudgetAudienceStep = ({
   clientProfileId,
   campaignName,
   skipIntake = false,
+  audienceTone,
 }: BudgetAudienceStepProps) => {
+  // Map client profile audience_tone to intake brandTone
+  const mappedBrandTone = audienceTone === 'premium' ? 'premium' as const
+    : audienceTone === 'popular' ? 'popular' as const
+    : audienceTone === 'balanced' ? 'balanced' as const
+    : '' as const;
+  const hasBrandToneFromProfile = !!mappedBrandTone;
+
   const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [packageConfirmed, setPackageConfirmed] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -210,7 +219,10 @@ export const BudgetAudienceStep = ({
   const [loadingMedia, setLoadingMedia] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedCampaignId, setSavedCampaignId] = useState<string | null>(null);
-  const [mediaIntake, setMediaIntake] = useState<MediaIntakeData>(initialMediaIntake);
+  const [mediaIntake, setMediaIntake] = useState<MediaIntakeData>({
+    ...initialMediaIntake,
+    brandTone: mappedBrandTone,
+  });
   const [intakeCompleted, setIntakeCompleted] = useState(skipIntake);
 
   const intakeReady = mediaIntake.campaignGoal && mediaIntake.brandTone && mediaIntake.channelPreference;
@@ -469,7 +481,7 @@ export const BudgetAudienceStep = ({
           <p className="text-muted-foreground text-sm mt-1">כדי שנתאים לך את המדיה הכי רלוונטית</p>
         </div>
 
-        <MediaIntakeForm data={mediaIntake} onChange={setMediaIntake} />
+        <MediaIntakeForm data={mediaIntake} onChange={setMediaIntake} hideBrandTone={hasBrandToneFromProfile} />
 
         {intakeReady && (
           <div className="text-center">
