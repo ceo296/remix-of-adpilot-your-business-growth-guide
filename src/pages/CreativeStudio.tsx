@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import confetti from 'canvas-confetti';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move, Radio, Newspaper, Monitor, Mail, Check, Send, Heading1, Heading2, LayoutGrid, Circle, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Wand2, Shield, ChevronLeft, ChevronRight, Sparkles, Loader2, ImageIcon, Type, RefreshCw, MessageSquare, CheckCircle2, X, PenTool, Pencil, Plus, FileDown, ZoomIn, Move, Radio, Newspaper, Monitor, Mail, Check, Send, Heading1, Heading2, LayoutGrid, Circle, ShieldCheck, Volume2, Play, Pause, Mic } from 'lucide-react';
 import { isPdfUrl, pdfToImage } from '@/lib/pdf-utils';
 import { matchTemplateFromAnalysis, buildLayoutInstructions } from '@/lib/template-matcher';
 import { exportToPrintPdf, exportMultiPagePdf } from '@/lib/print-export';
@@ -424,6 +424,10 @@ const CreativeStudio = () => {
   const [showAutopilotRadio, setShowAutopilotRadio] = useState(false);
   const [autopilotRadioScript, setAutopilotRadioScript] = useState<{ title: string; script: string; duration?: string; voiceNotes?: string } | null>(null);
   const [isGeneratingRadio, setIsGeneratingRadio] = useState(false);
+  const [isGeneratingTts, setIsGeneratingTts] = useState(false);
+  const [radioAudioUrl, setRadioAudioUrl] = useState<string | null>(null);
+  const [isPlayingRadio, setIsPlayingRadio] = useState(false);
+  const [radioAudioRef] = useState<{ current: HTMLAudioElement | null }>({ current: null });
   const [showAutopilotArticle, setShowAutopilotArticle] = useState(false);
   const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string } | null>(null);
   const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
@@ -1133,10 +1137,63 @@ const CreativeStudio = () => {
     setShowAutopilotEmail(false);
     setShowAutopilotWhatsapp(false);
     setAutopilotRadioScript(null);
+    setRadioAudioUrl(null);
+    setIsPlayingRadio(false);
+    if (radioAudioRef.current) { radioAudioRef.current.pause(); radioAudioRef.current = null; }
     setAutopilotArticle(null);
     setAutopilotBannerUrl(null);
     setAutopilotEmailContent(null);
     setAutopilotWhatsappContent(null);
+  };
+
+  // Generate TTS voiceover from autopilot radio script
+  const handleGenerateRadioTts = async () => {
+    if (!autopilotRadioScript?.script) return;
+    setIsGeneratingTts(true);
+    setRadioAudioUrl(null);
+    try {
+      const voiceDirection = {
+        gender: mediaTargetGender === 'women' ? 'נשי' : 'גברי',
+        style: 'חם ומזמין',
+        tone: 'אנרגטי',
+        pace: 'בינוני',
+      };
+      const { data: ttsResult, error } = await supabase.functions.invoke('generate-radio-tts', {
+        body: {
+          script: autopilotRadioScript.script,
+          voiceDirection,
+          clientProfileId: clientProfile?.id,
+          scriptTitle: autopilotRadioScript.title,
+        },
+      });
+      if (error) throw error;
+      if (ttsResult?.audioUrl) {
+        setRadioAudioUrl(ttsResult.audioUrl);
+        toast.success('הקריינות מוכנה! 🎙️');
+      } else {
+        throw new Error('לא התקבל קובץ אודיו');
+      }
+    } catch (err: any) {
+      console.error('TTS error:', err);
+      toast.error(err.message || 'שגיאה ביצירת קריינות');
+    } finally {
+      setIsGeneratingTts(false);
+    }
+  };
+
+  const toggleRadioPlayback = () => {
+    if (!radioAudioUrl) return;
+    if (!radioAudioRef.current) {
+      radioAudioRef.current = new Audio(radioAudioUrl);
+      radioAudioRef.current.onended = () => setIsPlayingRadio(false);
+    }
+    if (isPlayingRadio) {
+      radioAudioRef.current.pause();
+      setIsPlayingRadio(false);
+    } else {
+      radioAudioRef.current.play();
+      setIsPlayingRadio(true);
+    }
   };
 
   // Handle platform-specific fix requests in 360° mode
@@ -3203,7 +3260,38 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                             </Card>
                           )}
                           
+                          {/* Audio Player */}
+                          {radioAudioUrl && (
+                            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 mb-3">
+                              <Button
+                                onClick={toggleRadioPlayback}
+                                size="sm"
+                                className="rounded-full w-9 h-9 p-0 bg-gradient-to-br from-violet-500 to-purple-600"
+                              >
+                                {isPlayingRadio ? <Pause className="h-4 w-4 text-white" /> : <Play className="h-4 w-4 text-white mr-[-1px]" />}
+                              </Button>
+                              <span className="text-sm text-foreground">הקריינות מוכנה</span>
+                              <Button variant="ghost" size="sm" onClick={() => {
+                                const a = document.createElement('a');
+                                a.href = radioAudioUrl;
+                                a.download = `radio-${clientProfile?.business_name || 'script'}.mp3`;
+                                a.click();
+                              }}>
+                                <FileDown className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          )}
+
                           <div className="flex gap-2 flex-wrap">
+                            <Button
+                              size="sm"
+                              onClick={handleGenerateRadioTts}
+                              disabled={isGeneratingTts}
+                              className="gap-1.5 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white"
+                            >
+                              {isGeneratingTts ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mic className="h-3.5 w-3.5" />}
+                              {isGeneratingTts ? 'מייצר קריינות...' : radioAudioUrl ? 'צור קריינות מחדש' : 'צור קריינות 🎙️'}
+                            </Button>
                             <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(autopilotRadioScript.script); toast.success('התשדיר הועתק!'); }}>
                               העתק תשדיר
                             </Button>
@@ -3781,9 +3869,32 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                           {autopilotRadioScript.voiceNotes && (
                             <div className="text-xs text-muted-foreground mb-4">הנחיות קריינות: {autopilotRadioScript.voiceNotes}</div>
                           )}
-                          <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(autopilotRadioScript.script); toast.success('התשדיר הועתק!'); }}>
-                            העתק תשדיר
-                          </Button>
+                          {radioAudioUrl && (
+                            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 mb-3">
+                              <Button
+                                onClick={toggleRadioPlayback}
+                                size="sm"
+                                className="rounded-full w-9 h-9 p-0 bg-gradient-to-br from-violet-500 to-purple-600"
+                              >
+                                {isPlayingRadio ? <Pause className="h-4 w-4 text-white" /> : <Play className="h-4 w-4 text-white mr-[-1px]" />}
+                              </Button>
+                              <span className="text-sm text-foreground">הקריינות מוכנה</span>
+                            </div>
+                          )}
+                          <div className="flex gap-2 flex-wrap">
+                            <Button
+                              size="sm"
+                              onClick={handleGenerateRadioTts}
+                              disabled={isGeneratingTts}
+                              className="gap-1.5 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white"
+                            >
+                              {isGeneratingTts ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mic className="h-3.5 w-3.5" />}
+                              {isGeneratingTts ? 'מייצר קריינות...' : radioAudioUrl ? 'צור קריינות מחדש' : 'צור קריינות 🎙️'}
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(autopilotRadioScript.script); toast.success('התשדיר הועתק!'); }}>
+                              העתק תשדיר
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     ) : (
