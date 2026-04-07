@@ -201,6 +201,7 @@ export const BudgetAudienceStep = ({
   mediaScope,
   clientProfileId,
   campaignName,
+  skipIntake = false,
 }: BudgetAudienceStepProps) => {
   const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [packageConfirmed, setPackageConfirmed] = useState(false);
@@ -210,7 +211,7 @@ export const BudgetAudienceStep = ({
   const [isSaving, setIsSaving] = useState(false);
   const [savedCampaignId, setSavedCampaignId] = useState<string | null>(null);
   const [mediaIntake, setMediaIntake] = useState<MediaIntakeData>(initialMediaIntake);
-  const [intakeCompleted, setIntakeCompleted] = useState(false);
+  const [intakeCompleted, setIntakeCompleted] = useState(skipIntake);
 
   const intakeReady = mediaIntake.campaignGoal && mediaIntake.brandTone && mediaIntake.channelPreference;
 

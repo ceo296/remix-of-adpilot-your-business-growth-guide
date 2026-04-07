@@ -662,6 +662,7 @@ const FastTrackWizard = () => {
         onPackageSelect={setSelectedPackage}
         selectedMediaTypes={getFilteredMediaTypes()}
         mediaScope={mediaScope || undefined}
+        skipIntake={mediaPath === 'self'}
       />
 
       {/* Navigation */}
