@@ -21,6 +21,7 @@ serve(async (req) => {
 
     // Try Gemini TTS first
     let audioPart: any = null;
+    let ttsError: string | null = null;
     if (GEMINI_KEY) {
       try {
         const response = await fetch(
@@ -59,12 +60,15 @@ serve(async (req) => {
             (p: any) => p.inlineData?.mimeType?.startsWith("audio/")
           );
         } else {
-          const errBody = await response.text();
-          console.warn("Gemini TTS failed:", response.status, errBody);
+          ttsError = await response.text();
+          console.warn("Gemini TTS failed:", response.status, ttsError.substring(0, 500));
         }
       } catch (e) {
-        console.warn("Gemini TTS error:", e);
+        ttsError = e instanceof Error ? e.message : String(e);
+        console.warn("Gemini TTS error:", ttsError);
       }
+    } else {
+      ttsError = "No GEMINI_KEY";
     }
 
     if (audioPart?.inlineData) {
