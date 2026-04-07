@@ -31,6 +31,7 @@ export const initialMediaIntake: MediaIntakeData = {
 interface MediaIntakeFormProps {
   data: MediaIntakeData;
   onChange: (data: MediaIntakeData) => void;
+  hideBrandTone?: boolean;
 }
 
 const GOALS = [
