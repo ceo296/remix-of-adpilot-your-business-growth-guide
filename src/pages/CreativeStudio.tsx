@@ -1143,6 +1143,56 @@ const CreativeStudio = () => {
     setAutopilotWhatsappContent(null);
   };
 
+  // Generate TTS voiceover from autopilot radio script
+  const handleGenerateRadioTts = async () => {
+    if (!autopilotRadioScript?.script) return;
+    setIsGeneratingTts(true);
+    setRadioAudioUrl(null);
+    try {
+      const voiceDirection = {
+        gender: mediaTargetGender === 'women' ? 'נשי' : 'גברי',
+        style: 'חם ומזמין',
+        tone: 'אנרגטי',
+        pace: 'בינוני',
+      };
+      const { data: ttsResult, error } = await supabase.functions.invoke('generate-radio-tts', {
+        body: {
+          script: autopilotRadioScript.script,
+          voiceDirection,
+          clientProfileId: clientProfile?.id,
+          scriptTitle: autopilotRadioScript.title,
+        },
+      });
+      if (error) throw error;
+      if (ttsResult?.audioUrl) {
+        setRadioAudioUrl(ttsResult.audioUrl);
+        toast.success('הקריינות מוכנה! 🎙️');
+      } else {
+        throw new Error('לא התקבל קובץ אודיו');
+      }
+    } catch (err: any) {
+      console.error('TTS error:', err);
+      toast.error(err.message || 'שגיאה ביצירת קריינות');
+    } finally {
+      setIsGeneratingTts(false);
+    }
+  };
+
+  const toggleRadioPlayback = () => {
+    if (!radioAudioUrl) return;
+    if (!radioAudioRef.current) {
+      radioAudioRef.current = new Audio(radioAudioUrl);
+      radioAudioRef.current.onended = () => setIsPlayingRadio(false);
+    }
+    if (isPlayingRadio) {
+      radioAudioRef.current.pause();
+      setIsPlayingRadio(false);
+    } else {
+      radioAudioRef.current.play();
+      setIsPlayingRadio(true);
+    }
+  };
+
   // Handle platform-specific fix requests in 360° mode
   const handlePlatformFix = async (platform: 'radio' | 'article' | 'email' | 'whatsapp') => {
     if (!platformFixText.trim()) return;
