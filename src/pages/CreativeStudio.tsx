@@ -1167,11 +1167,12 @@ const CreativeStudio = () => {
         },
       });
       if (error) throw error;
-      if (ttsResult?.audioUrl) {
-        setRadioAudioUrl(ttsResult.audioUrl);
+      if (ttsResult?.audioAvailable && ttsResult?.audioBase64) {
+        const audioUrl = `data:${ttsResult.mimeType || 'audio/mp3'};base64,${ttsResult.audioBase64}`;
+        setRadioAudioUrl(audioUrl);
         toast.success('הקריינות מוכנה! 🎙️');
       } else {
-        throw new Error('לא התקבל קובץ אודיו');
+        toast.info(ttsResult?.message || 'קריינות אינה זמינה כרגע');
       }
     } catch (err: any) {
       console.error('TTS error:', err);
