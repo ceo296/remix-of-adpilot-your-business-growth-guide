@@ -88,6 +88,9 @@ serve(async (req) => {
       campaignGoal,
       campaignDuration,
       conversationHistory,
+      selectedMediaTypes,
+      mediaScope,
+      brandTone,
     } = await req.json();
 
     if (!message) {
