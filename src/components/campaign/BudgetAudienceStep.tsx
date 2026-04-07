@@ -497,25 +497,27 @@ export const BudgetAudienceStep = ({
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Intake summary badge */}
-      <Card className="bg-muted/30">
-        <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Badge variant="secondary">
-              {mediaIntake.campaignGoal === 'sales' ? 'מכירות' : mediaIntake.campaignGoal === 'awareness' ? 'חשיפה' : mediaIntake.campaignGoal === 'launch' ? 'השקה' : 'אירוע'}
-            </Badge>
-            <Badge variant="secondary">
-              {mediaIntake.brandTone === 'premium' ? 'יוקרתי' : mediaIntake.brandTone === 'popular' ? 'עממי' : 'מאוזן'}
-            </Badge>
-            <Badge variant="secondary">
-              {mediaIntake.channelPreference === 'traditional' ? 'מסורתי' : mediaIntake.channelPreference === 'digital' ? 'דיגיטלי' : 'משולב'}
-            </Badge>
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => setIntakeCompleted(false)} className="text-xs">
-            שנה העדפות
+      {/* Intake summary badge — only show if intake was actually filled */}
+      {!skipIntake && (
+        <Card className="bg-muted/30">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Badge variant="secondary">
+                {mediaIntake.campaignGoal === 'sales' ? 'מכירות' : mediaIntake.campaignGoal === 'awareness' ? 'חשיפה' : mediaIntake.campaignGoal === 'launch' ? 'השקה' : 'אירוע'}
+              </Badge>
+              <Badge variant="secondary">
+                {mediaIntake.brandTone === 'premium' ? 'יוקרתי' : mediaIntake.brandTone === 'popular' ? 'עממי' : 'מאוזן'}
+              </Badge>
+              <Badge variant="secondary">
+                {mediaIntake.channelPreference === 'traditional' ? 'מסורתי' : mediaIntake.channelPreference === 'digital' ? 'דיגיטלי' : 'משולב'}
+              </Badge>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setIntakeCompleted(false)} className="text-xs">
+              שנה העדפות
           </Button>
         </CardContent>
       </Card>
+      )}
       {onStartDateChange && (
         <Card>
           <CardHeader>
