@@ -663,6 +663,7 @@ const FastTrackWizard = () => {
         selectedMediaTypes={getFilteredMediaTypes()}
         mediaScope={mediaScope || undefined}
         skipIntake={mediaPath === 'self'}
+        audienceTone={activeProfile?.audience_tone}
       />
 
       {/* Navigation */}
