@@ -54,11 +54,11 @@ const CAMPAIGN_GOALS = [
 
 const MEDIA_TYPES = [
   { id: 'newspapers', label: 'עיתונות', description: 'עיתונים ומגזינים', icon: Newspaper, gradient: 'from-slate-600 to-slate-700' },
-  { id: 'radio', label: 'רדיו', description: 'פרסום קולי', icon: Radio, gradient: 'from-blue-500 to-cyan-600' },
-  { id: 'signage', label: 'שילוט', description: 'שלטי חוצות ומודעות', icon: Signpost, gradient: 'from-amber-500 to-orange-600' },
   { id: 'digital', label: 'דיגיטל', description: 'אתרים ובאנרים', icon: Monitor, gradient: 'from-violet-500 to-purple-600' },
+  { id: 'radio', label: 'רדיו', description: 'פרסום קולי', icon: Radio, gradient: 'from-blue-500 to-cyan-600' },
   { id: 'email', label: 'מיילים', description: 'קמפיין מייל', icon: Mail, gradient: 'from-green-500 to-emerald-600' },
   { id: 'whatsapp', label: 'ווטסאפ', description: 'הודעות ממוקדות', icon: MessageCircle, gradient: 'from-green-600 to-green-700' },
+  { id: 'signage', label: 'שילוט', description: 'שלטי חוצות ומודעות', icon: Signpost, gradient: 'from-amber-500 to-orange-600' },
 ];
 
 type WizardStep = 'brief' | 'mediaChoice' | 'mediaType' | 'mediaScope' | 'media' | 'quote';
