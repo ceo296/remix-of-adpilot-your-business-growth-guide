@@ -3866,9 +3866,32 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                           {autopilotRadioScript.voiceNotes && (
                             <div className="text-xs text-muted-foreground mb-4">הנחיות קריינות: {autopilotRadioScript.voiceNotes}</div>
                           )}
-                          <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(autopilotRadioScript.script); toast.success('התשדיר הועתק!'); }}>
-                            העתק תשדיר
-                          </Button>
+                          {radioAudioUrl && (
+                            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 mb-3">
+                              <Button
+                                onClick={toggleRadioPlayback}
+                                size="sm"
+                                className="rounded-full w-9 h-9 p-0 bg-gradient-to-br from-violet-500 to-purple-600"
+                              >
+                                {isPlayingRadio ? <Pause className="h-4 w-4 text-white" /> : <Play className="h-4 w-4 text-white mr-[-1px]" />}
+                              </Button>
+                              <span className="text-sm text-foreground">הקריינות מוכנה</span>
+                            </div>
+                          )}
+                          <div className="flex gap-2 flex-wrap">
+                            <Button
+                              size="sm"
+                              onClick={handleGenerateRadioTts}
+                              disabled={isGeneratingTts}
+                              className="gap-1.5 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white"
+                            >
+                              {isGeneratingTts ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mic className="h-3.5 w-3.5" />}
+                              {isGeneratingTts ? 'מייצר קריינות...' : radioAudioUrl ? 'צור קריינות מחדש' : 'צור קריינות 🎙️'}
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(autopilotRadioScript.script); toast.success('התשדיר הועתק!'); }}>
+                              העתק תשדיר
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     ) : (
