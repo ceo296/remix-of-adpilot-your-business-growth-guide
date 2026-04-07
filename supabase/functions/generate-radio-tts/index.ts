@@ -120,7 +120,7 @@ async function tryGeminiDirect(apiKey: string, payload: any): Promise<any | null
 async function tryLovableGateway(apiKey: string, prompt: string, voiceName: string): Promise<any | null> {
   try {
     console.log("Trying Lovable AI Gateway for TTS");
-    const resp = await fetch("https://ai-gateway.lovable.dev/v1/chat/completions", {
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
