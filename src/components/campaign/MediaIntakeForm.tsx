@@ -35,10 +35,8 @@ interface MediaIntakeFormProps {
 }
 
 const GOALS = [
-  { id: 'sales' as const, label: 'מכירות', desc: 'להניע רכישה ישירה — הקלקות, שיחות, הזמנות', icon: <ShoppingCart className="h-5 w-5" /> },
-  { id: 'awareness' as const, label: 'חשיפה ומודעות', desc: 'שהשם יהיה מוכר — נוכחות ומיצוב', icon: <Eye className="h-5 w-5" /> },
-  { id: 'launch' as const, label: 'השקה', desc: 'מוצר חדש, סניף חדש, מותג חדש', icon: <Rocket className="h-5 w-5" /> },
-  { id: 'event' as const, label: 'אירוע', desc: 'כנס, הרצאה, שמחה, מבצע מוגבל בזמן', icon: <Megaphone className="h-5 w-5" /> },
+  { id: 'sales' as const, label: 'מכירות', desc: 'להניע רכישה ישירה — הקלקות, שיחות, הזמנות', icon: <ShoppingCart className="h-5 w-5" />, color: 'border-emerald-500 bg-emerald-500/10' },
+  { id: 'awareness' as const, label: 'חשיפה ומודעות', desc: 'שהשם יהיה מוכר — נוכחות ומיצוב', icon: <Eye className="h-5 w-5" />, color: 'border-blue-500 bg-blue-500/10' },
 ];
 
 const TONES = [
