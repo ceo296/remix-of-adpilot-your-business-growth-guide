@@ -84,6 +84,8 @@ export interface CartItem {
   unitPrice: number;
   quantity: number;
   schedulingNote: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 interface MediaSelfSelectionProps {
