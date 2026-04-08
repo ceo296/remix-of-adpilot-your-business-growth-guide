@@ -35,8 +35,8 @@ interface MediaIntakeFormProps {
 }
 
 const GOALS = [
-  { id: 'sales' as const, label: 'מכירות', desc: 'להניע רכישה ישירה — הקלקות, שיחות, הזמנות', icon: <ShoppingCart className="h-6 w-6" />, selectedClass: 'border-emerald-500 bg-emerald-500/15 shadow-emerald-500/20', iconColor: 'text-emerald-400' },
-  { id: 'awareness' as const, label: 'חשיפה ומודעות', desc: 'שהשם יהיה מוכר — נוכחות ומיצוב', icon: <Eye className="h-6 w-6" />, selectedClass: 'border-sky-500 bg-sky-500/15 shadow-sky-500/20', iconColor: 'text-sky-400' },
+  { id: 'sales' as const, label: 'מכירות', desc: 'להניע רכישה ישירה — הקלקות, שיחות, הזמנות', icon: <ShoppingCart className="h-6 w-6" />, color: '#10b981', bgColor: 'rgba(16, 185, 129, 0.15)' },
+  { id: 'awareness' as const, label: 'חשיפה ומודעות', desc: 'שהשם יהיה מוכר — נוכחות ומיצוב', icon: <Eye className="h-6 w-6" />, color: '#0ea5e9', bgColor: 'rgba(14, 165, 233, 0.15)' },
 ];
 
 const GENDERS = [
@@ -83,11 +83,12 @@ export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFo
                   onClick={() => update({ campaignGoal: goal.id })}
                   className={`flex items-start gap-3 p-5 rounded-xl border-2 text-right transition-all ${
                     isSelected
-                      ? `${goal.selectedClass} shadow-md`
+                      ? 'shadow-md'
                       : 'border-border bg-card hover:border-primary/30'
                   }`}
+                  style={isSelected ? { borderColor: goal.color, backgroundColor: goal.bgColor } : undefined}
                 >
-                  <span className={`mt-0.5 ${isSelected ? goal.iconColor : 'text-muted-foreground'}`}>
+                  <span className="mt-0.5" style={{ color: isSelected ? goal.color : undefined }}>
                     {goal.icon}
                   </span>
                   <div>
