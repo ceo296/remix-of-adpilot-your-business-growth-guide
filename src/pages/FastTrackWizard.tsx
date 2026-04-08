@@ -179,15 +179,28 @@ const FastTrackWizard = () => {
   const needsScopeQuestion = selectedMediaTypes.some(t => t === 'newspapers' || t === 'signage');
 
   const handleProceedToMedia = () => {
-    if (needsScopeQuestion && !mediaScope) {
-      setCurrentStep('mediaScope');
+    if (mediaPath === 'self') {
+      // Self mode: go to outlet browser (skip scope for now)
+      if (needsScopeQuestion && !mediaScope) {
+        setCurrentStep('mediaScope');
+      } else {
+        setCurrentStep('selfSelect');
+      }
     } else {
-      setCurrentStep('media');
+      if (needsScopeQuestion && !mediaScope) {
+        setCurrentStep('mediaScope');
+      } else {
+        setCurrentStep('media');
+      }
     }
   };
 
   const handleProceedFromScope = () => {
-    setCurrentStep('media');
+    if (mediaPath === 'self') {
+      setCurrentStep('selfSelect');
+    } else {
+      setCurrentStep('media');
+    }
   };
 
   const handleProceedToQuote = () => {
