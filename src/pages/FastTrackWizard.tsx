@@ -876,6 +876,7 @@ const FastTrackWizard = () => {
         {currentStep === 'mediaChoice' && renderMediaChoiceStep()}
         {currentStep === 'mediaType' && renderMediaTypeStep()}
         {currentStep === 'mediaScope' && renderMediaScopeStep()}
+        {currentStep === 'selfSelect' && renderSelfSelectStep()}
         {currentStep === 'media' && renderMediaStep()}
         {currentStep === 'quote' && renderQuoteStep()}
       </main>
