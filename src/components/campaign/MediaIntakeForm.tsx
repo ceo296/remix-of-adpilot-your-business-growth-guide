@@ -33,8 +33,8 @@ interface MediaIntakeFormProps {
 }
 
 const GOALS = [
-  { id: 'sales' as const, label: 'מכירות', desc: 'להניע רכישה ישירה — הקלקות, שיחות, הזמנות', icon: <ShoppingCart className="h-5 w-5" />, color: 'border-emerald-500 bg-emerald-500/10' },
-  { id: 'awareness' as const, label: 'חשיפה ומודעות', desc: 'שהשם יהיה מוכר — נוכחות ומיצוב', icon: <Eye className="h-5 w-5" />, color: 'border-blue-500 bg-blue-500/10' },
+  { id: 'sales' as const, label: 'מכירות', desc: 'להניע רכישה ישירה — הקלקות, שיחות, הזמנות', icon: <ShoppingCart className="h-6 w-6" />, selectedClass: 'border-emerald-500 bg-emerald-500/15 shadow-emerald-500/20', iconColor: 'text-emerald-400' },
+  { id: 'awareness' as const, label: 'חשיפה ומודעות', desc: 'שהשם יהיה מוכר — נוכחות ומיצוב', icon: <Eye className="h-6 w-6" />, selectedClass: 'border-sky-500 bg-sky-500/15 shadow-sky-500/20', iconColor: 'text-sky-400' },
 ];
 
 const TONES = [
@@ -45,8 +45,8 @@ const TONES = [
 
 const CHANNEL_PREFS = [
   { id: 'traditional' as const, label: 'עיתונות ורדיו', desc: 'דגש על עיתונים, מגזינים ורדיו — קלאסי ומוכח', icon: <Target className="h-5 w-5" /> },
-  { id: 'digital' as const, label: 'דיגיטל ווואטסאפ', desc: 'אתרים, WhatsApp, משפיענים — מהיר וממוקד', icon: <Zap className="h-5 w-5" /> },
   { id: 'mixed' as const, label: 'שילוב של הכול', desc: 'תנו לי פריסה רחבה — קצת מכל דבר', icon: <Users className="h-5 w-5" /> },
+  { id: 'digital' as const, label: 'דיגיטל ווואטסאפ', desc: 'אתרים, WhatsApp, משפיענים — מהיר וממוקד', icon: <Zap className="h-5 w-5" /> },
 ];
 
 export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFormProps) => {
@@ -74,11 +74,11 @@ export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFo
                   onClick={() => update({ campaignGoal: goal.id })}
                   className={`flex items-start gap-3 p-5 rounded-xl border-2 text-right transition-all ${
                     isSelected
-                      ? `${goal.color} shadow-md`
+                      ? `${goal.selectedClass} shadow-md`
                       : 'border-border bg-card hover:border-primary/30'
                   }`}
                 >
-                  <span className={`mt-0.5 ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <span className={`mt-0.5 ${isSelected ? goal.iconColor : 'text-muted-foreground'}`}>
                     {goal.icon}
                   </span>
                   <div>
