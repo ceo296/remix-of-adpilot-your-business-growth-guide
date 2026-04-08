@@ -118,6 +118,9 @@ const FastTrackWizard = () => {
   const [uploadedCreativeUrl, setUploadedCreativeUrl] = useState<string | null>(null);
   const [isUploadingCreative, setIsUploadingCreative] = useState(false);
   
+  // Self-selection cart
+  const [selfCart, setSelfCart] = useState<CartItem[]>([]);
+  
   // Quote
   const [isSubmitting, setIsSubmitting] = useState(false);
 
