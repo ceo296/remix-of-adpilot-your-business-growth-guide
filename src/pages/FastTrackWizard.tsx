@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
+import { MediaSelfSelection, CartItem } from '@/components/campaign/MediaSelfSelection';
 import { StudioBriefStep, CampaignBrief } from '@/components/studio/StudioBriefStep';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
