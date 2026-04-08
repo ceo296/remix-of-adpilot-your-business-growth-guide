@@ -209,8 +209,7 @@ export const BudgetAudienceStep = ({
   const mappedBrandTone = audienceTone === 'premium' ? 'premium' as const
     : audienceTone === 'popular' ? 'popular' as const
     : audienceTone === 'balanced' ? 'balanced' as const
-    : '' as const;
-  const hasBrandToneFromProfile = !!mappedBrandTone;
+    : 'balanced' as const; // default to balanced if not set in profile
 
   const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [packageConfirmed, setPackageConfirmed] = useState(false);
@@ -225,7 +224,7 @@ export const BudgetAudienceStep = ({
   });
   const [intakeCompleted, setIntakeCompleted] = useState(skipIntake);
 
-  const intakeReady = mediaIntake.campaignGoal && mediaIntake.brandTone && mediaIntake.channelPreference;
+  const intakeReady = mediaIntake.campaignGoal && mediaIntake.channelPreference;
 
   // Fetch categories and product stats from database
   useEffect(() => {
@@ -481,7 +480,7 @@ export const BudgetAudienceStep = ({
           <p className="text-muted-foreground text-sm mt-1">כדי שנתאים לך את המדיה הכי רלוונטית</p>
         </div>
 
-        <MediaIntakeForm data={mediaIntake} onChange={setMediaIntake} hideBrandTone={hasBrandToneFromProfile} />
+        <MediaIntakeForm data={mediaIntake} onChange={setMediaIntake} hideBrandTone={true} />
 
         {intakeReady && (
           <div className="text-center">
