@@ -158,16 +158,35 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
     loadData();
   }, [selectedMediaTypes]);
 
-  // Filter outlets by search
+  // Extract unique cities and streams for filters
+  const availableCities = useMemo(() => {
+    const cities = new Set<string>();
+    outlets.forEach(o => { if (o.city) cities.add(o.city); });
+    return Array.from(cities).sort();
+  }, [outlets]);
+
+  const availableStreams = useMemo(() => {
+    const streams = new Set<string>();
+    outlets.forEach(o => { if (o.stream) streams.add(o.stream); });
+    return Array.from(streams).sort();
+  }, [outlets]);
+
+  // Filter outlets by search, city, stream
   const filteredOutlets = useMemo(() => {
-    if (!searchQuery.trim()) return outlets;
-    const q = searchQuery.trim().toLowerCase();
-    return outlets.filter(o =>
-      (o.name_he || o.name).toLowerCase().includes(q) ||
-      (o.city || '').toLowerCase().includes(q) ||
-      (o.vibe_he || '').toLowerCase().includes(q)
-    );
-  }, [outlets, searchQuery]);
+    return outlets.filter(o => {
+      if (filterCity !== 'all' && o.city !== filterCity) return false;
+      if (filterStream !== 'all' && o.stream !== filterStream) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        if (
+          !(o.name_he || o.name).toLowerCase().includes(q) &&
+          !(o.city || '').toLowerCase().includes(q) &&
+          !(o.vibe_he || '').toLowerCase().includes(q)
+        ) return false;
+      }
+      return true;
+    });
+  }, [outlets, searchQuery, filterCity, filterStream]);
 
   // Group outlets by category
   const groupedOutlets = useMemo(() => {
