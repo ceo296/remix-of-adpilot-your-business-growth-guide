@@ -45,8 +45,8 @@ const TONES = [
 
 const CHANNEL_PREFS = [
   { id: 'traditional' as const, label: 'עיתונות ורדיו', desc: 'דגש על עיתונים, מגזינים ורדיו — קלאסי ומוכח', icon: <Target className="h-5 w-5" /> },
-  { id: 'digital' as const, label: 'דיגיטל ווואטסאפ', desc: 'אתרים, WhatsApp, משפיענים — מהיר וממוקד', icon: <Zap className="h-5 w-5" /> },
   { id: 'mixed' as const, label: 'שילוב של הכול', desc: 'תנו לי פריסה רחבה — קצת מכל דבר', icon: <Users className="h-5 w-5" /> },
+  { id: 'digital' as const, label: 'דיגיטל ווואטסאפ', desc: 'אתרים, WhatsApp, משפיענים — מהיר וממוקד', icon: <Zap className="h-5 w-5" /> },
 ];
 
 export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFormProps) => {
