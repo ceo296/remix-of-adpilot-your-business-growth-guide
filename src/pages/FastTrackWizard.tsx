@@ -231,6 +231,14 @@ const FastTrackWizard = () => {
     }
   };
 
+  const handleBackFromSelfSelect = () => {
+    if (needsScopeQuestion) {
+      setCurrentStep('mediaScope');
+    } else {
+      setCurrentStep('mediaType');
+    }
+  };
+
   const handleBackFromScope = () => {
     setCurrentStep('mediaType');
   };
