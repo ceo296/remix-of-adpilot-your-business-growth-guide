@@ -478,6 +478,59 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
               </DialogHeader>
 
               <div className="space-y-4 mt-4">
+                {/* Campaign date range */}
+                <div className="p-3 rounded-xl border border-border bg-muted/30 space-y-3">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-primary" />
+                    תאריכי קמפיין
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground">מתאריך</span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-right text-sm h-9">
+                            {campaignStartDate ? format(campaignStartDate, 'dd/MM/yyyy') : 'בחר תאריך'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={campaignStartDate}
+                            onSelect={setCampaignStartDate}
+                            locale={he}
+                            disabled={(date) => date < new Date()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground">עד תאריך</span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-right text-sm h-9">
+                            {campaignEndDate ? format(campaignEndDate, 'dd/MM/yyyy') : 'בחר תאריך'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={campaignEndDate}
+                            onSelect={setCampaignEndDate}
+                            locale={he}
+                            disabled={(date) => date < (campaignStartDate || new Date())}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                  {campaignStartDate && campaignEndDate && (
+                    <p className="text-xs text-primary font-medium">
+                      משך: {Math.ceil((campaignEndDate.getTime() - campaignStartDate.getTime()) / (1000 * 60 * 60 * 24))} ימים
+                    </p>
+                  )}
+                </div>
+
                 <Label className="text-base font-semibold">
                   {getSchedulingLabel(selectedOutlet.category_name)}
                 </Label>
