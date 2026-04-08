@@ -62,7 +62,7 @@ const MEDIA_TYPES = [
   { id: 'signage', label: 'שילוט', description: 'שלטי חוצות ומודעות', icon: Signpost, gradient: 'from-amber-500 to-orange-600' },
 ];
 
-type WizardStep = 'brief' | 'mediaChoice' | 'mediaType' | 'mediaScope' | 'media' | 'quote';
+type WizardStep = 'brief' | 'mediaChoice' | 'mediaType' | 'mediaScope' | 'selfSelect' | 'media' | 'quote';
 type MediaScope = 'national' | 'local' | 'both';
 type MediaPath = 'self' | 'guided' | null;
 
