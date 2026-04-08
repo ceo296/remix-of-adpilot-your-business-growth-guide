@@ -131,7 +131,7 @@ export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFo
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Megaphone className="h-5 w-5 text-primary" />
+            <Target className="h-5 w-5 text-primary" />
             העדפת ערוצים
           </CardTitle>
           <CardDescription>לאן אתם נוטים? (נתאים את החבילות בהתאם)</CardDescription>
