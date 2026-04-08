@@ -66,27 +66,30 @@ export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFo
           <CardDescription>זה ישפיע על סוג המדיה שנמליץ עליה</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            {GOALS.map((goal) => (
-              <button
-                key={goal.id}
-                type="button"
-                onClick={() => update({ campaignGoal: goal.id })}
-                className={`flex items-start gap-3 p-4 rounded-xl border-2 text-right transition-all ${
-                  data.campaignGoal === goal.id
-                    ? 'border-primary bg-primary/5 shadow-sm'
-                    : 'border-border bg-card hover:border-primary/30'
-                }`}
-              >
-                <span className={`mt-0.5 ${data.campaignGoal === goal.id ? 'text-primary' : 'text-muted-foreground'}`}>
-                  {goal.icon}
-                </span>
-                <div>
-                  <span className="font-semibold text-sm text-foreground block">{goal.label}</span>
-                  <span className="text-xs text-muted-foreground">{goal.desc}</span>
-                </div>
-              </button>
-            ))}
+          <div className="grid grid-cols-2 gap-4">
+            {GOALS.map((goal) => {
+              const isSelected = data.campaignGoal === goal.id;
+              return (
+                <button
+                  key={goal.id}
+                  type="button"
+                  onClick={() => update({ campaignGoal: goal.id })}
+                  className={`flex items-start gap-3 p-5 rounded-xl border-2 text-right transition-all ${
+                    isSelected
+                      ? `${goal.color} shadow-md`
+                      : 'border-border bg-card hover:border-primary/30'
+                  }`}
+                >
+                  <span className={`mt-0.5 ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {goal.icon}
+                  </span>
+                  <div>
+                    <span className="font-bold text-base text-foreground block">{goal.label}</span>
+                    <span className="text-xs text-muted-foreground">{goal.desc}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
