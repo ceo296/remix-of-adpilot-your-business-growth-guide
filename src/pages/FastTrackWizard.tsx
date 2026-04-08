@@ -665,7 +665,45 @@ const FastTrackWizard = () => {
     </div>
   );
 
-  // Render Media Step
+  // Render Self Selection Step (outlet browser)
+  const renderSelfSelectStep = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30">
+          <Newspaper className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-foreground mb-3">בחר ערוצי מדיה</h2>
+        <p className="text-lg text-muted-foreground">לחץ על ערוץ מדיה כדי לבחור מוצרים וכמויות</p>
+      </div>
+
+      <MediaSelfSelection
+        selectedMediaTypes={selectedMediaTypes}
+        mediaScope={mediaScope || undefined}
+        cart={selfCart}
+        onCartChange={setSelfCart}
+      />
+
+      {/* Navigation */}
+      <div className="flex justify-between pt-8">
+        <Button variant="ghost" onClick={handleBackFromSelfSelect}>
+          <ArrowRight className="w-4 h-4 ml-2" />
+          חזרה
+        </Button>
+        
+        <Button 
+          onClick={() => setCurrentStep('quote')} 
+          disabled={selfCart.length === 0} 
+          variant="gradient"
+        >
+          <Check className="w-4 h-4 ml-2" />
+          להצעת מחיר
+          <ArrowLeft className="w-4 h-4 mr-2" />
+        </Button>
+      </div>
+    </div>
+  );
+
+
   const renderMediaStep = () => (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
