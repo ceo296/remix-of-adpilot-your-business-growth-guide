@@ -297,8 +297,11 @@ const FastTrackWizard = () => {
     
     try {
       const quoteData = getQuoteData();
-      if (!selectedPackage) {
+      if (mediaPath !== 'self' && !selectedPackage) {
         throw new Error('לא נבחרה חבילת מדיה');
+      }
+      if (mediaPath === 'self' && selfCart.length === 0) {
+        throw new Error('לא נבחרו פריטי מדיה');
       }
 
       if (!activeProfile?.id) {
