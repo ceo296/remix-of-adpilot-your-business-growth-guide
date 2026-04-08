@@ -33,8 +33,8 @@ interface MediaIntakeFormProps {
 }
 
 const GOALS = [
-  { id: 'sales' as const, label: 'מכירות', desc: 'להניע רכישה ישירה — הקלקות, שיחות, הזמנות', icon: <ShoppingCart className="h-5 w-5" />, color: 'border-emerald-500 bg-emerald-500/10' },
-  { id: 'awareness' as const, label: 'חשיפה ומודעות', desc: 'שהשם יהיה מוכר — נוכחות ומיצוב', icon: <Eye className="h-5 w-5" />, color: 'border-blue-500 bg-blue-500/10' },
+  { id: 'sales' as const, label: 'מכירות', desc: 'להניע רכישה ישירה — הקלקות, שיחות, הזמנות', icon: <ShoppingCart className="h-6 w-6" />, selectedClass: 'border-emerald-500 bg-emerald-500/15 shadow-emerald-500/20', iconColor: 'text-emerald-400' },
+  { id: 'awareness' as const, label: 'חשיפה ומודעות', desc: 'שהשם יהיה מוכר — נוכחות ומיצוב', icon: <Eye className="h-6 w-6" />, selectedClass: 'border-sky-500 bg-sky-500/15 shadow-sky-500/20', iconColor: 'text-sky-400' },
 ];
 
 const TONES = [
