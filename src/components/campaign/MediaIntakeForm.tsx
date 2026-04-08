@@ -74,11 +74,11 @@ export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFo
                   onClick={() => update({ campaignGoal: goal.id })}
                   className={`flex items-start gap-3 p-5 rounded-xl border-2 text-right transition-all ${
                     isSelected
-                      ? `${goal.color} shadow-md`
+                      ? `${goal.selectedClass} shadow-md`
                       : 'border-border bg-card hover:border-primary/30'
                   }`}
                 >
-                  <span className={`mt-0.5 ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <span className={`mt-0.5 ${isSelected ? goal.iconColor : 'text-muted-foreground'}`}>
                     {goal.icon}
                   </span>
                   <div>
