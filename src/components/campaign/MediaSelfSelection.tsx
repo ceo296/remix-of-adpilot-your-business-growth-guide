@@ -6,6 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { he } from 'date-fns/locale';
 import {
   Search,
   Plus,
@@ -21,6 +25,7 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
+  CalendarDays,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -79,6 +84,8 @@ export interface CartItem {
   unitPrice: number;
   quantity: number;
   schedulingNote: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 interface MediaSelfSelectionProps {
@@ -99,6 +106,8 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
   const [outletProducts, setOutletProducts] = useState<Product[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [selectedQuantities, setSelectedQuantities] = useState<Record<string, number>>({});
+  const [campaignStartDate, setCampaignStartDate] = useState<Date | undefined>(undefined);
+  const [campaignEndDate, setCampaignEndDate] = useState<Date | undefined>(undefined);
 
   // Load outlets and products
   useEffect(() => {
@@ -205,13 +214,19 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
     setSelectedOutlet(outlet);
     const prods = products.filter(p => p.outlet_id === outlet.id);
     setOutletProducts(prods);
-    // Pre-fill quantities from cart
+    // Pre-fill quantities and dates from cart
     const qMap: Record<string, number> = {};
+    let existingStart: Date | undefined;
+    let existingEnd: Date | undefined;
     prods.forEach(p => {
       const existing = cart.find(ci => ci.productId === p.id);
       qMap[p.id] = existing ? existing.quantity : 0;
+      if (existing?.startDate && !existingStart) existingStart = new Date(existing.startDate);
+      if (existing?.endDate && !existingEnd) existingEnd = new Date(existing.endDate);
     });
     setSelectedQuantities(qMap);
+    setCampaignStartDate(existingStart);
+    setCampaignEndDate(existingEnd);
   };
 
   // Add to cart from dialog
@@ -231,6 +246,8 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
             unitPrice: product.client_price || 0,
             quantity: qty,
             schedulingNote: `${qty} סבבים`,
+            startDate: campaignStartDate ? format(campaignStartDate, 'yyyy-MM-dd') : undefined,
+            endDate: campaignEndDate ? format(campaignEndDate, 'yyyy-MM-dd') : undefined,
           });
         }
       }
@@ -356,6 +373,12 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
                 <div>
                   <p className="font-semibold text-foreground">{item.outletName}</p>
                   <p className="text-sm text-muted-foreground">{item.productName} × {item.quantity}</p>
+                  {item.startDate && item.endDate && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <CalendarDays className="w-3 h-3" />
+                      {item.startDate} — {item.endDate}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-bold text-foreground">₪{(item.unitPrice * item.quantity).toLocaleString()}</span>
@@ -461,6 +484,59 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
               </DialogHeader>
 
               <div className="space-y-4 mt-4">
+                {/* Campaign date range */}
+                <div className="p-3 rounded-xl border border-border bg-muted/30 space-y-3">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-primary" />
+                    תאריכי קמפיין
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground">מתאריך</span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-right text-sm h-9">
+                            {campaignStartDate ? format(campaignStartDate, 'dd/MM/yyyy') : 'בחר תאריך'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={campaignStartDate}
+                            onSelect={setCampaignStartDate}
+                            locale={he}
+                            disabled={(date) => date < new Date()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground">עד תאריך</span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-right text-sm h-9">
+                            {campaignEndDate ? format(campaignEndDate, 'dd/MM/yyyy') : 'בחר תאריך'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={campaignEndDate}
+                            onSelect={setCampaignEndDate}
+                            locale={he}
+                            disabled={(date) => date < (campaignStartDate || new Date())}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                  {campaignStartDate && campaignEndDate && (
+                    <p className="text-xs text-primary font-medium">
+                      משך: {Math.ceil((campaignEndDate.getTime() - campaignStartDate.getTime()) / (1000 * 60 * 60 * 24))} ימים
+                    </p>
+                  )}
+                </div>
+
                 <Label className="text-base font-semibold">
                   {getSchedulingLabel(selectedOutlet.category_name)}
                 </Label>
