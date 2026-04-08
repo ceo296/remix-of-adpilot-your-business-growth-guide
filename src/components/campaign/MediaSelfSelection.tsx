@@ -93,6 +93,8 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterCity, setFilterCity] = useState<string>('all');
+  const [filterStream, setFilterStream] = useState<string>('all');
   const [selectedOutlet, setSelectedOutlet] = useState<Outlet | null>(null);
   const [outletProducts, setOutletProducts] = useState<Product[]>([]);
   const [showCart, setShowCart] = useState(false);
@@ -156,16 +158,35 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
     loadData();
   }, [selectedMediaTypes]);
 
-  // Filter outlets by search
+  // Extract unique cities and streams for filters
+  const availableCities = useMemo(() => {
+    const cities = new Set<string>();
+    outlets.forEach(o => { if (o.city) cities.add(o.city); });
+    return Array.from(cities).sort();
+  }, [outlets]);
+
+  const availableStreams = useMemo(() => {
+    const streams = new Set<string>();
+    outlets.forEach(o => { if (o.stream) streams.add(o.stream); });
+    return Array.from(streams).sort();
+  }, [outlets]);
+
+  // Filter outlets by search, city, stream
   const filteredOutlets = useMemo(() => {
-    if (!searchQuery.trim()) return outlets;
-    const q = searchQuery.trim().toLowerCase();
-    return outlets.filter(o =>
-      (o.name_he || o.name).toLowerCase().includes(q) ||
-      (o.city || '').toLowerCase().includes(q) ||
-      (o.vibe_he || '').toLowerCase().includes(q)
-    );
-  }, [outlets, searchQuery]);
+    return outlets.filter(o => {
+      if (filterCity !== 'all' && o.city !== filterCity) return false;
+      if (filterStream !== 'all' && o.stream !== filterStream) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        if (
+          !(o.name_he || o.name).toLowerCase().includes(q) &&
+          !(o.city || '').toLowerCase().includes(q) &&
+          !(o.vibe_he || '').toLowerCase().includes(q)
+        ) return false;
+      }
+      return true;
+    });
+  }, [outlets, searchQuery, filterCity, filterStream]);
 
   // Group outlets by category
   const groupedOutlets = useMemo(() => {
@@ -264,7 +285,52 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
         />
       </div>
 
-      {/* Cart Summary Bar */}
+      {/* City & Stream Filters */}
+      {(availableCities.length > 1 || availableStreams.length > 1) && (
+        <div className="flex flex-wrap gap-3">
+          {availableCities.length > 1 && (
+            <Select value={filterCity} onValueChange={setFilterCity}>
+              <SelectTrigger className="w-[180px]">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <SelectValue placeholder="כל הערים" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">כל הערים</SelectItem>
+                {availableCities.map(city => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {availableStreams.length > 1 && (
+            <Select value={filterStream} onValueChange={setFilterStream}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="כל הזרמים" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">כל הזרמים</SelectItem>
+                {availableStreams.map(stream => (
+                  <SelectItem key={stream} value={stream}>{stream}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {(filterCity !== 'all' || filterStream !== 'all') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setFilterCity('all'); setFilterStream('all'); }}
+              className="text-muted-foreground"
+            >
+              נקה סינון
+            </Button>
+          )}
+        </div>
+      )}
+
+
       {cart.length > 0 && (
         <button
           onClick={() => setShowCart(!showCart)}
