@@ -285,7 +285,52 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
         />
       </div>
 
-      {/* Cart Summary Bar */}
+      {/* City & Stream Filters */}
+      {(availableCities.length > 1 || availableStreams.length > 1) && (
+        <div className="flex flex-wrap gap-3">
+          {availableCities.length > 1 && (
+            <Select value={filterCity} onValueChange={setFilterCity}>
+              <SelectTrigger className="w-[180px]">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <SelectValue placeholder="כל הערים" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">כל הערים</SelectItem>
+                {availableCities.map(city => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {availableStreams.length > 1 && (
+            <Select value={filterStream} onValueChange={setFilterStream}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="כל הזרמים" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">כל הזרמים</SelectItem>
+                {availableStreams.map(stream => (
+                  <SelectItem key={stream} value={stream}>{stream}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {(filterCity !== 'all' || filterStream !== 'all') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setFilterCity('all'); setFilterStream('all'); }}
+              className="text-muted-foreground"
+            >
+              נקה סינון
+            </Button>
+          )}
+        </div>
+      )}
+
+
       {cart.length > 0 && (
         <button
           onClick={() => setShowCart(!showCart)}
