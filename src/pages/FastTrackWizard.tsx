@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { BudgetAudienceStep } from '@/components/campaign/BudgetAudienceStep';
 import { StudioQuoteStep, QuoteData, MediaItem } from '@/components/studio/StudioQuoteStep';
+import { MediaSelfSelection, CartItem } from '@/components/campaign/MediaSelfSelection';
 import { StudioBriefStep, CampaignBrief } from '@/components/studio/StudioBriefStep';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -61,7 +62,7 @@ const MEDIA_TYPES = [
   { id: 'signage', label: 'שילוט', description: 'שלטי חוצות ומודעות', icon: Signpost, gradient: 'from-amber-500 to-orange-600' },
 ];
 
-type WizardStep = 'brief' | 'mediaChoice' | 'mediaType' | 'mediaScope' | 'media' | 'quote';
+type WizardStep = 'brief' | 'mediaChoice' | 'mediaType' | 'mediaScope' | 'selfSelect' | 'media' | 'quote';
 type MediaScope = 'national' | 'local' | 'both';
 type MediaPath = 'self' | 'guided' | null;
 
@@ -116,6 +117,9 @@ const FastTrackWizard = () => {
   // Creative Upload (for media-only mode)
   const [uploadedCreativeUrl, setUploadedCreativeUrl] = useState<string | null>(null);
   const [isUploadingCreative, setIsUploadingCreative] = useState(false);
+  
+  // Self-selection cart
+  const [selfCart, setSelfCart] = useState<CartItem[]>([]);
   
   // Quote
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -175,15 +179,28 @@ const FastTrackWizard = () => {
   const needsScopeQuestion = selectedMediaTypes.some(t => t === 'newspapers' || t === 'signage');
 
   const handleProceedToMedia = () => {
-    if (needsScopeQuestion && !mediaScope) {
-      setCurrentStep('mediaScope');
+    if (mediaPath === 'self') {
+      // Self mode: go to outlet browser (skip scope for now)
+      if (needsScopeQuestion && !mediaScope) {
+        setCurrentStep('mediaScope');
+      } else {
+        setCurrentStep('selfSelect');
+      }
     } else {
-      setCurrentStep('media');
+      if (needsScopeQuestion && !mediaScope) {
+        setCurrentStep('mediaScope');
+      } else {
+        setCurrentStep('media');
+      }
     }
   };
 
   const handleProceedFromScope = () => {
-    setCurrentStep('media');
+    if (mediaPath === 'self') {
+      setCurrentStep('selfSelect');
+    } else {
+      setCurrentStep('media');
+    }
   };
 
   const handleProceedToQuote = () => {
@@ -214,6 +231,14 @@ const FastTrackWizard = () => {
     }
   };
 
+  const handleBackFromSelfSelect = () => {
+    if (needsScopeQuestion) {
+      setCurrentStep('mediaScope');
+    } else {
+      setCurrentStep('mediaType');
+    }
+  };
+
   const handleBackFromScope = () => {
     setCurrentStep('mediaType');
   };
@@ -231,13 +256,26 @@ const FastTrackWizard = () => {
   };
 
   const handleBackFromQuote = () => {
-    setCurrentStep('media');
+    if (mediaPath === 'self') {
+      setCurrentStep('selfSelect');
+    } else {
+      setCurrentStep('media');
+    }
   };
 
   const getQuoteData = (): QuoteData => {
     const mediaItems: MediaItem[] = [];
     
-    if (selectedPackage) {
+    // Self-mode: use cart items
+    if (mediaPath === 'self' && selfCart.length > 0) {
+      selfCart.forEach((item) => {
+        mediaItems.push({
+          id: item.productId,
+          name: `${item.outletName} — ${item.productName} ×${item.quantity}`,
+          price: item.unitPrice * item.quantity,
+        });
+      });
+    } else if (selectedPackage) {
       selectedPackage.items.forEach((item: any) => {
         mediaItems.push({
           id: item.id,
@@ -259,8 +297,11 @@ const FastTrackWizard = () => {
     
     try {
       const quoteData = getQuoteData();
-      if (!selectedPackage) {
+      if (mediaPath !== 'self' && !selectedPackage) {
         throw new Error('לא נבחרה חבילת מדיה');
+      }
+      if (mediaPath === 'self' && selfCart.length === 0) {
+        throw new Error('לא נבחרו פריטי מדיה');
       }
 
       if (!activeProfile?.id) {
@@ -276,7 +317,7 @@ const FastTrackWizard = () => {
           name: campaignBrief.title || 'רכישת מדיה',
           goal: isMediaOnlyMode ? 'media_purchase' : campaignBrief.goal,
           status: 'pending_approval',
-          budget,
+          budget: mediaPath === 'self' ? selfCart.reduce((s, ci) => s + ci.unitPrice * ci.quantity, 0) : budget,
           start_date: startDate?.toISOString().split('T')[0],
           end_date: endDate?.toISOString().split('T')[0],
           target_stream: targetStream,
@@ -627,7 +668,45 @@ const FastTrackWizard = () => {
     </div>
   );
 
-  // Render Media Step
+  // Render Self Selection Step (outlet browser)
+  const renderSelfSelectStep = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30">
+          <Newspaper className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-foreground mb-3">בחר ערוצי מדיה</h2>
+        <p className="text-lg text-muted-foreground">לחץ על ערוץ מדיה כדי לבחור מוצרים וכמויות</p>
+      </div>
+
+      <MediaSelfSelection
+        selectedMediaTypes={selectedMediaTypes}
+        mediaScope={mediaScope || undefined}
+        cart={selfCart}
+        onCartChange={setSelfCart}
+      />
+
+      {/* Navigation */}
+      <div className="flex justify-between pt-8">
+        <Button variant="ghost" onClick={handleBackFromSelfSelect}>
+          <ArrowRight className="w-4 h-4 ml-2" />
+          חזרה
+        </Button>
+        
+        <Button 
+          onClick={() => setCurrentStep('quote')} 
+          disabled={selfCart.length === 0} 
+          variant="gradient"
+        >
+          <Check className="w-4 h-4 ml-2" />
+          להצעת מחיר
+          <ArrowLeft className="w-4 h-4 mr-2" />
+        </Button>
+      </div>
+    </div>
+  );
+
+
   const renderMediaStep = () => (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
@@ -800,6 +879,7 @@ const FastTrackWizard = () => {
         {currentStep === 'mediaChoice' && renderMediaChoiceStep()}
         {currentStep === 'mediaType' && renderMediaTypeStep()}
         {currentStep === 'mediaScope' && renderMediaScopeStep()}
+        {currentStep === 'selfSelect' && renderSelfSelectStep()}
         {currentStep === 'media' && renderMediaStep()}
         {currentStep === 'quote' && renderQuoteStep()}
       </main>
