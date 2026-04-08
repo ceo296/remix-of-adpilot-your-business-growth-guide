@@ -373,6 +373,12 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
                 <div>
                   <p className="font-semibold text-foreground">{item.outletName}</p>
                   <p className="text-sm text-muted-foreground">{item.productName} × {item.quantity}</p>
+                  {item.startDate && item.endDate && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <CalendarDays className="w-3 h-3" />
+                      {item.startDate} — {item.endDate}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-bold text-foreground">₪{(item.unitPrice * item.quantity).toLocaleString()}</span>
