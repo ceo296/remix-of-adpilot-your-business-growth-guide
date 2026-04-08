@@ -209,8 +209,7 @@ export const BudgetAudienceStep = ({
   const mappedBrandTone = audienceTone === 'premium' ? 'premium' as const
     : audienceTone === 'popular' ? 'popular' as const
     : audienceTone === 'balanced' ? 'balanced' as const
-    : '' as const;
-  const hasBrandToneFromProfile = !!mappedBrandTone;
+    : 'balanced' as const; // default to balanced if not set in profile
 
   const [packages, setPackages] = useState<MediaPackage[]>([]);
   const [packageConfirmed, setPackageConfirmed] = useState(false);
