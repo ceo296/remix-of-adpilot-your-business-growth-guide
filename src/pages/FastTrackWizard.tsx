@@ -256,13 +256,26 @@ const FastTrackWizard = () => {
   };
 
   const handleBackFromQuote = () => {
-    setCurrentStep('media');
+    if (mediaPath === 'self') {
+      setCurrentStep('selfSelect');
+    } else {
+      setCurrentStep('media');
+    }
   };
 
   const getQuoteData = (): QuoteData => {
     const mediaItems: MediaItem[] = [];
     
-    if (selectedPackage) {
+    // Self-mode: use cart items
+    if (mediaPath === 'self' && selfCart.length > 0) {
+      selfCart.forEach((item) => {
+        mediaItems.push({
+          id: item.productId,
+          name: `${item.outletName} — ${item.productName} ×${item.quantity}`,
+          price: item.unitPrice * item.quantity,
+        });
+      });
+    } else if (selectedPackage) {
       selectedPackage.items.forEach((item: any) => {
         mediaItems.push({
           id: item.id,
