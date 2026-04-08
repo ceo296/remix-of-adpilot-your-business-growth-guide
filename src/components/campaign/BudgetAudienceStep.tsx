@@ -224,7 +224,7 @@ export const BudgetAudienceStep = ({
   });
   const [intakeCompleted, setIntakeCompleted] = useState(skipIntake);
 
-  const intakeReady = mediaIntake.campaignGoal && mediaIntake.channelPreference;
+  const intakeReady = mediaIntake.campaignGoal && mediaIntake.channelPreference && mediaIntake.targetGender && mediaIntake.targetStream;
 
   // Fetch categories and product stats from database
   useEffect(() => {
@@ -484,7 +484,18 @@ export const BudgetAudienceStep = ({
 
         {intakeReady && (
           <div className="text-center">
-            <Button size="lg" onClick={() => setIntakeCompleted(true)} className="gap-2">
+            <Button size="lg" onClick={() => {
+              // Sync intake gender/stream to parent state
+              if (mediaIntake.targetGender) {
+                const genderMap: Record<string, string> = { men: 'גברים', women: 'נשים', general: 'כללי' };
+                onTargetGenderChange(genderMap[mediaIntake.targetGender] || 'כללי');
+              }
+              if (mediaIntake.targetStream) {
+                const streamMap: Record<string, string> = { haredi: 'חרדי', litai: 'ליטאי', hasidi: 'חסידי', sfaradi: 'ספרדי', all: 'כללי' };
+                onTargetStreamChange(streamMap[mediaIntake.targetStream] || 'חרדי');
+              }
+              setIntakeCompleted(true);
+            }} className="gap-2">
               <ArrowLeft className="w-4 h-4" />
               קדימה לבניית חבילה
             </Button>

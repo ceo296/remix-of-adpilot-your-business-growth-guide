@@ -1,21 +1,21 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Target,
   Eye,
   ShoppingCart,
-  Crown,
   Users,
-  Heart,
-  Shield,
   Zap,
+  UserRound,
+  UsersRound,
 } from 'lucide-react';
 
 export interface MediaIntakeData {
   campaignGoal: 'sales' | 'awareness' | 'launch' | 'event' | '';
   brandTone: 'premium' | 'popular' | 'balanced' | '';
   channelPreference: 'traditional' | 'digital' | 'mixed' | '';
+  targetGender: 'men' | 'women' | 'general' | '';
+  targetStream: 'haredi' | 'litai' | 'hasidi' | 'sfaradi' | 'all' | '';
   additionalNotes: string;
 }
 
@@ -23,6 +23,8 @@ export const initialMediaIntake: MediaIntakeData = {
   campaignGoal: '',
   brandTone: '',
   channelPreference: '',
+  targetGender: '',
+  targetStream: '',
   additionalNotes: '',
 };
 
@@ -37,10 +39,17 @@ const GOALS = [
   { id: 'awareness' as const, label: 'חשיפה ומודעות', desc: 'שהשם יהיה מוכר — נוכחות ומיצוב', icon: <Eye className="h-6 w-6" />, selectedClass: 'border-sky-500 bg-sky-500/15 shadow-sky-500/20', iconColor: 'text-sky-400' },
 ];
 
-const TONES = [
-  { id: 'premium' as const, label: 'יוקרתי ומכובד', desc: 'מותג פרימיום — לא כל פלטפורמה מתאימה', icon: <Crown className="h-5 w-5" /> },
-  { id: 'popular' as const, label: 'עממי ונגיש', desc: 'מגיע לכולם — הפצות, וואטסאפ, הכול בסדר', icon: <Heart className="h-5 w-5" /> },
-  { id: 'balanced' as const, label: 'מאוזן', desc: 'מכובד אבל רוצה להגיע רחוק', icon: <Shield className="h-5 w-5" /> },
+const GENDERS = [
+  { id: 'men' as const, label: 'גברים', icon: <UserRound className="h-5 w-5" /> },
+  { id: 'women' as const, label: 'נשים', icon: <UserRound className="h-5 w-5" /> },
+  { id: 'general' as const, label: 'כללי (גם וגם)', icon: <UsersRound className="h-5 w-5" /> },
+];
+
+const STREAMS = [
+  { id: 'all' as const, label: 'כל הזרמים' },
+  { id: 'litai' as const, label: 'ליטאי' },
+  { id: 'hasidi' as const, label: 'חסידי' },
+  { id: 'sfaradi' as const, label: 'ספרדי' },
 ];
 
 const CHANNEL_PREFS = [
@@ -92,7 +101,58 @@ export const MediaIntakeForm = ({ data, onChange, hideBrandTone }: MediaIntakeFo
         </CardContent>
       </Card>
 
-      {/* Brand Tone — always pulled from client profile, no need to ask again */}
+      {/* Target Gender */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <UsersRound className="h-5 w-5 text-primary" />
+            קהל היעד
+          </CardTitle>
+          <CardDescription>למי הקמפיין מכוון?</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            {GENDERS.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => update({ targetGender: g.id })}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all ${
+                  data.targetGender === g.id
+                    ? 'border-primary bg-primary/5 shadow-sm'
+                    : 'border-border bg-card hover:border-primary/30'
+                }`}
+              >
+                <span className={data.targetGender === g.id ? 'text-primary' : 'text-muted-foreground'}>
+                  {g.icon}
+                </span>
+                <span className="font-semibold text-sm text-foreground">{g.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Stream selection */}
+          <div>
+            <p className="text-sm font-medium text-foreground mb-2">זרם</p>
+            <div className="flex flex-wrap gap-2">
+              {STREAMS.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => update({ targetStream: s.id })}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                    data.targetStream === s.id
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border bg-card text-muted-foreground hover:border-primary/30'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Channel Preference */}
       <Card>
