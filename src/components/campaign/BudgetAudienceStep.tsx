@@ -224,7 +224,7 @@ export const BudgetAudienceStep = ({
   });
   const [intakeCompleted, setIntakeCompleted] = useState(skipIntake);
 
-  const intakeReady = mediaIntake.campaignGoal && mediaIntake.brandTone && mediaIntake.channelPreference;
+  const intakeReady = mediaIntake.campaignGoal && mediaIntake.channelPreference;
 
   // Fetch categories and product stats from database
   useEffect(() => {
