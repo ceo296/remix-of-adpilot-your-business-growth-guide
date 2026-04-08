@@ -106,6 +106,8 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
   const [outletProducts, setOutletProducts] = useState<Product[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [selectedQuantities, setSelectedQuantities] = useState<Record<string, number>>({});
+  const [campaignStartDate, setCampaignStartDate] = useState<Date | undefined>(undefined);
+  const [campaignEndDate, setCampaignEndDate] = useState<Date | undefined>(undefined);
 
   // Load outlets and products
   useEffect(() => {
