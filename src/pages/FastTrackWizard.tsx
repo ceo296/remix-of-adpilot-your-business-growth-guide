@@ -317,7 +317,7 @@ const FastTrackWizard = () => {
           name: campaignBrief.title || 'רכישת מדיה',
           goal: isMediaOnlyMode ? 'media_purchase' : campaignBrief.goal,
           status: 'pending_approval',
-          budget,
+          budget: mediaPath === 'self' ? selfCart.reduce((s, ci) => s + ci.unitPrice * ci.quantity, 0) : budget,
           start_date: startDate?.toISOString().split('T')[0],
           end_date: endDate?.toISOString().split('T')[0],
           target_stream: targetStream,
