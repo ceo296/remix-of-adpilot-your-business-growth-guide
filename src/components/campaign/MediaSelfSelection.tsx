@@ -214,13 +214,19 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
     setSelectedOutlet(outlet);
     const prods = products.filter(p => p.outlet_id === outlet.id);
     setOutletProducts(prods);
-    // Pre-fill quantities from cart
+    // Pre-fill quantities and dates from cart
     const qMap: Record<string, number> = {};
+    let existingStart: Date | undefined;
+    let existingEnd: Date | undefined;
     prods.forEach(p => {
       const existing = cart.find(ci => ci.productId === p.id);
       qMap[p.id] = existing ? existing.quantity : 0;
+      if (existing?.startDate && !existingStart) existingStart = new Date(existing.startDate);
+      if (existing?.endDate && !existingEnd) existingEnd = new Date(existing.endDate);
     });
     setSelectedQuantities(qMap);
+    setCampaignStartDate(existingStart);
+    setCampaignEndDate(existingEnd);
   };
 
   // Add to cart from dialog
@@ -240,6 +246,8 @@ export const MediaSelfSelection = ({ selectedMediaTypes, mediaScope, onCartChang
             unitPrice: product.client_price || 0,
             quantity: qty,
             schedulingNote: `${qty} סבבים`,
+            startDate: campaignStartDate ? format(campaignStartDate, 'yyyy-MM-dd') : undefined,
+            endDate: campaignEndDate ? format(campaignEndDate, 'yyyy-MM-dd') : undefined,
           });
         }
       }
