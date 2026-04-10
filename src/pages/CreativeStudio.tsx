@@ -2655,6 +2655,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             profileData,
             extraContext: {
               emailTopic: campaignBrief.offer || selectedConcept?.idea || '',
+              emailSubType: emailSubType || 'text-only',
               userPrompt: selectedConcept ? `המייל צריך להתבסס על הקונספט: ${selectedConcept.headline} — ${selectedConcept.copy}` : '',
             },
           },
