@@ -6,6 +6,16 @@ import {
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { MediaType } from './StudioMediaTypeStep';
 
 export type ProductScope = 'full' | 'visual-only' | 'copy-only' | 'text-full' | 'text-have-script';
@@ -160,15 +170,30 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
   const showFollowUp = showScopeOptions || showRadioScope;
   const isImageCritical = detectedIndustry && IMAGE_CRITICAL_INDUSTRIES.includes(detectedIndustry);
 
+  const [show360Confirm, setShow360Confirm] = useState(false);
+
   const handleProductSelect = (id: MediaType) => {
+    const prod = ALL_PRODUCTS.find(p => p.id === id) as any;
+    
+    // For 360 campaign, show confirmation dialog first
+    if (id === 'all') {
+      setSelectedProduct(id);
+      setShow360Confirm(true);
+      return;
+    }
+    
     setSelectedProduct(id);
     setSelectedScope(null);
     
-    const prod = ALL_PRODUCTS.find(p => p.id === id) as any;
     // For products that don't need scope, auto-complete
     if (!prod?.needsScope && !prod?.hasRadioScope) {
       onComplete([id], 'full');
     }
+  };
+
+  const handle360Confirm = () => {
+    setShow360Confirm(false);
+    onComplete(['all'], 'full');
   };
 
   const handleScopeSelect = (scope: ProductScope) => {
