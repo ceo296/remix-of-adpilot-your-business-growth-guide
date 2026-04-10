@@ -478,7 +478,7 @@ const CreativeStudio = () => {
         case 'ad': setAspectRatio('portrait'); break;
         case 'banner': setAspectRatio('landscape'); break;
         case 'email': setAspectRatio('portrait'); break;
-        case 'whatsapp': setAspectRatio('square'); break;
+        case 'whatsapp': setAspectRatio(whatsappSubType === 'status' ? 'portrait' : 'square'); break;
         default: break;
       }
     } else if (mediaTypes.includes('ad') && !mediaTypes.includes('banner')) {
