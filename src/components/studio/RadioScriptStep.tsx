@@ -409,16 +409,6 @@ export const RadioScriptStep = ({
               אהבתי! צור קריינות 🎙️
             </Button>
             <Button
-              onClick={handleApproveText}
-              variant="outline"
-              size="lg"
-              className="w-full gap-2"
-              disabled={!selectedScriptId}
-            >
-              <Heart className="h-5 w-5" />
-              אשר טקסט בלבד
-            </Button>
-            <Button
               variant="ghost"
               size="lg"
               className="w-full gap-2"
