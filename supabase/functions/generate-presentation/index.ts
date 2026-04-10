@@ -227,7 +227,19 @@ ${profileContext}
       }
     }];
 
-    const userMessage = `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\nבריף:\n${brief}`;
+    // Build the user message differently for revision vs generation
+    let userMessage: string;
+    
+    if (revisionMode && originalSlide) {
+      // Single slide revision
+      const slideJSON = JSON.stringify(originalSlide, null, 2);
+      userMessage = `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\n═══ מצב תיקון שקופית ═══\nהלקוח מבקש לתקן את השקופית הבאה:\n${slideJSON}\n\nהוראת התיקון מהלקוח:\n"${brief}"\n\nחוקי ברזל לתיקון:\n1. שמור על סוג השקופית (type) בדיוק כפי שהוא.\n2. יישם את התיקון המבוקש בלבד.\n3. אל תשנה שדות שהלקוח לא ביקש לשנות.\n4. אם הלקוח מבקש שינוי טון - שנה את כל הטקסטים בהתאם.\n5. שמור על image_prompt מעודכן לסגנון החדש.\n6. החזר שקופית אחת בלבד.\n\nצור שקופית אחת מתוקנת.`;
+    } else if (revisionMode && !originalSlide) {
+      // Global revision of all slides
+      userMessage = `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\n═══ מצב תיקון כללי - כל המצגת ═══\nהלקוח מבקש לשנות את הטון/סגנון של כל המצגת.\n\nהמצגת הנוכחית:\n${brief}\n\nהוראת התיקון:\n"${profileData?.revisionInstruction || brief}"\n\nחוקי ברזל:\n1. שמור על אותו מספר שקופיות ואותם סוגים (types) בדיוק.\n2. יישם את שינוי הטון/סגנון על כל השקופיות באופן אחיד.\n3. שמור על כל הנתונים העובדתיים (מספרים, שמות, פרטי קשר) ללא שינוי.\n4. עדכן image_prompts להתאים לסגנון החדש.\n\nצור ${slideCount} שקופיות מתוקנות.`;
+    } else {
+      userMessage = `שם העסק: ${businessName}\nתעשייה: ${industry || 'כללי'}\nסגנון: ${theme}\n\nבריף:\n${brief}`;
+    }
 
     let response: Response | null = null;
 
