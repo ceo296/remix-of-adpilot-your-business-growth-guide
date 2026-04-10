@@ -128,7 +128,13 @@ const BusinessCardStudio = () => {
 
       const addCardPage = async (ref: React.RefObject<HTMLDivElement | null>, label: string) => {
         if (!ref.current) return;
-        const png = await toPng(ref.current, { pixelRatio: 6, width: 900, height: 500 });
+        const png = await toPng(ref.current, {
+          pixelRatio: 6,
+          width: 900,
+          height: 500,
+          backgroundColor: '#ffffff',
+          cacheBust: true,
+        });
         const x = margin;
         const y = margin;
         doc.setDrawColor(200);
@@ -138,9 +144,6 @@ const BusinessCardStudio = () => {
         const trimX = x + bleed;
         const trimY = y + bleed;
         drawCropMarks(trimX, trimY, cardW, cardH);
-        doc.setFontSize(6);
-        doc.setTextColor(150);
-        doc.text(`${label} | ${cardW}×${cardH}mm | bleed ${bleed}mm`, pageW / 2, pageH - 3, { align: 'center' });
       };
 
       await addCardPage(frontRef, 'חזית');
