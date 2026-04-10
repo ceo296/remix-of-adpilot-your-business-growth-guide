@@ -301,11 +301,8 @@ const BusinessCardStudio = () => {
                 </div>
               )}
               <div>
-                <div style={{ fontSize: '34px', fontWeight: 900, color: '#fff', lineHeight: 1.1, textShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-                  {cardData.businessName}
-                </div>
                 {cardData.personName && (
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginTop: '4px' }}>
+                  <div style={{ fontSize: '22px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginTop: '4px' }}>
                     {cardData.personName}
                   </div>
                 )}
@@ -338,9 +335,6 @@ const BusinessCardStudio = () => {
                     {cardData.personName}
                   </div>
                 )}
-                <div style={{ fontSize: '34px', fontWeight: 900, lineHeight: 1.1, marginTop: cardData.personName ? '4px' : 0, color: isDark ? '#fff' : '#222' }}>
-                  {cardData.businessName}
-                </div>
                 {cardData.title && (
                   <div style={{ display: 'inline-block', marginTop: '10px', padding: '5px 18px', borderRadius: '4px', fontSize: '15px', fontWeight: 700, background: isDark ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)` : `${color}15`, color: isDark ? '#fff' : color, border: isDark ? `1px solid rgba(${rgb.r},${rgb.g},${rgb.b},0.4)` : 'none' }}>
                     {cardData.title}
@@ -423,9 +417,6 @@ const BusinessCardStudio = () => {
               </div>
             )}
             <div>
-              <div style={{ fontSize: '30px', fontWeight: 900, color: '#fff', lineHeight: 1.2, textShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                {cardData.businessName}
-              </div>
               {cardData.personName && (
                 <div style={{ fontSize: '16px', fontWeight: 500, color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
                   {cardData.personName}{cardData.title ? ` • ${cardData.title}` : ''}
