@@ -2647,6 +2647,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               articleStyle: 'product',
               articleTopic: campaignBrief.offer || selectedConcept?.idea || '',
               targetLength: 'medium',
+              articleSubType: articleSubType || 'text-only',
               userPrompt: selectedConcept ? `הכתבה צריכה להתבסס על הקונספט: ${selectedConcept.headline} — ${selectedConcept.copy}` : '',
             },
           },
