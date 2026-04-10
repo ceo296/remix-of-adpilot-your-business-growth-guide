@@ -75,7 +75,7 @@ export const AD_COMPONENTS: {
   },
   {
     id: 'badge-stamp',
-    label: 'עיגול / פלאג / חותמת',
+    label: 'עיגול / פלאג׳ / חותמת',
     description: 'תוספת מבצע, חדש, שעות פתיחה וכדומה',
     icon: Circle,
     placeholder: 'מה לכתוב בחותמת? למשל: "מבצע השקה!", "שעות מורחבות", "חדש!"...',
