@@ -1437,6 +1437,9 @@ const PresentationStudio = () => {
   const [generationProgress, setGenerationProgress] = useState<{ phase: string; current: number; total: number } | null>(null);
   const [slideRevisionNote, setSlideRevisionNote] = useState('');
   const [isRevisingSlide, setIsRevisingSlide] = useState(false);
+  const [globalRevisionNote, setGlobalRevisionNote] = useState('');
+  const [isRevisingGlobal, setIsRevisingGlobal] = useState(false);
+  const [showGlobalRevision, setShowGlobalRevision] = useState(false);
 
   const brandColor = profile?.primary_color || '#E34870';
   const secColor = profile?.secondary_color || '#1a1a2e';
