@@ -682,13 +682,17 @@ const CreativeStudio = () => {
     // Media type is now selected before entering the wizard, so step 1 (MediaType) is removed
     // Steps: 0=Brief, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
-    const isTextOnlyMedia = mediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(mediaTypes[0]);
+    const isTextOnlyMedia = mediaTypes.length === 1 && ['article', 'email'].includes(mediaTypes[0]);
+    const isWhatsappOnly = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
     
     if (isOnlyRadio) {
       return [0, 8]; // Brief, Radio Script
     }
     if (isTextOnlyMedia) {
       return [0]; // Brief only, final step triggers text generation
+    }
+    if (isWhatsappOnly) {
+      return [0]; // Brief only (sub-type selector is inline), then autopilot generates
     }
     if (assetChoice === 'full-campaign') {
       return [0, 3]; // Brief, Upload
