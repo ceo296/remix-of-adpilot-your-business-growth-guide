@@ -32,6 +32,7 @@ export type AdComponent =
 interface ComponentFeedback {
   component: AdComponent;
   text: string;
+  fileUrl?: string; // For kosher logo file upload
 }
 
 interface ComponentFeedbackPickerProps {
