@@ -54,6 +54,8 @@ interface GeneratedImage {
   analysis?: string;
   visualOnlyUrl?: string;
   model?: string;
+  seriesIndex?: number; // 0-based series number (for series campaigns)
+  adIndex?: number; // 0-based ad number within a series
   textMeta?: {
     headline: string;
     subtitle?: string;
