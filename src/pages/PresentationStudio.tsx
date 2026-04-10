@@ -1881,64 +1881,157 @@ const PresentationStudio = () => {
             )}
           </div>
 
-          {/* AI Revision */}
-          <div className="border-t border-border pt-4 space-y-3">
-            <h3 className="font-bold text-foreground text-sm">בקש תיקון מה-AI</h3>
-            <Textarea
-              value={slideRevisionNote}
-              onChange={e => setSlideRevisionNote(e.target.value)}
-              placeholder="למשל: שנה טון, הארך תוכן, הוסף נתון..."
-              className="text-sm min-h-[60px]"
-              dir="rtl"
-            />
-            <Button
-              size="sm"
-              className="w-full gap-2"
-              onClick={async () => {
-                if (!slideRevisionNote.trim()) return;
-                setIsRevisingSlide(true);
-                try {
-                  const { data, error } = await supabase.functions.invoke('generate-presentation', {
-                    body: {
-                      brief: slideRevisionNote.trim(),
-                      businessName,
-                      slideCount: 1,
-                      theme: currentTheme,
-                      revisionMode: true,
-                      originalSlide: currentSlide,
-                      profileData: profile ? {
-                        businessName: profile.business_name,
-                        xFactors: profile.x_factors,
-                        targetAudience: profile.target_audience,
-                        services: profile.services,
-                      } : undefined,
-                    },
-                  });
-                  if (error) throw error;
-                  const revised = data?.slides?.[0];
-                  if (revised) {
-                    updateSlide(activeSlide, {
-                      title: revised.title || currentSlide.title,
-                      subtitle: revised.subtitle || currentSlide.subtitle,
-                      body: revised.body || currentSlide.body,
-                      bullets: revised.bullets || currentSlide.bullets,
-                      stats: revised.stats || currentSlide.stats,
-                      steps: revised.steps || currentSlide.steps,
-                    });
-                    setSlideRevisionNote('');
-                    toast.success('השקופית עודכנה!');
-                  }
-                } catch (err: any) {
-                  toast.error(err.message || 'שגיאה בתיקון');
-                } finally {
-                  setIsRevisingSlide(false);
-                }
-              }}
-              disabled={isRevisingSlide || !slideRevisionNote.trim()}
-            >
-              {isRevisingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {isRevisingSlide ? 'מתקן...' : 'תקן שקופית'}
-            </Button>
+          {/* AI Revision Panel */}
+          <div className="border-t border-border pt-4 space-y-4">
+            {/* Tab toggle: single slide vs global */}
+            <div className="flex rounded-lg border border-border overflow-hidden">
+              <button
+                className={`flex-1 text-xs py-2 px-3 font-medium transition-colors ${!showGlobalRevision ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+                onClick={() => setShowGlobalRevision(false)}
+              >
+                🎯 תיקון שקופית
+              </button>
+              <button
+                className={`flex-1 text-xs py-2 px-3 font-medium transition-colors ${showGlobalRevision ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+                onClick={() => setShowGlobalRevision(true)}
+              >
+                🎨 טון כל המצגת
+              </button>
+            </div>
+
+            {!showGlobalRevision ? (
+              /* Single slide revision */
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">תקן את השקופית הנוכחית — הסגנון, התוכן או הטון.</p>
+                <Textarea
+                  value={slideRevisionNote}
+                  onChange={e => setSlideRevisionNote(e.target.value)}
+                  placeholder="למשל: הפוך לטון רשמי יותר, הוסף נתון על ותק, קצר את הטקסט..."
+                  className="text-sm min-h-[80px]"
+                  dir="rtl"
+                />
+                <Button
+                  size="sm"
+                  className="w-full gap-2"
+                  onClick={async () => {
+                    if (!slideRevisionNote.trim()) return;
+                    setIsRevisingSlide(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke('generate-presentation', {
+                        body: {
+                          brief: slideRevisionNote.trim(),
+                          businessName,
+                          slideCount: 1,
+                          theme: currentTheme,
+                          revisionMode: true,
+                          originalSlide: currentSlide,
+                          profileData: profile ? {
+                            businessName: profile.business_name,
+                            xFactors: profile.x_factors,
+                            targetAudience: profile.target_audience,
+                            services: profile.services,
+                          } : undefined,
+                        },
+                      });
+                      if (error) throw error;
+                      const revised = data?.slides?.[0];
+                      if (revised) {
+                        updateSlide(activeSlide, {
+                          title: revised.title || currentSlide.title,
+                          subtitle: revised.subtitle || currentSlide.subtitle,
+                          body: revised.body || currentSlide.body,
+                          bullets: revised.bullets || currentSlide.bullets,
+                          stats: revised.stats || currentSlide.stats,
+                          steps: revised.steps || currentSlide.steps,
+                        });
+                        setSlideRevisionNote('');
+                        toast.success('השקופית עודכנה!');
+                      }
+                    } catch (err: any) {
+                      toast.error(err.message || 'שגיאה בתיקון');
+                    } finally {
+                      setIsRevisingSlide(false);
+                    }
+                  }}
+                  disabled={isRevisingSlide || !slideRevisionNote.trim()}
+                >
+                  {isRevisingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {isRevisingSlide ? 'מתקן...' : 'תקן שקופית'}
+                </Button>
+              </div>
+            ) : (
+              /* Global tone/style revision */
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">שנה את הטון, הסגנון או השפה של כל המצגת בבת אחת.</p>
+                <Textarea
+                  value={globalRevisionNote}
+                  onChange={e => setGlobalRevisionNote(e.target.value)}
+                  placeholder="למשל: הפוך הכל לטון יותר חם ואישי, שנה לשפה שיווקית אגרסיבית, הוסף יותר נתונים..."
+                  className="text-sm min-h-[80px]"
+                  dir="rtl"
+                />
+                <Button
+                  size="sm"
+                  className="w-full gap-2"
+                  onClick={async () => {
+                    if (!globalRevisionNote.trim() || !slides) return;
+                    setIsRevisingGlobal(true);
+                    try {
+                      const allSlidesJSON = JSON.stringify(slides.map(s => ({
+                        type: s.type, title: s.title, subtitle: s.subtitle,
+                        body: s.body, bullets: s.bullets, stats: s.stats, steps: s.steps,
+                      })));
+                      const { data, error } = await supabase.functions.invoke('generate-presentation', {
+                        body: {
+                          brief: allSlidesJSON,
+                          businessName,
+                          slideCount: slides.length,
+                          theme: currentTheme,
+                          revisionMode: true,
+                          profileData: {
+                            revisionInstruction: globalRevisionNote.trim(),
+                            businessName: profile?.business_name,
+                            xFactors: profile?.x_factors,
+                            targetAudience: profile?.target_audience,
+                            services: profile?.services,
+                          },
+                        },
+                      });
+                      if (error) throw error;
+                      const revisedSlides = data?.slides;
+                      if (revisedSlides?.length) {
+                        setSlides(prev => {
+                          if (!prev) return prev;
+                          return prev.map((original, i) => {
+                            const revised = revisedSlides[i];
+                            if (!revised) return original;
+                            return {
+                              ...original,
+                              title: revised.title || original.title,
+                              subtitle: revised.subtitle ?? original.subtitle,
+                              body: revised.body ?? original.body,
+                              bullets: revised.bullets ?? original.bullets,
+                              stats: revised.stats ?? original.stats,
+                              steps: revised.steps ?? original.steps,
+                            };
+                          });
+                        });
+                        setGlobalRevisionNote('');
+                        toast.success(`כל ${revisedSlides.length} השקופיות עודכנו!`);
+                      }
+                    } catch (err: any) {
+                      toast.error(err.message || 'שגיאה בתיקון');
+                    } finally {
+                      setIsRevisingGlobal(false);
+                    }
+                  }}
+                  disabled={isRevisingGlobal || !globalRevisionNote.trim()}
+                >
+                  {isRevisingGlobal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                  {isRevisingGlobal ? 'מעדכן כל המצגת...' : 'עדכן כל המצגת'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
