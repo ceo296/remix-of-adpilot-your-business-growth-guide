@@ -483,10 +483,6 @@ const BusinessCardStudio = () => {
                 <h3 className="text-sm font-bold text-foreground">פרטי הכרטיס</h3>
                 <div className="space-y-2">
                   <div>
-                    <Label className="text-xs">שם העסק</Label>
-                    <Input value={cardData.businessName} onChange={e => updateField('businessName', e.target.value)} placeholder="שם העסק" />
-                  </div>
-                  <div>
                     <Label className="text-xs">שם איש קשר</Label>
                     <Input value={cardData.personName} onChange={e => updateField('personName', e.target.value)} placeholder="ישראל ישראלי (אופציונלי)" />
                   </div>
