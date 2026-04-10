@@ -375,6 +375,53 @@ export const StudioProductPicker = ({ onComplete, detectedIndustry }: StudioProd
       <div className="mt-2">
         {renderProductButton(CAMPAIGN_360, 'lg')}
       </div>
+
+      {/* 360 Campaign Confirmation Dialog */}
+      <AlertDialog open={show360Confirm} onOpenChange={setShow360Confirm}>
+        <AlertDialogContent dir="rtl" className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl text-center">קמפיין 360° — מה נייצר עבורך?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 pt-2">
+                <p className="text-center text-muted-foreground">המערכת תייצר עבורך חבילה מלאה הכוללת:</p>
+                <ul className="space-y-2 text-sm text-foreground">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>מודעות גרפיות לעיתונות</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>באנרים דיגיטליים</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>תשדיר רדיו</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>כתבה פרסומית</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>מייל שיווקי</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>הודעת וואטסאפ</span>
+                  </li>
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse gap-2 sm:flex-row-reverse">
+            <AlertDialogAction onClick={handle360Confirm} className="flex-1">
+              <Sparkles className="w-4 h-4 ml-2" />
+              יאללה, בואו נתחיל!
+            </AlertDialogAction>
+            <AlertDialogCancel className="flex-1">חזרה</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
