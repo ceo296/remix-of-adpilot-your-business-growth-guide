@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 import { 
   Image as ImageIcon, 
@@ -10,7 +10,9 @@ import {
   X,
   Send,
   Circle,
-  ShieldCheck
+  ShieldCheck,
+  Upload,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,6 +32,7 @@ export type AdComponent =
 interface ComponentFeedback {
   component: AdComponent;
   text: string;
+  fileUrl?: string; // For kosher logo file upload
 }
 
 interface ComponentFeedbackPickerProps {
@@ -75,7 +78,7 @@ export const AD_COMPONENTS: {
   },
   {
     id: 'badge-stamp',
-    label: 'עיגול / פלאג / חותמת',
+    label: 'עיגול / פלאג׳ / חותמת',
     description: 'תוספת מבצע, חדש, שעות פתיחה וכדומה',
     icon: Circle,
     placeholder: 'מה לכתוב בחותמת? למשל: "מבצע השקה!", "שעות מורחבות", "חדש!"...',
@@ -103,6 +106,9 @@ export const ComponentFeedbackPicker = ({
 }: ComponentFeedbackPickerProps) => {
   const [selectedComponents, setSelectedComponents] = useState<Set<AdComponent>>(new Set());
   const [feedbackTexts, setFeedbackTexts] = useState<Record<AdComponent, string>>({} as any);
+  const [kosherLogoUrl, setKosherLogoUrl] = useState<string | null>(null);
+  const [isUploadingKosher, setIsUploadingKosher] = useState(false);
+  const kosherFileRef = useRef<HTMLInputElement>(null);
 
   const toggleComponent = (id: AdComponent) => {
     setSelectedComponents(prev => {
@@ -120,12 +126,39 @@ export const ComponentFeedbackPicker = ({
     setFeedbackTexts(prev => ({ ...prev, [id]: text }));
   };
 
+  const handleKosherFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingKosher(true);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `kosher-logos/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('sector-brain').upload(path, file);
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('sector-brain').getPublicUrl(path);
+      setKosherLogoUrl(urlData.publicUrl);
+      // Auto-fill text if empty
+      if (!feedbackTexts['kosher-logo']?.trim()) {
+        updateFeedbackText('kosher-logo', 'שבץ את חותמת הכשרות המצורפת במודעה');
+      }
+    } catch (err) {
+      console.error('Kosher logo upload error:', err);
+    } finally {
+      setIsUploadingKosher(false);
+    }
+  };
+
   const handleSubmit = () => {
     const feedbacks: ComponentFeedback[] = [];
     for (const comp of selectedComponents) {
       const text = feedbackTexts[comp]?.trim();
-      if (text) {
-        feedbacks.push({ component: comp, text });
+      if (text || (comp === 'kosher-logo' && kosherLogoUrl)) {
+        feedbacks.push({ 
+          component: comp, 
+          text: text || 'שבץ חותמת כשרות',
+          ...(comp === 'kosher-logo' && kosherLogoUrl ? { fileUrl: kosherLogoUrl } : {}),
+        });
       }
     }
     if (feedbacks.length === 0) {
@@ -135,7 +168,7 @@ export const ComponentFeedbackPicker = ({
   };
 
   const hasValidFeedback = Array.from(selectedComponents).some(
-    comp => feedbackTexts[comp]?.trim()
+    comp => feedbackTexts[comp]?.trim() || (comp === 'kosher-logo' && kosherLogoUrl)
   );
 
   const selectedCount = selectedComponents.size;
@@ -196,6 +229,39 @@ export const ComponentFeedbackPicker = ({
                   className="min-h-[80px] text-sm"
                   dir="rtl"
                 />
+                {/* Kosher logo file upload */}
+                {comp.id === 'kosher-logo' && (
+                  <div className="flex items-center gap-3 pt-1">
+                    <input
+                      ref={kosherFileRef}
+                      type="file"
+                      accept="image/*,.svg,.pdf"
+                      className="hidden"
+                      onChange={handleKosherFileUpload}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => kosherFileRef.current?.click()}
+                      disabled={isUploadingKosher}
+                    >
+                      {isUploadingKosher ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="h-3.5 w-3.5" />
+                      )}
+                      העלה חותמת כשרות
+                    </Button>
+                    {kosherLogoUrl && (
+                      <div className="flex items-center gap-2">
+                        <img src={kosherLogoUrl} alt="חותמת כשרות" className="h-8 w-8 object-contain rounded border border-border" />
+                        <Check className="h-4 w-4 text-primary" />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -421,7 +421,28 @@ serve(async (req) => {
         if (goalDirective) contextBlock += `\n🎯 הנחיית סגנון לפי מטרה: ${goalDirective}\n`;
       }
       if (campaignContext.vibe) contextBlock += `וייב: ${campaignContext.vibe}\n`;
-      if (campaignContext.structure) contextBlock += `מבנה: ${campaignContext.structure}\n`;
+      if (campaignContext.structure) {
+        contextBlock += `מבנה: ${campaignContext.structure}\n`;
+        if (campaignContext.structure === 'series') {
+          contextBlock += `\n=== 📦 מצב סדרה (Serial Campaign) ===\n`;
+          contextBlock += `זהו קמפיין מתמשך (סדרה) — לא קמפיין נקודתי!\n`;
+          contextBlock += `כללים לסדרה:\n`;
+          contextBlock += `1. כל סדרה = 3 מודעות באותו קונספט ויזואלי ושפתי, אבל כל מודעה מדגישה זווית/מוצר/מסר שונה.\n`;
+          contextBlock += `2. עקביות ויזואלית: אותה פלטת צבעים, אותו סגנון עיצובי, אותו גריד.\n`;
+          contextBlock += `3. עקביות שפתית: אותו טון, אותו סוג כותרת (שאלה/טוויסט/מטאפורה), אותה לשון (זכר/נקבה).\n`;
+          contextBlock += `4. כותרת-על אחידה: ניתן להשתמש בכותרת-על קבועה עם כותרות משנה שמשתנות.\n`;
+          contextBlock += `5. אם יש seriesIndex בקונטקסט — הוא מציין איזו סדרה ליצור (0=סדרה 1, 1=סדרה 2).\n`;
+          contextBlock += `6. אם יש adIndex — הוא מציין איזו מודעה בסדרה (0, 1, 2).\n`;
+          if (campaignContext.seriesIndex !== undefined) {
+            contextBlock += `\n🎯 סדרה נוכחית: ${campaignContext.seriesIndex + 1}\n`;
+            contextBlock += `${campaignContext.seriesInstruction || ''}\n`;
+            if (campaignContext.adIndex !== undefined) {
+              contextBlock += `מודעה מספר: ${campaignContext.adIndex + 1} מתוך ${campaignContext.adsPerSeries || 3}\n`;
+            }
+          }
+          contextBlock += `===\n`;
+        }
+      }
       if (campaignContext.timing) contextBlock += `טיימינג: ${campaignContext.timing}\n`;
       if (campaignContext.mediaTypes?.length) contextBlock += `סוגי מדיה: ${campaignContext.mediaTypes.join(', ')}\n`;
       if (campaignContext.campaignImageUrl) contextBlock += `\n📷 הלקוח צירף תמונה ייעודית לקמפיין — התייחס אליה בקונספטים הויזואליים.\n`;
