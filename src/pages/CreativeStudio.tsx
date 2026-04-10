@@ -319,12 +319,17 @@ const CreativeStudio = () => {
       // 360° campaign → autopilot
       setMode('autopilot');
       setAssetChoice(null);
+    } else if (isWhatsappOnly && scope === 'full') {
+      // WhatsApp only → show sub-type selector, then autopilot
+      setMode('autopilot');
+      setAssetChoice(null);
+      setWhatsappSubType(null); // Will be selected in-flow
     } else if (isVisualMedia && scope === 'full') {
       // Ad/Banner full → autopilot
       setMode('autopilot');
       setAssetChoice(null);
     } else {
-      // Radio, Article, Email, WhatsApp, or text-have-script → manual wizard (brief first)
+      // Radio, Article, Email, or text-have-script → manual wizard (brief first)
       setMode('manual');
       setAssetChoice(null);
     }
