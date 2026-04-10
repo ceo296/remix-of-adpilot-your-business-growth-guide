@@ -320,31 +320,54 @@ ${extraContext?.userPrompt ? `- הנחיות נוספות מהמשתמש (חוב
       };
     } else if (type === 'email') {
       const emailTopic = extraContext?.emailTopic || '';
+      const emailSubType = extraContext?.emailSubType || 'text-only';
+      const withDesign = emailSubType === 'with-design';
       toolName = 'generate_email_content';
-      systemPrompt = `אתה כותב מיילים שיווקיים מקצועיים בעברית למגזר החרדי. צור מייל דיוור אלקטרוני מעוצב.
+      
+      systemPrompt = `אתה כותב מיילים שיווקיים מקצועיים בעברית למגזר החרדי. צור מייל דיוור אלקטרוני.
+
 ${profileBlock}
 ${emailTopic ? `נושא/הצעה: ${emailTopic}` : ''}
 ${harediBrief}
 ${sectorContext}
+
 הנחיות:
+- המלל והעיצוב של המייל נגזרים מהבריף ומהלקוח
 - כתוב נושא (subject) קצר, קולע ומזמין פתיחה (עד 8 מילים)
-- גוף המייל: 3-5 פסקאות קצרות, שפה חמה ומקצועית
+- גוף המייל: טקסט שיווקי מקצועי עם **טקסטים מודגשים** בנקודות מפתח
+- יכול להיות שיווקי, תזכורת, תוכן מעניין, עדכון — תלוי בבריף
 - CTA ברור — כפתור עם טקסט קצר (3-5 מילים)
 - אל תמציא מידע שלא סופק
-- אסור: סלנג, הבטחות מופרזות, אנגלית`;
+- אסור: סלנג, הבטחות מופרזות, אנגלית
+${withDesign ? `
+הנחיות לתמונה/באנר נלווה (imageHeadline + imageSubtext):
+- כותרת קצרה וחזקה (3-6 מילים) שתופיע על התמונה
+- טקסט משני אופציונלי (מחיר, מבצע, תאריך)
+- התמונה תהיה ויזואלית ונקייה — מינימום טקסט!` : ''}
+${extraContext?.userPrompt ? `- הנחיות נוספות מהמשתמש (חובה ליישם): ${extraContext.userPrompt}` : ''}`;
+
+      const emailProps: Record<string, any> = {
+        subject: { type: "string", description: "נושא המייל" },
+        body: { type: "string", description: "גוף המייל עם **טקסטים מודגשים**" },
+        cta: { type: "string", description: "טקסט כפתור הפעולה" },
+      };
+      const requiredFields = ["subject", "body", "cta"];
+      
+      if (withDesign) {
+        emailProps.imageHeadline = { type: "string", description: "כותרת קצרה לתמונה/באנר (3-6 מילים)" };
+        emailProps.imageSubtext = { type: "string", description: "טקסט משני קצר (מחיר/מבצע, אופציונלי)" };
+        requiredFields.push("imageHeadline");
+      }
+
       toolDef = {
         type: "function",
         function: {
           name: toolName,
-          description: "Generate professional marketing email",
+          description: withDesign ? "Generate marketing email with design data" : "Generate marketing email",
           parameters: {
             type: "object",
-            properties: {
-              subject: { type: "string", description: "נושא המייל" },
-              body: { type: "string", description: "גוף המייל" },
-              cta: { type: "string", description: "טקסט כפתור הפעולה" },
-            },
-            required: ["subject", "body", "cta"],
+            properties: emailProps,
+            required: requiredFields,
           }
         }
       };
