@@ -2659,6 +2659,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             profileData,
             extraContext: {
               whatsappTopic: campaignBrief.offer || selectedConcept?.idea || '',
+              whatsappSubType: whatsappSubType || 'distribution',
               userPrompt: selectedConcept ? `המסר צריך להתבסס על הקונספט: ${selectedConcept.headline} — ${selectedConcept.copy}` : '',
             },
           },
