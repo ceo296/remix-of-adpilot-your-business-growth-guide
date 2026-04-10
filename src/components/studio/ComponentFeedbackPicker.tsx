@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 import { 
   Image as ImageIcon, 
@@ -10,7 +10,9 @@ import {
   X,
   Send,
   Circle,
-  ShieldCheck
+  ShieldCheck,
+  Upload,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
