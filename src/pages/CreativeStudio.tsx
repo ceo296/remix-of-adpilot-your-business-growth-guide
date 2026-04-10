@@ -2761,6 +2761,63 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                 </div>
               </div>
             )}
+
+            {/* Email Sub-type Selector */}
+            {mediaTypes.length === 1 && mediaTypes[0] === 'email' && (
+              <div className="mb-8 animate-fade-in">
+                <div className="text-center mb-6">
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg flex items-center justify-center mb-3">
+                    <Mail className="w-7 h-7 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground mb-1">איזה סוג מייל?</h2>
+                  <p className="text-muted-foreground">בחר אם אתה רוצה רק מלל או גם עיצוב נלווה</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto">
+                  {/* Text Only */}
+                  <Card
+                    className={cn(
+                      'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
+                      emailSubType === 'text-only'
+                        ? 'border-blue-500 bg-blue-500/10 shadow-lg ring-2 ring-blue-400/30'
+                        : 'border-border hover:border-blue-500/50'
+                    )}
+                    onClick={() => setEmailSubType('text-only')}
+                  >
+                    <div className="p-5 flex flex-col items-center text-center">
+                      <Type className="w-10 h-10 text-muted-foreground mb-3" />
+                      <h4 className="text-lg font-bold text-foreground">רק מלל</h4>
+                      <p className="text-xs text-muted-foreground mt-1">כותרת, גוף המייל ו-CTA בלבד</p>
+                      {emailSubType === 'text-only' && (
+                        <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                  {/* With Design */}
+                  <Card
+                    className={cn(
+                      'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
+                      emailSubType === 'with-design'
+                        ? 'border-blue-500 bg-blue-500/10 shadow-lg ring-2 ring-blue-400/30'
+                        : 'border-border hover:border-blue-500/50'
+                    )}
+                    onClick={() => setEmailSubType('with-design')}
+                  >
+                    <div className="p-5 flex flex-col items-center text-center">
+                      <ImageIcon className="w-10 h-10 text-muted-foreground mb-3" />
+                      <h4 className="text-lg font-bold text-foreground">מלל + עיצוב נלווה</h4>
+                      <p className="text-xs text-muted-foreground mt-1">טקסט שיווקי עם תמונה/באנר מעוצב</p>
+                      {emailSubType === 'with-design' && (
+                        <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )}
             
             {/* Brief Step */}
             <StudioBriefStep 
