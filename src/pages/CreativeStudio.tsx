@@ -303,7 +303,7 @@ const CreativeStudio = () => {
     
     const isAll = selectedMediaTypes.includes('all');
     const isOnlyRadio = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'radio';
-    const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article'].includes(selectedMediaTypes[0]);
+    const isArticleOnly = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'article';
     const isEmailOnly = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'email';
     const isWhatsappOnly = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'whatsapp';
     const isVisualMedia = selectedMediaTypes.some(t => ['ad', 'banner'].includes(t));
@@ -320,6 +320,11 @@ const CreativeStudio = () => {
       // 360° campaign → autopilot
       setMode('autopilot');
       setAssetChoice(null);
+    } else if (isArticleOnly && scope === 'full') {
+      // Article only → show sub-type selector (text-only vs designed)
+      setMode('manual');
+      setAssetChoice(null);
+      setArticleSubType(null);
     } else if (isEmailOnly && scope === 'full') {
       // Email only → show sub-type selector (text-only vs with-design)
       setMode('manual');
@@ -456,6 +461,7 @@ const CreativeStudio = () => {
   const [showAutopilotWhatsapp, setShowAutopilotWhatsapp] = useState(false);
   const [whatsappSubType, setWhatsappSubType] = useState<'status' | 'distribution' | null>(null);
   const [emailSubType, setEmailSubType] = useState<'text-only' | 'with-design' | null>(null);
+  const [articleSubType, setArticleSubType] = useState<'text-only' | 'with-design' | null>(null);
   // Editing states for 360° platform results
   const [editingRadio, setEditingRadio] = useState(false);
   const [editingArticle, setEditingArticle] = useState(false);
@@ -689,15 +695,15 @@ const CreativeStudio = () => {
     // Media type is now selected before entering the wizard, so step 1 (MediaType) is removed
     // Steps: 0=Brief, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
-    const isTextOnlyMedia = mediaTypes.length === 1 && ['article'].includes(mediaTypes[0]);
+    const isArticleOnly = mediaTypes.length === 1 && mediaTypes[0] === 'article';
     const isEmailOnly = mediaTypes.length === 1 && mediaTypes[0] === 'email';
     const isWhatsappOnly = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
     
     if (isOnlyRadio) {
       return [0, 8]; // Brief, Radio Script
     }
-    if (isTextOnlyMedia) {
-      return [0]; // Brief only, final step triggers text generation
+    if (isArticleOnly) {
+      return [0]; // Brief only (sub-type selector is inline)
     }
     if (isEmailOnly) {
       return [0]; // Brief only (sub-type selector is inline)
@@ -737,7 +743,8 @@ const CreativeStudio = () => {
         const words = offer.split(/\s+/).filter(w => w.length > 0);
         const hasValidOffer = words.length >= 12 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
         
-        const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article'].includes(t));
+        const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio'].includes(t));
+        const isArticleFlow = mediaTypes.length === 1 && mediaTypes[0] === 'article';
         const isEmailFlow = mediaTypes.length === 1 && mediaTypes[0] === 'email';
         const isWhatsappFlow = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
         
@@ -746,6 +753,9 @@ const CreativeStudio = () => {
         }
         if (isEmailFlow) {
           return !!emailSubType && !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
+        }
+        if (isArticleFlow) {
+          return !!articleSubType && !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
         }
         if (isTextOnlyFlow) {
           return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
@@ -1192,6 +1202,7 @@ const CreativeStudio = () => {
     setShowAutopilotWhatsapp(false);
     setWhatsappSubType(null);
     setEmailSubType(null);
+    setArticleSubType(null);
     setAutopilotRadioScript(null);
     setRadioAudioUrl(null);
     setIsPlayingRadio(false);
