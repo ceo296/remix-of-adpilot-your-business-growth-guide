@@ -1345,22 +1345,77 @@ ${profileSummary}
               </div>
             </div>
 
-            <Button
-              className="w-full h-14 text-lg gap-2 font-bold"
-              onClick={() => onGenerate(effectiveBrief, slideCount, theme, presentationType)}
-              disabled={!brief.trim() || isLoading}
-            >
-              {isLoading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />
-                  {generationProgress?.phase === 'images' 
-                    ? `מייצר תמונות... ${generationProgress.current}/${generationProgress.total}`
-                    : 'בונה את השקפים...'
-                  }
-                </>
-              ) : (
-                <><Wand2 className="w-5 h-5" />צור מצגת ✨</>
-              )}
-            </Button>
+            {/* Gap Analysis Results */}
+            {gaps && gaps.length > 0 && (
+              <div className="p-4 rounded-xl border-2 border-amber-500/30 bg-amber-500/5 space-y-4 animate-fade-in">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <FileText className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">זיהינו מידע חסר בבריף שלך</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      כדי שהמצגת תהיה מדויקת ומקצועית, נשמח שתשלים את הפרטים הבאים. אפשר גם לדלג.
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {gaps.map((gap, i) => (
+                    <div key={i} className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">{gap.question}</label>
+                      <Textarea
+                        value={gap.answer}
+                        onChange={e => updateGapAnswer(i, e.target.value)}
+                        placeholder={`ספר לנו על ${gap.topic}...`}
+                        rows={2}
+                        className="text-sm"
+                        dir="rtl"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1 h-12 text-base gap-2 font-bold"
+                    onClick={handleGenerateWithGaps}
+                    disabled={isLoading}
+                  >
+                    <Wand2 className="w-5 h-5" />
+                    צור מצגת עם המידע הנוסף ✨
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-12 text-sm"
+                    onClick={handleSkipGaps}
+                    disabled={isLoading}
+                  >
+                    דלג
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Generate / Analyze button */}
+            {!gaps && (
+              <Button
+                className="w-full h-14 text-lg gap-2 font-bold"
+                onClick={analyzeBriefGaps}
+                disabled={!brief.trim() || isLoading || isAnalyzing}
+              >
+                {isLoading ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" />
+                    {generationProgress?.phase === 'images' 
+                      ? `מייצר תמונות... ${generationProgress.current}/${generationProgress.total}`
+                      : 'בונה את השקפים...'
+                    }
+                  </>
+                ) : isAnalyzing ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" />מנתח את הבריף...</>
+                ) : (
+                  <><Wand2 className="w-5 h-5" />צור מצגת ✨</>
+                )}
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
