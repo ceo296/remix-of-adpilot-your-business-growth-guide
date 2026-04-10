@@ -3818,6 +3818,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                           setFeedbackType(null);
                           setSelectedSketchIds([]);
                         }}
+                        mediaType={mediaTypes.length === 1 ? mediaTypes[0] : undefined}
                       />
                     )}
 
