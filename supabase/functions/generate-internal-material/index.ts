@@ -351,29 +351,41 @@ ${sectorContext}
     } else if (type === 'whatsapp') {
       const whatsappTopic = extraContext?.whatsappTopic || '';
       toolName = 'generate_whatsapp_content';
-      systemPrompt = `אתה כותב מסרי וואטסאפ שיווקיים קצרים וקליטים בעברית למגזר החרדי. צור מסר שמתאים לשיתוף בוואטסאפ.
+      systemPrompt = `אתה כותב מסרי וואטסאפ שיווקיים בעברית למגזר החרדי. צור מסר מובנה שמתאים לשיתוף בוואטסאפ.
+
+פרסום בוואטסאפ מורכב מ-2 חלקים:
+1. **קוביה עיצובית** (תמונה מרובעת) — עם מינימום טקסט! רק כותרת קצרה ובולטת + לוגו + אולי מחיר/מבצע. בלי פסקאות ארוכות בתמונה!
+2. **טקסט נלווה** — המסר השיווקי שמלווה את התמונה, כולל אימוג'ים, נקודות מפתח, ופרטי קשר/קישורים בסוף.
+
 ${profileBlock}
 ${whatsappTopic ? `נושא/הצעה: ${whatsappTopic}` : ''}
 ${harediBrief}
 ${sectorContext}
-הנחיות:
-- מסר קצר: 3-6 שורות מקסימום
-- כתוב בטון אישי, ידידותי אך מכבד
-- אימוג'ים במינון סביר (2-4 לכל ההודעה)
-- לסיים עם CTA קצר — קישור / מספר טלפון / "שלחו הודעה"
-- פרטי קשר של העסק בסוף
+הנחיות לקוביה העיצובית (imageHeadline + imageSubtext):
+- כותרת קצרה וחזקה בלבד (3-6 מילים)
+- טקסט משני אופציונלי קצר מאוד (מחיר, תאריך, מבצע)
+- אסור טקסט ארוך בתמונה — התמונה צריכה להיות ויזואלית ונקייה
+
+הנחיות לטקסט הנלווה (message):
+- פתיחה סוקרנת עם אימוג'י (1-2 שורות)
+- 2-4 נקודות מפתח (bullets) עם אימוג'ים
+- CTA ברור
+- בסוף: פרטי קשר (טלפון, וואטסאפ, קישור) עם אימוג'ים מתאימים
+- אימוג'ים במינון סביר ובטעם טוב
 - אסור: סלנג, הבטחות מופרזות, יותר מדי אימוג'ים`;
       toolDef = {
         type: "function",
         function: {
           name: toolName,
-          description: "Generate WhatsApp marketing message",
+          description: "Generate structured WhatsApp marketing content",
           parameters: {
             type: "object",
             properties: {
-              message: { type: "string", description: "המסר המלא לוואטסאפ" },
+              imageHeadline: { type: "string", description: "כותרת קצרה לקוביה העיצובית (3-6 מילים)" },
+              imageSubtext: { type: "string", description: "טקסט משני קצר לקוביה (מחיר/מבצע, אופציונלי)" },
+              message: { type: "string", description: "הטקסט הנלווה המלא שמלווה את התמונה, כולל אימוג'ים ופרטי קשר" },
             },
-            required: ["message"],
+            required: ["imageHeadline", "message"],
           }
         }
       };

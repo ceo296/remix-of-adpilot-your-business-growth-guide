@@ -27,7 +27,14 @@ export type AdComponent =
   | 'grid-layout'
   | 'badge-stamp'
   | 'kosher-logo'
-  | 'general';
+  | 'general'
+  // WhatsApp-specific
+  | 'wa-image-headline'
+  | 'wa-image-visual'
+  | 'wa-text-intro'
+  | 'wa-text-bullets'
+  | 'wa-text-cta'
+  | 'wa-text-links';
 
 interface ComponentFeedback {
   component: AdComponent;
@@ -39,6 +46,7 @@ interface ComponentFeedbackPickerProps {
   sketchLabel: string;
   onSubmit: (feedbacks: ComponentFeedback[]) => void;
   onCancel: () => void;
+  mediaType?: string; // 'whatsapp' triggers WhatsApp-specific categories
 }
 
 export const AD_COMPONENTS: {
@@ -47,6 +55,7 @@ export const AD_COMPONENTS: {
   description: string;
   icon: React.ElementType;
   placeholder: string;
+  group?: 'design' | 'text'; // For WhatsApp grouping
 }[] = [
   {
     id: 'headline',
@@ -99,11 +108,91 @@ export const AD_COMPONENTS: {
   },
 ];
 
+// WhatsApp-specific components grouped by design vs text
+export const WA_COMPONENTS: {
+  id: AdComponent;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  placeholder: string;
+  group: 'design' | 'text';
+}[] = [
+  // Design group (the square image)
+  {
+    id: 'wa-image-headline',
+    label: 'כותרת בקוביה',
+    description: 'הכותרת הקצרה שמופיעה על התמונה',
+    icon: Heading1,
+    placeholder: 'מה לשנות? למשל: "לשנות ניסוח", "להוסיף מחיר", "לקצר"...',
+    group: 'design',
+  },
+  {
+    id: 'wa-image-visual',
+    label: 'עיצוב הקוביה',
+    description: 'הרקע, צבעים, גרפיקה בתמונה',
+    icon: ImageIcon,
+    placeholder: 'מה לשנות? למשל: "רקע אחר", "צבעים שונים", "יותר נקי"...',
+    group: 'design',
+  },
+  {
+    id: 'kosher-logo',
+    label: 'לוגו כשרות',
+    description: 'הוספת סמל כשרות בקוביה',
+    icon: ShieldCheck,
+    placeholder: 'איזה כשרות? למשל: "בד״ץ העדה החרדית"...',
+    group: 'design',
+  },
+  // Text group (the accompanying message)
+  {
+    id: 'wa-text-intro',
+    label: 'פתיחת המסר',
+    description: 'השורות הראשונות של הטקסט הנלווה',
+    icon: Heading2,
+    placeholder: 'מה לשנות? למשל: "פתיחה יותר סוקרנת", "טון שונה"...',
+    group: 'text',
+  },
+  {
+    id: 'wa-text-bullets',
+    label: 'נקודות מפתח',
+    description: 'הבולטים/סעיפים במסר',
+    icon: LayoutGrid,
+    placeholder: 'מה לשנות? למשל: "להוסיף יתרון", "להוריד סעיף", "לשנות ניסוח"...',
+    group: 'text',
+  },
+  {
+    id: 'wa-text-cta',
+    label: 'קריאה לפעולה',
+    description: 'ה-CTA — מה המשתמש צריך לעשות',
+    icon: MessageCircle,
+    placeholder: 'מה לשנות? למשל: "להזמינו עכשיו", "שלחו הודעה", "חייגו"...',
+    group: 'text',
+  },
+  {
+    id: 'wa-text-links',
+    label: 'קישורים ופרטי קשר',
+    description: 'טלפון, וואטסאפ, דף נחיתה',
+    icon: Circle,
+    placeholder: 'מה להוסיף/לשנות? למשל: "להוסיף קישור לדף נחיתה", "לשנות מספר טלפון"...',
+    group: 'text',
+  },
+  {
+    id: 'general',
+    label: 'הערה כללית',
+    description: 'הערה חופשית',
+    icon: MessageCircle,
+    placeholder: 'כתוב הערה כללית...',
+    group: 'text',
+  },
+];
+
 export const ComponentFeedbackPicker = ({
   sketchLabel,
   onSubmit,
   onCancel,
+  mediaType,
 }: ComponentFeedbackPickerProps) => {
+  const isWhatsApp = mediaType === 'whatsapp';
+  const components = isWhatsApp ? WA_COMPONENTS : AD_COMPONENTS;
   const [selectedComponents, setSelectedComponents] = useState<Set<AdComponent>>(new Set());
   const [feedbackTexts, setFeedbackTexts] = useState<Record<AdComponent, string>>({} as any);
   const [kosherLogoUrl, setKosherLogoUrl] = useState<string | null>(null);
@@ -190,32 +279,60 @@ export const ComponentFeedbackPicker = ({
         </div>
 
         {/* Component Chips */}
-        <div className="flex flex-wrap gap-2">
-          {AD_COMPONENTS.map((comp) => {
-            const isSelected = selectedComponents.has(comp.id);
-            return (
-              <button
-                key={comp.id}
-                onClick={() => toggleComponent(comp.id)}
-                className={cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-medium',
-                  isSelected
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
-                )}
-              >
-                <comp.icon className="h-4 w-4" />
-                {comp.label}
-                {isSelected && <Check className="h-3.5 w-3.5" />}
-              </button>
-            );
-          })}
-        </div>
+        {isWhatsApp ? (
+          <div className="space-y-4">
+            {/* Design group */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">🎨 עיצוב הקוביה</p>
+              <div className="flex flex-wrap gap-2">
+                {WA_COMPONENTS.filter(c => c.group === 'design').map((comp) => {
+                  const isSelected = selectedComponents.has(comp.id);
+                  return (
+                    <button key={comp.id} onClick={() => toggleComponent(comp.id)} className={cn('flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-medium', isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground')}>
+                      <comp.icon className="h-4 w-4" />
+                      {comp.label}
+                      {isSelected && <Check className="h-3.5 w-3.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Text group */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">✍️ טקסט נלווה</p>
+              <div className="flex flex-wrap gap-2">
+                {WA_COMPONENTS.filter(c => c.group === 'text').map((comp) => {
+                  const isSelected = selectedComponents.has(comp.id);
+                  return (
+                    <button key={comp.id} onClick={() => toggleComponent(comp.id)} className={cn('flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-medium', isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground')}>
+                      <comp.icon className="h-4 w-4" />
+                      {comp.label}
+                      {isSelected && <Check className="h-3.5 w-3.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {AD_COMPONENTS.map((comp) => {
+              const isSelected = selectedComponents.has(comp.id);
+              return (
+                <button key={comp.id} onClick={() => toggleComponent(comp.id)} className={cn('flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-medium', isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground')}>
+                  <comp.icon className="h-4 w-4" />
+                  {comp.label}
+                  {isSelected && <Check className="h-3.5 w-3.5" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Feedback Inputs for Selected Components */}
         {selectedCount > 0 && (
           <div className="space-y-4 pt-2">
-            {AD_COMPONENTS.filter(c => selectedComponents.has(c.id)).map((comp) => (
+            {components.filter(c => selectedComponents.has(c.id)).map((comp) => (
               <div key={comp.id} className="space-y-2 animate-fade-in">
                 <div className="flex items-center gap-2">
                   <comp.icon className="h-4 w-4 text-primary" />
