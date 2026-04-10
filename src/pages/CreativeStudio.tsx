@@ -2683,30 +2683,94 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
     switch (currentStep) {
       case 0:
         return (
-          <StudioBriefStep 
-            value={campaignBrief} 
-            onChange={setCampaignBrief}
-            businessName={clientProfile?.business_name}
-            campaignScope={assetChoice}
-            mediaTypes={mediaTypes}
-            contactInfo={clientProfile ? {
-              contact_phone: clientProfile.contact_phone,
-              contact_whatsapp: clientProfile.contact_whatsapp,
-              contact_email: clientProfile.contact_email,
-              contact_address: clientProfile.contact_address,
-              contact_youtube: clientProfile.contact_youtube,
-              social_facebook: clientProfile.social_facebook,
-              social_instagram: clientProfile.social_instagram,
-              opening_hours: (clientProfile as any).opening_hours || null,
-              branches: (clientProfile as any).branches || null,
-              logo_url: clientProfile.logo_url || null,
-            } : undefined}
-            brandColors={clientProfile ? {
-              primary_color: clientProfile.primary_color,
-              secondary_color: clientProfile.secondary_color,
-              background_color: clientProfile.background_color,
-            } : undefined}
-          />
+          <>
+            {/* WhatsApp Sub-type Selector */}
+            {mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp' && (
+              <div className="mb-8 animate-fade-in">
+                <div className="text-center mb-6">
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg flex items-center justify-center mb-3">
+                    <MessageSquare className="w-7 h-7 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground mb-1">איזה סוג פרסום בוואטסאפ?</h2>
+                  <p className="text-muted-foreground">בחר את הפורמט המתאים לך</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto">
+                  {/* Status */}
+                  <Card
+                    className={cn(
+                      'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
+                      whatsappSubType === 'status'
+                        ? 'border-green-500 bg-green-500/10 shadow-lg ring-2 ring-green-400/30'
+                        : 'border-border hover:border-green-500/50'
+                    )}
+                    onClick={() => { setWhatsappSubType('status'); setAspectRatio('portrait'); }}
+                  >
+                    <div className="p-5 flex flex-col items-center text-center">
+                      <div className="w-10 h-16 bg-muted rounded-lg mb-3 flex items-center justify-center border border-border">
+                        <span className="text-xs text-muted-foreground">9:16</span>
+                      </div>
+                      <h4 className="text-lg font-bold text-foreground">סטטוס</h4>
+                      <p className="text-xs text-muted-foreground mt-1">מודעה לגובה + משפט קצר נלווה</p>
+                      {whatsappSubType === 'status' && (
+                        <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                  {/* Distribution */}
+                  <Card
+                    className={cn(
+                      'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
+                      whatsappSubType === 'distribution'
+                        ? 'border-green-500 bg-green-500/10 shadow-lg ring-2 ring-green-400/30'
+                        : 'border-border hover:border-green-500/50'
+                    )}
+                    onClick={() => { setWhatsappSubType('distribution'); setAspectRatio('square'); }}
+                  >
+                    <div className="p-5 flex flex-col items-center text-center">
+                      <div className="w-14 h-14 bg-muted rounded-lg mb-3 flex items-center justify-center border border-border">
+                        <span className="text-xs text-muted-foreground">1:1</span>
+                      </div>
+                      <h4 className="text-lg font-bold text-foreground">הפצות</h4>
+                      <p className="text-xs text-muted-foreground mt-1">קוביה מרובעת + טקסט נלווה עם קישורים</p>
+                      {whatsappSubType === 'distribution' && (
+                        <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )}
+            
+            {/* Brief Step */}
+            <StudioBriefStep 
+              value={campaignBrief} 
+              onChange={setCampaignBrief}
+              businessName={clientProfile?.business_name}
+              campaignScope={assetChoice}
+              mediaTypes={mediaTypes}
+              contactInfo={clientProfile ? {
+                contact_phone: clientProfile.contact_phone,
+                contact_whatsapp: clientProfile.contact_whatsapp,
+                contact_email: clientProfile.contact_email,
+                contact_address: clientProfile.contact_address,
+                contact_youtube: clientProfile.contact_youtube,
+                social_facebook: clientProfile.social_facebook,
+                social_instagram: clientProfile.social_instagram,
+                opening_hours: (clientProfile as any).opening_hours || null,
+                branches: (clientProfile as any).branches || null,
+                logo_url: clientProfile.logo_url || null,
+              } : undefined}
+              brandColors={clientProfile ? {
+                primary_color: clientProfile.primary_color,
+                secondary_color: clientProfile.secondary_color,
+                background_color: clientProfile.background_color,
+              } : undefined}
+            />
+          </>
         );
       // Steps 1 and 2 are now handled by StudioProductPicker before wizard
       case 3:
