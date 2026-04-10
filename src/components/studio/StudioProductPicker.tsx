@@ -80,7 +80,7 @@ const CAMPAIGN_360 = {
   icon: Layers,
   gradient: 'from-primary to-red-500',
   needsScope: false,
-  recommended: true,
+  recommended: false,
 };
 
 const ALL_PRODUCTS = [...PRIMARY_PRODUCTS, ...SECONDARY_PRODUCTS, CAMPAIGN_360];
