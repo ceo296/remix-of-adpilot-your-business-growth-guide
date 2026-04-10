@@ -448,7 +448,7 @@ const CreativeStudio = () => {
   const [isPlayingRadio, setIsPlayingRadio] = useState(false);
   const [radioAudioRef] = useState<{ current: HTMLAudioElement | null }>({ current: null });
   const [showAutopilotArticle, setShowAutopilotArticle] = useState(false);
-  const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string } | null>(null);
+  const [autopilotArticle, setAutopilotArticle] = useState<{ headline: string; subheadline: string; body: string; pullQuote: string; callToAction: string; imageDirections?: { section: string; description: string }[] } | null>(null);
   const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
   const [showAutopilotBanner, setShowAutopilotBanner] = useState(false);
   const [autopilotBannerUrl, setAutopilotBannerUrl] = useState<string | null>(null);

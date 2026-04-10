@@ -269,6 +269,8 @@ ${extraContext?.userPrompt ? `- הנחיות נוספות מהמשתמש (חוב
       const articleStyle = extraContext?.articleStyle || 'product';
       const articleTopic = extraContext?.articleTopic || '';
       const targetLength = extraContext?.targetLength || 'medium';
+      const articleSubType = extraContext?.articleSubType || 'text-only';
+      const withDesign = articleSubType === 'with-design';
       
       const styleMap: Record<string, string> = {
         'product': 'כתבת מוצר/שירות — מציגה יתרונות, תועלות ופרטים',
@@ -299,22 +301,49 @@ ${sectorContext}
 - CTA עדין בסוף — לא מכירתי אגרסיבי
 - אל תמציא פרטים שלא סופקו
 - היצמד לסגנון, לטון ולמבנה של הדוגמאות שפורסמו בהצלחה במגזר
+${withDesign ? `
+הנחיות לכתבה מעוצבת:
+- הוסף הנחיות תמונה (imageDirections) — מערך של 2-4 תמונות שמתאימות לכתבה
+- כל תמונה כוללת: section (איזה חלק בכתבה) ו-description (תיאור התמונה המבוקשת)
+- התמונות צריכות להתאים לכתבה ולענף העסק
+- חשוב על תמונות שתשתלבנה בעמוד עיתון — Hero גדול + תמונות משניות
+- דוגמה: תמונת Hero ראשית של המוצר/השירות, תמונה של בעל העסק, תמונה של הסביבה/המקום` : ''}
 ${extraContext?.userPrompt ? `- הנחיות נוספות מהמשתמש (חובה ליישם): ${extraContext.userPrompt}` : ''}`;
+
+      const articleProps: Record<string, any> = {
+        headline: { type: "string", description: "כותרת ראשית" },
+        subheadline: { type: "string", description: "כותרת משנה" },
+        body: { type: "string", description: "גוף הכתבה המלא" },
+        pullQuote: { type: "string", description: "ציטוט מרכזי" },
+        callToAction: { type: "string", description: "קריאה לפעולה עדינה" },
+      };
+      const requiredFields = ["headline", "subheadline", "body", "pullQuote", "callToAction"];
+
+      if (withDesign) {
+        articleProps.imageDirections = {
+          type: "array",
+          description: "הנחיות תמונות לכתבה מעוצבת (2-4 תמונות)",
+          items: {
+            type: "object",
+            properties: {
+              section: { type: "string", description: "איזה חלק בכתבה (Hero ראשי, משנית 1, וכו')" },
+              description: { type: "string", description: "תיאור התמונה המבוקשת" },
+            },
+            required: ["section", "description"],
+          }
+        };
+        requiredFields.push("imageDirections");
+      }
+
       toolDef = {
         type: "function",
         function: {
           name: toolName,
-          description: "Generate professional advertorial article",
+          description: withDesign ? "Generate designed advertorial article with image directions" : "Generate professional advertorial article",
           parameters: {
             type: "object",
-            properties: {
-              headline: { type: "string", description: "כותרת ראשית" },
-              subheadline: { type: "string", description: "כותרת משנה" },
-              body: { type: "string", description: "גוף הכתבה המלא" },
-              pullQuote: { type: "string", description: "ציטוט מרכזי" },
-              callToAction: { type: "string", description: "קריאה לפעולה עדינה" },
-            },
-            required: ["headline", "subheadline", "body", "pullQuote", "callToAction"],
+            properties: articleProps,
+            required: requiredFields,
           }
         }
       };
