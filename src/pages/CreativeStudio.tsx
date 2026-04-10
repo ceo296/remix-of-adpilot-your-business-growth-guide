@@ -3159,63 +3159,99 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
               </div>
             ) : generatedImages.length > 0 ? (
               <>
-                {/* Dynamic grid based on media type */}
-                <div className={
-                  mediaTypes.includes('banner') 
-                    ? 'grid grid-cols-1 lg:grid-cols-2 gap-4' 
-                    : generatedImages.length === 3
-                    ? 'grid grid-cols-1 sm:grid-cols-3 gap-4'
-                    : generatedImages.length === 4
-                    ? 'grid grid-cols-2 lg:grid-cols-4 gap-4'
-                    : 'grid grid-cols-2 lg:grid-cols-3 gap-4'
-                }>
-                  {generatedImages.map((image) => (
-                    <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
-                      {/* Dynamic aspect ratio based on media type */}
-                      <div className={`relative bg-muted ${
-                        mediaTypes.includes('banner') 
-                          ? 'aspect-[4/1]' 
-                          : mediaTypes.includes('whatsapp')
-                          ? 'aspect-square'
-                          : 'aspect-square'
-                      }`}>
-                        <img
-                          src={image.url}
-                          alt={`Generated ${image.id}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
-                          {getStatusBadge(image.status)}
-                          {image.model && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-background/80 backdrop-blur-sm border-border/50 font-mono">
-                              🍌 {image.model.includes('3.1-flash') ? 'Nano Banana 2' : image.model.includes('2.5-flash') ? 'Nano Banana' : image.model.split('/').pop()?.substring(0, 20)}
-                            </Badge>
+                {/* Series mode: group by series */}
+                {generatedImages.some(img => img.seriesIndex !== undefined) ? (
+                  <div className="space-y-8">
+                    {[0, 1].map(sIdx => {
+                      const seriesImages = generatedImages.filter(img => img.seriesIndex === sIdx);
+                      if (seriesImages.length === 0) return null;
+                      return (
+                        <div key={sIdx}>
+                          <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+                            <Badge variant="secondary" className="text-sm">סדרה {sIdx + 1}</Badge>
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {seriesImages.map((image) => (
+                              <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
+                                <div className={`relative bg-muted ${
+                                  mediaTypes.includes('banner') ? 'aspect-[4/1]' : 'aspect-square'
+                                }`}>
+                                  <img src={image.url} alt={`סדרה ${sIdx + 1} מודעה ${(image.adIndex ?? 0) + 1}`} className="w-full h-full object-cover" />
+                                  <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+                                    <Badge className="bg-primary text-primary-foreground text-xs">
+                                      מודעה {(image.adIndex ?? 0) + 1}
+                                    </Badge>
+                                    {getStatusBadge(image.status)}
+                                    {image.model && (
+                                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-background/80 backdrop-blur-sm border-border/50 font-mono">
+                                        🍌 {image.model.includes('3.1-flash') ? 'Nano Banana 2' : image.model.includes('2.5-flash') ? 'Nano Banana' : image.model.split('/').pop()?.substring(0, 20)}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {image.analysis && (
+                                    <div className="absolute bottom-0 left-0 right-0 bg-background/90 p-2 text-xs">{image.analysis}</div>
+                                  )}
+                                  {image.status !== 'rejected' && image.status !== 'pending' && (
+                                    <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => setEnlargedImage(image)}>
+                                      <Button size="sm" variant="secondary" className="gap-1.5">
+                                        <ZoomIn className="h-4 w-4" />
+                                        הגדל וערוך טקסט
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Normal (non-series) grid */
+                  <div className={
+                    mediaTypes.includes('banner') 
+                      ? 'grid grid-cols-1 lg:grid-cols-2 gap-4' 
+                      : generatedImages.length === 3
+                      ? 'grid grid-cols-1 sm:grid-cols-3 gap-4'
+                      : generatedImages.length === 4
+                      ? 'grid grid-cols-2 lg:grid-cols-4 gap-4'
+                      : 'grid grid-cols-2 lg:grid-cols-3 gap-4'
+                  }>
+                    {generatedImages.map((image) => (
+                      <Card key={image.id} className={`overflow-hidden group ${image.status === 'rejected' ? 'opacity-50' : ''}`}>
+                        <div className={`relative bg-muted ${
+                          mediaTypes.includes('banner') 
+                            ? 'aspect-[4/1]' 
+                            : mediaTypes.includes('whatsapp')
+                            ? 'aspect-square'
+                            : 'aspect-square'
+                        }`}>
+                          <img src={image.url} alt={`Generated ${image.id}`} className="w-full h-full object-cover" />
+                          <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+                            {getStatusBadge(image.status)}
+                            {image.model && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-background/80 backdrop-blur-sm border-border/50 font-mono">
+                                🍌 {image.model.includes('3.1-flash') ? 'Nano Banana 2' : image.model.includes('2.5-flash') ? 'Nano Banana' : image.model.split('/').pop()?.substring(0, 20)}
+                              </Badge>
+                            )}
+                          </div>
+                          {image.analysis && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-background/90 p-2 text-xs">{image.analysis}</div>
+                          )}
+                          {image.status !== 'rejected' && image.status !== 'pending' && (
+                            <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => setEnlargedImage(image)}>
+                              <Button size="sm" variant="secondary" className="gap-1.5">
+                                <ZoomIn className="h-4 w-4" />
+                                הגדל וערוך טקסט
+                              </Button>
+                            </div>
                           )}
                         </div>
-                        {image.analysis && (
-                          <div className="absolute bottom-0 left-0 right-0 bg-background/90 p-2 text-xs">
-                            {image.analysis}
-                          </div>
-                        )}
-                        {image.status !== 'rejected' && image.status !== 'pending' && (
-                          <div 
-                            className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                            onClick={() => setEnlargedImage(image)}
-                          >
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="gap-1.5"
-                            >
-                              <ZoomIn className="h-4 w-4" />
-                              הגדל וערוך טקסט
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
 
                 {/* Radio Script Section */}
                 {showAutopilotRadio && (
