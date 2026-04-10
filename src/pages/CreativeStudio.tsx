@@ -1324,7 +1324,7 @@ const CreativeStudio = () => {
     if (componentFeedbacks && componentFeedbacks.length > 0) {
       // New component-level feedback
       for (const fb of componentFeedbacks) {
-        corrections.push({ type: fb.component, text: fb.text });
+        corrections.push({ type: fb.component, text: fb.text, ...(fb.fileUrl ? { fileUrl: fb.fileUrl } : {}) });
       }
     } else if (feedbackText.trim()) {
       // Legacy single textarea
