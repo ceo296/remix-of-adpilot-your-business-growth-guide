@@ -976,6 +976,8 @@ const CreativeStudio = () => {
             visualOnlyUrl: data.visualOnlyUrl || data.imageUrl,
             textMeta: data.textMeta || undefined,
             model: data.model || undefined,
+            seriesIndex,
+            adIndex,
           };
           
           results.push(newImage);
