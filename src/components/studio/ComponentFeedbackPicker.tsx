@@ -168,7 +168,7 @@ export const ComponentFeedbackPicker = ({
   };
 
   const hasValidFeedback = Array.from(selectedComponents).some(
-    comp => feedbackTexts[comp]?.trim()
+    comp => feedbackTexts[comp]?.trim() || (comp === 'kosher-logo' && kosherLogoUrl)
   );
 
   const selectedCount = selectedComponents.size;
@@ -229,6 +229,39 @@ export const ComponentFeedbackPicker = ({
                   className="min-h-[80px] text-sm"
                   dir="rtl"
                 />
+                {/* Kosher logo file upload */}
+                {comp.id === 'kosher-logo' && (
+                  <div className="flex items-center gap-3 pt-1">
+                    <input
+                      ref={kosherFileRef}
+                      type="file"
+                      accept="image/*,.svg,.pdf"
+                      className="hidden"
+                      onChange={handleKosherFileUpload}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => kosherFileRef.current?.click()}
+                      disabled={isUploadingKosher}
+                    >
+                      {isUploadingKosher ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="h-3.5 w-3.5" />
+                      )}
+                      העלה חותמת כשרות
+                    </Button>
+                    {kosherLogoUrl && (
+                      <div className="flex items-center gap-2">
+                        <img src={kosherLogoUrl} alt="חותמת כשרות" className="h-8 w-8 object-contain rounded border border-border" />
+                        <Check className="h-4 w-4 text-primary" />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
