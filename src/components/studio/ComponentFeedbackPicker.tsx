@@ -36,7 +36,14 @@ export type AdComponent =
   | 'wa-text-cta'
   | 'wa-text-links'
   | 'wa-text-length'
-  | 'wa-text-message';
+  | 'wa-text-message'
+  // Article-specific
+  | 'article-headline'
+  | 'article-body-length'
+  | 'article-tone'
+  | 'article-quote'
+  | 'article-images'
+  | 'article-cta';
 
 interface ComponentFeedback {
   component: AdComponent;
@@ -195,6 +202,73 @@ export const WA_COMPONENTS: {
   },
 ];
 
+// Article-specific feedback components
+export const ARTICLE_COMPONENTS: {
+  id: AdComponent;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  placeholder: string;
+  group: 'text' | 'design';
+}[] = [
+  {
+    id: 'article-headline',
+    label: 'כותרת / כותרת משנה',
+    description: 'שינוי כותרת ראשית או משנה',
+    icon: Heading1,
+    placeholder: 'למשל: "כותרת חזקה יותר", "להוסיף מספר", "לשנות כיוון"...',
+    group: 'text',
+  },
+  {
+    id: 'article-body-length',
+    label: 'אורך הכתבה',
+    description: 'לקצר או להאריך את הכתבה',
+    icon: LayoutGrid,
+    placeholder: 'למשל: "לקצר משמעותית", "להאריך עם פסקה נוספת", "לפצל לחלקים"...',
+    group: 'text',
+  },
+  {
+    id: 'article-tone',
+    label: 'טון / מסר',
+    description: 'לשנות את הטון, הזווית או המסר המרכזי',
+    icon: Heading2,
+    placeholder: 'למשל: "יותר עיתונאי", "פחות שיווקי", "יותר אישי וחם"...',
+    group: 'text',
+  },
+  {
+    id: 'article-quote',
+    label: 'ציטוט',
+    description: 'שינוי או הוספת ציטוט',
+    icon: MessageCircle,
+    placeholder: 'למשל: "ציטוט חזק יותר", "להוסיף ציטוט של לקוח", "להסיר ציטוט"...',
+    group: 'text',
+  },
+  {
+    id: 'article-images',
+    label: 'תמונות / עיצוב',
+    description: 'שינוי הנחיות לתמונות הנלוות',
+    icon: ImageIcon,
+    placeholder: 'למשל: "תמונה יותר מזמינה", "להוסיף תמונת מוצר", "רקע אחר"...',
+    group: 'design',
+  },
+  {
+    id: 'article-cta',
+    label: 'קריאה לפעולה',
+    description: 'שינוי ה-CTA בסוף הכתבה',
+    icon: MessageCircle,
+    placeholder: 'למשל: "CTA חזק יותר", "עדין יותר", "להוסיף מספר טלפון"...',
+    group: 'text',
+  },
+  {
+    id: 'general',
+    label: 'הערה כללית',
+    description: 'הערה חופשית על הכתבה',
+    icon: MessageCircle,
+    placeholder: 'כתוב הערה כללית...',
+    group: 'text',
+  },
+];
+
 export const ComponentFeedbackPicker = ({
   sketchLabel,
   onSubmit,
@@ -202,7 +276,8 @@ export const ComponentFeedbackPicker = ({
   mediaType,
 }: ComponentFeedbackPickerProps) => {
   const isWhatsApp = mediaType === 'whatsapp';
-  const components = isWhatsApp ? WA_COMPONENTS : AD_COMPONENTS;
+  const isArticle = mediaType === 'article';
+  const components = isWhatsApp ? WA_COMPONENTS : isArticle ? ARTICLE_COMPONENTS : AD_COMPONENTS;
   const [selectedComponents, setSelectedComponents] = useState<Set<AdComponent>>(new Set());
   const [feedbackTexts, setFeedbackTexts] = useState<Record<AdComponent, string>>({} as any);
   const [kosherLogoUrl, setKosherLogoUrl] = useState<string | null>(null);
