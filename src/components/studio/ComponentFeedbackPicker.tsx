@@ -279,27 +279,55 @@ export const ComponentFeedbackPicker = ({
         </div>
 
         {/* Component Chips */}
-        <div className="flex flex-wrap gap-2">
-          {AD_COMPONENTS.map((comp) => {
-            const isSelected = selectedComponents.has(comp.id);
-            return (
-              <button
-                key={comp.id}
-                onClick={() => toggleComponent(comp.id)}
-                className={cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-medium',
-                  isSelected
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
-                )}
-              >
-                <comp.icon className="h-4 w-4" />
-                {comp.label}
-                {isSelected && <Check className="h-3.5 w-3.5" />}
-              </button>
-            );
-          })}
-        </div>
+        {isWhatsApp ? (
+          <div className="space-y-4">
+            {/* Design group */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">🎨 עיצוב הקוביה</p>
+              <div className="flex flex-wrap gap-2">
+                {WA_COMPONENTS.filter(c => c.group === 'design').map((comp) => {
+                  const isSelected = selectedComponents.has(comp.id);
+                  return (
+                    <button key={comp.id} onClick={() => toggleComponent(comp.id)} className={cn('flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-medium', isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground')}>
+                      <comp.icon className="h-4 w-4" />
+                      {comp.label}
+                      {isSelected && <Check className="h-3.5 w-3.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Text group */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">✍️ טקסט נלווה</p>
+              <div className="flex flex-wrap gap-2">
+                {WA_COMPONENTS.filter(c => c.group === 'text').map((comp) => {
+                  const isSelected = selectedComponents.has(comp.id);
+                  return (
+                    <button key={comp.id} onClick={() => toggleComponent(comp.id)} className={cn('flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-medium', isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground')}>
+                      <comp.icon className="h-4 w-4" />
+                      {comp.label}
+                      {isSelected && <Check className="h-3.5 w-3.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {AD_COMPONENTS.map((comp) => {
+              const isSelected = selectedComponents.has(comp.id);
+              return (
+                <button key={comp.id} onClick={() => toggleComponent(comp.id)} className={cn('flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-medium', isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground')}>
+                  <comp.icon className="h-4 w-4" />
+                  {comp.label}
+                  {isSelected && <Check className="h-3.5 w-3.5" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Feedback Inputs for Selected Components */}
         {selectedCount > 0 && (
