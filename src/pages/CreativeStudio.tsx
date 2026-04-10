@@ -486,7 +486,7 @@ const CreativeStudio = () => {
     } else if (mediaTypes.includes('banner') && !mediaTypes.includes('ad')) {
       setAspectRatio('landscape');
     }
-  }, [mediaTypes]);
+  }, [mediaTypes, whatsappSubType]);
 
   // Scroll to top when changing views
   useEffect(() => {
