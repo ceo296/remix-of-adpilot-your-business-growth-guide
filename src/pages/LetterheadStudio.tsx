@@ -114,7 +114,13 @@ const LetterheadStudio = () => {
     if (!pageRef.current) return;
     setIsExporting(true);
     try {
-      const png = await toPng(pageRef.current, { pixelRatio: 4, width: 794, height: 1123 });
+      const png = await toPng(pageRef.current, {
+        pixelRatio: 4,
+        width: 794,
+        height: 1123,
+        backgroundColor: '#ffffff',
+        cacheBust: true,
+      });
       const bleed = 3;
       const cropLen = 5;
       const margin = 12;
@@ -146,10 +152,6 @@ const LetterheadStudio = () => {
       doc.line(trimX + pageW, trimY + pageH, trimX + pageW + cropLen, trimY + pageH);
 
       doc.addImage(png, 'PNG', margin, margin, totalW, totalH);
-
-      doc.setFontSize(6);
-      doc.setTextColor(150);
-      doc.text(`נייר מכתבים | A4 210×297mm | bleed ${bleed}mm`, docW / 2, docH - 3, { align: 'center' });
 
       doc.save(`letterhead-print-${Date.now()}.pdf`);
       toast.success('PDF מוכן לדפוס יוצא בהצלחה!');

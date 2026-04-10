@@ -35,6 +35,41 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+function renderImageForPrint(
+  img: HTMLImageElement,
+  widthMm: number,
+  heightMm: number,
+  quality: NonNullable<PrintExportOptions['quality']>
+) {
+  const canvas = document.createElement('canvas');
+  const targetDpi = quality === 'high' ? 300 : quality === 'standard' ? 200 : 100;
+  canvas.width = Math.round((widthMm / 25.4) * targetDpi);
+  canvas.height = Math.round((heightMm / 25.4) * targetDpi);
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to create print canvas');
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  const imgRatio = img.width / img.height;
+  const canvasRatio = canvas.width / canvas.height;
+  let sx = 0, sy = 0, sw = img.width, sh = img.height;
+
+  if (imgRatio > canvasRatio) {
+    sw = img.height * canvasRatio;
+    sx = (img.width - sw) / 2;
+  } else {
+    sh = img.width / canvasRatio;
+    sy = (img.height - sh) / 2;
+  }
+
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/png');
+}
+
 /**
  * Draw crop marks on the PDF for print trimming.
  */
@@ -107,32 +142,9 @@ export async function exportToPrintPdf(options: PrintExportOptions): Promise<voi
   const offsetX = cropMarks ? 10 : 0;
   const offsetY = cropMarks ? 10 : 0;
 
-  // Draw image to fill the entire bleed area
-  // Convert image to canvas for quality control
-  const canvas = document.createElement('canvas');
-  const qualityScale = quality === 'high' ? 3 : quality === 'standard' ? 2 : 1;
-  canvas.width = Math.round((totalW / 25.4) * 300 * (qualityScale / 3));
-  canvas.height = Math.round((totalH / 25.4) * 300 * (qualityScale / 3));
-  const ctx = canvas.getContext('2d')!;
+  const imgData = renderImageForPrint(img, totalW, totalH, quality);
 
-  // Draw image scaled to fill
-  const imgRatio = img.width / img.height;
-  const canvasRatio = canvas.width / canvas.height;
-  let sx = 0, sy = 0, sw = img.width, sh = img.height;
-
-  if (imgRatio > canvasRatio) {
-    sw = img.height * canvasRatio;
-    sx = (img.width - sw) / 2;
-  } else {
-    sh = img.width / canvasRatio;
-    sy = (img.height - sh) / 2;
-  }
-
-  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-
-  const imgData = canvas.toDataURL('image/jpeg', quality === 'high' ? 0.95 : quality === 'standard' ? 0.85 : 0.7);
-
-  doc.addImage(imgData, 'JPEG', offsetX, offsetY, totalW, totalH);
+  doc.addImage(imgData, 'PNG', offsetX, offsetY, totalW, totalH);
 
   // Draw crop marks
   if (cropMarks) {
@@ -186,26 +198,8 @@ export async function exportMultiPagePdf(
     if (i > 0) doc.addPage([docW, docH]);
 
     const img = await loadImage(images[i].url);
-    const canvas = document.createElement('canvas');
-    const qualityScale = quality === 'high' ? 3 : quality === 'standard' ? 2 : 1;
-    canvas.width = Math.round((totalW / 25.4) * 300 * (qualityScale / 3));
-    canvas.height = Math.round((totalH / 25.4) * 300 * (qualityScale / 3));
-    const ctx = canvas.getContext('2d')!;
-
-    const imgRatio = img.width / img.height;
-    const canvasRatio = canvas.width / canvas.height;
-    let sx = 0, sy = 0, sw = img.width, sh = img.height;
-    if (imgRatio > canvasRatio) {
-      sw = img.height * canvasRatio;
-      sx = (img.width - sw) / 2;
-    } else {
-      sh = img.width / canvasRatio;
-      sy = (img.height - sh) / 2;
-    }
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    doc.addImage(imgData, 'JPEG', offsetX, offsetY, totalW, totalH);
+    const imgData = renderImageForPrint(img, totalW, totalH, quality);
+    doc.addImage(imgData, 'PNG', offsetX, offsetY, totalW, totalH);
 
     if (cropMarks) {
       drawCropMarks(doc, offsetX + bleed, offsetY + bleed, pageW, pageH);
