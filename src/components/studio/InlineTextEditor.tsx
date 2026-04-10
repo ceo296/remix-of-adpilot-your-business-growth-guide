@@ -53,7 +53,7 @@ const FEEDBACK_CATEGORIES: {
   },
   {
     id: 'badge-stamp',
-    label: 'עיגול / פלאג׳ / חותמת',
+    label: 'עיגול / פלאצ׳ / חותמת',
     icon: Circle,
     placeholder: 'מה לכתוב? למשל: "מבצע השקה!", "שעות מורחבות", "חדש!"...',
   },
