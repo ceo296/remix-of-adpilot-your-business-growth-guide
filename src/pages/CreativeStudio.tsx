@@ -1317,9 +1317,9 @@ const CreativeStudio = () => {
   };
 
   // Feedback handlers
-  const handleSubmitFeedback = async (componentFeedbacks?: { component: AdComponent; text: string }[]) => {
+  const handleSubmitFeedback = async (componentFeedbacks?: { component: AdComponent; text: string; fileUrl?: string }[]) => {
     // Support both legacy (single textarea) and new component-level feedback
-    const corrections: { type: string; text: string }[] = [];
+    const corrections: { type: string; text: string; fileUrl?: string }[] = [];
 
     if (componentFeedbacks && componentFeedbacks.length > 0) {
       // New component-level feedback
