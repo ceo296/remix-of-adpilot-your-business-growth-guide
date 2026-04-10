@@ -303,7 +303,8 @@ const CreativeStudio = () => {
     
     const isAll = selectedMediaTypes.includes('all');
     const isOnlyRadio = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'radio';
-    const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(selectedMediaTypes[0]);
+    const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article', 'email'].includes(selectedMediaTypes[0]);
+    const isWhatsappOnly = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'whatsapp';
     const isVisualMedia = selectedMediaTypes.some(t => ['ad', 'banner'].includes(t));
     
     if (scope === 'copy-only') {
