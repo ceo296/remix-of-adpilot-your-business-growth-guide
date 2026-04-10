@@ -303,7 +303,8 @@ const CreativeStudio = () => {
     
     const isAll = selectedMediaTypes.includes('all');
     const isOnlyRadio = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'radio';
-    const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(selectedMediaTypes[0]);
+    const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article', 'email'].includes(selectedMediaTypes[0]);
+    const isWhatsappOnly = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'whatsapp';
     const isVisualMedia = selectedMediaTypes.some(t => ['ad', 'banner'].includes(t));
     
     if (scope === 'copy-only') {
@@ -318,12 +319,17 @@ const CreativeStudio = () => {
       // 360° campaign → autopilot
       setMode('autopilot');
       setAssetChoice(null);
+    } else if (isWhatsappOnly && scope === 'full') {
+      // WhatsApp only → show sub-type selector, then autopilot
+      setMode('autopilot');
+      setAssetChoice(null);
+      setWhatsappSubType(null); // Will be selected in-flow
     } else if (isVisualMedia && scope === 'full') {
       // Ad/Banner full → autopilot
       setMode('autopilot');
       setAssetChoice(null);
     } else {
-      // Radio, Article, Email, WhatsApp, or text-have-script → manual wizard (brief first)
+      // Radio, Article, Email, or text-have-script → manual wizard (brief first)
       setMode('manual');
       setAssetChoice(null);
     }
@@ -442,6 +448,7 @@ const CreativeStudio = () => {
   const [autopilotWhatsappContent, setAutopilotWhatsappContent] = useState<{ message: string; imageHeadline?: string; imageSubtext?: string } | null>(null);
   const [isGeneratingWhatsapp, setIsGeneratingWhatsapp] = useState(false);
   const [showAutopilotWhatsapp, setShowAutopilotWhatsapp] = useState(false);
+  const [whatsappSubType, setWhatsappSubType] = useState<'status' | 'distribution' | null>(null);
   // Editing states for 360° platform results
   const [editingRadio, setEditingRadio] = useState(false);
   const [editingArticle, setEditingArticle] = useState(false);
@@ -477,7 +484,7 @@ const CreativeStudio = () => {
         case 'ad': setAspectRatio('portrait'); break;
         case 'banner': setAspectRatio('landscape'); break;
         case 'email': setAspectRatio('portrait'); break;
-        case 'whatsapp': setAspectRatio('square'); break;
+        case 'whatsapp': setAspectRatio(whatsappSubType === 'status' ? 'portrait' : 'square'); break;
         default: break;
       }
     } else if (mediaTypes.includes('ad') && !mediaTypes.includes('banner')) {
@@ -485,7 +492,7 @@ const CreativeStudio = () => {
     } else if (mediaTypes.includes('banner') && !mediaTypes.includes('ad')) {
       setAspectRatio('landscape');
     }
-  }, [mediaTypes]);
+  }, [mediaTypes, whatsappSubType]);
 
   // Scroll to top when changing views
   useEffect(() => {
@@ -675,13 +682,17 @@ const CreativeStudio = () => {
     // Media type is now selected before entering the wizard, so step 1 (MediaType) is removed
     // Steps: 0=Brief, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
-    const isTextOnlyMedia = mediaTypes.length === 1 && ['article', 'email', 'whatsapp'].includes(mediaTypes[0]);
+    const isTextOnlyMedia = mediaTypes.length === 1 && ['article', 'email'].includes(mediaTypes[0]);
+    const isWhatsappOnly = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
     
     if (isOnlyRadio) {
       return [0, 8]; // Brief, Radio Script
     }
     if (isTextOnlyMedia) {
       return [0]; // Brief only, final step triggers text generation
+    }
+    if (isWhatsappOnly) {
+      return [0]; // Brief only (sub-type selector is inline), then autopilot generates
     }
     if (assetChoice === 'full-campaign') {
       return [0, 3]; // Brief, Upload
@@ -715,8 +726,13 @@ const CreativeStudio = () => {
         const words = offer.split(/\s+/).filter(w => w.length > 0);
         const hasValidOffer = words.length >= 12 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
         
-        const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email', 'whatsapp'].includes(t));
+        const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email'].includes(t));
+        const isWhatsappFlow = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
         
+        if (isWhatsappFlow) {
+          // WhatsApp needs sub-type selected + basic brief
+          return !!whatsappSubType && !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
+        }
         if (isTextOnlyFlow) {
           // Text-only media: skip structure, colors, contacts validation
           return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
@@ -1161,6 +1177,7 @@ const CreativeStudio = () => {
     setShowAutopilotBanner(false);
     setShowAutopilotEmail(false);
     setShowAutopilotWhatsapp(false);
+    setWhatsappSubType(null);
     setAutopilotRadioScript(null);
     setRadioAudioUrl(null);
     setIsPlayingRadio(false);
@@ -2401,6 +2418,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             profileData,
             extraContext: {
               whatsappTopic: campaignBrief.offer || anchorConcept.idea || '',
+              whatsappSubType: whatsappSubType || 'distribution',
               userPrompt: `המסר צריך להתבסס על הקונספט: ${anchorConcept.headline} — ${anchorConcept.copy}`,
             },
           },
@@ -2642,6 +2660,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             profileData,
             extraContext: {
               whatsappTopic: campaignBrief.offer || selectedConcept?.idea || '',
+              whatsappSubType: whatsappSubType || 'distribution',
               userPrompt: selectedConcept ? `המסר צריך להתבסס על הקונספט: ${selectedConcept.headline} — ${selectedConcept.copy}` : '',
             },
           },
@@ -2667,30 +2686,94 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
     switch (currentStep) {
       case 0:
         return (
-          <StudioBriefStep 
-            value={campaignBrief} 
-            onChange={setCampaignBrief}
-            businessName={clientProfile?.business_name}
-            campaignScope={assetChoice}
-            mediaTypes={mediaTypes}
-            contactInfo={clientProfile ? {
-              contact_phone: clientProfile.contact_phone,
-              contact_whatsapp: clientProfile.contact_whatsapp,
-              contact_email: clientProfile.contact_email,
-              contact_address: clientProfile.contact_address,
-              contact_youtube: clientProfile.contact_youtube,
-              social_facebook: clientProfile.social_facebook,
-              social_instagram: clientProfile.social_instagram,
-              opening_hours: (clientProfile as any).opening_hours || null,
-              branches: (clientProfile as any).branches || null,
-              logo_url: clientProfile.logo_url || null,
-            } : undefined}
-            brandColors={clientProfile ? {
-              primary_color: clientProfile.primary_color,
-              secondary_color: clientProfile.secondary_color,
-              background_color: clientProfile.background_color,
-            } : undefined}
-          />
+          <>
+            {/* WhatsApp Sub-type Selector */}
+            {mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp' && (
+              <div className="mb-8 animate-fade-in">
+                <div className="text-center mb-6">
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg flex items-center justify-center mb-3">
+                    <MessageSquare className="w-7 h-7 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground mb-1">איזה סוג פרסום בוואטסאפ?</h2>
+                  <p className="text-muted-foreground">בחר את הפורמט המתאים לך</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto">
+                  {/* Status */}
+                  <Card
+                    className={cn(
+                      'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
+                      whatsappSubType === 'status'
+                        ? 'border-green-500 bg-green-500/10 shadow-lg ring-2 ring-green-400/30'
+                        : 'border-border hover:border-green-500/50'
+                    )}
+                    onClick={() => { setWhatsappSubType('status'); setAspectRatio('portrait'); }}
+                  >
+                    <div className="p-5 flex flex-col items-center text-center">
+                      <div className="w-10 h-16 bg-muted rounded-lg mb-3 flex items-center justify-center border border-border">
+                        <span className="text-xs text-muted-foreground">9:16</span>
+                      </div>
+                      <h4 className="text-lg font-bold text-foreground">סטטוס</h4>
+                      <p className="text-xs text-muted-foreground mt-1">מודעה לגובה + משפט קצר נלווה</p>
+                      {whatsappSubType === 'status' && (
+                        <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                  {/* Distribution */}
+                  <Card
+                    className={cn(
+                      'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
+                      whatsappSubType === 'distribution'
+                        ? 'border-green-500 bg-green-500/10 shadow-lg ring-2 ring-green-400/30'
+                        : 'border-border hover:border-green-500/50'
+                    )}
+                    onClick={() => { setWhatsappSubType('distribution'); setAspectRatio('square'); }}
+                  >
+                    <div className="p-5 flex flex-col items-center text-center">
+                      <div className="w-14 h-14 bg-muted rounded-lg mb-3 flex items-center justify-center border border-border">
+                        <span className="text-xs text-muted-foreground">1:1</span>
+                      </div>
+                      <h4 className="text-lg font-bold text-foreground">הפצות</h4>
+                      <p className="text-xs text-muted-foreground mt-1">קוביה מרובעת + טקסט נלווה עם קישורים</p>
+                      {whatsappSubType === 'distribution' && (
+                        <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )}
+            
+            {/* Brief Step */}
+            <StudioBriefStep 
+              value={campaignBrief} 
+              onChange={setCampaignBrief}
+              businessName={clientProfile?.business_name}
+              campaignScope={assetChoice}
+              mediaTypes={mediaTypes}
+              contactInfo={clientProfile ? {
+                contact_phone: clientProfile.contact_phone,
+                contact_whatsapp: clientProfile.contact_whatsapp,
+                contact_email: clientProfile.contact_email,
+                contact_address: clientProfile.contact_address,
+                contact_youtube: clientProfile.contact_youtube,
+                social_facebook: clientProfile.social_facebook,
+                social_instagram: clientProfile.social_instagram,
+                opening_hours: (clientProfile as any).opening_hours || null,
+                branches: (clientProfile as any).branches || null,
+                logo_url: clientProfile.logo_url || null,
+              } : undefined}
+              brandColors={clientProfile ? {
+                primary_color: clientProfile.primary_color,
+                secondary_color: clientProfile.secondary_color,
+                background_color: clientProfile.background_color,
+              } : undefined}
+            />
+          </>
         );
       // Steps 1 and 2 are now handled by StudioProductPicker before wizard
       case 3:

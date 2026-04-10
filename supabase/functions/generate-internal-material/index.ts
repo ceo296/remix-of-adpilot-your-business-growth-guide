@@ -350,11 +350,35 @@ ${sectorContext}
       };
     } else if (type === 'whatsapp') {
       const whatsappTopic = extraContext?.whatsappTopic || '';
+      const whatsappSubType = extraContext?.whatsappSubType || 'distribution';
+      const isStatus = whatsappSubType === 'status';
       toolName = 'generate_whatsapp_content';
-      systemPrompt = `אתה כותב מסרי וואטסאפ שיווקיים בעברית למגזר החרדי. צור מסר מובנה שמתאים לשיתוף בוואטסאפ.
+      
+      if (isStatus) {
+        // STATUS: vertical image (9:16) with minimal text + one short caption
+        systemPrompt = `אתה כותב מסרי סטטוס וואטסאפ שיווקיים בעברית למגזר החרדי.
 
-פרסום בוואטסאפ מורכב מ-2 חלקים:
-1. **קוביה עיצובית** (תמונה מרובעת) — עם מינימום טקסט! רק כותרת קצרה ובולטת + לוגו + אולי מחיר/מבצע. בלי פסקאות ארוכות בתמונה!
+פרסום סטטוס בוואטסאפ = תמונה אנכית (9:16) עם מינימום טקסט + משפט קצר אחד נלווה.
+
+${profileBlock}
+${whatsappTopic ? `נושא/הצעה: ${whatsappTopic}` : ''}
+${harediBrief}
+${sectorContext}
+הנחיות לתמונה (imageHeadline + imageSubtext):
+- כותרת קצרה מאוד — 3-5 מילים בלבד
+- טקסט משני אופציונלי (מחיר / מבצע)
+- התמונה צריכה להיות דרמטית, מלאה, ויזואלית — כי זה סטטוס!
+
+הנחיות למשפט הנלווה (message):
+- משפט אחד בלבד! קצר וקולע, עם 1-2 אימוג'ים מקסימום
+- למשל: "🔥 ההצעה שחיכיתם לה!" או "✨ חדש אצלנו — בואו לגלות"
+- אסור טקסט ארוך — זה סטטוס, לא הפצה!`;
+      } else {
+        // DISTRIBUTION: square image (1:1) with minimal text + detailed accompanying text
+        systemPrompt = `אתה כותב מסרי הפצת וואטסאפ שיווקיים בעברית למגזר החרדי. צור מסר מובנה שמתאים לשיתוף בוואטסאפ.
+
+פרסום הפצה בוואטסאפ מורכב מ-2 חלקים:
+1. **קוביה עיצובית** (תמונה מרובעת 1:1) — עם מינימום טקסט! רק כותרת קצרה ובולטת + לוגו + אולי מחיר/מבצע. בלי פסקאות ארוכות בתמונה!
 2. **טקסט נלווה** — המסר השיווקי שמלווה את התמונה, כולל אימוג'ים, נקודות מפתח, ופרטי קשר/קישורים בסוף.
 
 ${profileBlock}
@@ -373,17 +397,19 @@ ${sectorContext}
 - בסוף: פרטי קשר (טלפון, וואטסאפ, קישור) עם אימוג'ים מתאימים
 - אימוג'ים במינון סביר ובטעם טוב
 - אסור: סלנג, הבטחות מופרזות, יותר מדי אימוג'ים`;
+      }
+
       toolDef = {
         type: "function",
         function: {
           name: toolName,
-          description: "Generate structured WhatsApp marketing content",
+          description: isStatus ? "Generate WhatsApp status content" : "Generate structured WhatsApp distribution content",
           parameters: {
             type: "object",
             properties: {
-              imageHeadline: { type: "string", description: "כותרת קצרה לקוביה העיצובית (3-6 מילים)" },
-              imageSubtext: { type: "string", description: "טקסט משני קצר לקוביה (מחיר/מבצע, אופציונלי)" },
-              message: { type: "string", description: "הטקסט הנלווה המלא שמלווה את התמונה, כולל אימוג'ים ופרטי קשר" },
+              imageHeadline: { type: "string", description: "כותרת קצרה לתמונה (3-6 מילים)" },
+              imageSubtext: { type: "string", description: "טקסט משני קצר (מחיר/מבצע, אופציונלי)" },
+              message: { type: "string", description: isStatus ? "משפט קצר אחד נלווה לסטטוס" : "הטקסט הנלווה המלא שמלווה את התמונה, כולל אימוג'ים ופרטי קשר" },
             },
             required: ["imageHeadline", "message"],
           }
