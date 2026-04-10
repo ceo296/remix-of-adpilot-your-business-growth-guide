@@ -189,7 +189,10 @@ export const ComponentFeedbackPicker = ({
   sketchLabel,
   onSubmit,
   onCancel,
+  mediaType,
 }: ComponentFeedbackPickerProps) => {
+  const isWhatsApp = mediaType === 'whatsapp';
+  const components = isWhatsApp ? WA_COMPONENTS : AD_COMPONENTS;
   const [selectedComponents, setSelectedComponents] = useState<Set<AdComponent>>(new Set());
   const [feedbackTexts, setFeedbackTexts] = useState<Record<AdComponent, string>>({} as any);
   const [kosherLogoUrl, setKosherLogoUrl] = useState<string | null>(null);
