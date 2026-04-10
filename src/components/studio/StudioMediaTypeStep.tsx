@@ -94,7 +94,7 @@ const MEDIA_OPTIONS: {
     label: 'קמפיין 360°', 
     description: 'קמפיין מקיף שמשלב את כל סוגי המדיה', 
     icon: Layers,
-    tags: ['מקיף', 'מומלץ'],
+    tags: ['מקיף'],
     gradient: 'from-primary to-red-500',
     shadowColor: 'shadow-primary/30'
   },
@@ -282,7 +282,6 @@ export const StudioMediaTypeStep = ({ value, onChange }: StudioMediaTypeStepProp
                 <div className="text-right">
                   <div className="flex items-center gap-2">
                     <h4 className="text-lg font-bold text-foreground">{allOption.label}</h4>
-                    <Badge variant="default" className="text-xs">מומלץ</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">{allOption.description}</p>
                 </div>
