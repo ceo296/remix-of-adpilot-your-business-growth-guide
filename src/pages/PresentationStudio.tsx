@@ -1726,8 +1726,8 @@ const PresentationStudio = () => {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => { setSlides(null); setActiveSlide(0); }} className="gap-1">
-                <Wand2 className="w-3.5 h-3.5" />בריף חדש
+              <Button variant="ghost" size="sm" onClick={() => { setSlides(null); setActiveSlide(0); }} className="gap-1 text-xs text-muted-foreground">
+                ✕
               </Button>
               <Button variant="outline" size="sm" onClick={() => setIsPresenting(true)}>
                 <Eye className="w-4 h-4 ml-1" />הצג
