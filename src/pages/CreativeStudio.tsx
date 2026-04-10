@@ -726,8 +726,13 @@ const CreativeStudio = () => {
         const words = offer.split(/\s+/).filter(w => w.length > 0);
         const hasValidOffer = words.length >= 12 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
         
-        const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email', 'whatsapp'].includes(t));
+        const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email'].includes(t));
+        const isWhatsappFlow = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
         
+        if (isWhatsappFlow) {
+          // WhatsApp needs sub-type selected + basic brief
+          return !!whatsappSubType && !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
+        }
         if (isTextOnlyFlow) {
           // Text-only media: skip structure, colors, contacts validation
           return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
