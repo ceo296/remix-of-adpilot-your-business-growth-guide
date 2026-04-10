@@ -2831,6 +2831,63 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                 </div>
               </div>
             )}
+
+            {/* Article Sub-type Selector */}
+            {mediaTypes.length === 1 && mediaTypes[0] === 'article' && (
+              <div className="mb-8 animate-fade-in">
+                <div className="text-center mb-6">
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg flex items-center justify-center mb-3">
+                    <Newspaper className="w-7 h-7 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground mb-1">איזה סוג כתבה?</h2>
+                  <p className="text-muted-foreground">בחר אם אתה רוצה רק מלל או כתבה מעוצבת עם תמונות</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto">
+                  {/* Text Only */}
+                  <Card
+                    className={cn(
+                      'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
+                      articleSubType === 'text-only'
+                        ? 'border-amber-500 bg-amber-500/10 shadow-lg ring-2 ring-amber-400/30'
+                        : 'border-border hover:border-amber-500/50'
+                    )}
+                    onClick={() => setArticleSubType('text-only')}
+                  >
+                    <div className="p-5 flex flex-col items-center text-center">
+                      <Type className="w-10 h-10 text-muted-foreground mb-3" />
+                      <h4 className="text-lg font-bold text-foreground">רק מלל</h4>
+                      <p className="text-xs text-muted-foreground mt-1">כותרת, גוף כתבה, ציטוט ו-CTA בלבד</p>
+                      {articleSubType === 'text-only' && (
+                        <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                  {/* Designed Article */}
+                  <Card
+                    className={cn(
+                      'cursor-pointer transition-all duration-300 border-2 relative overflow-hidden group hover:scale-[1.02]',
+                      articleSubType === 'with-design'
+                        ? 'border-amber-500 bg-amber-500/10 shadow-lg ring-2 ring-amber-400/30'
+                        : 'border-border hover:border-amber-500/50'
+                    )}
+                    onClick={() => setArticleSubType('with-design')}
+                  >
+                    <div className="p-5 flex flex-col items-center text-center">
+                      <ImageIcon className="w-10 h-10 text-muted-foreground mb-3" />
+                      <h4 className="text-lg font-bold text-foreground">כתבה מעוצבת</h4>
+                      <p className="text-xs text-muted-foreground mt-1">טקסט + הנחיות לתמונות ועיצוב עיתונאי</p>
+                      {articleSubType === 'with-design' && (
+                        <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )}
             
             {/* Brief Step */}
             <StudioBriefStep 
