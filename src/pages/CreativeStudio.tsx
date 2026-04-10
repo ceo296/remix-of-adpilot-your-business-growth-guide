@@ -2417,6 +2417,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
             profileData,
             extraContext: {
               whatsappTopic: campaignBrief.offer || anchorConcept.idea || '',
+              whatsappSubType: whatsappSubType || 'distribution',
               userPrompt: `המסר צריך להתבסס על הקונספט: ${anchorConcept.headline} — ${anchorConcept.copy}`,
             },
           },
