@@ -935,7 +935,18 @@ const CreativeStudio = () => {
             templateHints: selectedTemplate?.promptHints || null,
             dimensions: selectedTemplate?.dimensions || null,
             brandContext,
-            campaignContext,
+            campaignContext: {
+              ...campaignContext,
+              ...(isSeries ? {
+                seriesIndex,
+                adIndex,
+                seriesTotal: 2,
+                adsPerSeries: 3,
+                seriesInstruction: seriesIndex === 0
+                  ? 'זוהי סדרה 1. צור קונספט אחיד ל-3 מודעות עם אותו סגנון ויזואלי, אותה שפה עיצובית, ואותה כותרת-על — אבל כל מודעה מדגישה זווית אחרת של המוצר/שירות.'
+                  : 'זוהי סדרה 2. צור קונספט שונה לחלוטין מסדרה 1 — כיוון קריאטיבי חדש, סגנון ויזואלי שונה, שפה שונה. שמור על עקביות בתוך הסדרה.',
+              } : {}),
+            },
             mediaType: mediaTypes[0] || null,
             topicCategory: detectedTopic,
             holidaySeason: selectedHoliday || null,
@@ -943,7 +954,7 @@ const CreativeStudio = () => {
             designApproach: designApproach || (brandContext as any)?.designApproach || null,
             corrections: pendingCorrections.length > 0 ? pendingCorrections : undefined,
             variationIndex: i,
-            headlinePosition: headlinePositions[i],
+            headlinePosition: headlinePositions[i % headlinePositions.length],
           }
         });
 
