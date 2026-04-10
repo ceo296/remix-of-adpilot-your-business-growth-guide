@@ -1032,6 +1032,13 @@ const buildBriefFromProfile = (profile: any): string => {
   return `מצגת תדמית מקצועית לעסק.\n${parts.join('\n')}`;
 };
 
+// ── Brief Gap Analysis ──
+interface BriefGap {
+  topic: string;
+  question: string;
+  answer: string;
+}
+
 // ── Brief Screen ──
 const BriefScreen = ({
   onGenerate, businessName, isLoading, profile, generationProgress,
@@ -1053,6 +1060,11 @@ const BriefScreen = ({
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Gap analysis state
+  const [gaps, setGaps] = useState<BriefGap[] | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [gapsDismissed, setGapsDismissed] = useState(false);
+
   const hasProfile = !!(profile?.business_name);
 
   // The profile data is sent as background context for branding, NOT as the brief content
@@ -1060,9 +1072,85 @@ const BriefScreen = ({
 
   // The effective brief = user's specific message + profile as background context
   const typeInstruction = PRESENTATION_TYPE_INSTRUCTIONS[presentationType];
-  const effectiveBrief = brief.trim()
-    ? `${typeInstruction ? `${typeInstruction}\n\n` : ''}${brief.trim()}${profileContext ? `\n\n--- רקע מתיק הלקוח (לצבעוניות, בידול וזהות בלבד) ---\n${profileContext}` : ''}`
-    : '';
+  const buildEffectiveBrief = (extraContext?: string) => {
+    const userBrief = brief.trim();
+    if (!userBrief) return '';
+    const gapAnswers = extraContext || '';
+    const fullBrief = gapAnswers ? `${userBrief}\n\n--- מידע נוסף שהלקוח סיפק ---\n${gapAnswers}` : userBrief;
+    return `${typeInstruction ? `${typeInstruction}\n\n` : ''}${fullBrief}${profileContext ? `\n\n--- רקע מתיק הלקוח (לצבעוניות, בידול וזהות בלבד) ---\n${profileContext}` : ''}`;
+  };
+
+  // Analyze brief for missing data
+  const analyzeBriefGaps = async () => {
+    setIsAnalyzing(true);
+    try {
+      const profileSummary = profileContext || 'אין פרופיל עסקי';
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          messages: [{
+            role: 'user',
+            content: `אתה מנתח בריפים למצגות. קיבלת בריף מלקוח ואת הנתונים שכבר קיימים עליו במערכת.
+המשימה שלך: לזהות נושאים שהלקוח מציין בבריף שלו אבל אין לנו נתונים עליהם בפרופיל.
+
+בריף הלקוח:
+"${brief.trim()}"
+
+נתונים קיימים על הלקוח:
+${profileSummary}
+
+הנחיות:
+- זהה רק פערים מהותיים — דברים שהלקוח ביקש במפורש אבל חסרים בנתונים (כמו רווחיות, מספרי לקוחות, שנות ניסיון, מחזורים, מחירים, תעודות וכו')
+- אל תבקש דברים שניתן להסיק מהפרופיל
+- אל תבקש נתוני צבעוניות/לוגו/עיצוב — יש לנו את אלה
+- אם אין פערים מהותיים, החזר מערך ריק
+- מקסימום 4 פערים
+
+החזר JSON בלבד בפורמט:
+{ "gaps": [{ "topic": "שם הנושא", "question": "שאלה קצרה ללקוח" }] }
+אם אין פערים: { "gaps": [] }`
+          }],
+          singleShot: true,
+        },
+      });
+
+      if (error) throw error;
+      const responseText = data?.response || data?.text || '';
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.gaps && parsed.gaps.length > 0) {
+          setGaps(parsed.gaps.map((g: any) => ({ ...g, answer: '' })));
+          return; // Don't generate yet — show gaps
+        }
+      }
+      // No gaps found — proceed directly
+      onGenerate(buildEffectiveBrief(), slideCount, theme, presentationType);
+    } catch (err) {
+      console.error('Gap analysis failed, proceeding anyway:', err);
+      onGenerate(buildEffectiveBrief(), slideCount, theme, presentationType);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleGenerateWithGaps = () => {
+    if (gaps) {
+      const answered = gaps.filter(g => g.answer.trim());
+      const extraContext = answered.map(g => `${g.topic}: ${g.answer}`).join('\n');
+      onGenerate(buildEffectiveBrief(extraContext), slideCount, theme, presentationType);
+      setGaps(null);
+    }
+  };
+
+  const handleSkipGaps = () => {
+    setGapsDismissed(true);
+    setGaps(null);
+    onGenerate(buildEffectiveBrief(), slideCount, theme, presentationType);
+  };
+
+  const updateGapAnswer = (index: number, answer: string) => {
+    setGaps(prev => prev ? prev.map((g, i) => i === index ? { ...g, answer } : g) : null);
+  };
 
   // Voice recording
   const startRecording = async () => {
@@ -1257,22 +1345,77 @@ const BriefScreen = ({
               </div>
             </div>
 
-            <Button
-              className="w-full h-14 text-lg gap-2 font-bold"
-              onClick={() => onGenerate(effectiveBrief, slideCount, theme, presentationType)}
-              disabled={!brief.trim() || isLoading}
-            >
-              {isLoading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />
-                  {generationProgress?.phase === 'images' 
-                    ? `מייצר תמונות... ${generationProgress.current}/${generationProgress.total}`
-                    : 'בונה את השקפים...'
-                  }
-                </>
-              ) : (
-                <><Wand2 className="w-5 h-5" />צור מצגת ✨</>
-              )}
-            </Button>
+            {/* Gap Analysis Results */}
+            {gaps && gaps.length > 0 && (
+              <div className="p-4 rounded-xl border-2 border-amber-500/30 bg-amber-500/5 space-y-4 animate-fade-in">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <FileText className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">זיהינו מידע חסר בבריף שלך</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      כדי שהמצגת תהיה מדויקת ומקצועית, נשמח שתשלים את הפרטים הבאים. אפשר גם לדלג.
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {gaps.map((gap, i) => (
+                    <div key={i} className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">{gap.question}</label>
+                      <Textarea
+                        value={gap.answer}
+                        onChange={e => updateGapAnswer(i, e.target.value)}
+                        placeholder={`ספר לנו על ${gap.topic}...`}
+                        rows={2}
+                        className="text-sm"
+                        dir="rtl"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1 h-12 text-base gap-2 font-bold"
+                    onClick={handleGenerateWithGaps}
+                    disabled={isLoading}
+                  >
+                    <Wand2 className="w-5 h-5" />
+                    צור מצגת עם המידע הנוסף ✨
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-12 text-sm"
+                    onClick={handleSkipGaps}
+                    disabled={isLoading}
+                  >
+                    דלג
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Generate / Analyze button */}
+            {!gaps && (
+              <Button
+                className="w-full h-14 text-lg gap-2 font-bold"
+                onClick={analyzeBriefGaps}
+                disabled={!brief.trim() || isLoading || isAnalyzing}
+              >
+                {isLoading ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" />
+                    {generationProgress?.phase === 'images' 
+                      ? `מייצר תמונות... ${generationProgress.current}/${generationProgress.total}`
+                      : 'בונה את השקפים...'
+                    }
+                  </>
+                ) : isAnalyzing ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" />מנתח את הבריף...</>
+                ) : (
+                  <><Wand2 className="w-5 h-5" />צור מצגת ✨</>
+                )}
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
