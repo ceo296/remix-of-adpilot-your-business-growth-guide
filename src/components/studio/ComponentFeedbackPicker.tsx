@@ -106,6 +106,9 @@ export const ComponentFeedbackPicker = ({
 }: ComponentFeedbackPickerProps) => {
   const [selectedComponents, setSelectedComponents] = useState<Set<AdComponent>>(new Set());
   const [feedbackTexts, setFeedbackTexts] = useState<Record<AdComponent, string>>({} as any);
+  const [kosherLogoUrl, setKosherLogoUrl] = useState<string | null>(null);
+  const [isUploadingKosher, setIsUploadingKosher] = useState(false);
+  const kosherFileRef = useRef<HTMLInputElement>(null);
 
   const toggleComponent = (id: AdComponent) => {
     setSelectedComponents(prev => {
@@ -123,12 +126,39 @@ export const ComponentFeedbackPicker = ({
     setFeedbackTexts(prev => ({ ...prev, [id]: text }));
   };
 
+  const handleKosherFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingKosher(true);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `kosher-logos/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('sector-brain').upload(path, file);
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('sector-brain').getPublicUrl(path);
+      setKosherLogoUrl(urlData.publicUrl);
+      // Auto-fill text if empty
+      if (!feedbackTexts['kosher-logo']?.trim()) {
+        updateFeedbackText('kosher-logo', 'שבץ את חותמת הכשרות המצורפת במודעה');
+      }
+    } catch (err) {
+      console.error('Kosher logo upload error:', err);
+    } finally {
+      setIsUploadingKosher(false);
+    }
+  };
+
   const handleSubmit = () => {
     const feedbacks: ComponentFeedback[] = [];
     for (const comp of selectedComponents) {
       const text = feedbackTexts[comp]?.trim();
-      if (text) {
-        feedbacks.push({ component: comp, text });
+      if (text || (comp === 'kosher-logo' && kosherLogoUrl)) {
+        feedbacks.push({ 
+          component: comp, 
+          text: text || 'שבץ חותמת כשרות',
+          ...(comp === 'kosher-logo' && kosherLogoUrl ? { fileUrl: kosherLogoUrl } : {}),
+        });
       }
     }
     if (feedbacks.length === 0) {
