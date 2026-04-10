@@ -910,8 +910,18 @@ const CreativeStudio = () => {
       // Headline position variety: distribute across sketches
       const headlinePositions = ['top', 'bottom', 'top', 'center'];
       
-      for (let i = 0; i < 4; i++) {
-        toast.info(`מייצר סקיצה ${i + 1} מתוך 4...`);
+      // Series mode: 2 series × 3 ads = 6 images
+      // Normal mode: 4 variations
+      const isSeries = campaignBrief.structure === 'series';
+      const totalImages = isSeries ? 6 : 4;
+      
+      for (let i = 0; i < totalImages; i++) {
+        const seriesIndex = isSeries ? Math.floor(i / 3) : undefined;
+        const adIndex = isSeries ? (i % 3) : undefined;
+        const label = isSeries 
+          ? `סדרה ${seriesIndex! + 1} — מודעה ${adIndex! + 1}`
+          : `סקיצה ${i + 1} מתוך ${totalImages}`;
+        toast.info(`מייצר ${label}...`);
         
         const detectedTopic = detectTopicCategory(campaignBrief.offer + ' ' + campaignBrief.title);
         
