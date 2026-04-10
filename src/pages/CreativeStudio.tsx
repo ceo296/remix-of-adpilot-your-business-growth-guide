@@ -1191,6 +1191,7 @@ const CreativeStudio = () => {
     setShowAutopilotEmail(false);
     setShowAutopilotWhatsapp(false);
     setWhatsappSubType(null);
+    setEmailSubType(null);
     setAutopilotRadioScript(null);
     setRadioAudioUrl(null);
     setIsPlayingRadio(false);
