@@ -332,7 +332,7 @@ export const ComponentFeedbackPicker = ({
         {/* Feedback Inputs for Selected Components */}
         {selectedCount > 0 && (
           <div className="space-y-4 pt-2">
-            {AD_COMPONENTS.filter(c => selectedComponents.has(c.id)).map((comp) => (
+            {components.filter(c => selectedComponents.has(c.id)).map((comp) => (
               <div key={comp.id} className="space-y-2 animate-fade-in">
                 <div className="flex items-center gap-2">
                   <comp.icon className="h-4 w-4 text-primary" />
