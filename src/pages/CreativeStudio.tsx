@@ -689,7 +689,8 @@ const CreativeStudio = () => {
     // Media type is now selected before entering the wizard, so step 1 (MediaType) is removed
     // Steps: 0=Brief, 3=Treatment/Upload, 4=Copy, 5=Style, 6=Prompt, 7=DesignApproach, 8=Radio
     const isOnlyRadio = mediaTypes.length === 1 && mediaTypes[0] === 'radio';
-    const isTextOnlyMedia = mediaTypes.length === 1 && ['article', 'email'].includes(mediaTypes[0]);
+    const isTextOnlyMedia = mediaTypes.length === 1 && ['article'].includes(mediaTypes[0]);
+    const isEmailOnly = mediaTypes.length === 1 && mediaTypes[0] === 'email';
     const isWhatsappOnly = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
     
     if (isOnlyRadio) {
@@ -697,6 +698,9 @@ const CreativeStudio = () => {
     }
     if (isTextOnlyMedia) {
       return [0]; // Brief only, final step triggers text generation
+    }
+    if (isEmailOnly) {
+      return [0]; // Brief only (sub-type selector is inline)
     }
     if (isWhatsappOnly) {
       return [0]; // Brief only (sub-type selector is inline), then autopilot generates
@@ -733,15 +737,17 @@ const CreativeStudio = () => {
         const words = offer.split(/\s+/).filter(w => w.length > 0);
         const hasValidOffer = words.length >= 12 && /[\u0590-\u05FFa-zA-Z]{2,}/.test(offer);
         
-        const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article', 'email'].includes(t));
+        const isTextOnlyFlow = mediaTypes.length > 0 && mediaTypes.every(t => ['radio', 'article'].includes(t));
+        const isEmailFlow = mediaTypes.length === 1 && mediaTypes[0] === 'email';
         const isWhatsappFlow = mediaTypes.length === 1 && mediaTypes[0] === 'whatsapp';
         
         if (isWhatsappFlow) {
-          // WhatsApp needs sub-type selected + basic brief
           return !!whatsappSubType && !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
         }
+        if (isEmailFlow) {
+          return !!emailSubType && !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
+        }
         if (isTextOnlyFlow) {
-          // Text-only media: skip structure, colors, contacts validation
           return !!campaignBrief.adGoal && !!campaignBrief.emotionalTone && campaignBrief.desiredActions.length > 0 && hasValidOffer;
         }
         
