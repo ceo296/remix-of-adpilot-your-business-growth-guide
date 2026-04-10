@@ -442,6 +442,7 @@ const CreativeStudio = () => {
   const [autopilotWhatsappContent, setAutopilotWhatsappContent] = useState<{ message: string; imageHeadline?: string; imageSubtext?: string } | null>(null);
   const [isGeneratingWhatsapp, setIsGeneratingWhatsapp] = useState(false);
   const [showAutopilotWhatsapp, setShowAutopilotWhatsapp] = useState(false);
+  const [whatsappSubType, setWhatsappSubType] = useState<'status' | 'distribution' | null>(null);
   // Editing states for 360° platform results
   const [editingRadio, setEditingRadio] = useState(false);
   const [editingArticle, setEditingArticle] = useState(false);
