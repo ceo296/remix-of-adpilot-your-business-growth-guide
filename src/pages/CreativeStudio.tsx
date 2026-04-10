@@ -320,6 +320,11 @@ const CreativeStudio = () => {
       // 360° campaign → autopilot
       setMode('autopilot');
       setAssetChoice(null);
+    } else if (isEmailOnly && scope === 'full') {
+      // Email only → show sub-type selector (text-only vs with-design)
+      setMode('manual');
+      setAssetChoice(null);
+      setEmailSubType(null);
     } else if (isWhatsappOnly && scope === 'full') {
       // WhatsApp only → show sub-type selector, then autopilot
       setMode('autopilot');
@@ -330,7 +335,7 @@ const CreativeStudio = () => {
       setMode('autopilot');
       setAssetChoice(null);
     } else {
-      // Radio, Article, Email, or text-have-script → manual wizard (brief first)
+      // Radio, Article, or text-have-script → manual wizard (brief first)
       setMode('manual');
       setAssetChoice(null);
     }
