@@ -27,7 +27,14 @@ export type AdComponent =
   | 'grid-layout'
   | 'badge-stamp'
   | 'kosher-logo'
-  | 'general';
+  | 'general'
+  // WhatsApp-specific
+  | 'wa-image-headline'
+  | 'wa-image-visual'
+  | 'wa-text-intro'
+  | 'wa-text-bullets'
+  | 'wa-text-cta'
+  | 'wa-text-links';
 
 interface ComponentFeedback {
   component: AdComponent;
@@ -39,6 +46,7 @@ interface ComponentFeedbackPickerProps {
   sketchLabel: string;
   onSubmit: (feedbacks: ComponentFeedback[]) => void;
   onCancel: () => void;
+  mediaType?: string; // 'whatsapp' triggers WhatsApp-specific categories
 }
 
 export const AD_COMPONENTS: {
@@ -47,6 +55,7 @@ export const AD_COMPONENTS: {
   description: string;
   icon: React.ElementType;
   placeholder: string;
+  group?: 'design' | 'text'; // For WhatsApp grouping
 }[] = [
   {
     id: 'headline',
@@ -96,6 +105,83 @@ export const AD_COMPONENTS: {
     description: 'הערה חופשית על המודעה',
     icon: MessageCircle,
     placeholder: 'כתוב הערה כללית... למשל: "הטון לא מתאים", "צריך להיות יותר מכירתי"...',
+  },
+];
+
+// WhatsApp-specific components grouped by design vs text
+export const WA_COMPONENTS: {
+  id: AdComponent;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  placeholder: string;
+  group: 'design' | 'text';
+}[] = [
+  // Design group (the square image)
+  {
+    id: 'wa-image-headline',
+    label: 'כותרת בקוביה',
+    description: 'הכותרת הקצרה שמופיעה על התמונה',
+    icon: Heading1,
+    placeholder: 'מה לשנות? למשל: "לשנות ניסוח", "להוסיף מחיר", "לקצר"...',
+    group: 'design',
+  },
+  {
+    id: 'wa-image-visual',
+    label: 'עיצוב הקוביה',
+    description: 'הרקע, צבעים, גרפיקה בתמונה',
+    icon: ImageIcon,
+    placeholder: 'מה לשנות? למשל: "רקע אחר", "צבעים שונים", "יותר נקי"...',
+    group: 'design',
+  },
+  {
+    id: 'kosher-logo',
+    label: 'לוגו כשרות',
+    description: 'הוספת סמל כשרות בקוביה',
+    icon: ShieldCheck,
+    placeholder: 'איזה כשרות? למשל: "בד״ץ העדה החרדית"...',
+    group: 'design',
+  },
+  // Text group (the accompanying message)
+  {
+    id: 'wa-text-intro',
+    label: 'פתיחת המסר',
+    description: 'השורות הראשונות של הטקסט הנלווה',
+    icon: Heading2,
+    placeholder: 'מה לשנות? למשל: "פתיחה יותר סוקרנת", "טון שונה"...',
+    group: 'text',
+  },
+  {
+    id: 'wa-text-bullets',
+    label: 'נקודות מפתח',
+    description: 'הבולטים/סעיפים במסר',
+    icon: LayoutGrid,
+    placeholder: 'מה לשנות? למשל: "להוסיף יתרון", "להוריד סעיף", "לשנות ניסוח"...',
+    group: 'text',
+  },
+  {
+    id: 'wa-text-cta',
+    label: 'קריאה לפעולה',
+    description: 'ה-CTA — מה המשתמש צריך לעשות',
+    icon: MessageCircle,
+    placeholder: 'מה לשנות? למשל: "להזמינו עכשיו", "שלחו הודעה", "חייגו"...',
+    group: 'text',
+  },
+  {
+    id: 'wa-text-links',
+    label: 'קישורים ופרטי קשר',
+    description: 'טלפון, וואטסאפ, דף נחיתה',
+    icon: Circle,
+    placeholder: 'מה להוסיף/לשנות? למשל: "להוסיף קישור לדף נחיתה", "לשנות מספר טלפון"...',
+    group: 'text',
+  },
+  {
+    id: 'general',
+    label: 'הערה כללית',
+    description: 'הערה חופשית',
+    icon: MessageCircle,
+    placeholder: 'כתוב הערה כללית...',
+    group: 'text',
   },
 ];
 
