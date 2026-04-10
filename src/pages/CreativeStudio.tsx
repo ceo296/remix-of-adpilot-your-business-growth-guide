@@ -3660,11 +3660,26 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                     ) : autopilotWhatsappContent ? (
                       <Card className="border-primary/20">
                         <div className="p-6" dir="rtl">
+                          {/* Image headline info */}
+                          {autopilotWhatsappContent.imageHeadline && (
+                            <div className="mb-4 p-3 rounded-lg bg-muted/50 border border-border">
+                              <p className="text-xs font-semibold text-muted-foreground mb-1">🎨 כותרת בקוביה העיצובית</p>
+                              <p className="font-bold text-foreground">{autopilotWhatsappContent.imageHeadline}</p>
+                              {autopilotWhatsappContent.imageSubtext && (
+                                <p className="text-sm text-muted-foreground mt-1">{autopilotWhatsappContent.imageSubtext}</p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Accompanying text */}
+                          <div className="mb-2">
+                            <p className="text-xs font-semibold text-muted-foreground mb-2">✍️ טקסט נלווה</p>
+                          </div>
                           {editingWhatsapp ? (
                             <Textarea
                               value={autopilotWhatsappContent.message}
                               onChange={(e) => setAutopilotWhatsappContent({ ...autopilotWhatsappContent, message: e.target.value })}
-                              className="min-h-[100px] text-sm"
+                              className="min-h-[150px] text-sm"
                               dir="rtl"
                             />
                           ) : (
@@ -3686,7 +3701,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
                               <Textarea
                                 value={platformFixText}
                                 onChange={(e) => setPlatformFixText(e.target.value)}
-                                placeholder="למשל: תוסיף אימוג'ים, תקצר, תשנה את הטון..."
+                                placeholder="למשל: תוסיף אימוג'ים, תקצר, תשנה את הטון, תוסיף קישור לדף נחיתה..."
                                 className="min-h-[80px] text-sm mb-3"
                                 dir="rtl"
                               />
