@@ -34,7 +34,9 @@ export type AdComponent =
   | 'wa-text-intro'
   | 'wa-text-bullets'
   | 'wa-text-cta'
-  | 'wa-text-links';
+  | 'wa-text-links'
+  | 'wa-text-length'
+  | 'wa-text-message';
 
 interface ComponentFeedback {
   component: AdComponent;
@@ -117,7 +119,7 @@ export const WA_COMPONENTS: {
   placeholder: string;
   group: 'design' | 'text';
 }[] = [
-  // Design group (the square image)
+  // Design group (the accompanying image)
   {
     id: 'wa-image-headline',
     label: 'כותרת בקוביה',
@@ -131,30 +133,38 @@ export const WA_COMPONENTS: {
     label: 'עיצוב הקוביה',
     description: 'הרקע, צבעים, גרפיקה בתמונה',
     icon: ImageIcon,
-    placeholder: 'מה לשנות? למשל: "רקע אחר", "צבעים שונים", "יותר נקי"...',
+    placeholder: 'מה לשנות? למשל: "רקע אחר", "צבעים שונים", "תמונה אחרת"...',
     group: 'design',
   },
   {
     id: 'kosher-logo',
     label: 'לוגו כשרות',
-    description: 'הוספת סמל כשרות בקוביה',
+    description: 'הוספת סמל כשרות בקוביה (אם רלוונטי)',
     icon: ShieldCheck,
     placeholder: 'איזה כשרות? למשל: "בד״ץ העדה החרדית"...',
     group: 'design',
   },
-  // Text group (the accompanying message)
+  // Text group (the storytelling message)
   {
-    id: 'wa-text-intro',
-    label: 'פתיחת המסר',
-    description: 'השורות הראשונות של הטקסט הנלווה',
+    id: 'wa-text-length',
+    label: 'אורך המסר',
+    description: 'לקצר או להאריך את הטקסט',
+    icon: LayoutGrid,
+    placeholder: 'למשל: "לקצר משמעותית", "להאריך עם עוד סיפור", "לקצר בחצי"...',
+    group: 'text',
+  },
+  {
+    id: 'wa-text-message',
+    label: 'שינוי מסר / טון',
+    description: 'לשנות את המסר, הסיפור או הטון',
     icon: Heading2,
-    placeholder: 'מה לשנות? למשל: "פתיחה יותר סוקרנת", "טון שונה"...',
+    placeholder: 'למשל: "טון יותר רגשי", "פחות סיפורי - יותר עובדות", "לשנות את הזווית"...',
     group: 'text',
   },
   {
     id: 'wa-text-bullets',
-    label: 'נקודות מפתח',
-    description: 'הבולטים/סעיפים במסר',
+    label: 'נקודות מפתח / יתרונות',
+    description: 'סעיפי היתרונות והמידע',
     icon: LayoutGrid,
     placeholder: 'מה לשנות? למשל: "להוסיף יתרון", "להוריד סעיף", "לשנות ניסוח"...',
     group: 'text',
