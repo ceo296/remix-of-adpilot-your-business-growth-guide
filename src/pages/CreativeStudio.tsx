@@ -303,7 +303,8 @@ const CreativeStudio = () => {
     
     const isAll = selectedMediaTypes.includes('all');
     const isOnlyRadio = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'radio';
-    const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article', 'email'].includes(selectedMediaTypes[0]);
+    const isTextOnlyMedia = selectedMediaTypes.length === 1 && ['article'].includes(selectedMediaTypes[0]);
+    const isEmailOnly = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'email';
     const isWhatsappOnly = selectedMediaTypes.length === 1 && selectedMediaTypes[0] === 'whatsapp';
     const isVisualMedia = selectedMediaTypes.some(t => ['ad', 'banner'].includes(t));
     
@@ -449,6 +450,7 @@ const CreativeStudio = () => {
   const [isGeneratingWhatsapp, setIsGeneratingWhatsapp] = useState(false);
   const [showAutopilotWhatsapp, setShowAutopilotWhatsapp] = useState(false);
   const [whatsappSubType, setWhatsappSubType] = useState<'status' | 'distribution' | null>(null);
+  const [emailSubType, setEmailSubType] = useState<'text-only' | 'with-design' | null>(null);
   // Editing states for 360° platform results
   const [editingRadio, setEditingRadio] = useState(false);
   const [editingArticle, setEditingArticle] = useState(false);
