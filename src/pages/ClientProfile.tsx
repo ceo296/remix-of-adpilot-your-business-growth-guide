@@ -98,6 +98,22 @@ const ClientProfilePage = () => {
     ((profile as any)?.honorific_preference as HonorificType) || 'neutral'
   );
   
+  // Contact & business details
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactWhatsapp, setContactWhatsapp] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactAddress, setContactAddress] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [contactYoutube, setContactYoutube] = useState('');
+  const [socialFacebook, setSocialFacebook] = useState('');
+  const [socialInstagram, setSocialInstagram] = useState('');
+  const [socialTiktok, setSocialTiktok] = useState('');
+  const [socialLinkedin, setSocialLinkedin] = useState('');
+  const [openingHours, setOpeningHours] = useState('');
+  const [branches, setBranches] = useState('');
+  const [services, setServices] = useState<string[]>([]);
+  const [newService, setNewService] = useState('');
+
   const [availableTemplates, setAvailableTemplates] = useState<{id: string; name: string; description: string | null}[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(profile?.default_template_id || null);
   const [brandColors, setBrandColors] = useState<BrandColor[]>([]);
