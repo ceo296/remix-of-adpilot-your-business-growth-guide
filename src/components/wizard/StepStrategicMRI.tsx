@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { WizardData, WizardDataUpdate, XFactorType, AudienceToneType } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, ArrowRight, Trophy, Package, Tag, Heart, Sparkles, Users, Crown, Briefcase, Edit3, X, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Trophy, Package, Tag, Heart, Sparkles, Users, Crown, Briefcase, Edit3, X, Check, Brain } from 'lucide-react';
 import { getYourWord } from '@/lib/honorific-utils';
 
 interface StepProps {
@@ -28,6 +29,7 @@ const AUDIENCE_OPTIONS: { id: AudienceToneType; label: string; sub: string; emoj
 ];
 
 const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
+  const navigate = useNavigate();
   const [otherXFactor, setOtherXFactor] = useState(data.strategicMRI.otherXFactor || '');
   const [isOtherSelected, setIsOtherSelected] = useState(!!data.strategicMRI.otherXFactor);
   const [showCompetitors, setShowCompetitors] = useState(data.strategicMRI.competitors.length > 0);
@@ -317,15 +319,26 @@ const StepStrategicMRI = ({ data, updateData, onNext, onPrev }: StepProps) => {
       </section>
 
       {/* ─── Navigation ─── */}
-      <div className="flex justify-between pt-2">
-        <Button variant="ghost" onClick={onPrev} className="gap-2">
-          <ArrowRight className="w-4 h-4" />
-          חזרה
-        </Button>
-        <Button onClick={onNext} disabled={!isValid} variant="gradient" className="gap-2">
-          המשך
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
+      <div className="flex flex-col items-center gap-3 pt-2">
+        {/* Advisor CTA */}
+        <button
+          onClick={() => navigate('/strategy-advisor?returnTo=onboarding')}
+          className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors"
+        >
+          <Brain className="w-4 h-4" />
+          <span>לא בטוח מה לענות? דבר עם היועץ האסטרטגי שלנו</span>
+        </button>
+
+        <div className="flex justify-between w-full">
+          <Button variant="ghost" onClick={onPrev} className="gap-2">
+            <ArrowRight className="w-4 h-4" />
+            חזרה
+          </Button>
+          <Button onClick={onNext} disabled={!isValid} variant="gradient" className="gap-2">
+            המשך
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
