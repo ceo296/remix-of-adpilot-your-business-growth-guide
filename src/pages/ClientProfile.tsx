@@ -426,7 +426,6 @@ const ClientProfilePage = () => {
     extractColorsFromImage(materialUrl);
   };
 
-  const [isExtractingColors, setIsExtractingColors] = useState(false);
 
   const handleAddNewBusiness = async () => {
     if (!user) return;
