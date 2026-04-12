@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Rocket, ArrowLeft, Zap, Settings, Info, ChefHat, CalendarDays, X, BarChart3 } from 'lucide-react';
-import heroBgVideo from '@/assets/hero-bg-v5.mp4.asset.json';
+import heroBgVideo from '@/assets/hero-bg-v6.mp4.asset.json';
 import { Link } from 'react-router-dom';
 import {
   Sheet,
