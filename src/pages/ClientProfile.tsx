@@ -83,11 +83,6 @@ const ClientProfilePage = () => {
     ((profile as any)?.honorific_preference as HonorificType) || 'neutral'
   );
   
-  // Personal Hall of Fame and Red Lines
-  const [successfulCampaigns, setSuccessfulCampaigns] = useState<string[]>((profile as any)?.successful_campaigns || []);
-  const [personalRedLines, setPersonalRedLines] = useState<string[]>((profile as any)?.personal_red_lines || []);
-  const [newCampaign, setNewCampaign] = useState('');
-  const [newRedLine, setNewRedLine] = useState('');
   const [availableTemplates, setAvailableTemplates] = useState<{id: string; name: string; description: string | null}[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(profile?.default_template_id || null);
   const [brandColors, setBrandColors] = useState<BrandColor[]>([]);
@@ -102,8 +97,6 @@ const ClientProfilePage = () => {
       setCompetitors(profile.competitors || []);
       setAdvantageSlider(profile.advantage_slider || 50);
       setTargetAudience(profile.target_audience || '');
-      setSuccessfulCampaigns((profile as any).successful_campaigns || []);
-      setPersonalRedLines((profile as any).personal_red_lines || []);
       setHonorificPreference(((profile as any).honorific_preference as HonorificType) || 'neutral');
       setSelectedTemplateId(profile.default_template_id || null);
       // Sync brand colors
