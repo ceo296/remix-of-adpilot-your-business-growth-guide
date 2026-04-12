@@ -31,7 +31,8 @@ import {
   AlertOctagon,
   MessageCircle,
   LayoutTemplate,
-  Check
+  Check,
+  Image
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -671,7 +672,69 @@ const ClientProfilePage = () => {
           </CardContent>
         </Card>
 
-        {/* Default Ad Template */}
+        {/* Past Advertising Materials */}
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Image className="w-5 h-5 text-primary" />
+                חומרי פרסום קודמים
+              </CardTitle>
+              <CardDescription>העלו מודעות ופרסומים מהעבר - נחלץ מהם צבעים וסגנון</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="relative border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-primary/50 hover:bg-primary/5">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePastMaterialUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <Upload className="w-8 h-8" />
+                <span className="text-sm font-medium text-foreground">העלו חומרי פרסום קודמים</span>
+                <span className="text-xs">תמונות של מודעות, פליירים, באנרים</span>
+              </div>
+            </div>
+
+            {(() => {
+              const materials: string[] = Array.isArray((profile as any).past_materials) ? (profile as any).past_materials : [];
+              if (materials.length === 0) return null;
+              return (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {materials.map((url: string, i: number) => (
+                    <div key={i} className="relative group rounded-lg overflow-hidden border border-border">
+                      <img
+                        src={url}
+                        alt={`חומר פרסום ${i + 1}`}
+                        className="w-full h-28 object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleExtractColorsFromMaterial(url)}
+                          disabled={isExtractingColors}
+                        >
+                          <Sparkles className="w-3 h-3 ml-1" />
+                          חלץ צבעים
+                        </Button>
+                        <button
+                          onClick={() => removePastMaterial(i)}
+                          className="bg-destructive/80 text-white rounded-full p-1.5 hover:bg-destructive transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </CardContent>
         {availableTemplates.length > 0 && (
           <Card>
             <CardHeader>
