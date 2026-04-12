@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Building2, Sparkles, Pencil, FileText, Check, X, Palette, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useClientProfile } from '@/hooks/useClientProfile';
 import { toast } from 'sonner';
 
 interface BrandColor {
@@ -14,7 +14,7 @@ interface BrandColor {
   number: string;
 }
 
-interface ClientProfile {
+interface LocalProfile {
   id: string;
   business_name: string;
   primary_color: string;
@@ -26,8 +26,8 @@ interface ClientProfile {
 }
 
 const BusinessIdCard = () => {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<ClientProfile | null>(null);
+  const { profile: clientProfile, loading: profileLoading } = useClientProfile();
+  const [profile, setProfile] = useState<LocalProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [logoError, setLogoError] = useState(false);
   const [editingColors, setEditingColors] = useState(false);
@@ -35,29 +35,33 @@ const BusinessIdCard = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) return;
-      const { data, error } = await supabase
-        .from('client_profiles')
-        .select('id, business_name, primary_color, secondary_color, logo_url, primary_color_name, secondary_color_name, brand_colors')
-        .eq('user_id', user.id)
-        .single();
-
-      if (data && !error) {
-        const rawColors = (data as any).brand_colors;
-        const colors: BrandColor[] = Array.isArray(rawColors) && rawColors.length > 0
-          ? rawColors
-          : [
-              { hex: data.primary_color || '#000000', name: (data as any).primary_color_name || '', number: '' },
-              ...(data.secondary_color ? [{ hex: data.secondary_color, name: (data as any).secondary_color_name || '', number: '' }] : []),
-            ];
-        setProfile({ ...data, brand_colors: colors } as ClientProfile);
-        setBrandColors(colors);
-      }
+    if (profileLoading) return;
+    if (!clientProfile) {
+      setProfile(null);
       setLoading(false);
-    };
-    fetchProfile();
-  }, [user]);
+      return;
+    }
+    const rawColors = clientProfile.brand_colors as any;
+    const colors: BrandColor[] = Array.isArray(rawColors) && rawColors.length > 0
+      ? rawColors
+      : [
+          { hex: clientProfile.primary_color || '#000000', name: clientProfile.primary_color_name || '', number: '' },
+          ...(clientProfile.secondary_color ? [{ hex: clientProfile.secondary_color, name: clientProfile.secondary_color_name || '', number: '' }] : []),
+        ];
+    setProfile({
+      id: clientProfile.id,
+      business_name: clientProfile.business_name,
+      primary_color: clientProfile.primary_color || '#000000',
+      secondary_color: clientProfile.secondary_color || '',
+      logo_url: clientProfile.logo_url,
+      primary_color_name: clientProfile.primary_color_name,
+      secondary_color_name: clientProfile.secondary_color_name,
+      brand_colors: colors,
+    });
+    setBrandColors(colors);
+    setLogoError(false);
+    setLoading(false);
+  }, [clientProfile, profileLoading]);
 
   const saveColors = async () => {
     if (!profile) return;
