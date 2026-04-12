@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,8 @@ interface ConclusionsData {
 
 const StrategyAdvisor = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
   const { user } = useAuth();
   const { profile, refetch } = useClientProfile();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -215,6 +217,11 @@ const StrategyAdvisor = () => {
       await refetch();
       toast.success(`${selected.length} מסקנות יושמו בהצלחה בתעודת הזהות!`);
       setShowConclusions(false);
+      
+      // If coming from onboarding, navigate back
+      if (returnTo === 'onboarding') {
+        setTimeout(() => navigate('/onboarding'), 1500);
+      }
     } catch (error) {
       console.error('Apply error:', error);
       toast.error('שגיאה ביישום המסקנות');
@@ -234,9 +241,9 @@ const StrategyAdvisor = () => {
       <div className="container max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => navigate('/internal-studio')} className="mb-2">
+          <Button variant="ghost" onClick={() => navigate(returnTo === 'onboarding' ? '/onboarding' : '/internal-studio')} className="mb-2">
             <ArrowRight className="w-4 h-4 ml-2" />
-            חזרה לחומרים פנימיים
+            {returnTo === 'onboarding' ? 'חזרה לתהליך ההיכרות' : 'חזרה לחומרים פנימיים'}
           </Button>
 
           <div className="text-center">
