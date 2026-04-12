@@ -1108,7 +1108,6 @@ const ClientProfilePage = () => {
                         <span>{factor.emoji}</span>
                         {factor.label}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{factor.description}</p>
                     </div>
                   ) : isSelected ? (
                     <div key={factor.id} className="rounded-lg border border-primary/30 bg-primary/5 p-3">
@@ -1116,7 +1115,6 @@ const ClientProfilePage = () => {
                         <span>{factor.emoji}</span>
                         {factor.label}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{factor.description}</p>
                     </div>
                   ) : null;
                 })}
@@ -1126,39 +1124,21 @@ const ClientProfilePage = () => {
               </div>
             </div>
 
-            {/* Primary X-Factor */}
-            {(primaryXFactor || isEditing) && (
-              <div>
-                <Label className="text-sm font-medium">הבידול העיקרי</Label>
-                {isEditing ? (
-                  <Input
-                    value={primaryXFactor}
-                    onChange={(e) => setPrimaryXFactor(e.target.value)}
-                    placeholder="תארו בקצרה את הבידול המרכזי שלכם..."
-                    className="mt-1"
-                  />
-                ) : (
-                  <p className="text-sm text-muted-foreground mt-1">{primaryXFactor || 'לא הוגדר'}</p>
-                )}
-              </div>
-            )}
-
-            {/* Winning Feature */}
-            {(winningFeature || isEditing) && (
-              <div>
-                <Label className="text-sm font-medium">התכונה המנצחת</Label>
-                {isEditing ? (
-                  <Input
-                    value={winningFeature}
-                    onChange={(e) => setWinningFeature(e.target.value)}
-                    placeholder="מה הדבר הכי חזק שהלקוחות אומרים עליכם?"
-                    className="mt-1"
-                  />
-                ) : (
-                  <p className="text-sm text-muted-foreground mt-1">{winningFeature || 'לא הוגדר'}</p>
-                )}
-              </div>
-            )}
+            {/* Combined: Primary X-Factor + Winning Feature */}
+            <div>
+              <Label className="text-sm font-medium">הבידול העיקרי — התכונה המנצחת שלקוחות אומרים עליכם <span className="text-destructive">*</span></Label>
+              {isEditing ? (
+                <Textarea
+                  value={primaryXFactor}
+                  onChange={(e) => setPrimaryXFactor(e.target.value)}
+                  placeholder="למשל: &#34;אנחנו היחידים בשוק שמציעים אחריות לכל החיים עם שירות בתוך 24 שעות&#34;"
+                  className="mt-1"
+                  rows={2}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground mt-1">{primaryXFactor || 'לא הוגדר'}</p>
+              )}
+            </div>
 
             {isEditing && (
               <button
