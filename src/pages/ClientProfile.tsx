@@ -29,7 +29,6 @@ import {
   RefreshCw,
   FileText,
   AlertOctagon,
-  Star,
   MessageCircle,
   LayoutTemplate,
   Check
