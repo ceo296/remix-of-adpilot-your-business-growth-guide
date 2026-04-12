@@ -65,7 +65,7 @@ const AdminClientSelector = () => {
 
   const handleImpersonate = () => {
     if (!selectedClientId) return;
-    sessionStorage.setItem('admin_impersonate_client', selectedClientId);
+    // Selection already propagates through context
     toast.success(`עובד כעת בתור: ${selectedClient?.business_name}`);
     navigate('/dashboard');
   };
