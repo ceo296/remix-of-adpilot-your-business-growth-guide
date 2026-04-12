@@ -24,7 +24,8 @@ import {
   Globe,
   Clock,
   PartyPopper,
-  Newspaper
+  Newspaper,
+  Brain
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientProfile } from '@/hooks/useClientProfile';
@@ -112,6 +113,16 @@ const TEMPLATE_CATEGORIES: TemplateCategory[] = [
       { id: 'art-expert', name: 'כתבת מומחה', description: 'מאמר מקצועי בתחום', aspectRatio: '1:1.41' },
       { id: 'art-seasonal', name: 'כתבה עונתית', description: 'תוכן מותאם לעונה/חג', aspectRatio: '1:1.41' },
     ]
+  },
+  {
+    id: 'strategy-advisor',
+    name: 'Strategy Advisor',
+    nameHe: 'יועץ אסטרטגי',
+    description: 'גבש את המסר המרכזי עם יועץ AI מנוסה',
+    icon: Brain,
+    comingSoon: false,
+    templates: [],
+    directRoute: '/strategy-advisor',
   },
   {
     id: 'branding',
