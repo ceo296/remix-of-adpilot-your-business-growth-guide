@@ -127,7 +127,7 @@ const Index = () => {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-20 object-right-bottom"
+          className="absolute inset-0 w-full h-full object-cover opacity-20 object-center"
           src={heroBgVideo.url}
         />
         {/* Overlay - stronger on text area, lighter on edges */}
