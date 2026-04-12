@@ -530,6 +530,21 @@ const CreativeStudio = () => {
     }
   };
 
+  // Prompt user to save draft instead of auto-saving
+  const promptSaveDraft = (results: GeneratedImage[]) => {
+    toast('רוצה לשמור את הקמפיין כטיוטה בתיק הלקוח?', {
+      duration: 15000,
+      action: {
+        label: '📁 שמור טיוטה',
+        onClick: () => saveCampaignDraft(results),
+      },
+      cancel: {
+        label: 'לא עכשיו',
+        onClick: () => {},
+      },
+    });
+  };
+
   // Auto-set aspect ratio based on media type
   useEffect(() => {
     if (mediaTypes.length === 1) {
@@ -1158,7 +1173,7 @@ const CreativeStudio = () => {
         if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
         
         // Auto-save campaign as draft
-        await saveCampaignDraft(results);
+        promptSaveDraft(results);
       } else {
         toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
@@ -2376,7 +2391,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       setIsGenerating(false);
       // Auto-save campaign as draft
       if (results.length > 0) {
-        await saveCampaignDraft(results);
+        promptSaveDraft(results);
       }
       } // end of needsVisualsAutopilot else block
 
@@ -2627,7 +2642,7 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
           if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
           if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
           // Auto-save campaign as draft
-          await saveCampaignDraft(results);
+          promptSaveDraft(results);
         } else {
           toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
         }
