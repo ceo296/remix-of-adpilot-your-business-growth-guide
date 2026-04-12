@@ -807,7 +807,152 @@ const ClientProfilePage = () => {
           </CardContent>
         </Card>
 
-        {availableTemplates.length > 0 && (
+        {/* Contact Details */}
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="w-5 h-5 text-primary" />
+                פרטי יצירת קשר
+              </CardTitle>
+              <CardDescription>פרטים שיופיעו בחומרי הפרסום שלכם</CardDescription>
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
+                <Sparkles className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              {[
+                { label: 'טלפון', icon: Phone, value: contactPhone, setter: setContactPhone, placeholder: '03-1234567', dir: 'ltr' as const },
+                { label: 'וואטסאפ', icon: MessageCircle, value: contactWhatsapp, setter: setContactWhatsapp, placeholder: '050-1234567', dir: 'ltr' as const },
+                { label: 'מייל', icon: Mail, value: contactEmail, setter: setContactEmail, placeholder: 'info@business.com', dir: 'ltr' as const },
+                { label: 'כתובת', icon: MapPin, value: contactAddress, setter: setContactAddress, placeholder: 'רחוב הדוגמה 10, בני ברק', dir: 'rtl' as const },
+                { label: 'אתר / דף נחיתה', icon: Globe, value: websiteUrl, setter: setWebsiteUrl, placeholder: 'www.example.co.il', dir: 'ltr' as const },
+              ].map(({ label, icon: Icon, value, setter, placeholder, dir }) => (
+                <div key={label} className="space-y-1.5">
+                  <Label className="flex items-center gap-2 text-sm">
+                    <Icon className="w-4 h-4 text-primary" />
+                    {label}
+                  </Label>
+                  {isEditing ? (
+                    <Input value={value} onChange={(e) => setter(e.target.value)} placeholder={placeholder} dir={dir} className="h-10" />
+                  ) : (
+                    <p className="text-sm text-foreground" dir={dir}>{value || <span className="text-muted-foreground">לא הוגדר</span>}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <Separator />
+
+            <div>
+              <Label className="text-sm font-semibold mb-3 block">רשתות חברתיות</Label>
+              <div className="grid md:grid-cols-2 gap-4">
+                {[
+                  { label: 'פייסבוק', icon: Facebook, value: socialFacebook, setter: setSocialFacebook, placeholder: 'facebook.com/page' },
+                  { label: 'אינסטגרם', icon: Instagram, value: socialInstagram, setter: setSocialInstagram, placeholder: '@username' },
+                  { label: 'יוטיוב', icon: Youtube, value: contactYoutube, setter: setContactYoutube, placeholder: 'youtube.com/@channel' },
+                  { label: 'טיקטוק', icon: Music2, value: socialTiktok, setter: setSocialTiktok, placeholder: '@username' },
+                  { label: 'לינקדאין', icon: Linkedin, value: socialLinkedin, setter: setSocialLinkedin, placeholder: 'linkedin.com/company/...' },
+                ].map(({ label, icon: Icon, value, setter, placeholder }) => (
+                  <div key={label} className="space-y-1.5">
+                    <Label className="flex items-center gap-2 text-sm">
+                      <Icon className="w-4 h-4 text-muted-foreground" />
+                      {label}
+                    </Label>
+                    {isEditing ? (
+                      <Input value={value} onChange={(e) => setter(e.target.value)} placeholder={placeholder} dir="ltr" className="h-10" />
+                    ) : (
+                      <p className="text-sm text-foreground" dir="ltr">{value || <span className="text-muted-foreground">—</span>}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-2 text-sm">
+                  <Clock className="w-4 h-4 text-primary" />
+                  שעות פתיחה
+                </Label>
+                {isEditing ? (
+                  <Input value={openingHours} onChange={(e) => setOpeningHours(e.target.value)} placeholder="א׳-ה׳ 9:00-18:00, ו׳ 9:00-13:00" className="h-10" />
+                ) : (
+                  <p className="text-sm text-foreground">{openingHours || <span className="text-muted-foreground">לא הוגדר</span>}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-2 text-sm">
+                  <Building2 className="w-4 h-4 text-primary" />
+                  סניפים
+                </Label>
+                {isEditing ? (
+                  <Textarea value={branches} onChange={(e) => setBranches(e.target.value)} placeholder="בני ברק - רחוב רבי עקיבא 42" rows={2} className="text-sm" />
+                ) : (
+                  <p className="text-sm text-foreground whitespace-pre-line">{branches || <span className="text-muted-foreground">לא הוגדר</span>}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Services */}
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-primary" />
+                שירותים / מוצרים
+              </CardTitle>
+              <CardDescription>מה העסק מציע</CardDescription>
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
+                <Sparkles className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {services.map((service, idx) => (
+                <Badge key={idx} variant="secondary" className="text-sm">
+                  {service}
+                  {isEditing && (
+                    <button onClick={() => removeService(idx)} className="mr-1 hover:text-destructive">
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </Badge>
+              ))}
+              {services.length === 0 && !isEditing && (
+                <span className="text-muted-foreground text-sm">לא הוגדרו שירותים</span>
+              )}
+            </div>
+            {isEditing && (
+              <div className="flex gap-2">
+                <Input
+                  value={newService}
+                  onChange={(e) => setNewService(e.target.value)}
+                  placeholder="הוסף שירות/מוצר..."
+                  onKeyDown={(e) => e.key === 'Enter' && addService()}
+                  className="h-10"
+                />
+                <Button variant="outline" onClick={addService} size="sm">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
