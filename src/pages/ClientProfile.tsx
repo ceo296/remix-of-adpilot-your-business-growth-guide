@@ -113,6 +113,13 @@ const ClientProfilePage = () => {
   const [branches, setBranches] = useState('');
   const [services, setServices] = useState<string[]>([]);
   const [newService, setNewService] = useState('');
+  
+  // MRI fields missing from previous version
+  const [endConsumer, setEndConsumer] = useState('');
+  const [decisionMaker, setDecisionMaker] = useState('');
+  const [brandPresence, setBrandPresence] = useState('');
+  const [winningFeature, setWinningFeature] = useState('');
+  const [primaryXFactor, setPrimaryXFactor] = useState('');
 
   const [availableTemplates, setAvailableTemplates] = useState<{id: string; name: string; description: string | null}[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(profile?.default_template_id || null);
