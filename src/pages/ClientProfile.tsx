@@ -80,7 +80,7 @@ const ClientProfilePage = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isExtractingColors, setIsExtractingColors] = useState(false);
+  const [isCreatingBusiness, setIsCreatingBusiness] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   
   // Editable fields
@@ -425,9 +425,36 @@ const ClientProfilePage = () => {
     extractColorsFromImage(materialUrl);
   };
 
+  const [isExtractingColors, setIsExtractingColors] = useState(false);
+
+  const handleAddNewBusiness = async () => {
+    if (!user) return;
+    setIsCreatingBusiness(true);
+    try {
+      const { data: newProfile, error } = await supabase
+        .from('client_profiles')
+        .insert({
+          user_id: user.id,
+          business_name: 'עסק חדש',
+          onboarding_completed: false,
+          is_agency_profile: false,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('עסק חדש נוצר! מעביר לתהליך ההיכרות...');
+      navigate('/onboarding');
+    } catch (error: any) {
+      toast.error(error.message || 'שגיאה ביצירת עסק חדש');
+    } finally {
+      setIsCreatingBusiness(false);
+    }
+  };
+
   const handleRestartOnboarding = async () => {
     try {
-      // Reset onboarding_completed flag
       await supabase
         .from('client_profiles')
         .update({ onboarding_completed: false })
