@@ -491,6 +491,45 @@ const CreativeStudio = () => {
   // Engine version selection
   const [engineVersion, setEngineVersion] = useState<'nano-banana-pro' | 'nano-banana'>('nano-banana-pro');
 
+  // Draft campaign tracking
+  const [draftCampaignId, setDraftCampaignId] = useState<string | null>(null);
+
+  // Auto-save campaign as draft after generation completes
+  const saveCampaignDraft = async (results: GeneratedImage[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !clientProfile) return;
+
+      const campaignPayload = {
+        user_id: user.id,
+        client_profile_id: clientProfile.id,
+        name: campaignBrief.title || `קמפיין ${new Date().toLocaleDateString('he-IL')}`,
+        status: 'draft',
+        vibe: style,
+        goal: campaignBrief.goal || visualPrompt,
+        creatives: results.map(img => ({
+          id: img.id,
+          url: img.url,
+          status: img.status,
+        })) as unknown as import('@/integrations/supabase/types').Json,
+      };
+
+      if (draftCampaignId) {
+        // Update existing draft
+        await supabase.from('campaigns').update(campaignPayload).eq('id', draftCampaignId);
+      } else {
+        // Create new draft
+        const { data, error } = await supabase.from('campaigns').insert(campaignPayload).select('id').single();
+        if (!error && data) {
+          setDraftCampaignId(data.id);
+        }
+      }
+      toast.success('הקמפיין נשמר בתיק האישי שלך 📁');
+    } catch (err) {
+      console.error('Failed to save campaign draft:', err);
+    }
+  };
+
   // Auto-set aspect ratio based on media type
   useEffect(() => {
     if (mediaTypes.length === 1) {
@@ -1117,6 +1156,9 @@ const CreativeStudio = () => {
         if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
         if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
         if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
+        
+        // Auto-save campaign as draft
+        await saveCampaignDraft(results);
       } else {
         toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
@@ -1188,6 +1230,7 @@ const CreativeStudio = () => {
     setAspectRatio('square');
     // textLayoutStyle is always 'custom' — no reset needed
     setGeneratedImages([]);
+    setDraftCampaignId(null);
     setShowResults(false);
     setShowQuote(false);
     setShowSuccess(false);
@@ -1571,7 +1614,7 @@ const CreativeStudio = () => {
 
       const quoteData = getQuoteData();
       
-      // Save campaign to database
+      // Save/update campaign to database
       const campaignData = {
         user_id: user.id,
         client_profile_id: profile.id,
@@ -1593,7 +1636,16 @@ const CreativeStudio = () => {
         })) as unknown as import('@/integrations/supabase/types').Json,
       };
       
-      const { error } = await supabase.from('campaigns').insert(campaignData);
+      let error;
+      if (draftCampaignId) {
+        // Update existing draft campaign
+        const result = await supabase.from('campaigns').update(campaignData).eq('id', draftCampaignId);
+        error = result.error;
+      } else {
+        // Create new campaign
+        const result = await supabase.from('campaigns').insert(campaignData);
+        error = result.error;
+      }
 
       if (error) {
         console.error('Error saving campaign:', error);
@@ -2322,6 +2374,10 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       }
 
       setIsGenerating(false);
+      // Auto-save campaign as draft
+      if (results.length > 0) {
+        await saveCampaignDraft(results);
+      }
       } // end of needsVisualsAutopilot else block
 
       const includes360 = mediaTypes.includes('all');
@@ -2570,6 +2626,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
           if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
           if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
           if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
+          // Auto-save campaign as draft
+          await saveCampaignDraft(results);
         } else {
           toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
         }
