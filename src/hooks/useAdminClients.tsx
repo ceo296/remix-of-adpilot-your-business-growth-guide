@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useSelectedClient } from './useSelectedClient';
 import type { Tables } from '@/integrations/supabase/types';
 
 type ClientProfile = Tables<'client_profiles'>;
 
 export const useAdminClients = () => {
   const { user } = useAuth();
+  const { selectedClientId, setSelectedClientId } = useSelectedClient();
   const [isAdmin, setIsAdmin] = useState(false);
   const [clients, setClients] = useState<ClientProfile[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Check if user is admin
@@ -40,25 +41,28 @@ export const useAdminClients = () => {
     try {
       setLoading(true);
       
-      // Admin can see all clients
       const { data, error } = await supabase
         .from('client_profiles')
         .select('*')
+        .eq('is_agency_profile', false)
         .order('business_name');
 
       if (error) throw error;
       setClients(data || []);
       
       // Auto-select first client if none selected
-      if (!selectedClientId && data && data.length > 0) {
-        setSelectedClientId(data[0].id);
+      if (data && data.length > 0) {
+        const currentExists = data.some(c => c.id === selectedClientId);
+        if (!selectedClientId || !currentExists) {
+          setSelectedClientId(data[0].id);
+        }
       }
     } catch (err) {
       console.error('Error fetching clients:', err);
     } finally {
       setLoading(false);
     }
-  }, [user, isAdmin, selectedClientId]);
+  }, [user, isAdmin]);
 
   useEffect(() => {
     if (isAdmin) {
