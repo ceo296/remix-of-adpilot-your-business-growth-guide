@@ -180,7 +180,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   </div>
                   <div className="text-center">
                     <span className={`font-bold text-lg block ${isAgency === true ? 'text-purple-700' : ''}`}>כמה עסקים</span>
-                    <span className={`text-xs ${isAgency === true ? 'text-purple-500' : 'text-muted-foreground'}`}>סוכנויות פרסום</span>
+                    <span className={`text-xs ${isAgency === true ? 'text-purple-500' : 'text-muted-foreground'}`}>מתאים גם לסוכנויות פרסום</span>
                   </div>
                 </button>
               </div>
