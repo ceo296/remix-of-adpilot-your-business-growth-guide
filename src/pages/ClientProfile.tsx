@@ -103,7 +103,8 @@ const ClientProfilePage = () => {
       setXFactors(profile.x_factors || []);
       setCompetitors(profile.competitors || []);
       setAdvantageSlider(profile.advantage_slider || 50);
-      setTargetAudience(profile.target_audience || '');
+      setTargetAudience((profile as any).audience_tone || '');
+      setTargetAudienceDesc(profile.target_audience || '');
       setHonorificPreference(((profile as any).honorific_preference as HonorificType) || 'neutral');
       setSelectedTemplateId(profile.default_template_id || null);
       // Sync brand colors
@@ -188,7 +189,8 @@ const ClientProfilePage = () => {
         x_factors: xFactors,
         competitors: competitors,
         advantage_slider: advantageSlider,
-        target_audience: targetAudience,
+        audience_tone: targetAudience,
+        target_audience: targetAudienceDesc,
         honorific_preference: honorificPreference,
         default_template_id: selectedTemplateId,
       } as any);
