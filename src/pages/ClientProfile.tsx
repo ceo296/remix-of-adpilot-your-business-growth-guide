@@ -246,16 +246,16 @@ const ClientProfilePage = () => {
       }
       
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `logos/${fileName}`;
+      const filePath = `${user.id}/logo-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('client-assets')
-        .upload(filePath, uploadFile, { upsert: true });
+        .from('brand-assets')
+        .upload(filePath, uploadFile, { contentType: uploadFile instanceof Blob ? uploadFile.type : file.type, upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('client-assets')
+        .from('brand-assets')
         .getPublicUrl(filePath);
 
       setLogoUrl(publicUrl);
