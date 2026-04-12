@@ -38,6 +38,7 @@ import { FormatAdaptation } from '@/components/studio/FormatAdaptation';
 import { ImageEditor } from '@/components/studio/ImageEditor';
 import { ClientLoadingTimer } from '@/components/studio/ClientLoadingTimer';
 import { ClientResultsView } from '@/components/studio/ClientResultsView';
+import CampaignHistoryStrip from '@/components/studio/CampaignHistoryStrip';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 // LayoutShowcase removed — master template only
 import type { AdaptedCreative } from '@/lib/image-resize';
@@ -3034,8 +3035,9 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
           <div className="max-w-3xl mx-auto">
             {/* Product Picker Screen - shown first before any wizard steps */}
             {mode === null ? (
-              <div className="py-4">
+              <div className="py-4 space-y-8">
                 <StudioProductPicker onComplete={handleProductPickerComplete} detectedIndustry={detectedIndustry} />
+                <CampaignHistoryStrip />
               </div>
             ) : mode === 'autopilot' ? (
               /* Autopilot Mode */
