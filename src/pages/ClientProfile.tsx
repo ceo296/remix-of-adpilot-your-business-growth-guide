@@ -953,6 +953,7 @@ const ClientProfilePage = () => {
           </CardContent>
         </Card>
 
+        {availableTemplates.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
