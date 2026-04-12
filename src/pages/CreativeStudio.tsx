@@ -1613,7 +1613,7 @@ const CreativeStudio = () => {
 
       const quoteData = getQuoteData();
       
-      // Save campaign to database
+      // Save/update campaign to database
       const campaignData = {
         user_id: user.id,
         client_profile_id: profile.id,
@@ -1635,7 +1635,16 @@ const CreativeStudio = () => {
         })) as unknown as import('@/integrations/supabase/types').Json,
       };
       
-      const { error } = await supabase.from('campaigns').insert(campaignData);
+      let error;
+      if (draftCampaignId) {
+        // Update existing draft campaign
+        const result = await supabase.from('campaigns').update(campaignData).eq('id', draftCampaignId);
+        error = result.error;
+      } else {
+        // Create new campaign
+        const result = await supabase.from('campaigns').insert(campaignData);
+        error = result.error;
+      }
 
       if (error) {
         console.error('Error saving campaign:', error);
