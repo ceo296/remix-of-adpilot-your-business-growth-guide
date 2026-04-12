@@ -85,6 +85,7 @@ const ClientProfilePage = () => {
   
   // Editable fields
   const [businessName, setBusinessName] = useState(profile?.business_name || '');
+  const [isExtractingColors, setIsExtractingColors] = useState(false);
   const [logoUrl, setLogoUrl] = useState(profile?.logo_url || '');
   const [primaryColor, setPrimaryColor] = useState(profile?.primary_color || '');
   const [secondaryColor, setSecondaryColor] = useState(profile?.secondary_color || '');
