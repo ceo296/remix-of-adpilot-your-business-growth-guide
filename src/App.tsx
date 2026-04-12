@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { SelectedClientProvider } from "@/hooks/useSelectedClient";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import OnboardingWizard from "./pages/OnboardingWizard";
@@ -33,10 +34,11 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <HashRouter>
+      <SelectedClientProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <HashRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -62,8 +64,9 @@ const App = () => (
             <Route path="/strategy-advisor" element={<StrategyAdvisor />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </HashRouter>
-      </TooltipProvider>
+          </HashRouter>
+        </TooltipProvider>
+      </SelectedClientProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

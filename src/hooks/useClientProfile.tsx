@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useSelectedClient } from './useSelectedClient';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import type { HonorificType } from '@/types/wizard';
 
@@ -10,6 +11,7 @@ type ClientProfileUpdate = TablesUpdate<'client_profiles'>;
 
 export const useClientProfile = () => {
   const { user } = useAuth();
+  const { selectedClientId } = useSelectedClient();
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +26,24 @@ export const useClientProfile = () => {
 
     try {
       setLoading(true);
-      // First try to get a completed profile (so user isn't stuck on incomplete ones)
+
+      // If a specific client is selected (agency mode), fetch that profile
+      if (selectedClientId) {
+        const { data, error } = await supabase
+          .from('client_profiles')
+          .select('*')
+          .eq('id', selectedClientId)
+          .single();
+
+        if (!error && data) {
+          setProfile(data);
+          setLoading(false);
+          return;
+        }
+        // If fetch by ID failed, fall through to default
+      }
+
+      // Default: fetch user's own non-agency profile
       const { data, error } = await supabase
         .from('client_profiles')
         .select('*')
@@ -45,7 +64,7 @@ export const useClientProfile = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, [user]);
+  }, [user, selectedClientId]);
 
   // Auto-fix: if logo_url is base64, convert and upload to Storage
   useEffect(() => {

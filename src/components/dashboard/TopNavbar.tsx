@@ -14,6 +14,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAgencyClients } from '@/hooks/useAgencyClients';
 import { useAuth } from '@/hooks/useAuth';
+import { useClientProfile } from '@/hooks/useClientProfile';
 import { supabase } from '@/integrations/supabase/client';
 import ClientSelector from './ClientSelector';
 import AdminClientSelector from './AdminClientSelector';
@@ -31,10 +32,13 @@ const TopNavbar = () => {
   const navigate = useNavigate();
   const { isAgency } = useAgencyClients();
   const { signOut, user } = useAuth();
+  const { profile } = useClientProfile();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [clientLogo, setClientLogo] = useState<string | null>(null);
-  const [clientName, setClientName] = useState<string | null>(null);
   const isActive = (path: string) => location.pathname === path;
+
+  const clientLogo = profile?.logo_url && !profile.logo_url.toLowerCase().includes('application/pdf') && !profile.logo_url.toLowerCase().endsWith('.pdf')
+    ? profile.logo_url : null;
+  const clientName = profile?.business_name || null;
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -48,25 +52,6 @@ const TopNavbar = () => {
       setIsAdmin(!!data);
     };
     checkAdmin();
-  }, [user]);
-
-  useEffect(() => {
-    const fetchClientLogo = async () => {
-      if (!user) return;
-      const { data } = await supabase
-        .from('client_profiles')
-        .select('logo_url, business_name')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (data) {
-        setClientName(data.business_name);
-        // Only set logo if it's a renderable image (not PDF)
-        if (data.logo_url && !data.logo_url.toLowerCase().includes('application/pdf') && !data.logo_url.toLowerCase().endsWith('.pdf')) {
-          setClientLogo(data.logo_url);
-        }
-      }
-    };
-    fetchClientLogo();
   }, [user]);
 
   const menuItems = [
