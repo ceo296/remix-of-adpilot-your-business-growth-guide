@@ -2633,6 +2633,8 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
         }
         setIsGenerating(false);
       }
+
+      // === BANNER (360° additional or standalone) ===
       if (needsBanner && includes360) {
         setShowAutopilotBanner(true);
         setIsGeneratingBanner(true);
