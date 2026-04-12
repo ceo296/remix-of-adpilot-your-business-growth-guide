@@ -180,7 +180,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                     <Building2 className={`w-7 h-7 ${isAgency === true ? 'text-white' : 'text-muted-foreground'}`} />
                   </div>
                   <span className={`font-bold text-lg ${isAgency === true ? 'text-purple-700' : ''}`}>כמה עסקים</span>
-                  <span className="text-sm text-muted-foreground text-center">אני מנהל פרסום עבור לקוחות</span>
+                  <span className="text-sm text-muted-foreground text-center">סוכנויות פרסום | כמה עסקים</span>
                 </button>
               </div>
             </div>
