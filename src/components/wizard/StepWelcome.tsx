@@ -161,7 +161,6 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                     <User className={`w-7 h-7 ${isAgency === false ? 'text-white' : 'text-muted-foreground'}`} />
                   </div>
                   <span className={`font-bold text-lg ${isAgency === false ? 'text-blue-700' : ''}`}>עסק אחד</span>
-                  <span className="text-sm text-muted-foreground text-center">אני מפרסם את העסק שלי</span>
                 </button>
                 <button
                   type="button"
@@ -179,8 +178,7 @@ const StepWelcome = ({ onNext }: StepWelcomeProps) => {
                   }`}>
                     <Building2 className={`w-7 h-7 ${isAgency === true ? 'text-white' : 'text-muted-foreground'}`} />
                   </div>
-                  <span className={`font-bold text-lg ${isAgency === true ? 'text-purple-700' : ''}`}>כמה עסקים</span>
-                  <span className="text-sm text-muted-foreground text-center">סוכנויות פרסום | כמה עסקים</span>
+                  <span className={`font-bold text-lg ${isAgency === true ? 'text-purple-700' : ''}`}>סוכנויות פרסום | כמה עסקים</span>
                 </button>
               </div>
             </div>
