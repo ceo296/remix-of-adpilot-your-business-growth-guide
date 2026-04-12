@@ -26,7 +26,21 @@ import {
   MessageCircle,
   LayoutTemplate,
   Check,
-  Image
+  Image,
+  Phone,
+  Mail,
+  MapPin,
+  Globe,
+  Youtube,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Music2,
+  Clock,
+  Building2,
+  Star,
+  Package,
+  Edit2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
