@@ -2374,6 +2374,10 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
       }
 
       setIsGenerating(false);
+      // Auto-save campaign as draft
+      if (results.length > 0) {
+        await saveCampaignDraft(results);
+      }
       } // end of needsVisualsAutopilot else block
 
       const includes360 = mediaTypes.includes('all');
