@@ -31,7 +31,8 @@ import {
   AlertOctagon,
   MessageCircle,
   LayoutTemplate,
-  Check
+  Check,
+  Image
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -199,7 +200,6 @@ const ClientProfilePage = () => {
 
     setIsUploadingLogo(true);
     try {
-      // Auto-convert PDF logos to PNG
       let uploadFile: File | Blob = file;
       let fileExt = file.name.split('.').pop();
       
@@ -207,14 +207,12 @@ const ClientProfilePage = () => {
         toast.loading('ממיר PDF ל-PNG...', { id: 'pdf-convert' });
         const { fileToLogoDataUrl } = await import('@/lib/logo-utils');
         const { dataUrl } = await fileToLogoDataUrl(file);
-        // Convert data URL back to blob
         const res = await fetch(dataUrl);
         uploadFile = await res.blob();
         fileExt = 'png';
         toast.success('PDF הומר בהצלחה!', { id: 'pdf-convert' });
       }
       
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/logo-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
@@ -228,38 +226,94 @@ const ClientProfilePage = () => {
         .getPublicUrl(filePath);
 
       setLogoUrl(publicUrl);
-      toast.success('הלוגו הועלה בהצלחה!');
+      await updateProfile({ logo_url: publicUrl } as any);
+      toast.success('הלוגו הועלה בהצלחה! מחלץ צבעים...');
+      
+      // Auto-extract colors
+      extractColorsFromImage(publicUrl);
     } catch (error: any) {
-      toast.error(error.message || 'שגיאה בהעלאת הלוגו');
+      toast.error(typeof error?.message === 'string' ? error.message : 'שגיאה בהעלאת הלוגו');
     } finally {
       setIsUploadingLogo(false);
     }
   };
 
-  const handleExtractColorsFromLogo = async () => {
-    if (!profile.logo_url) {
-      toast.error('אין לוגו בפרופיל');
-      return;
+  const handlePastMaterialUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || !user || !profile) return;
+
+    const currentMaterials: string[] = Array.isArray((profile as any).past_materials) ? (profile as any).past_materials : [];
+    const newUrls: string[] = [...currentMaterials];
+
+    for (const file of Array.from(files)) {
+      try {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${user.id}/materials-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('brand-assets')
+          .upload(filePath, file, { contentType: file.type, upsert: true });
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('brand-assets')
+          .getPublicUrl(filePath);
+        
+        newUrls.push(publicUrl);
+      } catch (err) {
+        console.error('Failed to upload material:', err);
+      }
     }
 
-    // PDFs are now supported by the edge function
+    await updateProfile({ past_materials: newUrls } as any);
+    toast.success(`${files.length} חומרים הועלו בהצלחה`);
+  };
 
+  const removePastMaterial = async (index: number) => {
+    if (!profile) return;
+    const currentMaterials: string[] = Array.isArray((profile as any).past_materials) ? [...(profile as any).past_materials] : [];
+    currentMaterials.splice(index, 1);
+    await updateProfile({ past_materials: currentMaterials } as any);
+    toast.success('החומר הוסר');
+  };
+
+  const extractColorsFromImage = async (imageUrl: string) => {
     setIsExtractingColors(true);
-    toast.loading('מנתח צבעים מהלוגו...', { id: 'profile-color-extract' });
+    toast.loading('מנתח צבעים...', { id: 'profile-color-extract' });
 
     try {
       const { data, error } = await supabase.functions.invoke('extract-logo-colors', {
-        body: { imageUrl: profile.logo_url },
+        body: { imageUrl },
       });
 
-      if (error) {
-        // supabase-js wraps non-2xx errors into `error`
-        throw error;
-      }
+      if (error) throw error;
 
       const colors = data?.colors as { primary: string; secondary: string; background: string } | undefined;
       if (!colors?.primary || !colors?.secondary || !colors?.background) {
         throw new Error('לא התקבלו צבעים מהניתוח');
+      }
+
+      const newColors: BrandColor[] = [
+        { hex: colors.primary, name: '', number: '' },
+        { hex: colors.secondary, name: '', number: '' },
+      ];
+      
+      const merged = [...brandColors];
+      for (const nc of newColors) {
+        if (!merged.some(c => c.hex.toLowerCase() === nc.hex.toLowerCase())) {
+          merged.push(nc);
+        }
+      }
+      
+      if (merged.length > brandColors.length) {
+        setBrandColors(merged);
+      } else {
+        const updated = [...brandColors];
+        if (updated.length > 0) updated[0] = { ...updated[0], hex: colors.primary };
+        if (updated.length > 1) updated[1] = { ...updated[1], hex: colors.secondary };
+        else updated.push({ hex: colors.secondary, name: '', number: '' });
+        setBrandColors(updated);
       }
 
       await updateProfile({
@@ -271,14 +325,34 @@ const ClientProfilePage = () => {
       setPrimaryColor(colors.primary);
       setSecondaryColor(colors.secondary);
 
-      toast.success('עודכנתי צבעי המותג לפי הלוגו');
+      const fonts = data?.fonts;
+      if (fonts?.headerFont) {
+        await updateProfile({
+          header_font: fonts.headerFont,
+          body_font: fonts.bodyFont || 'Heebo',
+        } as any);
+      }
+
+      toast.success('צבעים חולצו ועודכנו בהצלחה!');
     } catch (e: any) {
-      const msg = typeof e?.message === 'string' ? e.message : 'שגיאה בחילוץ צבעים מהלוגו';
+      const msg = typeof e?.message === 'string' ? e.message : 'שגיאה בחילוץ צבעים';
       toast.error(msg);
     } finally {
       toast.dismiss('profile-color-extract');
       setIsExtractingColors(false);
     }
+  };
+
+  const handleExtractColorsFromLogo = async () => {
+    if (!profile.logo_url) {
+      toast.error('אין לוגו בפרופיל');
+      return;
+    }
+    extractColorsFromImage(profile.logo_url);
+  };
+
+  const handleExtractColorsFromMaterial = async (materialUrl: string) => {
+    extractColorsFromImage(materialUrl);
   };
 
   const handleRestartOnboarding = async () => {
@@ -598,7 +672,71 @@ const ClientProfilePage = () => {
           </CardContent>
         </Card>
 
-        {/* Default Ad Template */}
+        {/* Past Advertising Materials */}
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Image className="w-5 h-5 text-primary" />
+                חומרי פרסום קודמים
+              </CardTitle>
+              <CardDescription>העלו מודעות ופרסומים מהעבר - נחלץ מהם צבעים וסגנון</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="relative border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-primary/50 hover:bg-primary/5">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePastMaterialUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <Upload className="w-8 h-8" />
+                <span className="text-sm font-medium text-foreground">העלו חומרי פרסום קודמים</span>
+                <span className="text-xs">תמונות של מודעות, פליירים, באנרים</span>
+              </div>
+            </div>
+
+            {(() => {
+              const materials: string[] = Array.isArray((profile as any).past_materials) ? (profile as any).past_materials : [];
+              if (materials.length === 0) return null;
+              return (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {materials.map((url: string, i: number) => (
+                    <div key={i} className="relative group rounded-lg overflow-hidden border border-border">
+                      <img
+                        src={url}
+                        alt={`חומר פרסום ${i + 1}`}
+                        className="w-full h-28 object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleExtractColorsFromMaterial(url)}
+                          disabled={isExtractingColors}
+                        >
+                          <Sparkles className="w-3 h-3 ml-1" />
+                          חלץ צבעים
+                        </Button>
+                        <button
+                          onClick={() => removePastMaterial(i)}
+                          className="bg-destructive/80 text-white rounded-full p-1.5 hover:bg-destructive transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
         {availableTemplates.length > 0 && (
           <Card>
             <CardHeader>
