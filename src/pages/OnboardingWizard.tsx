@@ -457,11 +457,44 @@ const OnboardingWizard = () => {
       let pastMaterialsData: any[] = [];
       let pastMaterialsFonts: any[] = [];
       if (wizardData.pastMaterials && wizardData.pastMaterials.length > 0) {
-        pastMaterialsData = wizardData.pastMaterials.map(m => ({
-          name: m.name,
-          type: m.type,
-          adAnalysis: m.adAnalysis || null,
-        }));
+        toast.loading('מעלה חומרי פרסום...', { id: 'upload-materials' });
+        for (const m of wizardData.pastMaterials) {
+          let imageUrl: string | null = null;
+          if (m.preview) {
+            try {
+              const base64Data = m.preview.split(',')[1];
+              if (base64Data) {
+                const byteCharacters = atob(base64Data);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let j = 0; j < byteCharacters.length; j++) {
+                  byteNumbers[j] = byteCharacters.charCodeAt(j);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const mimeMatch = m.preview.match(/data:([^;]+);/);
+                const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+                const ext = mime.split('/')[1] || 'jpg';
+                const filePath = `${user.id}/materials-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                const blob = new Blob([byteArray], { type: mime });
+                const { error: upErr } = await supabase.storage
+                  .from('brand-assets')
+                  .upload(filePath, blob, { contentType: mime, upsert: true });
+                if (!upErr) {
+                  const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(filePath);
+                  imageUrl = urlData.publicUrl;
+                }
+              }
+            } catch (err) {
+              console.warn('Failed to upload past material image:', err);
+            }
+          }
+          pastMaterialsData.push({
+            name: m.name,
+            type: m.type,
+            adAnalysis: m.adAnalysis || null,
+            imageUrl,
+          });
+        }
+        toast.dismiss('upload-materials');
         // Extract detected fonts from all analyzed materials
         pastMaterialsFonts = wizardData.pastMaterials
           .filter(m => m.adAnalysis?.detectedFonts)
