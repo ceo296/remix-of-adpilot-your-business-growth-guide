@@ -172,27 +172,6 @@ const ClientProfilePage = () => {
     setCompetitors(competitors.filter((_, i) => i !== index));
   };
 
-  const addCampaign = () => {
-    if (newCampaign.trim() && successfulCampaigns.length < 10) {
-      setSuccessfulCampaigns([...successfulCampaigns, newCampaign.trim()]);
-      setNewCampaign('');
-    }
-  };
-
-  const removeCampaign = (index: number) => {
-    setSuccessfulCampaigns(successfulCampaigns.filter((_, i) => i !== index));
-  };
-
-  const addRedLine = () => {
-    if (newRedLine.trim() && personalRedLines.length < 10) {
-      setPersonalRedLines([...personalRedLines, newRedLine.trim()]);
-      setNewRedLine('');
-    }
-  };
-
-  const removeRedLine = (index: number) => {
-    setPersonalRedLines(personalRedLines.filter((_, i) => i !== index));
-  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -210,8 +189,6 @@ const ClientProfilePage = () => {
         competitors: competitors,
         advantage_slider: advantageSlider,
         target_audience: targetAudience,
-        successful_campaigns: successfulCampaigns,
-        personal_red_lines: personalRedLines,
         honorific_preference: honorificPreference,
         default_template_id: selectedTemplateId,
       } as any);
