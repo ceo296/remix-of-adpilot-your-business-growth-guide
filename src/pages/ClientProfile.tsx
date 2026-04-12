@@ -85,6 +85,7 @@ const ClientProfilePage = () => {
   const [newCompetitor, setNewCompetitor] = useState('');
   const [advantageSlider, setAdvantageSlider] = useState(profile?.advantage_slider || 50);
   const [targetAudience, setTargetAudience] = useState(profile?.target_audience || '');
+  const [targetAudienceDesc, setTargetAudienceDesc] = useState(profile?.target_audience || '');
   const [honorificPreference, setHonorificPreference] = useState<HonorificType>(
     ((profile as any)?.honorific_preference as HonorificType) || 'neutral'
   );
