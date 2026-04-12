@@ -1,24 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useClientProfile } from './useClientProfile';
 import { useSelectedClient } from './useSelectedClient';
-import type { Tables, TablesInsert } from '@/integrations/supabase/types';
+import type { Tables } from '@/integrations/supabase/types';
 
 type ClientProfile = Tables<'client_profiles'>;
 
 export const useAgencyClients = () => {
   const { user } = useAuth();
-  const { profile: agencyProfile, loading: profileLoading } = useClientProfile();
   const { selectedClientId, setSelectedClientId } = useSelectedClient();
   const [clients, setClients] = useState<ClientProfile[]>([]);
+  const [isAgency, setIsAgency] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const isAgency = agencyProfile?.is_agency_profile ?? false;
-
   const fetchClients = useCallback(async () => {
-    if (!user || !agencyProfile) {
+    if (!user) {
       setClients([]);
+      setIsAgency(false);
       setLoading(false);
       return;
     }
@@ -26,26 +24,51 @@ export const useAgencyClients = () => {
     try {
       setLoading(true);
       
-      if (isAgency) {
+      // Check if user has an agency profile
+      const { data: agencyCheck } = await supabase
+        .from('client_profiles')
+        .select('id, is_agency_profile')
+        .eq('user_id', user.id)
+        .eq('is_agency_profile', true)
+        .maybeSingle();
+
+      const userIsAgency = !!agencyCheck;
+      setIsAgency(userIsAgency);
+
+      if (userIsAgency) {
         // Agency: fetch all clients owned by this agency
         const { data, error } = await supabase
           .from('client_profiles')
           .select('*')
           .eq('agency_owner_id', user.id)
+          .eq('is_agency_profile', false)
           .order('business_name');
 
         if (error) throw error;
         setClients(data || []);
         
-        // Auto-select first client if none selected
-        if (!selectedClientId && data && data.length > 0) {
-          setSelectedClientId(data[0].id);
+        // Auto-select first client if none selected or selected doesn't exist
+        if (data && data.length > 0) {
+          const currentExists = data.some(c => c.id === selectedClientId);
+          if (!selectedClientId || !currentExists) {
+            setSelectedClientId(data[0].id);
+          }
         }
       } else {
-        // Regular user: their own profile is the only "client"
-        setClients([agencyProfile]);
-        if (!selectedClientId) {
-          setSelectedClientId(agencyProfile.id);
+        // Regular user: fetch their own profile
+        const { data } = await supabase
+          .from('client_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_agency_profile', false)
+          .order('onboarding_completed', { ascending: false })
+          .limit(1);
+
+        if (data && data.length > 0) {
+          setClients(data);
+          if (!selectedClientId) {
+            setSelectedClientId(data[0].id);
+          }
         }
       }
     } catch (err) {
@@ -53,13 +76,11 @@ export const useAgencyClients = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, agencyProfile, isAgency]);
+  }, [user]);
 
   useEffect(() => {
-    if (!profileLoading) {
-      fetchClients();
-    }
-  }, [profileLoading, fetchClients]);
+    fetchClients();
+  }, [fetchClients]);
 
   const addClient = async (clientData: {
     business_name: string;
@@ -161,7 +182,7 @@ export const useAgencyClients = () => {
     selectedClient,
     selectedClientId,
     setSelectedClientId,
-    loading: loading || profileLoading,
+    loading,
     addClient,
     updateClient,
     deleteClient,
