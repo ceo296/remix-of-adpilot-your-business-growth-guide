@@ -54,11 +54,11 @@ interface BrandColor {
 import { getGreeting } from '@/lib/honorific-utils';
 
 const X_FACTORS = [
-  { id: 'veteran', label: 'ותק וניסיון', emoji: '🏆' },
-  { id: 'product', label: 'עליונות מוצרית', emoji: '📦' },
-  { id: 'price', label: 'מחיר', emoji: '💰' },
-  { id: 'service', label: 'שירות ויחס', emoji: '❤️' },
-  { id: 'brand', label: 'סיפור המותג', emoji: '✨' },
+  { id: 'veteran', label: 'ותק וניסיון', emoji: '🏆', description: 'שנים של פעילות, מוניטין מבוסס ואמינות' },
+  { id: 'product', label: 'עליונות מוצרית', emoji: '📦', description: 'איכות גבוהה, חומרים מעולים, תוצאה מושלמת' },
+  { id: 'price', label: 'מחיר', emoji: '💰', description: 'תמחור תחרותי, יחס איכות-מחיר מנצח' },
+  { id: 'service', label: 'שירות ויחס', emoji: '❤️', description: 'יחס אישי, זמינות גבוהה, ליווי צמוד' },
+  { id: 'brand', label: 'סיפור המותג', emoji: '✨', description: 'ערכים ייחודיים, חזון ברור, זהות חזקה' },
 ] as const;
 
 const AUDIENCE_OPTIONS = [
@@ -1078,27 +1078,34 @@ const ClientProfilePage = () => {
               </Button>
             )}
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             <div>
-              <Label>גורמים מבדלים (X-Factors)</Label>
+              <Label className="text-sm font-medium">גורמים מבדלים (X-Factors)</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {X_FACTORS.map((factor) => {
                   const isSelected = xFactors.includes(factor.id);
                   return isEditing ? (
-                    <Badge
+                    <div
                       key={factor.id}
-                      variant={isSelected ? 'default' : 'outline'}
-                      className="cursor-pointer"
                       onClick={() => toggleXFactor(factor.id)}
+                      className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
+                        isSelected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'
+                      }`}
                     >
-                      <span className="ml-1">{factor.emoji}</span>
-                      {factor.label}
-                    </Badge>
+                      <div className="flex items-center gap-1.5 font-medium text-sm">
+                        <span>{factor.emoji}</span>
+                        {factor.label}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">{factor.description}</p>
+                    </div>
                   ) : isSelected ? (
-                    <Badge key={factor.id} variant="default">
-                      <span className="ml-1">{factor.emoji}</span>
-                      {factor.label}
-                    </Badge>
+                    <div key={factor.id} className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+                      <div className="flex items-center gap-1.5 font-medium text-sm">
+                        <span>{factor.emoji}</span>
+                        {factor.label}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">{factor.description}</p>
+                    </div>
                   ) : null;
                 })}
                 {!isEditing && xFactors.length === 0 && (
@@ -1106,6 +1113,40 @@ const ClientProfilePage = () => {
                 )}
               </div>
             </div>
+
+            {/* Primary X-Factor */}
+            {(primaryXFactor || isEditing) && (
+              <div>
+                <Label className="text-sm font-medium">הבידול העיקרי</Label>
+                {isEditing ? (
+                  <Input
+                    value={primaryXFactor}
+                    onChange={(e) => setPrimaryXFactor(e.target.value)}
+                    placeholder="תארו בקצרה את הבידול המרכזי שלכם..."
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-1">{primaryXFactor || 'לא הוגדר'}</p>
+                )}
+              </div>
+            )}
+
+            {/* Winning Feature */}
+            {(winningFeature || isEditing) && (
+              <div>
+                <Label className="text-sm font-medium">התכונה המנצחת</Label>
+                {isEditing ? (
+                  <Input
+                    value={winningFeature}
+                    onChange={(e) => setWinningFeature(e.target.value)}
+                    placeholder="מה הדבר הכי חזק שהלקוחות אומרים עליכם?"
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-1">{winningFeature || 'לא הוגדר'}</p>
+                )}
+              </div>
+            )}
 
           </CardContent>
         </Card>
