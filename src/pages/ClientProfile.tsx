@@ -1164,6 +1164,30 @@ const ClientProfilePage = () => {
           </CardContent>
         </Card>
 
+        {/* Add Another Business */}
+        <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5 text-primary" />
+              הוסף עסק נוסף
+            </CardTitle>
+            <CardDescription>
+              רוצה לנהל עסק נוסף מאותו חשבון? ניצור לך פרופיל עסקי חדש עם תהליך היכרות מלא
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="gradient" 
+              onClick={handleAddNewBusiness}
+              disabled={isCreatingBusiness}
+              className="w-full md:w-auto"
+            >
+              <Plus className="w-4 h-4 ml-2" />
+              {isCreatingBusiness ? 'יוצר עסק חדש...' : 'צור עסק חדש'}
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Restart Onboarding */}
         <Card className="border-dashed">
           <CardHeader>
