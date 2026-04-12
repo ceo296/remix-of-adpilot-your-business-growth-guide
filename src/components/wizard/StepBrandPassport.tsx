@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { WizardData, WizardDataUpdate } from '@/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText, AlertTriangle, Lightbulb, Bot, RefreshCw, ArrowLeft, Camera, Plus } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, Palette, Type, Image, Target, Layers, Zap, Anchor, Loader2, Building2, Users, Award, Pencil, X, Heart, Package, Trophy, Tag, FileText, AlertTriangle, Lightbulb, Bot, RefreshCw, ArrowLeft, Camera, Plus, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getYourWord } from '@/lib/honorific-utils';
@@ -26,6 +27,7 @@ interface StepBrandPassportProps {
 }
 
 const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPassportProps) => {
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExtractingColors, setIsExtractingColors] = useState(false);
   const [editMode, setEditMode] = useState<'fonts' | 'business' | 'colors' | null>(null);
@@ -910,24 +912,35 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between max-w-2xl mx-auto pt-6">
-        <Button variant="outline" size="lg" onClick={onPrev} disabled={isSubmitting}>
-          <ArrowRight className="w-4 h-4 ml-2" />
-          חזרה
-        </Button>
-        <Button variant="gradient" size="xl" onClick={handleConfirm} disabled={isSubmitting} className="gap-2">
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              שומר...
-            </>
-          ) : (
-            <>
-              <Check className="w-5 h-5" />
-              בול! אפשר להתקדם
-            </>
-          )}
-        </Button>
+      <div className="flex flex-col items-center gap-3 max-w-2xl mx-auto pt-6">
+        {/* Advisor CTA */}
+        <button
+          onClick={() => navigate('/strategy-advisor?returnTo=onboarding')}
+          className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors"
+        >
+          <Brain className="w-4 h-4" />
+          <span>רוצה להתחדד? דבר עם היועץ האסטרטגי שלנו</span>
+        </button>
+
+        <div className="flex justify-between w-full">
+          <Button variant="outline" size="lg" onClick={onPrev} disabled={isSubmitting}>
+            <ArrowRight className="w-4 h-4 ml-2" />
+            חזרה
+          </Button>
+          <Button variant="gradient" size="xl" onClick={handleConfirm} disabled={isSubmitting} className="gap-2">
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                שומר...
+              </>
+            ) : (
+              <>
+                <Check className="w-5 h-5" />
+                בול! אפשר להתקדם
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Field Edit Dialog */}
