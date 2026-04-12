@@ -267,6 +267,11 @@ const ClientProfilePage = () => {
         opening_hours: openingHours,
         branches: branches,
         services: services,
+        end_consumer: endConsumer,
+        decision_maker: decisionMaker,
+        brand_presence: brandPresence,
+        winning_feature: winningFeature,
+        primary_x_factor: primaryXFactor,
       } as any);
       toast.success('הפרופיל עודכן בהצלחה!');
       setIsEditing(false);
