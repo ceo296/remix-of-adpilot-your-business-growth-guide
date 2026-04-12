@@ -114,6 +114,13 @@ const ClientProfilePage = () => {
   const [branches, setBranches] = useState('');
   const [services, setServices] = useState<string[]>([]);
   const [newService, setNewService] = useState('');
+  
+  // MRI fields missing from previous version
+  const [endConsumer, setEndConsumer] = useState('');
+  const [decisionMaker, setDecisionMaker] = useState('');
+  const [brandPresence, setBrandPresence] = useState('');
+  const [winningFeature, setWinningFeature] = useState('');
+  const [primaryXFactor, setPrimaryXFactor] = useState('');
 
   const [availableTemplates, setAvailableTemplates] = useState<{id: string; name: string; description: string | null}[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(profile?.default_template_id || null);
@@ -146,6 +153,12 @@ const ClientProfilePage = () => {
       setOpeningHours((profile as any).opening_hours || '');
       setBranches((profile as any).branches || '');
       setServices((profile as any).services || []);
+      // MRI fields
+      setEndConsumer((profile as any).end_consumer || '');
+      setDecisionMaker((profile as any).decision_maker || '');
+      setBrandPresence((profile as any).brand_presence || '');
+      setWinningFeature((profile as any).winning_feature || '');
+      setPrimaryXFactor((profile as any).primary_x_factor || '');
       // Sync brand colors
       const rawColors = (profile as any).brand_colors;
       const colors: BrandColor[] = Array.isArray(rawColors) && rawColors.length > 0
@@ -255,6 +268,11 @@ const ClientProfilePage = () => {
         opening_hours: openingHours,
         branches: branches,
         services: services,
+        end_consumer: endConsumer,
+        decision_maker: decisionMaker,
+        brand_presence: brandPresence,
+        winning_feature: winningFeature,
+        primary_x_factor: primaryXFactor,
       } as any);
       toast.success('הפרופיל עודכן בהצלחה!');
       setIsEditing(false);
@@ -1169,6 +1187,46 @@ const ClientProfilePage = () => {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>צרכן קצה</Label>
+                {isEditing ? (
+                  <Input value={endConsumer} onChange={(e) => setEndConsumer(e.target.value)} placeholder="מי משתמש במוצר / שירות בפועל?" className="h-10" />
+                ) : (
+                  <p className="text-sm text-foreground">{(profile as any).end_consumer || <span className="text-muted-foreground">לא הוגדר</span>}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>מקבל ההחלטות</Label>
+                {isEditing ? (
+                  <Input value={decisionMaker} onChange={(e) => setDecisionMaker(e.target.value)} placeholder="מי מחליט על הרכישה?" className="h-10" />
+                ) : (
+                  <p className="text-sm text-foreground">{(profile as any).decision_maker || <span className="text-muted-foreground">לא הוגדר</span>}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>תכונה מנצחת</Label>
+                {isEditing ? (
+                  <Input value={winningFeature} onChange={(e) => setWinningFeature(e.target.value)} placeholder="מה היתרון הבולט ביותר?" className="h-10" />
+                ) : (
+                  <p className="text-sm text-foreground">{(profile as any).winning_feature || <span className="text-muted-foreground">לא הוגדר</span>}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>נוכחות מותג</Label>
+                {isEditing ? (
+                  <Input value={brandPresence} onChange={(e) => setBrandPresence(e.target.value)} placeholder="מותג מוכר / חדש / בצמיחה" className="h-10" />
+                ) : (
+                  <p className="text-sm text-foreground">{(profile as any).brand_presence || <span className="text-muted-foreground">לא הוגדר</span>}</p>
+                )}
               </div>
             </div>
 
