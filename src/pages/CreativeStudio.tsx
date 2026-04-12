@@ -1156,6 +1156,9 @@ const CreativeStudio = () => {
         if (approved > 0) toast.success(`${approved} סקיצות אושרו! בסייעתא דשמיא`);
         if (needsReview > 0) toast.warning(`${needsReview} סקיצות דורשות בדיקה אנושית`);
         if (rejected > 0) toast.error(`${rejected} סקיצות נדחו ע"י המשגיח הדיגיטלי`);
+        
+        // Auto-save campaign as draft
+        await saveCampaignDraft(results);
       } else {
         toast.error('לא הצלחנו ליצור תמונות. נסה שוב.');
       }
