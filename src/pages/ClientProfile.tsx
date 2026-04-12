@@ -1205,10 +1205,17 @@ const ClientProfilePage = () => {
                 <span className="text-muted-foreground text-sm">לא הוגדרו מתחרים</span>
               )}
             </div>
+            {isEditing && (
+              <button
+                onClick={() => navigate('/strategy-advisor?returnTo=profile')}
+                className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors mt-3"
+              >
+                <Brain className="w-4 h-4" />
+                <span>צריך עזרה בזיהוי מתחרים? שאל את היועץ האסטרטגי</span>
+              </button>
+            )}
           </CardContent>
         </Card>
-
-        {/* Target Audience */}
         <Card>
           <CardHeader className="flex flex-row items-start justify-between">
             <div>
@@ -1307,10 +1314,17 @@ const ClientProfilePage = () => {
                 </p>
               )}
             </div>
+            {isEditing && (
+              <button
+                onClick={() => navigate('/strategy-advisor?returnTo=profile')}
+                className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors mt-3"
+              >
+                <Brain className="w-4 h-4" />
+                <span>לא בטוח מי קהל היעד? היועץ האסטרטגי יעזור לך לדייק</span>
+              </button>
+            )}
           </CardContent>
         </Card>
-
-        {/* Add Another Business */}
         <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
