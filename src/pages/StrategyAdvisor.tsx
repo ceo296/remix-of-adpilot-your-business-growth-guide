@@ -221,6 +221,8 @@ const StrategyAdvisor = () => {
       // If coming from onboarding, navigate back
       if (returnTo === 'onboarding') {
         setTimeout(() => navigate('/onboarding'), 1500);
+      } else if (returnTo === 'profile') {
+        setTimeout(() => navigate('/studio#/profile'), 1500);
       }
     } catch (error) {
       console.error('Apply error:', error);
@@ -241,9 +243,9 @@ const StrategyAdvisor = () => {
       <div className="container max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => navigate(returnTo === 'onboarding' ? '/onboarding' : '/internal-studio')} className="mb-2">
+          <Button variant="ghost" onClick={() => navigate(returnTo === 'onboarding' ? '/onboarding' : returnTo === 'profile' ? '/studio#/profile' : '/internal-studio')} className="mb-2">
             <ArrowRight className="w-4 h-4 ml-2" />
-            {returnTo === 'onboarding' ? 'חזרה לתהליך ההיכרות' : 'חזרה לחומרים פנימיים'}
+            {returnTo === 'onboarding' ? 'חזרה לתהליך ההיכרות' : returnTo === 'profile' ? 'חזרה לפרופיל' : 'חזרה לחומרים פנימיים'}
           </Button>
 
           <div className="text-center">
