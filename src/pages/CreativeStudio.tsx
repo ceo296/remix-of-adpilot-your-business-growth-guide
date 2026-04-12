@@ -3034,8 +3034,9 @@ ${campaignBrief.isTimeLimited && campaignBrief.timeLimitText ? `מוגבל בז�
           <div className="max-w-3xl mx-auto">
             {/* Product Picker Screen - shown first before any wizard steps */}
             {mode === null ? (
-              <div className="py-4">
+              <div className="py-4 space-y-8">
                 <StudioProductPicker onComplete={handleProductPickerComplete} detectedIndustry={detectedIndustry} />
+                <CampaignHistoryStrip />
               </div>
             ) : mode === 'autopilot' ? (
               /* Autopilot Mode */
