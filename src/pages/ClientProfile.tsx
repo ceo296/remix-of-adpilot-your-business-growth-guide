@@ -211,6 +211,16 @@ const ClientProfilePage = () => {
     setCompetitors(competitors.filter((_, i) => i !== index));
   };
 
+  const addService = () => {
+    const trimmed = newService.trim();
+    if (!trimmed || services.includes(trimmed)) return;
+    setServices(prev => [...prev, trimmed]);
+    setNewService('');
+  };
+
+  const removeService = (index: number) => {
+    setServices(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -231,7 +241,28 @@ const ClientProfilePage = () => {
         target_audience: targetAudienceDesc,
         honorific_preference: honorificPreference,
         default_template_id: selectedTemplateId,
+        contact_phone: contactPhone,
+        contact_whatsapp: contactWhatsapp,
+        contact_email: contactEmail,
+        contact_address: contactAddress,
+        website_url: websiteUrl,
+        contact_youtube: contactYoutube,
+        social_facebook: socialFacebook,
+        social_instagram: socialInstagram,
+        social_tiktok: socialTiktok,
+        social_linkedin: socialLinkedin,
+        opening_hours: openingHours,
+        branches: branches,
+        services: services,
       } as any);
+      toast.success('הפרופיל עודכן בהצלחה!');
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error(error.message || 'שגיאה בעדכון הפרופיל');
+    } finally {
+      setIsSaving(false);
+    }
+  };
       toast.success('הפרופיל עודכן בהצלחה!');
       setIsEditing(false);
     } catch (error: any) {
