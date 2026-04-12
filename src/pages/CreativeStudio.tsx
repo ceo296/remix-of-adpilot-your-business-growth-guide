@@ -530,6 +530,21 @@ const CreativeStudio = () => {
     }
   };
 
+  // Prompt user to save draft instead of auto-saving
+  const promptSaveDraft = (results: GeneratedImage[]) => {
+    toast('רוצה לשמור את הקמפיין כטיוטה בתיק הלקוח?', {
+      duration: 15000,
+      action: {
+        label: '📁 שמור טיוטה',
+        onClick: () => saveCampaignDraft(results),
+      },
+      cancel: {
+        label: 'לא עכשיו',
+        onClick: () => {},
+      },
+    });
+  };
+
   // Auto-set aspect ratio based on media type
   useEffect(() => {
     if (mediaTypes.length === 1) {
