@@ -735,6 +735,8 @@ const ClientProfilePage = () => {
               );
             })()}
           </CardContent>
+        </Card>
+
         {availableTemplates.length > 0 && (
           <Card>
             <CardHeader>
