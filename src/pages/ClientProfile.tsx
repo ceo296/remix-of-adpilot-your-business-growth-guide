@@ -46,11 +46,17 @@ interface BrandColor {
 import { getGreeting } from '@/lib/honorific-utils';
 
 const X_FACTORS = [
-  { id: 'veteran', label: 'הוותק והניסיון', icon: Trophy },
-  { id: 'product', label: 'עליונות מוצרית', icon: Package },
-  { id: 'price', label: 'המחיר', icon: Tag },
-  { id: 'service', label: 'השירות והיחס', icon: Heart },
-  { id: 'brand', label: 'הבטחה פרסומית', icon: Sparkles },
+  { id: 'veteran', label: 'ותק וניסיון', emoji: '🏆' },
+  { id: 'product', label: 'עליונות מוצרית', emoji: '📦' },
+  { id: 'price', label: 'מחיר', emoji: '💰' },
+  { id: 'service', label: 'שירות ויחס', emoji: '❤️' },
+  { id: 'brand', label: 'סיפור המותג', emoji: '✨' },
+] as const;
+
+const AUDIENCE_OPTIONS = [
+  { id: 'broad', label: 'קהל רחב', sub: 'שפה פשוטה ובגובה העיניים', emoji: '👥' },
+  { id: 'premium', label: 'פרימיום', sub: 'שפה גבוהה, דגש על איכות', emoji: '👑' },
+  { id: 'b2b', label: 'עסקי (B2B)', sub: 'שפה מקצועית ועניינית', emoji: '💼' },
 ] as const;
 
 const HONORIFIC_OPTIONS: { value: HonorificType; label: string; description: string }[] = [
