@@ -815,30 +815,42 @@ const ClientProfilePage = () => {
             </div>
 
             {(() => {
-              const materials: string[] = Array.isArray((profile as any).past_materials) ? (profile as any).past_materials : [];
-              if (materials.length === 0) return null;
+              const rawMaterials: any[] = Array.isArray((profile as any).past_materials) ? (profile as any).past_materials : [];
+              if (rawMaterials.length === 0) return null;
+              // Support both formats: plain URL strings and objects with imageUrl
+              const materialsWithUrls = rawMaterials
+                .map((m: any, i: number) => ({
+                  index: i,
+                  name: typeof m === 'string' ? `חומר פרסום ${i + 1}` : (m.name || `חומר פרסום ${i + 1}`),
+                  url: typeof m === 'string' ? m : (m.imageUrl || m.preview || null),
+                }))
+                .filter(m => m.url);
+              if (materialsWithUrls.length === 0) return null;
               return (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {materials.map((url: string, i: number) => (
-                    <div key={i} className="relative group rounded-lg overflow-hidden border border-border">
+                  {materialsWithUrls.map((mat) => (
+                    <div key={mat.index} className="relative group rounded-lg overflow-hidden border border-border">
                       <img
-                        src={url}
-                        alt={`חומר פרסום ${i + 1}`}
+                        src={mat.url}
+                        alt={mat.name}
                         className="w-full h-28 object-cover"
                       />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1">
+                        <span className="text-xs text-white truncate block">{mat.name}</span>
+                      </div>
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                         <Button
                           variant="secondary"
                           size="sm"
                           className="h-7 text-xs"
-                          onClick={() => handleExtractColorsFromMaterial(url)}
+                          onClick={() => handleExtractColorsFromMaterial(mat.url)}
                           disabled={isExtractingColors}
                         >
                           <Sparkles className="w-3 h-3 ml-1" />
                           חלץ צבעים
                         </Button>
                         <button
-                          onClick={() => removePastMaterial(i)}
+                          onClick={() => removePastMaterial(mat.index)}
                           className="bg-destructive/80 text-white rounded-full p-1.5 hover:bg-destructive transition-colors"
                         >
                           <X className="w-3 h-3" />
