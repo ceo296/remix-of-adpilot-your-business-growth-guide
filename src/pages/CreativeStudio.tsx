@@ -1230,6 +1230,7 @@ const CreativeStudio = () => {
     setAspectRatio('square');
     // textLayoutStyle is always 'custom' — no reset needed
     setGeneratedImages([]);
+    setDraftCampaignId(null);
     setShowResults(false);
     setShowQuote(false);
     setShowSuccess(false);
