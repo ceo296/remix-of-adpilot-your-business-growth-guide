@@ -29,7 +29,6 @@ import {
   RefreshCw,
   FileText,
   AlertOctagon,
-  Star,
   MessageCircle,
   LayoutTemplate,
   Check
@@ -83,11 +82,6 @@ const ClientProfilePage = () => {
     ((profile as any)?.honorific_preference as HonorificType) || 'neutral'
   );
   
-  // Personal Hall of Fame and Red Lines
-  const [successfulCampaigns, setSuccessfulCampaigns] = useState<string[]>((profile as any)?.successful_campaigns || []);
-  const [personalRedLines, setPersonalRedLines] = useState<string[]>((profile as any)?.personal_red_lines || []);
-  const [newCampaign, setNewCampaign] = useState('');
-  const [newRedLine, setNewRedLine] = useState('');
   const [availableTemplates, setAvailableTemplates] = useState<{id: string; name: string; description: string | null}[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(profile?.default_template_id || null);
   const [brandColors, setBrandColors] = useState<BrandColor[]>([]);
@@ -102,8 +96,6 @@ const ClientProfilePage = () => {
       setCompetitors(profile.competitors || []);
       setAdvantageSlider(profile.advantage_slider || 50);
       setTargetAudience(profile.target_audience || '');
-      setSuccessfulCampaigns((profile as any).successful_campaigns || []);
-      setPersonalRedLines((profile as any).personal_red_lines || []);
       setHonorificPreference(((profile as any).honorific_preference as HonorificType) || 'neutral');
       setSelectedTemplateId(profile.default_template_id || null);
       // Sync brand colors
@@ -172,27 +164,6 @@ const ClientProfilePage = () => {
     setCompetitors(competitors.filter((_, i) => i !== index));
   };
 
-  const addCampaign = () => {
-    if (newCampaign.trim() && successfulCampaigns.length < 10) {
-      setSuccessfulCampaigns([...successfulCampaigns, newCampaign.trim()]);
-      setNewCampaign('');
-    }
-  };
-
-  const removeCampaign = (index: number) => {
-    setSuccessfulCampaigns(successfulCampaigns.filter((_, i) => i !== index));
-  };
-
-  const addRedLine = () => {
-    if (newRedLine.trim() && personalRedLines.length < 10) {
-      setPersonalRedLines([...personalRedLines, newRedLine.trim()]);
-      setNewRedLine('');
-    }
-  };
-
-  const removeRedLine = (index: number) => {
-    setPersonalRedLines(personalRedLines.filter((_, i) => i !== index));
-  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -210,8 +181,6 @@ const ClientProfilePage = () => {
         competitors: competitors,
         advantage_slider: advantageSlider,
         target_audience: targetAudience,
-        successful_campaigns: successfulCampaigns,
-        personal_red_lines: personalRedLines,
         honorific_preference: honorificPreference,
         default_template_id: selectedTemplateId,
       } as any);
@@ -819,112 +788,6 @@ const ClientProfilePage = () => {
           </CardContent>
         </Card>
 
-        {/* Personal Hall of Fame */}
-        <Card className="border-success/30 bg-success/5">
-          <CardHeader className="flex flex-row items-start justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-success" />
-                היכל התהילה האישי שלי
-              </CardTitle>
-              <CardDescription>
-                מה עבד לכם בעבר? תארו קמפיינים מוצלחים, סגנונות שעבדו, או מסרים שהצליחו - אנחנו נלמד מה הסגנון שעובד לכם
-              </CardDescription>
-            </div>
-            {!isEditing && (
-              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
-                <Sparkles className="w-4 h-4 ml-1" />
-                עריכה
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent>
-            {isEditing && (
-              <div className="flex gap-2 mb-4">
-                <Input
-                  value={newCampaign}
-                  onChange={(e) => setNewCampaign(e.target.value)}
-                  placeholder="למשל: קמפיין החגים עם הסלוגן 'טעם של בית' הצליח מאוד..."
-                  onKeyDown={(e) => e.key === 'Enter' && addCampaign()}
-                />
-                <Button variant="outline" onClick={addCampaign} disabled={successfulCampaigns.length >= 10}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
-            <div className="space-y-2">
-              {successfulCampaigns.map((campaign, idx) => (
-                <div key={idx} className="flex items-start gap-2 p-3 bg-background rounded-lg border border-border">
-                  <Trophy className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                  <span className="flex-1 text-sm">{campaign}</span>
-                  {isEditing && (
-                    <button onClick={() => removeCampaign(idx)} className="text-muted-foreground hover:text-destructive">
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {successfulCampaigns.length === 0 && (
-                <p className="text-muted-foreground text-sm text-center py-4">
-                  עדיין לא הוספתם דוגמאות להצלחות. שתפו אותנו מה עבד לכם בעבר!
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Personal Red Lines */}
-        <Card className="border-destructive/30 bg-destructive/5">
-          <CardHeader className="flex flex-row items-start justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <AlertOctagon className="w-5 h-5 text-destructive" />
-                הקווים האדומים שלי
-              </CardTitle>
-              <CardDescription>
-                מה לא לומר או להציג בפרסומות שלכם? מילים שאתם לא אוהבים, נושאים רגישים, דברים שלא רוצים להזכיר
-              </CardDescription>
-            </div>
-            {!isEditing && (
-              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
-                <Sparkles className="w-4 h-4 ml-1" />
-                עריכה
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent>
-            {isEditing && (
-              <div className="flex gap-2 mb-4">
-                <Input
-                  value={newRedLine}
-                  onChange={(e) => setNewRedLine(e.target.value)}
-                  placeholder="למשל: לא להזכיר את המתחרה X, לא להשתמש במילה 'זול'..."
-                  onKeyDown={(e) => e.key === 'Enter' && addRedLine()}
-                />
-                <Button variant="outline" onClick={addRedLine} disabled={personalRedLines.length >= 10}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {personalRedLines.map((redLine, idx) => (
-                <Badge key={idx} variant="destructive" className="text-sm py-1.5 px-3">
-                  {redLine}
-                  {isEditing && (
-                    <button onClick={() => removeRedLine(idx)} className="mr-2 hover:text-white/70">
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </Badge>
-              ))}
-              {personalRedLines.length === 0 && (
-                <p className="text-muted-foreground text-sm">
-                  לא הוגדרו קווים אדומים אישיים
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
         {/* Restart Onboarding */}
         <Card className="border-dashed">
           <CardHeader>
