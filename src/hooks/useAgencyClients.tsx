@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useClientProfile } from './useClientProfile';
+import { useSelectedClient } from './useSelectedClient';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 
 type ClientProfile = Tables<'client_profiles'>;
@@ -9,8 +10,8 @@ type ClientProfile = Tables<'client_profiles'>;
 export const useAgencyClients = () => {
   const { user } = useAuth();
   const { profile: agencyProfile, loading: profileLoading } = useClientProfile();
+  const { selectedClientId, setSelectedClientId } = useSelectedClient();
   const [clients, setClients] = useState<ClientProfile[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const isAgency = agencyProfile?.is_agency_profile ?? false;
@@ -43,14 +44,16 @@ export const useAgencyClients = () => {
       } else {
         // Regular user: their own profile is the only "client"
         setClients([agencyProfile]);
-        setSelectedClientId(agencyProfile.id);
+        if (!selectedClientId) {
+          setSelectedClientId(agencyProfile.id);
+        }
       }
     } catch (err) {
       console.error('Error fetching clients:', err);
     } finally {
       setLoading(false);
     }
-  }, [user, agencyProfile, isAgency, selectedClientId]);
+  }, [user, agencyProfile, isAgency]);
 
   useEffect(() => {
     if (!profileLoading) {
@@ -69,7 +72,6 @@ export const useAgencyClients = () => {
       throw new Error('Only agencies can add clients');
     }
 
-    // Check for duplicate or similar business names
     const normalizedName = clientData.business_name.trim().replace(/\s+/g, ' ');
     const { data: existingClients } = await supabase
       .from('client_profiles')
@@ -85,9 +87,7 @@ export const useAgencyClients = () => {
       
       const duplicate = existingClients.find(c => {
         const existingNorm = normalizeForCompare(c.business_name);
-        // Exact match
         if (existingNorm === newNorm) return true;
-        // One contains the other (e.g. "ד"ר שיפר" vs "מרפאת ד"ר שיפר")
         if (existingNorm.includes(newNorm) || newNorm.includes(existingNorm)) return true;
         return false;
       });
@@ -147,7 +147,6 @@ export const useAgencyClients = () => {
     
     setClients(prev => prev.filter(c => c.id !== clientId));
     
-    // Select another client if the deleted one was selected
     if (selectedClientId === clientId) {
       const remaining = clients.filter(c => c.id !== clientId);
       setSelectedClientId(remaining.length > 0 ? remaining[0].id : null);
