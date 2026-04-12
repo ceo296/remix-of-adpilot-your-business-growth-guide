@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Rocket, ArrowLeft, Zap, Settings, Info, ChefHat, CalendarDays, X, BarChart3 } from 'lucide-react';
+import heroBgVideo from '@/assets/hero-bg.mp4.asset.json';
 import { Link } from 'react-router-dom';
 import {
   Sheet,
@@ -118,27 +119,41 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Hero Section - Clean and centered */}
-      <section className="flex-1 flex items-center justify-center container mx-auto px-4 py-16">
-        <div className="max-w-3xl mx-auto text-center animate-fade-in">
-          
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-            שלום עליכם!
-            <span className="text-gradient block mt-2">זה הולך להיות גישמאק</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            לפרסם לקהל החרדי כבר לא מסובך כמו להכין קוגל ירושלמי,
-            הכל פה זז מהר כמו גאלע
-          </p>
-          
-          <div className="flex justify-center">
-            <Link to="/onboarding">
-              <Button variant="gradient" size="xl">
-                מתחילים בסיעתא דשמיא
-                <ArrowLeft className="w-5 h-5 mr-2" />
-              </Button>
-            </Link>
+      {/* Hero Section with Video Background */}
+      <section className="flex-1 flex items-center justify-center relative overflow-hidden">
+        {/* Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
+          src={heroBgVideo.url}
+        />
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background/80" />
+        
+        <div className="relative z-10 container mx-auto px-4 py-16">
+          <div className="max-w-3xl mx-auto text-center animate-fade-in">
+            
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+              שלום עליכם!
+              <span className="text-gradient block mt-2">זה הולך להיות גישמאק</span>
+            </h1>
+            
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              לפרסם לקהל החרדי כבר לא מסובך כמו להכין קוגל ירושלמי,
+              הכל פה זז מהר כמו גאלע
+            </p>
+            
+            <div className="flex justify-center">
+              <Link to="/onboarding">
+                <Button variant="gradient" size="xl">
+                  מתחילים בסיעתא דשמיא
+                  <ArrowLeft className="w-5 h-5 mr-2" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
