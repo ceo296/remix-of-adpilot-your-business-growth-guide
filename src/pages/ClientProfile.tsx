@@ -1149,10 +1149,17 @@ const ClientProfilePage = () => {
               </div>
             )}
 
+            {isEditing && (
+              <button
+                onClick={() => navigate('/strategy-advisor?returnTo=profile')}
+                className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors mt-2"
+              >
+                <Brain className="w-4 h-4" />
+                <span>לא בטוח מה לכתוב? דבר עם היועץ האסטרטגי שלנו</span>
+              </button>
+            )}
           </CardContent>
         </Card>
-
-        {/* Competitors */}
         <Card>
           <CardHeader className="flex flex-row items-start justify-between">
             <div>
