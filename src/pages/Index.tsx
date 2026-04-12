@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Rocket, ArrowLeft, Zap, Settings, Info, ChefHat, CalendarDays, X, BarChart3 } from 'lucide-react';
-import heroBgVideo from '@/assets/hero-bg-v8.mp4.asset.json';
+import heroBgVideo from '@/assets/hero-bg-v9.mp4.asset.json';
 import { Link } from 'react-router-dom';
 import {
   Sheet,
@@ -131,7 +131,7 @@ const Index = () => {
           src={heroBgVideo.url}
         />
         {/* Overlay - stronger on text area, lighter on edges */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/78 to-background/56" />
         
         <div className="relative z-10 container mx-auto px-4 py-16">
           <div className="max-w-3xl mx-auto text-center animate-fade-in">
