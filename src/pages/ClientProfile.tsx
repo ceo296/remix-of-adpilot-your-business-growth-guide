@@ -800,6 +800,17 @@ const ClientProfilePage = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Encouragement message */}
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="text-sm space-y-1">
+                <p className="font-medium text-foreground">💡 טיפ חשוב: העלו חומרי פרסום קודמים!</p>
+                <p className="text-muted-foreground">
+                  זו הדרך הכי טובה שלנו להיצמד לקו העיצובי שלכם. מהחומרים נלמד את הסגנון, הצבעים, הפונטים והאווירה — הרבה מעבר ללוגו בלבד.
+                </p>
+              </div>
+            </div>
+
             <div className="relative border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-primary/50 hover:bg-primary/5">
               <input
                 type="file"
@@ -811,7 +822,7 @@ const ClientProfilePage = () => {
               <div className="flex flex-col items-center gap-2 text-muted-foreground">
                 <Upload className="w-8 h-8" />
                 <span className="text-sm font-medium text-foreground">העלו חומרי פרסום קודמים</span>
-                <span className="text-xs">תמונות של מודעות, פליירים, באנרים</span>
+                <span className="text-xs">מודעות, פליירים, באנרים, כרטיסי ביקור — כל מה שיש</span>
               </div>
             </div>
 
