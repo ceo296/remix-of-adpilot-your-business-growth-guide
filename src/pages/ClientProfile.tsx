@@ -12,13 +12,10 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { 
   Palette, 
-  Type, 
   Users, 
   Target, 
-  Trophy, 
-  Package, 
-  Tag, 
-  Heart, 
+  Sparkles,
+  User,
   Sparkles,
   User,
   Upload,
