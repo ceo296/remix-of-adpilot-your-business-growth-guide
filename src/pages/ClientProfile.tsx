@@ -80,11 +80,12 @@ const ClientProfilePage = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isExtractingColors, setIsExtractingColors] = useState(false);
+  const [isCreatingBusiness, setIsCreatingBusiness] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   
   // Editable fields
   const [businessName, setBusinessName] = useState(profile?.business_name || '');
+  const [isExtractingColors, setIsExtractingColors] = useState(false);
   const [logoUrl, setLogoUrl] = useState(profile?.logo_url || '');
   const [primaryColor, setPrimaryColor] = useState(profile?.primary_color || '');
   const [secondaryColor, setSecondaryColor] = useState(profile?.secondary_color || '');
@@ -425,9 +426,35 @@ const ClientProfilePage = () => {
     extractColorsFromImage(materialUrl);
   };
 
+
+  const handleAddNewBusiness = async () => {
+    if (!user) return;
+    setIsCreatingBusiness(true);
+    try {
+      const { data: newProfile, error } = await supabase
+        .from('client_profiles')
+        .insert({
+          user_id: user.id,
+          business_name: 'עסק חדש',
+          onboarding_completed: false,
+          is_agency_profile: false,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('עסק חדש נוצר! מעביר לתהליך ההיכרות...');
+      navigate('/onboarding');
+    } catch (error: any) {
+      toast.error(error.message || 'שגיאה ביצירת עסק חדש');
+    } finally {
+      setIsCreatingBusiness(false);
+    }
+  };
+
   const handleRestartOnboarding = async () => {
     try {
-      // Reset onboarding_completed flag
       await supabase
         .from('client_profiles')
         .update({ onboarding_completed: false })
@@ -1161,6 +1188,30 @@ const ClientProfilePage = () => {
                 </p>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Add Another Business */}
+        <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5 text-primary" />
+              הוסף עסק נוסף
+            </CardTitle>
+            <CardDescription>
+              רוצה לנהל עסק נוסף מאותו חשבון? ניצור לך פרופיל עסקי חדש עם תהליך היכרות מלא
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="gradient" 
+              onClick={handleAddNewBusiness}
+              disabled={isCreatingBusiness}
+              className="w-full md:w-auto"
+            >
+              <Plus className="w-4 h-4 ml-2" />
+              {isCreatingBusiness ? 'יוצר עסק חדש...' : 'צור עסק חדש'}
+            </Button>
           </CardContent>
         </Card>
 
