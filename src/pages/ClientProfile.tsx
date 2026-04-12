@@ -263,14 +263,6 @@ const ClientProfilePage = () => {
       setIsSaving(false);
     }
   };
-      toast.success('הפרופיל עודכן בהצלחה!');
-      setIsEditing(false);
-    } catch (error: any) {
-      toast.error(error.message || 'שגיאה בעדכון הפרופיל');
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
