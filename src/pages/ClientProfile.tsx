@@ -131,6 +131,20 @@ const ClientProfilePage = () => {
       setTargetAudienceDesc(profile.target_audience || '');
       setHonorificPreference(((profile as any).honorific_preference as HonorificType) || 'neutral');
       setSelectedTemplateId(profile.default_template_id || null);
+      // Contact fields
+      setContactPhone((profile as any).contact_phone || '');
+      setContactWhatsapp((profile as any).contact_whatsapp || '');
+      setContactEmail((profile as any).contact_email || '');
+      setContactAddress((profile as any).contact_address || '');
+      setWebsiteUrl((profile as any).website_url || '');
+      setContactYoutube((profile as any).contact_youtube || '');
+      setSocialFacebook((profile as any).social_facebook || '');
+      setSocialInstagram((profile as any).social_instagram || '');
+      setSocialTiktok((profile as any).social_tiktok || '');
+      setSocialLinkedin((profile as any).social_linkedin || '');
+      setOpeningHours((profile as any).opening_hours || '');
+      setBranches((profile as any).branches || '');
+      setServices((profile as any).services || []);
       // Sync brand colors
       const rawColors = (profile as any).brand_colors;
       const colors: BrandColor[] = Array.isArray(rawColors) && rawColors.length > 0
