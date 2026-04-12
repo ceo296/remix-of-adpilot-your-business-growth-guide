@@ -152,6 +152,12 @@ const ClientProfilePage = () => {
       setOpeningHours((profile as any).opening_hours || '');
       setBranches((profile as any).branches || '');
       setServices((profile as any).services || []);
+      // MRI fields
+      setEndConsumer((profile as any).end_consumer || '');
+      setDecisionMaker((profile as any).decision_maker || '');
+      setBrandPresence((profile as any).brand_presence || '');
+      setWinningFeature((profile as any).winning_feature || '');
+      setPrimaryXFactor((profile as any).primary_x_factor || '');
       // Sync brand colors
       const rawColors = (profile as any).brand_colors;
       const colors: BrandColor[] = Array.isArray(rawColors) && rawColors.length > 0
