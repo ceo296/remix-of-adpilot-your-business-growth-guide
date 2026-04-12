@@ -12,13 +12,8 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { 
   Palette, 
-  Type, 
   Users, 
   Target, 
-  Trophy, 
-  Package, 
-  Tag, 
-  Heart, 
   Sparkles,
   User,
   Upload,
@@ -28,7 +23,6 @@ import {
   Plus,
   RefreshCw,
   FileText,
-  AlertOctagon,
   MessageCircle,
   LayoutTemplate,
   Check,
@@ -46,11 +40,17 @@ interface BrandColor {
 import { getGreeting } from '@/lib/honorific-utils';
 
 const X_FACTORS = [
-  { id: 'veteran', label: 'הוותק והניסיון', icon: Trophy },
-  { id: 'product', label: 'עליונות מוצרית', icon: Package },
-  { id: 'price', label: 'המחיר', icon: Tag },
-  { id: 'service', label: 'השירות והיחס', icon: Heart },
-  { id: 'brand', label: 'הבטחה פרסומית', icon: Sparkles },
+  { id: 'veteran', label: 'ותק וניסיון', emoji: '🏆' },
+  { id: 'product', label: 'עליונות מוצרית', emoji: '📦' },
+  { id: 'price', label: 'מחיר', emoji: '💰' },
+  { id: 'service', label: 'שירות ויחס', emoji: '❤️' },
+  { id: 'brand', label: 'סיפור המותג', emoji: '✨' },
+] as const;
+
+const AUDIENCE_OPTIONS = [
+  { id: 'broad', label: 'קהל רחב', sub: 'שפה פשוטה ובגובה העיניים', emoji: '👥' },
+  { id: 'premium', label: 'פרימיום', sub: 'שפה גבוהה, דגש על איכות', emoji: '👑' },
+  { id: 'b2b', label: 'עסקי (B2B)', sub: 'שפה מקצועית ועניינית', emoji: '💼' },
 ] as const;
 
 const HONORIFIC_OPTIONS: { value: HonorificType; label: string; description: string }[] = [
@@ -79,6 +79,7 @@ const ClientProfilePage = () => {
   const [newCompetitor, setNewCompetitor] = useState('');
   const [advantageSlider, setAdvantageSlider] = useState(profile?.advantage_slider || 50);
   const [targetAudience, setTargetAudience] = useState(profile?.target_audience || '');
+  const [targetAudienceDesc, setTargetAudienceDesc] = useState(profile?.target_audience || '');
   const [honorificPreference, setHonorificPreference] = useState<HonorificType>(
     ((profile as any)?.honorific_preference as HonorificType) || 'neutral'
   );
@@ -96,7 +97,8 @@ const ClientProfilePage = () => {
       setXFactors(profile.x_factors || []);
       setCompetitors(profile.competitors || []);
       setAdvantageSlider(profile.advantage_slider || 50);
-      setTargetAudience(profile.target_audience || '');
+      setTargetAudience((profile as any).audience_tone || '');
+      setTargetAudienceDesc(profile.target_audience || '');
       setHonorificPreference(((profile as any).honorific_preference as HonorificType) || 'neutral');
       setSelectedTemplateId(profile.default_template_id || null);
       // Sync brand colors
@@ -181,7 +183,8 @@ const ClientProfilePage = () => {
         x_factors: xFactors,
         competitors: competitors,
         advantage_slider: advantageSlider,
-        target_audience: targetAudience,
+        audience_tone: targetAudience,
+        target_audience: targetAudienceDesc,
         honorific_preference: honorificPreference,
         default_template_id: selectedTemplateId,
       } as any);
@@ -818,12 +821,12 @@ const ClientProfilePage = () => {
                       className="cursor-pointer"
                       onClick={() => toggleXFactor(factor.id)}
                     >
-                      <factor.icon className="w-3 h-3 ml-1" />
+                      <span className="ml-1">{factor.emoji}</span>
                       {factor.label}
                     </Badge>
                   ) : isSelected ? (
                     <Badge key={factor.id} variant="default">
-                      <factor.icon className="w-3 h-3 ml-1" />
+                      <span className="ml-1">{factor.emoji}</span>
                       {factor.label}
                     </Badge>
                   ) : null;
@@ -892,9 +895,9 @@ const ClientProfilePage = () => {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5 text-primary" />
-                קהל יעד
+                קהל יעד וטון תקשורת
               </CardTitle>
-              <CardDescription>למי אנחנו מדברים?</CardDescription>
+              <CardDescription>למי אנחנו מדברים ואיך?</CardDescription>
             </div>
             {!isEditing && (
               <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-primary">
@@ -903,25 +906,47 @@ const ClientProfilePage = () => {
               </Button>
             )}
           </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              {[
-                { id: 'end_user', label: 'הצרכן הסופי', desc: 'הבחור ישיבה שקונה את החליפה' },
-                { id: 'decision_maker', label: 'מקבל ההחלטות', desc: 'האמא/האישה שמשלמת' },
-              ].map((option) => (
-                <div
-                  key={option.id}
-                  onClick={() => isEditing && setTargetAudience(option.id)}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    (isEditing ? targetAudience : profile.target_audience) === option.id
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border'
-                  } ${isEditing ? 'cursor-pointer hover:border-primary/50' : ''}`}
-                >
-                  <p className="font-medium text-foreground">{option.label}</p>
-                  <p className="text-sm text-muted-foreground">{option.desc}</p>
-                </div>
-              ))}
+          <CardContent className="space-y-4">
+            <div>
+              <Label>טון תקשורת</Label>
+              <div className="grid md:grid-cols-3 gap-3 mt-2">
+                {AUDIENCE_OPTIONS.map((option) => {
+                  const audienceTone = (profile as any).audience_tone || '';
+                  const currentTone = isEditing ? targetAudience : audienceTone;
+                  return (
+                    <div
+                      key={option.id}
+                      onClick={() => isEditing && setTargetAudience(option.id)}
+                      className={`p-4 rounded-xl border-2 transition-all text-center ${
+                        currentTone === option.id
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border'
+                      } ${isEditing ? 'cursor-pointer hover:border-primary/50' : ''}`}
+                    >
+                      <span className="text-2xl">{option.emoji}</span>
+                      <p className="font-medium text-foreground mt-1">{option.label}</p>
+                      <p className="text-xs text-muted-foreground">{option.sub}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <Label>תיאור קהל יעד</Label>
+              {isEditing ? (
+                <Textarea
+                  value={targetAudienceDesc}
+                  onChange={(e) => setTargetAudienceDesc(e.target.value)}
+                  placeholder="תארו את קהל היעד שלכם..."
+                  className="mt-1"
+                  rows={2}
+                />
+              ) : (
+                <p className="text-foreground text-sm mt-1">
+                  {profile.target_audience || 'לא הוגדר'}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
