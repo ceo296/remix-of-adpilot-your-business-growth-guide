@@ -491,6 +491,45 @@ const CreativeStudio = () => {
   // Engine version selection
   const [engineVersion, setEngineVersion] = useState<'nano-banana-pro' | 'nano-banana'>('nano-banana-pro');
 
+  // Draft campaign tracking
+  const [draftCampaignId, setDraftCampaignId] = useState<string | null>(null);
+
+  // Auto-save campaign as draft after generation completes
+  const saveCampaignDraft = async (results: GeneratedImage[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !clientProfile) return;
+
+      const campaignPayload = {
+        user_id: user.id,
+        client_profile_id: clientProfile.id,
+        name: campaignBrief.title || `קמפיין ${new Date().toLocaleDateString('he-IL')}`,
+        status: 'draft',
+        vibe: style,
+        goal: campaignBrief.goal || visualPrompt,
+        creatives: results.map(img => ({
+          id: img.id,
+          url: img.url,
+          status: img.status,
+        })) as unknown as import('@/integrations/supabase/types').Json,
+      };
+
+      if (draftCampaignId) {
+        // Update existing draft
+        await supabase.from('campaigns').update(campaignPayload).eq('id', draftCampaignId);
+      } else {
+        // Create new draft
+        const { data, error } = await supabase.from('campaigns').insert(campaignPayload).select('id').single();
+        if (!error && data) {
+          setDraftCampaignId(data.id);
+        }
+      }
+      toast.success('הקמפיין נשמר בתיק האישי שלך 📁');
+    } catch (err) {
+      console.error('Failed to save campaign draft:', err);
+    }
+  };
+
   // Auto-set aspect ratio based on media type
   useEffect(() => {
     if (mediaTypes.length === 1) {
