@@ -50,8 +50,6 @@ const SOCIAL_FIELDS = [
   { key: 'contact_youtube', label: 'יוטיוב', icon: Youtube, placeholder: 'youtube.com/@channel' },
   { key: 'social_facebook', label: 'פייסבוק', icon: Facebook, placeholder: 'facebook.com/page' },
   { key: 'social_instagram', label: 'אינסטגרם', icon: Instagram, placeholder: '@username' },
-  { key: 'social_tiktok', label: 'טיקטוק', icon: Music2, placeholder: '@username' },
-  { key: 'social_linkedin', label: 'לינקדאין', icon: Linkedin, placeholder: 'linkedin.com/company/...' },
 ] as const;
 
 export const StepContactAssets = ({ data, onChange }: StepContactAssetsProps) => {
