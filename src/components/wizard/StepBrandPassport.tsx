@@ -802,29 +802,6 @@ const StepBrandPassport = ({ data, updateData, onComplete, onPrev }: StepBrandPa
               </div>
             )}
 
-            {/* Positioning */}
-            <div className="grid md:grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-secondary/50">
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <Tag className="w-3 h-3" />
-                  מיצוב מחיר
-                </p>
-                <p className="font-medium text-sm">
-                  {data.strategicMRI.myPosition.x < -30 ? 'זול / משתלם' : 
-                   data.strategicMRI.myPosition.x > 30 ? 'פרימיום / יוקרה' : 'מחיר ביניים'}
-                </p>
-              </div>
-              <div className="p-3 rounded-lg bg-secondary/50">
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  סגנון
-                </p>
-                <p className="font-medium text-sm">
-                  {data.strategicMRI.myPosition.y < -30 ? 'קלאסי ומסורתי' : 
-                   data.strategicMRI.myPosition.y > 30 ? 'מודרני וחדשני' : 'מאוזן'}
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
