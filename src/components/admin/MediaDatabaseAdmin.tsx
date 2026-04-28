@@ -789,6 +789,37 @@ const MediaDatabaseAdmin = () => {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={async () => {
+            // Sizes tab → export sizes only
+            if (activeTab === 'sizes') {
+              const categoryLabels: Record<string, string> = Object.fromEntries(
+                SIZE_CATEGORIES.map(c => [c.id, c.label])
+              );
+              const headers = ['קטגוריה', 'ערוץ מדיה', 'שם הגודל', 'ממדים', 'יום פרסום', 'הערות'];
+              const rows = mediaSizes
+                .slice()
+                .sort((a, b) =>
+                  (categoryLabels[a.category] || a.category).localeCompare(categoryLabels[b.category] || b.category) ||
+                  a.outlet.localeCompare(b.outlet) ||
+                  a.name.localeCompare(b.name)
+                )
+                .map(s => [
+                  categoryLabels[s.category] || s.category,
+                  s.outlet,
+                  s.name,
+                  s.size,
+                  s.pubDay || '',
+                  s.notes || '',
+                ]);
+              const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+              ws['!cols'] = [{ wch: 18 }, { wch: 24 }, { wch: 22 }, { wch: 30 }, { wch: 12 }, { wch: 30 }];
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, 'גדלים');
+              XLSX.writeFile(wb, 'adkop-media-sizes.xlsx');
+              toast.success(`יוצאו ${rows.length} גדלים בהצלחה`);
+              return;
+            }
+
+            // Default: export full media catalog
             const [cats, outlets, products, specs] = await Promise.all([
               supabase.from('media_categories').select('*').order('sort_order'),
               supabase.from('media_outlets').select('*').eq('is_active', true),
@@ -821,7 +852,7 @@ const MediaDatabaseAdmin = () => {
             toast.success(`יוצאו ${rows.length} שורות בהצלחה`);
           }}>
             <FileSpreadsheet className="h-4 w-4 ml-2" />
-            ייצוא Excel
+            {activeTab === 'sizes' ? 'ייצוא גדלים' : 'ייצוא Excel'}
           </Button>
           <Button onClick={openAddCategory}>
             <Plus className="h-4 w-4 ml-2" />
